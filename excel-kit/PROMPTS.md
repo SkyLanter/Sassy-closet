@@ -215,3 +215,25 @@ CONTRACT
 
 STOP if you would invent a mã or Save in Square.
 ```
+
+---
+
+## 12) From GF OneDrive link (do not hand Graph webUrl)
+
+Docs: `excel-kit/templates/from_gf/LINKING.md` (slash after `.com`, encode `!` as `%21`). Watcher: `excel-kit/sot/FROM_GF_WATCH.md`.
+
+```
+Sassy Closet — canonicalize the From GF OneDrive browse URL. Guest Share stays manual.
+
+RUN
+  python3 excel-kit/sot/onedrive_from_gf_link.py --help
+  python3 excel-kit/sot/onedrive_from_gf_link.py \
+    --web-url "https://onedrive.live.com?cid=…&id=…"
+  python3 excel-kit/sot/onedrive_from_gf_link.py --cid … --item-id …
+
+CONTRACT
+- Raw onedrive.live.com?cid=&id= (no /? , raw !) often 404s. Print canonical browse with /? and %21.
+- Prefer Graph createLink type=edit when MSAL/Graph env is already documented. This repo has none —
+  print Boss steps (Share → Can edit → copy link) and exit 0. Never invent 1drv.ms / authkey tokens.
+- Do not ask for passwords in code. Do not commit live share URLs.
+```

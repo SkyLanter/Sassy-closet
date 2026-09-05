@@ -47,6 +47,7 @@ SCRIPTS = [
     KIT / "sot" / "dashboard_brief.py",
     KIT / "sot" / "build_sot_desktop.py",
     KIT / "sot" / "gf_intake_apply.py",
+    KIT / "sot" / "onedrive_from_gf_link.py",
     KIT / "square" / "validate_import.py",
     KIT / "tests" / "run_checks.py",
 ]
@@ -61,6 +62,7 @@ CLIS = [
     KIT / "sot" / "dashboard_brief.py",
     KIT / "sot" / "build_sot_desktop.py",
     KIT / "sot" / "gf_intake_apply.py",
+    KIT / "sot" / "onedrive_from_gf_link.py",
     KIT / "square" / "validate_import.py",
 ]
 
@@ -384,6 +386,8 @@ GF_CANDIDATE = KIT / "templates" / "from_gf" / "examples" / "candidate_looking_v
 GF_BOUGHT = KIT / "templates" / "from_gf" / "examples" / "bought_waiting_stock"
 GF_REPLIES = KIT / "inbox" / "gf_intake_reply_templates.md"
 GF_WATCH = KIT / "sot" / "FROM_GF_WATCH.md"
+GF_LINKING = KIT / "templates" / "from_gf" / "LINKING.md"
+GF_LINK_CLI = KIT / "sot" / "onedrive_from_gf_link.py"
 
 
 def _digest(path: Path) -> str:
@@ -423,6 +427,7 @@ def check_gf_intake() -> None:
         GF_TEMPLATE,
         GF_REPLIES,
         GF_WATCH,
+        GF_LINKING,
         GF_CANDIDATE / "INTAKE_TEMPLATE.txt",
         GF_BOUGHT / "note.txt",
     ):
@@ -440,6 +445,8 @@ def check_gf_intake() -> None:
     ):
         if needle not in how:
             raise AssertionError(f"HOW_TO_UPLOAD.md should mention {needle!r}")
+    if "LINKING.md" not in how:
+        raise AssertionError("HOW_TO_UPLOAD.md should point Boss/Kit at LINKING.md")
 
     replies = GF_REPLIES.read_text(encoding="utf-8").lower()
     if "vẫn chưa lên square" not in replies or "still off square" not in replies:
@@ -684,6 +691,114 @@ def check_gf_intake() -> None:
     print("GF clothes intake ok")
 
 
+def check_onedrive_from_gf_link() -> None:
+    from sot.onedrive_from_gf_link import (  # noqa: E402
+        EXAMPLE_BROKEN_WEB_URL,
+        ONEDRIVE_FROM_GF as LINK_FROM_GF,
+        build_plan,
+        looks_like_broken_live_browse,
+    )
+
+    if LINK_FROM_GF != ONEDRIVE_FROM_GF:
+        raise AssertionError("onedrive_from_gf_link.ONEDRIVE_FROM_GF must match schema")
+
+    if not GF_LINKING.is_file():
+        raise AssertionError("missing templates/from_gf/LINKING.md")
+    linking = GF_LINKING.read_text(encoding="utf-8")
+    for needle in (
+        "onedrive.live.com?cid=",
+        "%21",
+        "createLink",
+        "Can edit",
+        "/?",
+        "1drv.ms",
+        "404",
+    ):
+        if needle not in linking:
+            raise AssertionError(f"LINKING.md should warn/teach {needle!r}")
+    watch = GF_WATCH.read_text(encoding="utf-8")
+    if "LINKING.md" not in watch or "onedrive_from_gf_link.py" not in watch:
+        raise AssertionError("FROM_GF_WATCH.md should point at LINKING.md and the helper")
+    prompts = (KIT / "PROMPTS.md").read_text(encoding="utf-8")
+    if "onedrive_from_gf_link.py" not in prompts or "LINKING.md" not in prompts:
+        raise AssertionError("PROMPTS.md should point at LINKING.md / helper")
+
+    if not looks_like_broken_live_browse(EXAMPLE_BROKEN_WEB_URL):
+        raise AssertionError("Boss Graph webUrl must be detected as the failed browse shape")
+
+    plan = build_plan(web_url=EXAMPLE_BROKEN_WEB_URL)
+    want = (
+        "https://onedrive.live.com/?cid=7a74d53e91d4f05f"
+        "&id=7A74D53E91D4F05F%21sae89effd79104c01a63f092754d1c9f9"
+    )
+    if plan.canonical_browse != want:
+        raise AssertionError(f"canonical browse mismatch: {plan.canonical_browse!r}")
+    if "%21" not in (plan.canonical_browse or ""):
+        raise AssertionError("canonical browse must encode ! as %21")
+    if "onedrive.live.com?" in (plan.canonical_browse or "") and "onedrive.live.com/?" not in (
+        plan.canonical_browse or ""
+    ):
+        raise AssertionError("canonical browse must include /? after .com")
+    guid_want = "https://onedrive.live.com/?id=ae89effd-7910-4c01-a63f-092754d1c9f9&cid=7a74d53e91d4f05f"
+    if plan.guid_browse != guid_want:
+        raise AssertionError(f"GUID browse mismatch: {plan.guid_browse!r}")
+    if "d.docs.live.net/7a74d53e91d4f05f/Documents/Sassy%20Closet/From%20GF" not in (
+        plan.path_browse or ""
+    ):
+        raise AssertionError(f"path-style From GF URL missing: {plan.path_browse!r}")
+
+    flags = build_plan(
+        cid="7a74d53e91d4f05f",
+        item_id="7A74D53E91D4F05F!sae89effd79104c01a63f092754d1c9f9",
+    )
+    if flags.canonical_browse != want:
+        raise AssertionError("--cid/--item-id should match --web-url canonical form")
+
+    already = build_plan(web_url=want)
+    if already.canonical_browse != want:
+        raise AssertionError("already-canonical URL should stay canonical")
+
+    share = build_plan(web_url="https://1drv.ms/f/s!placeholder-do-not-invent")
+    if share.guest_share != "https://1drv.ms/f/s!placeholder-do-not-invent":
+        raise AssertionError("1drv.ms must pass through — never rewrite into a fake token")
+    if share.canonical_browse and "1drv.ms" not in (share.guest_share or ""):
+        raise AssertionError("guest share URL should remain the 1drv.ms input")
+
+    help_proc = _run([sys.executable, str(GF_LINK_CLI), "--help"])
+    if help_proc.returncode != 0:
+        raise AssertionError(help_proc.stderr)
+    help_blob = (help_proc.stdout + help_proc.stderr).lower()
+    for needle in ("--cid", "--item-id", "--web-url", "usage:"):
+        if needle not in help_blob:
+            raise AssertionError(f"onedrive_from_gf_link.py --help should mention {needle!r}")
+
+    cli = _run(
+        [
+            sys.executable,
+            str(GF_LINK_CLI),
+            "--web-url",
+            EXAMPLE_BROKEN_WEB_URL,
+        ]
+    )
+    if cli.returncode != 0:
+        raise AssertionError(cli.stdout + cli.stderr)
+    blob = cli.stdout + cli.stderr
+    if want not in blob:
+        raise AssertionError("CLI must print the canonical browse URL")
+    if "createLink" not in blob:
+        raise AssertionError("no Graph auth in repo — CLI must print createLink instructions")
+    if "Can edit" not in blob:
+        raise AssertionError("CLI must print Boss Share → Can edit steps")
+    if "password" in blob.lower() and "do not" not in blob.lower():
+        raise AssertionError("CLI must not ask for a password")
+
+    missing = _run([sys.executable, str(GF_LINK_CLI)])
+    if missing.returncode == 0:
+        raise AssertionError("helper with no args should fail (need --cid/--item-id or --web-url)")
+
+    print("From GF OneDrive link helper ok")
+
+
 def main() -> int:
     try:
         check_py_compile()
@@ -693,6 +808,7 @@ def main() -> int:
         check_square_template()
         check_builders_and_append()
         check_gf_intake()
+        check_onedrive_from_gf_link()
     except Exception as exc:  # noqa: BLE001 — kit runner prints and exits
         print(f"FAIL: {exc}", file=sys.stderr)
         return 1
