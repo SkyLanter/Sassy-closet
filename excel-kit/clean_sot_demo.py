@@ -107,6 +107,15 @@ def _row_values(ws: Worksheet, row: int, max_col: int) -> list[object]:
     return [ws.cell(row, col).value for col in range(1, max_col + 1)]
 
 
+def _row_payload(ws: Worksheet, row: int, max_col: int) -> list[tuple[object, str | None]]:
+    payload: list[tuple[object, str | None]] = []
+    for col in range(1, max_col + 1):
+        cell = ws.cell(row, col)
+        target = cell.hyperlink.target if cell.hyperlink is not None else None
+        payload.append((cell.value, target))
+    return payload
+
+
 def _row_is_empty(values: list[object]) -> bool:
     return not any(v is not None and str(v).strip() != "" for v in values)
 
@@ -135,25 +144,27 @@ def clear_demo_rows(ws: Worksheet, *, wipe_data: bool) -> tuple[int, int]:
     header_row = _header_row_for(ws)
     max_col = max(ws.max_column or 1, 1)
     cleared = 0
-    kept = 0
-    last_keep = header_row
-    for row in range(header_row + 1, (ws.max_row or header_row) + 1):
+    kept_rows: list[list[tuple[object, str | None]]] = []
+    last_row = ws.max_row or header_row
+    for row in range(header_row + 1, last_row + 1):
         values = _row_values(ws, row, max_col)
         if _row_is_empty(values):
             continue
         if wipe_data or looks_like_demo_row(values):
-            _clear_row(ws, row, max_col)
             cleared += 1
         else:
-            kept += 1
-            last_keep = row
-    # Leave the table one empty data row tall when everything was wiped.
-    empty_tail = header_row + 1 if cleared and kept == 0 else last_keep
-    if kept == 0:
-        empty_tail = header_row + 1
-        # Keep a blank input row under the header for Official/Wishlist/Orders.
-        if ws.max_row < empty_tail:
-            ws.cell(empty_tail, 1, None)
+            kept_rows.append(_row_payload(ws, row, max_col))
+    for row in range(header_row + 1, last_row + 1):
+        _clear_row(ws, row, max_col)
+    for offset, payload in enumerate(kept_rows, start=1):
+        dest_row = header_row + offset
+        for col, (value, link) in enumerate(payload, start=1):
+            cell = ws.cell(dest_row, col, value)
+            if link:
+                cell.hyperlink = link
+    kept = len(kept_rows)
+    # One blank input row when the sheet is empty so the Excel table still has a body.
+    empty_tail = header_row + (kept if kept else 1)
     _resize_table(ws, header_row, empty_tail, max_col)
     if ws.auto_filter and ws.auto_filter.ref:
         ws.auto_filter.ref = f"A{header_row}:{get_column_letter(max_col)}{empty_tail}"

@@ -265,7 +265,8 @@ SQUARE_WORDING_PATCHES: tuple[tuple[re.Pattern[str], str], ...] = (
     (
         re.compile(
             r"(?i)\b(?:this )?(?:excel|workbook|spreadsheet|sheet) is "
-            r"(?:the )?(?:on-hand )?source of truth\b"
+            r"(?:the )?(?:on-hand )?source of truth"
+            r"(?:\s+for(?:\s+the)?(?:\s+on-hand)?\s+inventory)?[.]?"
         ),
         SQUARE_SOT_LINE,
     ),
