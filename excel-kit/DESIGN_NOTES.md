@@ -20,8 +20,14 @@ Defined in `schema.py`:
 - **ORDERS** — Facebook hello → pay / ship (no photo column)
 - **BOT_ACTIVITY** — Date, Time PT, Bot, Ma, Action, Summary, Status
 - **CANDIDATES** — `#` … `photo_link` (last)
+- **SOT_WISHLIST** — `wish_id` … `source` … `notes` … `photo_link` (last). Link/source required if available.
+- **SOT_OFFICIAL** — richer working-copy columns (`ma_num`, `prefix`, `square_name`, measurements). `photo_link` is not last here on purpose so live SoT books do not shuffle; append scripts map by header name.
 
-`photo_link` is last so a phone can ignore it and a desktop can still AutoFilter it. Never add a picture column.
+`photo_link` is last on Ma_List, Candidates, and SoT Wishlist so a phone can ignore it and a desktop can still AutoFilter it. Never add a picture column.
+
+## SoT automation (`excel-kit/sot/`)
+
+Append scripts refuse to mint mã. Official requires `--ma` or prints ASK STOCK. Wishlist demands `--source` or `--no-source`. Orders accept only `Inquiry|Reserved|Paid|Shipped|Picked up|Cancelled`. `append_bot_activity.py` no-ops with a note when `Bot_Activity` is missing. `dashboard_brief.py` reads cached Dashboard values; if Excel has not calculated yet, Boss copies `Dashboard!B43`.
 
 ## Mã
 

@@ -7,7 +7,7 @@ Build desktop Official + Wishlist for Sassy Closet with excel-kit.
 
 RUN
   python3 excel-kit/build_boutique_desktop.py --out-dir ./out
-  python3 -m py_compile excel-kit/schema.py excel-kit/build_boutique_desktop.py excel-kit/clean_sot_demo.py
+  python3 excel-kit/tests/run_checks.py
 
 CONTRACT (import excel-kit/schema.py — do not retype)
 - Official: How_to_use, Ma_List, Orders, Bot_Activity

@@ -1,9 +1,11 @@
 """Sassy Closet Excel kit — shared headers, mã rules, and workbook helpers.
 
 Desktop Official / Wishlist use MA_LIST, ORDERS, BOT_ACTIVITY, CANDIDATES.
-The OneDrive SoT workbook (Sassy_Closet_SoT.xlsx) uses the richer Official /
-Wishlist / Orders column sets. Square Free remains on-hand inventory SoT;
-these sheets are a working copy / mã index / captions — not a second stock.
+The OneDrive SoT workbook (Sassy_Closet_SoT.xlsx) is the ONE desktop working
+copy: Official / Wishlist / Orders / Dashboard (plus Bot_Activity when present).
+Square Free remains on-hand inventory SoT; Official Excel is a working copy /
+mã index / captions — not a second stock. Never embed images. photo_link last
+on Ma_List, Candidates, and SoT Wishlist.
 """
 
 from __future__ import annotations
@@ -134,7 +136,21 @@ SOT_SHEETS: tuple[str, ...] = (
     "Wishlist",
     "Orders",
     "Dashboard",
+    "Bot_Activity",
 )
+
+# Optional on the SoT book; required on the lean Official desktop book.
+SOT_OPTIONAL_SHEETS: tuple[str, ...] = ("Bot_Activity",)
+
+SHEET_ALIASES: dict[str, tuple[str, ...]] = {
+    "official": ("Official", "Ma_List", "Ma List"),
+    "wishlist": ("Wishlist", "Candidates"),
+    "orders": ("Orders",),
+    "bot_activity": ("Bot_Activity", "Bot Activity", "BOT_ACTIVITY"),
+    "dashboard": ("Dashboard",),
+    "lists": ("Lists",),
+    "start_here": ("START HERE", "How_to_use"),
+}
 
 SOT_OFFICIAL: tuple[str, ...] = (
     "ma",
@@ -171,6 +187,7 @@ SOT_OFFICIAL: tuple[str, ...] = (
     "prefix",
 )
 
+# photo_link is last. source = Link/source (Taobao / shop URL) — required if available.
 SOT_WISHLIST: tuple[str, ...] = (
     "wish_id",
     "date_added",
@@ -184,8 +201,9 @@ SOT_WISHLIST: tuple[str, ...] = (
     "reason",
     "requested_by",
     "status",
-    "photo_link",
+    "source",
     "notes",
+    "photo_link",
 )
 
 SOT_ORDERS: tuple[str, ...] = (
@@ -217,15 +235,204 @@ SOT_OFFICIAL_STATUS: tuple[str, ...] = (
     "Donated",
 )
 
+SOT_WISHLIST_STATUS: tuple[str, ...] = ("candidate", "watching", "skip", "bought")
+SOT_ORDER_STATUS: tuple[str, ...] = ORDER_STATUS
+SOT_CONDITION: tuple[str, ...] = ("New", "Like new", "Good", "Fair", "As-is")
+SOT_CHANNELS: tuple[str, ...] = ("Facebook", "IG", "Walk-in", "Friend", "Other")
+SOT_PAY: tuple[str, ...] = ("Zelle", "Cash", "Venmo", "Other", "Unpaid")
+SOT_FULFILL: tuple[str, ...] = ("Ship", "Local pickup", "Hold", "TBD")
+
+# Official working-copy status → lean Ma_List status (Square still wins on-hand).
+OFFICIAL_TO_MA_LIST_STATUS: dict[str, str] = {
+    "Available": "in_stock",
+    "Reserved": "held",
+    "Sold": "sold",
+    "Hold": "held",
+    "Damaged": "archived",
+    "Donated": "archived",
+}
+
+# Header aliases so append scripts work on both SoT and lean desktop books.
+HEADER_ALIASES: dict[str, tuple[str, ...]] = {
+    "ma": ("ma", "mã", "Ma"),
+    "item": ("item", "name_vi", "Brand + name", "what_vi"),
+    "name_vi": ("name_vi", "what_vi", "item", "Brand + name"),
+    "name_en": ("name_en", "what_en"),
+    "what_vi": ("what_vi", "name_vi", "Brand + name", "item"),
+    "what_en": ("what_en", "name_en"),
+    "size": ("size", "sizes_in_stock", "Size Asia + cm"),
+    "sizes_in_stock": ("sizes_in_stock", "size", "Size Asia + cm"),
+    "color": ("color", "Color", "mau", "Mau"),
+    "cost": ("cost", "Cost ¥", "max_cost", "Von Y"),
+    "list_price": ("list_price", "price", "Sell $", "Gia ban $", "target_price", "agreed_price"),
+    "price": ("price", "list_price", "Sell $", "Gia ban $"),
+    "qty_on_hand": ("qty_on_hand", "on_hand", "qty"),
+    "on_hand": ("on_hand", "qty_on_hand", "qty"),
+    "status": ("status", "Status", "order_status"),
+    "order_status": ("order_status", "status", "Status"),
+    "notes": ("notes", "Photos / notes", "thread_note"),
+    "photo_link": ("photo_link",),
+    "source": (
+        "source",
+        "link",
+        "Link (reopen)",
+        "Link/source",
+        "link_source",
+        "Link",
+    ),
+    "date": ("date", "Date", "date_in", "date_added"),
+    "date_in": ("date_in", "date", "Date"),
+    "date_added": ("date_added", "date", "Date"),
+    "buyer": ("buyer",),
+    "channel": ("channel",),
+    "pay": ("pay", "pay_method"),
+    "pay_method": ("pay_method", "pay"),
+    "ship_or_local": ("ship_or_local", "fulfill", "meetup_or_ship"),
+    "agreed_price": ("agreed_price", "price", "list_price"),
+    "wish_id": ("wish_id", "#"),
+    "order_id": ("order_id",),
+    "brand": ("brand", "Brand + name"),
+    "prefix": ("prefix",),
+    "requested_by": ("requested_by",),
+    "reason": ("reason",),
+    "max_cost": ("max_cost", "cost", "Cost ¥"),
+    "target_price": ("target_price", "Sell $", "list_price", "price"),
+    "type": ("Type", "type", "category"),
+    "category": ("category", "Type", "type"),
+    "photo_file": ("photo_file",),
+    "square_name": ("square_name",),
+    "caption_ready": ("caption_ready",),
+    "fb_handle": ("fb_handle",),
+    "snapshot": ("snapshot",),
+    "qty": ("qty", "qty_on_hand", "on_hand"),
+    "ship_fee": ("ship_fee",),
+    "net": ("net",),
+    "fulfill": ("fulfill", "ship_or_local"),
+    "meetup_or_ship": ("meetup_or_ship", "ship_or_local"),
+    "thread_note": ("thread_note", "notes"),
+    "last_touch": ("last_touch", "last_updated"),
+    "last_updated": ("last_updated", "last_touch"),
+    "reserved_for": ("reserved_for",),
+    "condition": ("condition",),
+    "storage": ("storage",),
+    "fb_url": ("fb_url",),
+}
+
 # Sheets whose data rows may hold kit-seeded demo stock / fake buyers.
 SOT_DATA_SHEETS: dict[str, dict[str, object]] = {
     "Official": {"header_row": 4, "table": "Official"},
     "Wishlist": {"header_row": 4, "table": "Wishlist"},
     "Orders": {"header_row": 4, "table": "Orders"},
+    "Bot_Activity": {"header_row": 1, "table": None},
     "Ma_List": {"header_row": 1, "table": None},
     "Candidates": {"header_row": 1, "table": None},
     "Ma List": {"header_row": 1, "table": None},
+    "Bot Activity": {"header_row": 1, "table": None},
 }
+
+# ---------------------------------------------------------------------------
+# Dashboard — morning brief. Boss copies Dashboard!B43 when formulas are live.
+# ---------------------------------------------------------------------------
+
+SOT_DASHBOARD_BRIEF_CELL = "B43"
+SOT_DASHBOARD_BRIEF_LABEL_CELL = "A43"
+
+# row -> (A-label, B-formula-or-kind). Formulas use Excel table names.
+SOT_DASHBOARD_ROWS: dict[int, tuple[str, str]] = {
+    5: ("Official pieces (ma rows)", '=COUNTA(Official[ma])'),
+    6: ("Available", '=COUNTIF(Official[status],"Available")'),
+    7: ("Reserved (Official)", '=COUNTIF(Official[status],"Reserved")'),
+    8: ("Sold", '=COUNTIF(Official[status],"Sold")'),
+    9: (
+        "Other Official (Hold / Damaged / Donated)",
+        '=COUNTIF(Official[status],"Hold")+COUNTIF(Official[status],"Damaged")+COUNTIF(Official[status],"Donated")',
+    ),
+    10: (
+        "Qty on hand (Available rows — working copy)",
+        '=SUMIF(Official[status],"Available",Official[qty_on_hand])',
+    ),
+    11: (
+        "Wishlist open (candidate + watching)",
+        '=COUNTIF(Wishlist[status],"candidate")+COUNTIF(Wishlist[status],"watching")',
+    ),
+    12: ("Wishlist bought (not Square until Boss Save)", '=COUNTIF(Wishlist[status],"bought")'),
+    13: ("Orders Inquiry", '=COUNTIF(Orders[order_status],"Inquiry")'),
+    14: ("Orders Reserved", '=COUNTIF(Orders[order_status],"Reserved")'),
+    15: ("Orders Paid", '=COUNTIF(Orders[order_status],"Paid")'),
+    16: ("Orders Shipped", '=COUNTIF(Orders[order_status],"Shipped")'),
+    17: ("Orders Picked up", '=COUNTIF(Orders[order_status],"Picked up")'),
+    18: ("Orders Cancelled", '=COUNTIF(Orders[order_status],"Cancelled")'),
+    21: ("Next AO (Stock reads — bots do not mint)", '="AO"&TEXT(MAXIFS(Official[ma_num],Official[prefix],"AO")+1,"000")'),
+    22: ("Next QU (Stock reads — bots do not mint)", '="QU"&TEXT(MAXIFS(Official[ma_num],Official[prefix],"QU")+1,"000")'),
+    23: ("Next VA (Stock reads — bots do not mint)", '="VA"&TEXT(MAXIFS(Official[ma_num],Official[prefix],"VA")+1,"000")'),
+    24: ("Next AK (Stock reads — bots do not mint)", '="AK"&TEXT(MAXIFS(Official[ma_num],Official[prefix],"AK")+1,"000")'),
+    25: ("Next GI (Stock reads — bots do not mint)", '="GI"&TEXT(MAXIFS(Official[ma_num],Official[prefix],"GI")+1,"000")'),
+    26: ("Next PK (Stock reads — bots do not mint)", '="PK"&TEXT(MAXIFS(Official[ma_num],Official[prefix],"PK")+1,"000")'),
+    27: ("Next SET (Stock reads — bots do not mint)", '="SET"&TEXT(MAXIFS(Official[ma_num],Official[prefix],"SET")+1,"000")'),
+}
+
+SOT_DASHBOARD_BRIEF_FORMULA = (
+    '="Morning brief · Official "&TEXT(B5,"0")'
+    '&" · Available "&TEXT(B6,"0")'
+    '&" · Reserved "&TEXT(B7,"0")'
+    '&" · on-hand "&TEXT(B10,"0")'
+    '&" · wishlist open "&TEXT(B11,"0")'
+    '&" · inquiry "&TEXT(B13,"0")'
+    '&" · reserved orders "&TEXT(B14,"0")'
+    '&" · paid "&TEXT(B15,"0")'
+    '&" · next AO "&B21'
+)
+
+SOT_DASHBOARD_BRIEF_NOTE = (
+    "If this script prints a formula instead of numbers, Excel has not cached "
+    "values yet. Boss: open Sassy_Closet_SoT.xlsx → Dashboard → copy B43 "
+    "(morning brief). Paste that text to Mini Boss / Slack. "
+    "openpyxl cannot calculate Excel formulas."
+)
+
+# ---------------------------------------------------------------------------
+# Square Free catalog import (headers only in git — never live stock rows)
+# ---------------------------------------------------------------------------
+
+# Stable Square item-library columns Stock maps in Dashboard → Import library.
+# Location-specific headers use [Default]; Stock replaces Default with the
+# live Square location name from a fresh export before any Boss-approved Save.
+SQUARE_IMPORT_HEADERS: tuple[str, ...] = (
+    "Token",
+    "Item Name",
+    "Variation Name",
+    "SKU",
+    "Description",
+    "Category",
+    "Reporting Category",
+    "SEO Title",
+    "SEO Description",
+    "Permalink",
+    "GTIN",
+    "Square Online Item Visibility",
+    "Item Type",
+    "Weight",
+    "Price",
+    "Online Sale Price",
+    "Archived",
+    "Sellable",
+    "Stockable",
+    "Skip Detail Screen in POS",
+    "Option Name 1",
+    "Option Value 1",
+    "Default Unit Cost",
+    "Enabled [Default]",
+    "Current Quantity [Default]",
+    "New Quantity [Default]",
+    "Stock Alert Enabled [Default]",
+    "Stock Alert Count [Default]",
+)
+
+SQUARE_SKU_IS_MA = (
+    "SKU = mã (AO001). Item Name = mã + short name. "
+    "Variation Name = Asia size + color (M / đen). "
+    "Stockable = Y (Track stock ON). Never put No in New Quantity to kill tracking."
+)
 
 # ---------------------------------------------------------------------------
 # Standing copy
@@ -233,7 +440,7 @@ SOT_DATA_SHEETS: dict[str, dict[str, object]] = {
 
 SQUARE_SOT_LINE = (
     "Square Free = on-hand inventory source of truth. "
-    "Desktop SoT Excel is a working copy / mã index / captions — "
+    "Official Excel (Sassy_Closet_SoT.xlsx) is a working copy / mã index / captions — "
     "NOT a second inventory."
 )
 
@@ -241,6 +448,12 @@ SQUARE_SOT_SHORT = (
     "Square Free = on-hand source of truth. "
     "Official Excel = working copy / mã index / captions / photos — "
     "not a second inventory brain. Wishlist ≠ stock. Bots draft only."
+)
+
+ASK_STOCK_MA = (
+    "Never invent a mã. Ask Stock to read Dashboard next-mã "
+    "(MAXIFS on Official[ma_num] + prefix, cells B21:B27) and Boss to assign it. "
+    "Do not reuse a Sold mã."
 )
 
 BOTS_DRAFT_ONLY = (
@@ -398,6 +611,75 @@ def is_valid_ma(value: object) -> bool:
     return parse_ma(value) is not None
 
 
+def format_ma(prefix: str, number: int) -> str:
+    """Format a Boss/Stock-assigned prefix+number. Does not pick the next code."""
+    key = prefix.strip().upper()
+    if key not in MA_PREFIX_MEANS:
+        raise ValueError(f"unknown mã prefix: {prefix!r}")
+    if number < 1 or number > 999:
+        raise ValueError(f"mã number out of range: {number}")
+    return f"{key}{number:03d}"
+
+
+class MissingMaError(ValueError):
+    """Raised when a script would have to invent a mã — ask Stock instead."""
+
+
+def require_ma(value: object) -> str:
+    """Return a normalized mã or raise MissingMaError (never invent)."""
+    parsed = parse_ma(value)
+    if parsed is None:
+        given = "" if value is None else str(value).strip()
+        hint = f" got {given!r}." if given else ""
+        raise MissingMaError(f"mã required.{hint} {ASK_STOCK_MA}")
+    prefix, number = parsed
+    return format_ma(prefix, number)
+
+
+def normalize_header(name: object) -> str:
+    return "" if name is None else str(name).strip().lower()
+
+
+def resolve_header_key(headers: Sequence[str], logical: str) -> int | None:
+    """Column index (0-based) for a logical field, using HEADER_ALIASES."""
+    aliases = HEADER_ALIASES.get(logical, (logical,))
+    wanted = {normalize_header(a) for a in aliases}
+    for i, header in enumerate(headers):
+        if normalize_header(header) in wanted:
+            return i
+    return None
+
+
+def read_headers(ws: Worksheet, header_row: int) -> list[str]:
+    max_col = max(ws.max_column or 1, 1)
+    values = [ws.cell(header_row, col).value for col in range(1, max_col + 1)]
+    # Trim trailing empty headers.
+    while values and (values[-1] is None or str(values[-1]).strip() == ""):
+        values.pop()
+    return ["" if v is None else str(v).strip() for v in values]
+
+
+def header_row_for_sheet(title: str) -> int:
+    meta = SOT_DATA_SHEETS.get(title, {})
+    configured = meta.get("header_row")
+    return configured if isinstance(configured, int) else 1
+
+
+def table_name_for_sheet(title: str) -> str | None:
+    meta = SOT_DATA_SHEETS.get(title, {})
+    name = meta.get("table")
+    return name if isinstance(name, str) and name else None
+
+
+def resolve_sheet_name(sheetnames: Sequence[str], logical: str) -> str | None:
+    aliases = SHEET_ALIASES.get(logical, (logical,))
+    wanted = {a.strip().lower() for a in aliases}
+    for name in sheetnames:
+        if name.strip().lower() in wanted:
+            return name
+    return None
+
+
 def photo_filename_for_ma(ma: str, extra: int | None = None) -> str:
     parsed = parse_ma(ma)
     if parsed is None:
@@ -533,6 +815,42 @@ def assert_photo_link_last(headers: Sequence[str], sheet_label: str) -> None:
 
 assert_photo_link_last(MA_LIST, "MA_LIST")
 assert_photo_link_last(CANDIDATES, "CANDIDATES")
+assert_photo_link_last(SOT_WISHLIST, "SOT_WISHLIST")
+
+
+def photo_link_col_index(headers: Sequence[str]) -> int | None:
+    """0-based index of photo_link, if present."""
+    return resolve_header_key(headers, "photo_link")
+
+
+def official_status_or_raise(value: object) -> str:
+    text = "" if value is None else str(value).strip()
+    for allowed in SOT_OFFICIAL_STATUS:
+        if text.lower() == allowed.lower():
+            return allowed
+    raise ValueError(
+        f"Official status must be one of {list(SOT_OFFICIAL_STATUS)}, got {text!r}"
+    )
+
+
+def order_status_or_raise(value: object) -> str:
+    text = "" if value is None else str(value).strip()
+    for allowed in ORDER_STATUS:
+        if text.lower() == allowed.lower():
+            return allowed
+    raise ValueError(
+        f"order status must be one of {list(ORDER_STATUS)}, got {text!r}"
+    )
+
+
+def wishlist_status_or_raise(value: object) -> str:
+    text = "" if value is None else str(value).strip()
+    for allowed in SOT_WISHLIST_STATUS:
+        if text.lower() == allowed.lower():
+            return allowed
+    raise ValueError(
+        f"wishlist status must be one of {list(SOT_WISHLIST_STATUS)}, got {text!r}"
+    )
 
 
 def new_boutique_workbook() -> Workbook:
