@@ -60,7 +60,9 @@ DIVIDER = "·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·"
 
 
 def _prep_input_grid(ws: Worksheet, headers: tuple[str, ...], rows: int = 40) -> None:
-    """Leave blank typed rows (yellow status/link cols stay empty — no fake stock)."""
+    """Leave blank typed rows (status/link cols stay empty — no fake stock)."""
+    from openpyxl.utils import get_column_letter
+
     fill = PatternFill("solid", fgColor=BLUSH_ROW)
     for row in range(2, rows + 2):
         for col in range(1, len(headers) + 1):
@@ -69,11 +71,7 @@ def _prep_input_grid(ws: Worksheet, headers: tuple[str, ...], rows: int = 40) ->
             cell.fill = fill
             cell.alignment = Alignment(vertical="center")
     # AutoFilter covers header + reserved blank rows so desktop arrows work.
-    last_col = chr(ord("A") + len(headers) - 1) if len(headers) <= 26 else None
-    if last_col:
-        from openpyxl.utils import get_column_letter
-
-        ws.auto_filter.ref = f"A1:{get_column_letter(len(headers))}{rows + 1}"
+    ws.auto_filter.ref = f"A1:{get_column_letter(len(headers))}{rows + 1}"
 
 
 def _build_official() -> Workbook:
@@ -113,8 +111,8 @@ def _build_official() -> Workbook:
             ),
             (
                 "rule",
-                "6. Square Free is on-hand source of truth. Ma_List is a working copy and photo index, "
-                "not live stock. After a good save, Kit syncs this file back to OneDrive.",
+                "6. Square Free is on-hand source of truth. Official Excel / Ma_List is a working copy "
+                "and photo index, not live stock. After a good save, Kit syncs this file back to OneDrive.",
             ),
             ("divider", DIVIDER),
             ("section", "What’s on each sheet"),
@@ -243,6 +241,25 @@ def _build_wishlist() -> Workbook:
     return wb
 
 
+def _assert_no_inventory_values(ws: Worksheet, headers: list[object]) -> None:
+    """Builders must not ship live or demo stock in data rows."""
+    from schema import looks_like_demo_row, parse_ma
+
+    max_col = len(headers)
+    for row in range(2, (ws.max_row or 1) + 1):
+        values = [ws.cell(row, col).value for col in range(1, max_col + 1)]
+        if looks_like_demo_row(values):
+            raise AssertionError(f"{ws.title} row {row}: demo/fake inventory is forbidden")
+        for header, value in zip(headers, values, strict=False):
+            if value is None or str(value).strip() == "":
+                continue
+            name = str(header or "").strip().lower()
+            if name in {"ma", "mã"} and parse_ma(value) is not None:
+                raise AssertionError(
+                    f"{ws.title} row {row}: builder must not commit mã {value!r}"
+                )
+
+
 def verify_desktop_book(path: Path, *, kind: str) -> None:
     """Fail loud if freeze / filter / dropdowns / photo_link contract broke."""
     from openpyxl import load_workbook
@@ -259,6 +276,9 @@ def verify_desktop_book(path: Path, *, kind: str) -> None:
             headers = [ws.cell(1, c).value for c in range(1, ws.max_column + 1)]
             if headers != list(MA_LIST):
                 raise AssertionError(f"Ma_List headers drifted: {headers}")
+            if not headers or headers[-1] != "photo_link":
+                raise AssertionError(f"Ma_List photo_link must be last, got {headers[-1]!r}")
+            _assert_no_inventory_values(ws, headers)
             if ws.freeze_panes != "A2":
                 raise AssertionError(f"Ma_List freeze_panes={ws.freeze_panes}")
             if not ws.auto_filter.ref or not ws.auto_filter.ref.startswith("A1:"):
@@ -274,6 +294,9 @@ def verify_desktop_book(path: Path, *, kind: str) -> None:
             headers = [ws.cell(1, c).value for c in range(1, ws.max_column + 1)]
             if headers != list(CANDIDATES):
                 raise AssertionError(f"Candidates headers drifted: {headers}")
+            if not headers or headers[-1] != "photo_link":
+                raise AssertionError("Candidates photo_link must be last")
+            _assert_no_inventory_values(ws, headers)
             if ws.freeze_panes != "A2":
                 raise AssertionError(f"Candidates freeze_panes={ws.freeze_panes}")
             if not ws.auto_filter.ref:
@@ -315,7 +338,21 @@ def main(argv: list[str] | None = None) -> int:
         default=Path("out"),
         help="folder for the two desktop .xlsx files (default: ./out)",
     )
+    parser.add_argument(
+        "--verify-only",
+        nargs=2,
+        metavar=("OFFICIAL", "WISHLIST"),
+        help="verify two existing desktop books instead of rebuilding",
+    )
     args = parser.parse_args(argv)
+    if args.verify_only:
+        official, wishlist = (Path(p) for p in args.verify_only)
+        verify_desktop_book(official, kind="official")
+        verify_desktop_book(wishlist, kind="wishlist")
+        print(f"verified {official}")
+        print(f"verified {wishlist}")
+        print(SQUARE_SOT_LINE)
+        return 0
     build(args.out_dir)
     return 0
 

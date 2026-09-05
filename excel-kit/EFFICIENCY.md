@@ -27,7 +27,7 @@ How the shop stays fast without a second inventory brain or bloated workbooks.
 1. **In-hand piece** → Square Save (Boss yes) with Track stock ON → one Official / Ma_List row → mã Boss assigned → photo in `Photos/` → paste share URL in `photo_link`.
 2. **Hunt** → one Candidates / Wishlist row. Off Square until bought.
 3. **Inbox** → Guide drafts from Official `ma` + `size` + `status`. Owner sends.
-4. **Morning brief** → Dashboard (SoT) or empty desktop filters — not a new workbook.
+4. **Morning brief** → `python3 excel-kit/sot/dashboard_brief.py` or Boss copies `Dashboard!B43`. Not a new workbook.
 
 ## Desktop vs phone
 
@@ -39,6 +39,6 @@ How the shop stays fast without a second inventory brain or bloated workbooks.
 
 - Import `schema.py`. Do not retype headers.
 - `photo_link` stays last on Ma_List and Candidates.
-- Run `py_compile` on every `.py` you touch.
+- Run `python3 excel-kit/tests/run_checks.py` (py_compile + `--help` + no fake inventory in git).
 - Prefer patching wording / clearing demo rows (`clean_sot_demo.py`) over a full SoT rebuild.
 - After a good desktop build, Kit copies the two `.xlsx` files to OneDrive. This repo stays code + prompts.

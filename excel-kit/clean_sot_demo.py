@@ -31,9 +31,12 @@ if str(_KIT_DIR) not in sys.path:
 
 from schema import (
     SOT_DATA_SHEETS,
+    SQUARE_SOT_LINE,
     SQUARE_SOT_SHORT,
     SQUARE_WORDING_PATCHES,
+    is_valid_ma,
     looks_like_demo_row,
+    resolve_header_key,
     strip_workbook_images,
 )
 
@@ -171,20 +174,46 @@ def clear_demo_rows(ws: Worksheet, *, wipe_data: bool) -> tuple[int, int]:
     return cleared, kept
 
 
+def report_invalid_ma(ws: Worksheet) -> list[str]:
+    """Flag mã-shaped cells that fail MA_RE. Never invent replacements."""
+    if ws.title not in SOT_DATA_SHEETS:
+        return []
+    header_row = _header_row_for(ws)
+    max_col = max(ws.max_column or 1, 1)
+    headers = [ws.cell(header_row, col).value for col in range(1, max_col + 1)]
+    header_names = ["" if h is None else str(h) for h in headers]
+    ma_idx = resolve_header_key(header_names, "ma")
+    if ma_idx is None:
+        return []
+    bad: list[str] = []
+    for row in range(header_row + 1, (ws.max_row or header_row) + 1):
+        value = ws.cell(row, ma_idx + 1).value
+        if value is None or str(value).strip() == "":
+            continue
+        if not is_valid_ma(value):
+            bad.append(f"{ws.title}!{ws.cell(row, ma_idx + 1).coordinate}={value!r}")
+    return bad
+
+
 def clean_workbook(wb: Workbook, *, wipe_data: bool) -> dict[str, object]:
     report: dict[str, object] = {
         "sheets": {},
         "images_removed": strip_workbook_images(wb),
         "wording_cells": [],
         "start_here_square_added": False,
+        "invalid_ma": [],
+        "square_law": SQUARE_SOT_LINE,
     }
     for title in list(wb.sheetnames):
         if title not in SOT_DATA_SHEETS:
             continue
         cleared, kept = clear_demo_rows(wb[title], wipe_data=wipe_data)
         report["sheets"][title] = {"cleared": cleared, "kept": kept}
+        report["invalid_ma"].extend(report_invalid_ma(wb[title]))
     report["wording_cells"] = patch_square_wording(wb)
     report["start_here_square_added"] = _ensure_start_here_square_line(wb)
+    # Second pass — drawings can reappear if a table copy kept them.
+    report["images_removed"] = int(report["images_removed"]) + strip_workbook_images(wb)
     return report
 
 
@@ -204,6 +233,11 @@ def _print_report(path: Path, out: Path, report: dict[str, object]) -> None:
         print("  Square wording: already current or no outdated phrases")
     if report["start_here_square_added"]:
         print("  START HERE: added Square Free on-hand SoT line")
+    invalid = report.get("invalid_ma") or []
+    if isinstance(invalid, list) and invalid:
+        print(f"  invalid mã (ask Stock, do not invent): {', '.join(invalid)}")
+    print(f"  shop law: {SQUARE_SOT_SHORT}")
+    print("  Official Excel = working copy. Square Free = on-hand SoT. No embeds.")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -216,6 +250,11 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="clear every Official/Wishlist/Orders/Ma_List/Candidates data row",
     )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="report only — do not write a cleaned workbook",
+    )
     args = parser.parse_args(argv)
 
     src: Path = args.workbook
@@ -225,9 +264,17 @@ def main(argv: list[str] | None = None) -> int:
     if args.in_place and args.output:
         print("error: use either --in-place or --output, not both", file=sys.stderr)
         return 2
+    if args.check and (args.in_place or args.output):
+        print("error: --check cannot be combined with --in-place or --output", file=sys.stderr)
+        return 2
 
     wb = load_workbook(src)
     report = clean_workbook(wb, wipe_data=args.wipe_data)
+    if args.check:
+        _print_report(src, src, report)
+        print("check only — workbook not written")
+        wb.close()
+        return 0
     dest = src if args.in_place else (args.output or src.with_name(f"{src.stem}_cleaned{src.suffix}"))
     dest.parent.mkdir(parents=True, exist_ok=True)
     wb.save(dest)
