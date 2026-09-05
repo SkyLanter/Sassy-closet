@@ -27,7 +27,7 @@ Defined in `schema.py`:
 
 ## SoT automation (`excel-kit/sot/`)
 
-Append scripts refuse to mint mã. Official requires `--ma` or prints ASK STOCK. Wishlist demands `--source` or `--no-source`. Orders accept only `Inquiry|Reserved|Paid|Shipped|Picked up|Cancelled`. `append_bot_activity.py` no-ops with a note when `Bot_Activity` is missing. `dashboard_brief.py` reads cached Dashboard values; if Excel has not calculated yet, Boss copies `Dashboard!B43`.
+Append scripts refuse to mint mã. Official requires `--ma` or prints ASK STOCK. Wishlist demands `--source` or `--no-source`. Orders accept only `Inquiry|Reserved|Paid|Shipped|Picked up|Cancelled`. `append_bot_activity.py` no-ops with a note when `Bot_Activity` is missing. `dashboard_brief.py` reads cached Dashboard values; if Excel has not calculated yet, Boss copies `Dashboard!B43`. `gf_intake_apply.py` stages a From GF packet (photos + template) onto Wishlist or Official without Square Save — contract `prompts/GF_CLOTHES_INTAKE.md`.
 
 ## Mã
 

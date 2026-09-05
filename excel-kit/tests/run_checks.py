@@ -8,6 +8,7 @@ Run from repo root:
 from __future__ import annotations
 
 import csv
+import hashlib
 import py_compile
 import subprocess
 import sys
@@ -23,10 +24,12 @@ from schema import (  # noqa: E402
     ASK_STOCK_MA,
     CANDIDATES,
     MA_LIST,
+    ONEDRIVE_FROM_GF,
     ORDER_STATUS,
     SOT_DASHBOARD_BRIEF_CELL,
     SOT_WISHLIST,
     SQUARE_IMPORT_HEADERS,
+    STAY_OFF_SQUARE,
     MissingMaError,
     looks_like_demo_row,
     require_ma,
@@ -43,6 +46,7 @@ SCRIPTS = [
     KIT / "sot" / "append_bot_activity.py",
     KIT / "sot" / "dashboard_brief.py",
     KIT / "sot" / "build_sot_desktop.py",
+    KIT / "sot" / "gf_intake_apply.py",
     KIT / "square" / "validate_import.py",
     KIT / "tests" / "run_checks.py",
 ]
@@ -56,6 +60,7 @@ CLIS = [
     KIT / "sot" / "append_bot_activity.py",
     KIT / "sot" / "dashboard_brief.py",
     KIT / "sot" / "build_sot_desktop.py",
+    KIT / "sot" / "gf_intake_apply.py",
     KIT / "square" / "validate_import.py",
 ]
 
@@ -110,6 +115,9 @@ def check_schema_contract() -> None:
         "Cancelled",
     )
     assert SOT_DASHBOARD_BRIEF_CELL == "B43"
+    assert ONEDRIVE_FROM_GF.endswith("From GF")
+    assert "Square" in STAY_OFF_SQUARE
+    assert "Save" in STAY_OFF_SQUARE
     try:
         require_ma(None)
         raise AssertionError("require_ma(None) must fail")
@@ -368,6 +376,314 @@ def check_builders_and_append() -> None:
     print("builders + append CLIs ok")
 
 
+GF_INTAKE = KIT / "sot" / "gf_intake_apply.py"
+GF_CONTRACT = KIT / "prompts" / "GF_CLOTHES_INTAKE.md"
+GF_HOW_TO = KIT / "templates" / "from_gf" / "HOW_TO_UPLOAD.md"
+GF_TEMPLATE = KIT / "templates" / "from_gf" / "INTAKE_TEMPLATE.txt"
+GF_CANDIDATE = KIT / "templates" / "from_gf" / "examples" / "candidate_looking_vay"
+GF_BOUGHT = KIT / "templates" / "from_gf" / "examples" / "bought_waiting_stock"
+GF_REPLIES = KIT / "inbox" / "gf_intake_reply_templates.md"
+GF_WATCH = KIT / "sot" / "FROM_GF_WATCH.md"
+
+
+def _digest(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _nonempty(book: Path, sheet: str, logical: str) -> tuple[list[str], list[str]]:
+    from openpyxl import load_workbook
+
+    from schema import header_row_for_sheet, read_headers, resolve_header_key
+
+    wb = load_workbook(book)
+    ws = wb[sheet]
+    header_row = header_row_for_sheet(ws.title)
+    headers = read_headers(ws, header_row)
+    idx = resolve_header_key(headers, logical)
+    values: list[str] = []
+    if idx is not None:
+        for row in range(header_row + 1, (ws.max_row or header_row) + 1):
+            value = ws.cell(row, idx + 1).value
+            if value is not None and str(value).strip() != "":
+                values.append(str(value).strip())
+    wb.close()
+    return headers, values
+
+
+def check_gf_intake() -> None:
+    from sot.gf_intake_apply import (  # noqa: E402
+        IntakeError,
+        parse_intake_text,
+        sanitize_ma_field,
+    )
+
+    for path in (
+        GF_CONTRACT,
+        GF_HOW_TO,
+        GF_TEMPLATE,
+        GF_REPLIES,
+        GF_WATCH,
+        GF_CANDIDATE / "INTAKE_TEMPLATE.txt",
+        GF_BOUGHT / "note.txt",
+    ):
+        if not path.is_file():
+            raise AssertionError(f"missing {path.relative_to(REPO)}")
+
+    how = GF_HOW_TO.read_text(encoding="utf-8")
+    for needle in (
+        "From GF",
+        "chưa lên Square",
+        "share",
+        "Messenger",
+        "Dial Bot",
+        "Microsoft Form",
+    ):
+        if needle not in how:
+            raise AssertionError(f"HOW_TO_UPLOAD.md should mention {needle!r}")
+
+    replies = GF_REPLIES.read_text(encoding="utf-8").lower()
+    if "vẫn chưa lên square" not in replies or "still off square" not in replies:
+        raise AssertionError("reply templates must not claim Square stock (need off-Square wording in VI+EN)")
+
+    parsed = parse_intake_text((GF_CANDIDATE / "INTAKE_TEMPLATE.txt").read_text(encoding="utf-8"))
+    if parsed.get("kind") != "looking":
+        raise AssertionError(f"candidate packet kind should be looking, got {parsed.get('kind')!r}")
+    if "PLACEHOLDER" not in (parsed.get("source") or ""):
+        raise AssertionError("candidate packet should keep a placeholder source URL, not a live shop")
+    if parsed.get("ma"):
+        raise AssertionError("candidate packet must not carry a live mã")
+    if parsed.get("requested_by") != "GF":
+        raise AssertionError("candidate packet requested_by should be GF")
+
+    bought_parsed = parse_intake_text((GF_BOUGHT / "note.txt").read_text(encoding="utf-8"))
+    if bought_parsed.get("kind") != "bought":
+        raise AssertionError("bought packet kind should be bought")
+    if bought_parsed.get("ma"):
+        raise AssertionError("bought example must not invent a live mã")
+
+    try:
+        sanitize_ma_field("next")
+        raise AssertionError("ma=next must be refused (never invent)")
+    except IntakeError as exc:
+        blob = str(exc).lower()
+        if "invent" not in blob and "mã" not in str(exc) and "ma" not in blob:
+            raise AssertionError(f"invent-mã error unclear: {exc}") from exc
+
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp)
+        built = _run([sys.executable, str(KIT / "sot" / "build_sot_desktop.py"), "--out-dir", str(out)])
+        if built.returncode != 0:
+            raise AssertionError(built.stdout + built.stderr)
+        book = out / "Sassy_Closet_SoT.xlsx"
+        photos = out / "Photos"
+        before = _digest(book)
+
+        dry = _run(
+            [
+                sys.executable,
+                str(GF_INTAKE),
+                "--from-gf",
+                str(GF_CANDIDATE),
+                "-w",
+                str(book),
+                "--photos-out",
+                str(photos),
+                "--dry-run",
+            ]
+        )
+        if dry.returncode != 0:
+            raise AssertionError(dry.stdout + dry.stderr)
+        if _digest(book) != before:
+            raise AssertionError("dry-run must not write xlsx")
+        if photos.exists() and any(photos.iterdir()):
+            raise AssertionError("dry-run must not copy photos")
+        dry_blob = dry.stdout + dry.stderr
+        if "stay off square" not in dry_blob.lower():
+            raise AssertionError("success path must print stay-off-Square reminder")
+
+        refuse_ma = _run(
+            [
+                sys.executable,
+                str(GF_INTAKE),
+                "--from-gf",
+                str(GF_CANDIDATE),
+                "-w",
+                str(book),
+                "--ma",
+                "AO001",
+                "--dry-run",
+            ]
+        )
+        if refuse_ma.returncode == 0:
+            raise AssertionError("looking packet with --ma must fail (no live mã on Wishlist)")
+        if refuse_ma.returncode != 2:
+            raise AssertionError(f"looking+ma should exit 2, got {refuse_ma.returncode}")
+
+        invent = _run(
+            [
+                sys.executable,
+                str(GF_INTAKE),
+                "--kind",
+                "bought",
+                "--no-source",
+                "--what-vi",
+                "Áo",
+                "--ma",
+                "next",
+                "-w",
+                str(book),
+                "--dry-run",
+            ]
+        )
+        if invent.returncode == 0:
+            raise AssertionError("ma=next must fail — never invent mã")
+
+        bad_link = _run(
+            [
+                sys.executable,
+                str(GF_INTAKE),
+                "--kind",
+                "looking",
+                "--no-source",
+                "--what-en",
+                "bag",
+                "--photo-link",
+                "/tmp/From GF/secret.jpg",
+                "-w",
+                str(book),
+                "--dry-run",
+            ]
+        )
+        if bad_link.returncode == 0:
+            raise AssertionError("local / From GF photo_link must be refused")
+
+        root_refuse = _run(
+            [
+                sys.executable,
+                str(GF_INTAKE),
+                "--from-gf",
+                str(KIT / "templates" / "from_gf"),
+                "-w",
+                str(book),
+                "--dry-run",
+            ]
+        )
+        if root_refuse.returncode == 0:
+            raise AssertionError("From GF inbox root must be refused (pass a packet folder)")
+
+        live = _run(
+            [
+                sys.executable,
+                str(GF_INTAKE),
+                "--from-gf",
+                str(GF_CANDIDATE),
+                "-w",
+                str(book),
+                "--photos-out",
+                str(photos),
+            ]
+        )
+        if live.returncode != 0:
+            raise AssertionError(live.stdout + live.stderr)
+        wish_headers, wish_what = _nonempty(book, "Wishlist", "what_vi")
+        if wish_headers[-1] != "photo_link":
+            raise AssertionError(f"Wishlist photo_link must stay last, got {wish_headers[-1]!r}")
+        if not any("Váy hoa hồng" in v or "ví dụ" in v for v in wish_what):
+            raise AssertionError(f"candidate row missing from Wishlist: {wish_what}")
+        _, wish_status = _nonempty(book, "Wishlist", "status")
+        if "candidate" not in wish_status:
+            raise AssertionError(f"looking packet should be status=candidate, got {wish_status}")
+        _, wish_links = _nonempty(book, "Wishlist", "photo_link")
+        if any("from gf" in v.lower() or (v.startswith("/") and "http" not in v.lower()) for v in wish_links):
+            raise AssertionError(f"photo_link must not be a From GF / local path: {wish_links}")
+        copied = list(photos.glob("#*.jpg")) if photos.is_dir() else []
+        if not copied:
+            raise AssertionError("live candidate intake should copy/rename a wishlist photo to #NNN.jpg")
+        _, official_ma = _nonempty(book, "Official", "ma")
+        if official_ma:
+            raise AssertionError(f"looking packet must not write Official mã: {official_ma}")
+
+        bought = _run(
+            [
+                sys.executable,
+                str(GF_INTAKE),
+                "--from-gf",
+                str(GF_BOUGHT),
+                "-w",
+                str(book),
+                "--photos-out",
+                str(photos),
+            ]
+        )
+        if bought.returncode != 0:
+            raise AssertionError(bought.stdout + bought.stderr)
+        blob = bought.stdout + bought.stderr
+        if "ASK STOCK" not in blob and "Ask Stock" not in blob:
+            raise AssertionError("bought without mã must ASK STOCK")
+        _, statuses = _nonempty(book, "Wishlist", "status")
+        if "bought" not in statuses:
+            raise AssertionError(f"bought without mã should stay on Wishlist status=bought, got {statuses}")
+        _, official_ma = _nonempty(book, "Official", "ma")
+        if official_ma:
+            raise AssertionError(
+                f"bought without mã must not write Official (got {official_ma}). Never invent mã."
+            )
+        if "stay off square" not in blob.lower():
+            raise AssertionError("bought success must print stay-off-Square reminder")
+
+        linked = _run(
+            [
+                sys.executable,
+                str(GF_INTAKE),
+                "--kind",
+                "looking",
+                "--source",
+                "https://item.taobao.com/item.htm?id=PLACEHOLDER2",
+                "--what-en",
+                "flag-only scarf",
+                "--photo-link",
+                "https://1drv.ms/placeholder-photo",
+                "-w",
+                str(book),
+            ]
+        )
+        if linked.returncode != 0:
+            raise AssertionError(linked.stdout + linked.stderr)
+        _, links = _nonempty(book, "Wishlist", "photo_link")
+        if "https://1drv.ms/placeholder-photo" not in links:
+            raise AssertionError(f"supplied photo_link should be stored, got {links}")
+
+        official = _run(
+            [
+                sys.executable,
+                str(GF_INTAKE),
+                "--kind",
+                "bought",
+                "--source",
+                "https://item.taobao.com/item.htm?id=PLACEHOLDER3",
+                "--what-vi",
+                "Áo harness Official",
+                "--ma",
+                "AO001",
+                "--qty",
+                "1",
+                "-w",
+                str(book),
+                "--photos-out",
+                str(photos),
+            ]
+        )
+        if official.returncode != 0:
+            raise AssertionError(official.stdout + official.stderr)
+        _, official_ma = _nonempty(book, "Official", "ma")
+        if "AO001" not in official_ma:
+            raise AssertionError(f"bought with Stock mã should append Official, got {official_ma}")
+        if "stay off square" not in (official.stdout + official.stderr).lower():
+            raise AssertionError("Official staging success still prints stay-off-Square (no Save)")
+
+    print("GF clothes intake ok")
+
+
 def main() -> int:
     try:
         check_py_compile()
@@ -376,6 +692,7 @@ def main() -> int:
         check_no_fake_inventory_in_git()
         check_square_template()
         check_builders_and_append()
+        check_gf_intake()
     except Exception as exc:  # noqa: BLE001 — kit runner prints and exits
         print(f"FAIL: {exc}", file=sys.stderr)
         return 1

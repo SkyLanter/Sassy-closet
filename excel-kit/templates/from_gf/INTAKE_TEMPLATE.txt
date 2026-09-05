@@ -1,0 +1,22 @@
+# Sassy Closet — GF clothes intake
+# Copy this file into your packet folder. Fill what you know.
+# Leave blank if unsure. Do not invent a mã (AO/QU/VA/AK/GI/PK/SET + digits).
+# looking = hunt (Wishlist, off Square). bought = you already bought/received
+# (still off Square until Boss says Save). Keep shop links forever.
+
+kind: looking
+source:
+no_source: no
+what_vi:
+what_en:
+brand:
+type:
+size:
+color:
+price_original:
+currency:
+qty_pieces: 1
+notes:
+requested_by: GF
+prefix:
+ma:
