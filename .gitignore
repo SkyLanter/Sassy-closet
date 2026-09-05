@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+.out/
+/out/
+*.xlsx
+.DS_Store
+.venv/
+venv/
