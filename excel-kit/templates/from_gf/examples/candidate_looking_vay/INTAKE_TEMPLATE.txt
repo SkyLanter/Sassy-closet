@@ -1,0 +1,19 @@
+# Example packet only — placeholder URL, not live stock, no mã.
+# kind looking → Wishlist candidate. Stay off Square.
+
+kind: looking
+source: https://item.taobao.com/item.htm?id=PLACEHOLDER
+no_source: no
+what_vi: Váy hoa hồng (ví dụ — không phải hàng thật)
+what_en: pink floral dress (example — not live stock)
+brand:
+type: Dress
+size: M 88cm
+color: hồng
+price_original: 89
+currency: CNY
+qty_pieces: 1
+notes: example From GF packet for kit tests. placeholder shop URL only.
+requested_by: GF
+prefix: VA
+ma:

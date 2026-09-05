@@ -22,7 +22,7 @@ Use excel-kit/. Do not commit live Official rows, customer names, Square tokens,
 After the PR merges, Kit copies built/cleaned workbooks to OneDrive Documents/Sassy Closet/.
 ```
 
-Then paste **one** task block below.
+Then paste **one** task block below. GF clothes intake contract: `prompts/GF_CLOTHES_INTAKE.md`.
 
 ---
 
@@ -183,4 +183,35 @@ From repo root:
 
 Must: py_compile every script, --help on every CLI, no fake inventory rows in git,
 square template headers-only, photo_link last on Ma_List / Candidates / SoT Wishlist.
+```
+
+---
+
+## 11) GF clothes intake
+
+Contract: `excel-kit/prompts/GF_CLOTHES_INTAKE.md` (From GF self-upload is PRIMARY).
+
+```
+Sassy Closet — GF clothes intake (Kit code only). PRIMARY: GF uploads herself to
+OneDrive Documents/Sassy Closet/From GF/ (Boss share link once). Slack #shop-intake /
+Boss-paste / email are backups. Never Messenger. Never Dial Bot.
+
+RUN
+  python3 excel-kit/sot/gf_intake_apply.py --from-gf path/to/packet/ -w "$SASSY_SOT" \
+    --photos-out "$SASSY_PHOTOS" --dry-run
+  python3 excel-kit/sot/gf_intake_apply.py --from-gf path/to/packet/ -w "$SASSY_SOT" \
+    --photos-out "$SASSY_PHOTOS"
+  python3 excel-kit/tests/run_checks.py
+
+CONTRACT
+- Parse INTAKE_TEMPLATE.txt / note.txt. Exit 2 on clear errors. Never invent fields or mã.
+- looking → append_wishlist_row (refuse --ma). bought without mã → Wishlist status=bought + ASK STOCK.
+  bought with Stock/Boss mã → append_official_row (--ma required).
+- Photos copy/rename to Photos/ as #NNN.jpg or MA.jpg. photo_link only if --photo-link (OneDrive share URL).
+  Never embed. Never point SoT at From GF paths.
+- --dry-run must not write xlsx. Print stay-off-Square on every success.
+- Optional Bot_Activity draft if the sheet exists. Boss confirms to GF with inbox/gf_intake_reply_templates.md.
+- #shop-decisions before Square Save. No Square Save, no FB post, no mint mã.
+
+STOP if you would invent a mã or Save in Square.
 ```

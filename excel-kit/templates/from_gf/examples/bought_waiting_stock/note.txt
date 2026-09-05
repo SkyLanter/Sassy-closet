@@ -1,0 +1,19 @@
+# Example packet only — bought/received, still off Square.
+# No mã on purpose. Kit must ASK STOCK. Do not invent. Not Official. Not Square.
+
+kind: bought
+source: https://item.taobao.com/item.htm?id=PLACEHOLDER
+no_source: no
+what_vi: Áo sơ mi trắng (ví dụ — chờ Stock gán mã)
+what_en: white shirt (example — waiting for Stock mã)
+brand:
+type: Top
+size: M 92cm
+color: trắng
+price_original: 45
+currency: CNY
+qty_pieces: 1
+notes: example bought packet. Boss confirmed received in the story only — still not Square. ASK STOCK for mã.
+requested_by: GF
+prefix: AO
+ma:

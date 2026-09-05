@@ -19,6 +19,9 @@ excel-kit/
   square/                    ← headers-only Square import + Track ON rules
   prompts/BOUTIQUE_DESKTOP_EFFICIENT.md
   prompts/BOUTIQUE_PHONE_SAFE.md
+  prompts/GF_CLOTHES_INTAKE.md   ← GF self-upload contract (not live inventory)
+  templates/from_gf/             ← HOW_TO + INTAKE_TEMPLATE + example packets
+  inbox/gf_intake_reply_templates.md
   tests/run_checks.py
 ```
 
@@ -49,6 +52,11 @@ python3 excel-kit/sot/append_order_row.py -w ./out/Sassy_Closet_SoT.xlsx --statu
 python3 excel-kit/sot/append_bot_activity.py -w ./out/Sassy_Closet_SoT.xlsx --bot Stock --action draft --summary "note"
 python3 excel-kit/sot/dashboard_brief.py -w ./out/Sassy_Closet_SoT.xlsx
 
+# GF clothes intake (From GF packet → Photos rename + Wishlist/Official staging)
+python3 excel-kit/sot/gf_intake_apply.py --help
+python3 excel-kit/sot/gf_intake_apply.py --from-gf excel-kit/templates/from_gf/examples/candidate_looking_vay \
+  -w ./out/Sassy_Closet_SoT.xlsx --photos-out ./out/Photos --dry-run
+
 # Strip demo rows + Square wording
 python3 excel-kit/clean_sot_demo.py path/to/Sassy_Closet_SoT.xlsx -o ./out/Sassy_Closet_SoT_cleaned.xlsx
 
@@ -69,3 +77,4 @@ Do not commit live inventory, customer names, secrets, or a filled Square CSV. E
 | `Documents/Sassy Closet/Sassy_Closet_Official_desktop.xlsx` | Lean desktop Ma_List / Orders / Bot_Activity |
 | `Documents/Sassy Closet/Sassy_Closet_Wishlist_desktop.xlsx` | Lean desktop Candidates |
 | `Documents/Sassy Closet/Photos/` | `#001.jpg` / `AO001.jpg` — links only in Excel |
+| `Documents/Sassy Closet/From GF/` | PRIMARY GF self-upload inbox (Kit copies HOW_TO + template) |

@@ -13,8 +13,10 @@ excel-kit/sot/
   append_wishlist_row.py   Wishlist ( Link/source if available )
   append_order_row.py      Inquiry|Reserved|Paid|Shipped|Picked up|Cancelled
   append_bot_activity.py   append if Bot_Activity exists, else skip + note
+  gf_intake_apply.py       GF From GF packet → photos + Wishlist/Official staging
   dashboard_brief.py       print cached Dashboard values; else copy B43
   build_sot_desktop.py     empty SoT scaffold (no fake stock)
+  FROM_GF_WATCH.md         how Kit scans From GF (no daemon in this repo)
 ```
 
 ## Locate the book
@@ -46,4 +48,8 @@ python3 excel-kit/sot/append_bot_activity.py -w ./out/Sassy_Closet_SoT.xlsx \
 
 # Morning brief (needs Excel-cached values, or Boss copies Dashboard!B43)
 python3 excel-kit/sot/dashboard_brief.py -w ./out/Sassy_Closet_SoT.xlsx
+
+# GF clothes intake (PRIMARY: From GF packet; still off Square)
+python3 excel-kit/sot/gf_intake_apply.py --from-gf ./excel-kit/templates/from_gf/examples/candidate_looking_vay \
+  -w ./out/Sassy_Closet_SoT.xlsx --photos-out ./out/Photos --dry-run
 ```

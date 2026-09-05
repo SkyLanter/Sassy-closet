@@ -28,6 +28,7 @@ from openpyxl.worksheet.worksheet import Worksheet
 ONEDRIVE_SHOP_DIR = "Documents/Sassy Closet"
 ONEDRIVE_SOT = f"{ONEDRIVE_SHOP_DIR}/Sassy_Closet_SoT.xlsx"
 ONEDRIVE_PHOTOS = f"{ONEDRIVE_SHOP_DIR}/Photos"
+ONEDRIVE_FROM_GF = f"{ONEDRIVE_SHOP_DIR}/From GF"
 ONEDRIVE_OFFICIAL_DESKTOP = f"{ONEDRIVE_SHOP_DIR}/Sassy_Closet_Official_desktop.xlsx"
 ONEDRIVE_WISHLIST_DESKTOP = f"{ONEDRIVE_SHOP_DIR}/Sassy_Closet_Wishlist_desktop.xlsx"
 
@@ -454,6 +455,12 @@ ASK_STOCK_MA = (
     "Never invent a mã. Ask Stock to read Dashboard next-mã "
     "(MAXIFS on Official[ma_num] + prefix, cells B21:B27) and Boss to assign it. "
     "Do not reuse a Sold mã."
+)
+
+STAY_OFF_SQUARE = (
+    "Stay off Square until Boss confirms bought/received AND says Save. "
+    "Approvals live in Slack #shop-decisions. Scripts never Square Save. "
+    "Wishlist / candidates are not on-hand."
 )
 
 BOTS_DRAFT_ONLY = (
