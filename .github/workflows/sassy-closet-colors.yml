@@ -1,0 +1,29 @@
+name: sassy-closet-colors
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "sassy-closet/**"
+      - ".github/workflows/sassy-closet-colors.yml"
+  pull_request:
+    paths:
+      - "sassy-closet/**"
+      - ".github/workflows/sassy-closet-colors.yml"
+
+jobs:
+  chips:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sassy-closet
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: sassy-closet/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run prove
