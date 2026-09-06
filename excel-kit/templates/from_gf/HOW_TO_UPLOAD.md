@@ -43,3 +43,16 @@ Cảm ơn em 💗
 Slack `#shop-intake` is backup. Boss-paste / email last. Not Messenger. Dial Bot is for love calls, not intake.
 
 Optional later: a Microsoft Form if OneDrive gets messy. **Do not build that Form now.**
+
+---
+
+## Boss / Kit only (do not send Graph webUrl)
+
+If the folder link **404s**, it is probably the raw Graph `webUrl`:
+
+`https://onedrive.live.com?cid=…&id=…` (no slash after `.com`, raw `!`).
+
+That shape often 404s. **Do not** hand it to GF.
+
+Send GF a **Share → Can edit → Copy link** URL (usually `1drv.ms`).  
+Canonical browse + encoding: [`LINKING.md`](./LINKING.md). Helper: `python3 excel-kit/sot/onedrive_from_gf_link.py --help`.

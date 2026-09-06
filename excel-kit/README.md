@@ -56,6 +56,7 @@ python3 excel-kit/sot/dashboard_brief.py -w ./out/Sassy_Closet_SoT.xlsx
 python3 excel-kit/sot/gf_intake_apply.py --help
 python3 excel-kit/sot/gf_intake_apply.py --from-gf excel-kit/templates/from_gf/examples/candidate_looking_vay \
   -w ./out/Sassy_Closet_SoT.xlsx --photos-out ./out/Photos --dry-run
+python3 excel-kit/sot/onedrive_from_gf_link.py --help
 
 # Strip demo rows + Square wording
 python3 excel-kit/clean_sot_demo.py path/to/Sassy_Closet_SoT.xlsx -o ./out/Sassy_Closet_SoT_cleaned.xlsx

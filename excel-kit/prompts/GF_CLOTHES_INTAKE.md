@@ -14,7 +14,7 @@ Desktop SoT: `Documents/Sassy Closet/Sassy_Closet_SoT.xlsx` (Official / Wishlist
 
 `Documents/Sassy Closet/From GF/`
 
-Boss shares that folder link **once**. She opens the link on her phone, drops photos, fills the template. Cute / soft. No one invents a mã for her.
+Boss shares that folder link **once** (**Share → Can edit → Copy link**). Do not send Graph `item.webUrl` (`https://onedrive.live.com?cid=&id=` without `/?` often 404s). Patterns + helper: `excel-kit/templates/from_gf/LINKING.md`. She opens the link on her phone, drops photos, fills the template. Cute / soft. No one invents a mã for her.
 
 Kit seeds the same files in-repo at `excel-kit/templates/from_gf/` (`HOW_TO_UPLOAD.md`, `INTAKE_TEMPLATE.txt`, example packets). After merge, **Kit copies the seed onto OneDrive From GF/**. Live packets stay on OneDrive — this repo never holds live Official rows.
 
@@ -23,6 +23,7 @@ Kit seeds the same files in-repo at `excel-kit/templates/from_gf/` (`HOW_TO_UPLO
 | File | Job |
 | --- | --- |
 | `HOW_TO_UPLOAD.md` | Phone-friendly. Soft **VI first**, then EN. Looking vs bought. “chưa lên Square.” Use Boss share link. Do not invent mã. Slack is not primary. |
+| `LINKING.md` | Boss/Kit: canonical browse URLs (`/?`, `%21`), Graph `createLink` type=edit, Share → Can edit. Never invent share tokens. |
 | `INTAKE_TEMPLATE.txt` | Kind `looking` / `bought`, `source` or `no_source`, `what_vi` / `what_en`, size (Asia + cm), color, `price_original` + `currency`, `qty_pieces`, notes, `requested_by=GF`. |
 
 Packet = one folder (date + short name) with photos + `INTAKE_TEMPLATE.txt` **or** `note.txt` (same keys). Optional: Kit also accepts `--packet` copies of that schema.
