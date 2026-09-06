@@ -14,12 +14,25 @@ import re
 from pathlib import Path
 from typing import Iterable, Sequence
 
-from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
-from openpyxl.styles.numbers import FORMAT_TEXT
-from openpyxl.utils import get_column_letter
-from openpyxl.workbook import Workbook
-from openpyxl.worksheet.datavalidation import DataValidation
-from openpyxl.worksheet.worksheet import Worksheet
+# openpyxl is required to *write* Excel. Constant / mã helpers used by
+# append_official_row --help must import without it (local bugcheck).
+try:
+    from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+    from openpyxl.styles.numbers import FORMAT_TEXT
+    from openpyxl.utils import get_column_letter
+    from openpyxl.workbook import Workbook
+    from openpyxl.worksheet.datavalidation import DataValidation
+    from openpyxl.worksheet.worksheet import Worksheet
+except ImportError as exc:  # pragma: no cover — --help / smoke imports
+    _OPENPYXL_IMPORT_ERROR: ImportError | None = exc
+    Alignment = Border = Font = PatternFill = Side = None  # type: ignore[misc, assignment]
+    FORMAT_TEXT = "@"
+    get_column_letter = None  # type: ignore[assignment]
+    Workbook = None  # type: ignore[misc, assignment]
+    DataValidation = None  # type: ignore[misc, assignment]
+    Worksheet = None  # type: ignore[misc, assignment]
+else:
+    _OPENPYXL_IMPORT_ERROR = None
 
 # ---------------------------------------------------------------------------
 # Shop paths (OneDrive). Kit syncs generated files here; this repo is code.
@@ -534,20 +547,24 @@ SECTION = "F3E6EE"
 INK = "4A3038"
 MUTED = "8B6B75"
 YELLOW_INPUT = "FFF3B0"
-THIN = Border(
-    left=Side(style="thin", color="E8C4D0"),
-    right=Side(style="thin", color="E8C4D0"),
-    top=Side(style="thin", color="E8C4D0"),
-    bottom=Side(style="thin", color="E8C4D0"),
-)
-HEADER_FILL = PatternFill("solid", fgColor=BLUSH)
-HEADER_FONT = Font(name="Calibri", size=10, bold=True, color=INK, underline="single")
-HEADER_FONT_PLAIN = Font(name="Calibri", size=10, bold=True, color=INK)
-BODY_FONT = Font(name="Calibri", size=10, color=INK)
-TITLE_FONT = Font(name="Calibri", size=17, bold=True, color=INK)
-SUB_FONT = Font(name="Calibri", size=11, color=MUTED)
-SECTION_FONT = Font(name="Calibri", size=11, bold=True, color=INK)
-LINK_FONT = Font(name="Calibri", size=10, color="2B6CB0", underline="single")
+if _OPENPYXL_IMPORT_ERROR is None:
+    THIN = Border(
+        left=Side(style="thin", color="E8C4D0"),
+        right=Side(style="thin", color="E8C4D0"),
+        top=Side(style="thin", color="E8C4D0"),
+        bottom=Side(style="thin", color="E8C4D0"),
+    )
+    HEADER_FILL = PatternFill("solid", fgColor=BLUSH)
+    HEADER_FONT = Font(name="Calibri", size=10, bold=True, color=INK, underline="single")
+    HEADER_FONT_PLAIN = Font(name="Calibri", size=10, bold=True, color=INK)
+    BODY_FONT = Font(name="Calibri", size=10, color=INK)
+    TITLE_FONT = Font(name="Calibri", size=17, bold=True, color=INK)
+    SUB_FONT = Font(name="Calibri", size=11, color=MUTED)
+    SECTION_FONT = Font(name="Calibri", size=11, bold=True, color=INK)
+    LINK_FONT = Font(name="Calibri", size=10, color="2B6CB0", underline="single")
+else:  # pragma: no cover — constants still import; Excel helpers need openpyxl
+    THIN = HEADER_FILL = HEADER_FONT = HEADER_FONT_PLAIN = None
+    BODY_FONT = TITLE_FONT = SUB_FONT = SECTION_FONT = LINK_FONT = None
 
 MA_LIST_WIDTHS = {
     "A": 10,
@@ -600,11 +617,24 @@ CANDIDATES_WIDTHS = {
 
 # ---------------------------------------------------------------------------
 # Mã / photo helpers
+# Live site still uses legacy AO001-style (MA_RE). Do not migrate parse_ma
+# to A01 here — that is a separate handoff (bc-43bc86e1).
 # ---------------------------------------------------------------------------
 
 
+def _require_openpyxl() -> None:
+    """Excel builders need openpyxl; SoT helper constants do not."""
+    if _OPENPYXL_IMPORT_ERROR is not None:
+        raise ImportError(
+            "openpyxl is required for Excel helpers. pip install -r requirements.txt"
+        ) from _OPENPYXL_IMPORT_ERROR
+
+
 def parse_ma(value: object) -> tuple[str, int] | None:
-    """Return (prefix, number) for a valid mã; else None. Never invent one."""
+    """Return (prefix, number) for a valid mã; else None. Never invent one.
+
+    Legacy AO001-style until the A01 handoff. Never invent a mã.
+    """
     if value is None:
         return None
     text = str(value).strip().upper()
@@ -727,6 +757,7 @@ def style_header_row(
     *,
     underline_photo_link: bool = True,
 ) -> None:
+    _require_openpyxl()
     for col, name in enumerate(headers, start=1):
         cell = ws.cell(row, col, name)
         font = HEADER_FONT if (underline_photo_link and is_photo_link_header(name)) else HEADER_FONT_PLAIN
@@ -840,6 +871,23 @@ def official_status_or_raise(value: object) -> str:
     )
 
 
+# Keep these names importable from schema through the A01 cutover (bc-43bc86e1)
+# and any site↔Wishlist slimming. Re-export is fine; dropping them breaks
+# excel-kit/sot/append_official_row.py.
+APPEND_OFFICIAL_ROW_EXPORTS: tuple[str, ...] = (
+    "ASK_STOCK_MA",
+    "MissingMaError",
+    "OFFICIAL_TO_MA_LIST_STATUS",
+    "SOT_OFFICIAL_STATUS",
+    "SQUARE_SOT_SHORT",
+    "official_status_or_raise",
+    "parse_ma",
+    "photo_filename_for_ma",
+    "require_ma",
+    "resolve_sheet_name",
+)
+
+
 def order_status_or_raise(value: object) -> str:
     text = "" if value is None else str(value).strip()
     for allowed in ORDER_STATUS:
@@ -861,6 +909,7 @@ def wishlist_status_or_raise(value: object) -> str:
 
 
 def new_boutique_workbook() -> Workbook:
+    _require_openpyxl()
     wb = Workbook()
     wb.properties.creator = "Sassy Closet excel-kit"
     return wb

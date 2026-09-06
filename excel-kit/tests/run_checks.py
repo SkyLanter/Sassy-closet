@@ -21,18 +21,26 @@ if str(KIT) not in sys.path:
     sys.path.insert(0, str(KIT))
 
 from schema import (  # noqa: E402
+    APPEND_OFFICIAL_ROW_EXPORTS,
     ASK_STOCK_MA,
     CANDIDATES,
     MA_LIST,
+    OFFICIAL_TO_MA_LIST_STATUS,
     ONEDRIVE_FROM_GF,
     ORDER_STATUS,
     SOT_DASHBOARD_BRIEF_CELL,
+    SOT_OFFICIAL_STATUS,
     SOT_WISHLIST,
     SQUARE_IMPORT_HEADERS,
+    SQUARE_SOT_SHORT,
     STAY_OFF_SQUARE,
     MissingMaError,
     looks_like_demo_row,
+    official_status_or_raise,
+    parse_ma,
+    photo_filename_for_ma,
     require_ma,
+    resolve_sheet_name,
 )
 
 SCRIPTS = [
@@ -100,6 +108,13 @@ def check_help() -> None:
             raise AssertionError(f"{path.name} --help failed:\n{proc.stderr}")
         if "usage:" not in proc.stdout.lower() and "usage:" not in proc.stderr.lower():
             raise AssertionError(f"{path.name} --help produced no usage")
+        if path.name == "append_official_row.py":
+            blob = proc.stdout + proc.stderr
+            for status in SOT_OFFICIAL_STATUS:
+                if status not in blob:
+                    raise AssertionError(
+                        f"append_official_row --help missing status {status!r}"
+                    )
     print(f"--help ok ({len(CLIS)} CLIs)")
 
 
@@ -128,6 +143,45 @@ def check_schema_contract() -> None:
     assert require_ma("ao015") == "AO015"
     assert looks_like_demo_row(["AO999", "demo buyer"]) is True
     assert looks_like_demo_row(["", None, ""]) is False
+    # append_official_row import contract — keep through A01 schema cutover.
+    import schema as schema_mod
+
+    missing = [name for name in APPEND_OFFICIAL_ROW_EXPORTS if not hasattr(schema_mod, name)]
+    if missing:
+        raise AssertionError(f"schema.py dropped append_official_row exports: {missing}")
+    assert ASK_STOCK_MA
+    assert "Square Free" in SQUARE_SOT_SHORT
+    assert SOT_OFFICIAL_STATUS == (
+        "Available",
+        "Reserved",
+        "Sold",
+        "Hold",
+        "Damaged",
+        "Donated",
+    )
+    assert OFFICIAL_TO_MA_LIST_STATUS["Available"] == "in_stock"
+    assert OFFICIAL_TO_MA_LIST_STATUS["Reserved"] == "held"
+    assert OFFICIAL_TO_MA_LIST_STATUS["Sold"] == "sold"
+    assert OFFICIAL_TO_MA_LIST_STATUS["Hold"] == "held"
+    assert OFFICIAL_TO_MA_LIST_STATUS["Damaged"] == "archived"
+    assert OFFICIAL_TO_MA_LIST_STATUS["Donated"] == "archived"
+    assert official_status_or_raise("available") == "Available"
+    try:
+        official_status_or_raise("in_stock")
+        raise AssertionError("Ma_List status must not pass official_status_or_raise")
+    except ValueError:
+        pass
+    # Legacy AO001 parse_ma — do not treat A01 as valid in this PR.
+    assert parse_ma("AO001") == ("AO", 1)
+    assert parse_ma("ao015") == ("AO", 15)
+    assert photo_filename_for_ma("AO001") == "AO001.jpg"
+    try:
+        photo_filename_for_ma("not-a-ma")
+        raise AssertionError("photo_filename_for_ma must refuse invented mã")
+    except ValueError:
+        pass
+    assert resolve_sheet_name(["Official", "Wishlist"], "official") == "Official"
+    assert resolve_sheet_name(["Ma_List"], "official") == "Ma_List"
     print("schema contract ok")
 
 
