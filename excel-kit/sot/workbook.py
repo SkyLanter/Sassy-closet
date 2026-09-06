@@ -12,11 +12,21 @@ from pathlib import Path
 from typing import Mapping
 from zoneinfo import ZoneInfo
 
-from openpyxl import load_workbook
-from openpyxl.utils import get_column_letter
-from openpyxl.workbook import Workbook
-from openpyxl.worksheet.table import Table
-from openpyxl.worksheet.worksheet import Worksheet
+try:
+    from openpyxl import load_workbook
+    from openpyxl.utils import get_column_letter
+    from openpyxl.workbook import Workbook
+    from openpyxl.worksheet.table import Table
+    from openpyxl.worksheet.worksheet import Worksheet
+except ImportError as exc:  # --help must not require Excel installed
+    _OPENPYXL_IMPORT_ERROR: ImportError | None = exc
+    load_workbook = None  # type: ignore[assignment]
+    get_column_letter = None  # type: ignore[assignment]
+    Workbook = None  # type: ignore[misc, assignment]
+    Table = None  # type: ignore[misc, assignment]
+    Worksheet = None  # type: ignore[misc, assignment]
+else:
+    _OPENPYXL_IMPORT_ERROR = None
 
 _KIT_DIR = Path(__file__).resolve().parent.parent
 if str(_KIT_DIR) not in sys.path:
@@ -107,6 +117,11 @@ def locate_sot(explicit: Path | None = None, *, must_exist: bool = True) -> Path
 
 
 def open_sot(path: Path, *, data_only: bool = False, read_only: bool = False) -> Workbook:
+    if _OPENPYXL_IMPORT_ERROR is not None or load_workbook is None:
+        raise WorkbookError(
+            "openpyxl is required to open the SoT workbook. "
+            "pip install -r requirements.txt"
+        ) from _OPENPYXL_IMPORT_ERROR
     if not path.is_file():
         raise WorkbookError(f"workbook not found: {path}")
     return load_workbook(path, data_only=data_only, read_only=read_only)
