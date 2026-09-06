@@ -6,3 +6,4 @@ __pycache__/
 .DS_Store
 .venv/
 venv/
+sassy-closet/node_modules/
