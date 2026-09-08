@@ -20,6 +20,8 @@ excel-kit/
   prompts/BOUTIQUE_DESKTOP_EFFICIENT.md
   prompts/BOUTIQUE_PHONE_SAFE.md
   prompts/GF_CLOTHES_INTAKE.md   ← GF self-upload contract (not live inventory)
+  prompts/SAVED_CARD_AND_REAL_MINIBOSS_ASK_2026-09-07.md
+  KIT.md                         ← site env names (no secret values)
   templates/from_gf/             ← HOW_TO + INTAKE_TEMPLATE + example packets
   inbox/gf_intake_reply_templates.md
   tests/run_checks.py

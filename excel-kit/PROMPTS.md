@@ -237,3 +237,31 @@ CONTRACT
   print Boss steps (Share → Can edit → copy link) and exit 0. Never invent 1drv.ms / authkey tokens.
 - Do not ask for passwords in code. Do not commit live share URLs.
 ```
+
+---
+
+## 13) Saved card + real Mini Boss Ask
+
+Contract: `prompts/SAVED_CARD_AND_REAL_MINIBOSS_ASK_2026-09-07.md`. Site folder: `sassy-closet/`.
+
+```
+Sassy Closet site — Saved card popup + real Mini Boss Ask relay.
+
+RUN
+  cd sassy-closet && npm install && npm test && npm run typecheck && npm run dev
+
+CONTRACT
+- After Lưu on Món mới / Sửa theo mã (incl. rename): modal/bottom sheet
+  Saved · Đã lưu with big mã, kind + colors, Copy mã, Copy link (?ma=),
+  Copy caption starter (mã line 1), toast Đã copy, Done closes.
+- Do not add a fifth tab. Existing tabs only.
+- POST /api/ask stores pending {id,question} waiting.
+- POST env MINIBOSS_ASK_WEBHOOK_URL with key MINIBOSS_ASK_WEBHOOK_KEY.
+- POST /api/ask/reply {id,answer} gated by ASK_REPLY_SECRET.
+- GET /api/ask/{id} poll ~45s. Missing webhook envs → rules fallback
+  + “Mini Boss offline — local draft”.
+- Never commit secret values. Document names only (README / KIT.md).
+- No Post / Send / Square Save. Never invent mã.
+
+Vercel Root Directory: sassy-closet. Live: https://sassy-closet.vercel.app
+```
