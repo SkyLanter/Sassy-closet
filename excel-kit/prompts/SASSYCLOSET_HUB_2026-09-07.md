@@ -11,12 +11,14 @@ Documents/sassycloset/
   README.txt
 ```
 
-Website https://sassy-closet.vercel.app = GF intake. Square Free = on-hand SoT. Excel is not inventory. Cute / pink / embeds are retired.
+Website https://sassy-closet.vercel.app = GF intake. Square Free = on-hand SoT. Excel on OneDrive is the **offline backup if the website dies**. Cute / pink / embeds are retired.
 
 ## sassycloset.xlsx — category sheets inside the main file
 
 1. **All** — every mã from live `GET https://sassy-closet.vercel.app/api/export`  
-   cols: `ma, kind, colors, sell_usd, cost, currency, square, status, flag, next_desk, photo_folder, source_link`  
+   cols: `ma, source_link, kind, colors, sell_usd, cost, currency, square, status, flag, next_desk, photo_folder`  
+   **First-class:** `ma` first, `source_link` (Taobao / e.tb.cn) in col B. Never drop link columns.  
+   Always keep at minimum: `ma` + `source_link` + `photo_folder` + `colors` + sell/cost + `status`.  
    `photo_folder` = `Documents/sassycloset/Photos/{ma}/`  
    `flag` / `next_desk` empty unless the export already has them.
 
@@ -44,7 +46,7 @@ Freeze + autofilter on data sheets. Plain only — no cute / pink / embeds.
 
 ## kit.sh save (= run)
 
-One command: fetch live export → rebuild `out/sassycloset.xlsx` (all sheets) → sync Photos to `out/Photos/{ma}/`.
+One command: fetch live export → rebuild `out/sassycloset.xlsx` (all sheets) → sync Photos to `out/Photos/{ma}/` so OneDrive stays current.
 
 Document OneDrive land path `Documents/sassycloset/`.
 

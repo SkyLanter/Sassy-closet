@@ -1,6 +1,6 @@
 # Kit
 
-ONE hub named **sassycloset** for teammates. Boss opens Excel / OneDrive. Site = GF intake. Square = SoT. Cute Excel is retired.
+ONE hub named **sassycloset** for teammates. Excel on OneDrive is the **offline backup if the website dies**. Always keep `ma` + `source_link` (Taobao / e.tb.cn) plus `photo_folder`, colors, sell/cost, status — never drop link columns. Site = GF intake. Square = SoT. Cute Excel is retired.
 
 ```bash
 ./kit.sh save              # same as: ./kit.sh run

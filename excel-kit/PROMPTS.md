@@ -257,6 +257,7 @@ CONTRACT
 - Fetch live GET https://sassy-closet.vercel.app/api/export
 - Rebuild out/sassycloset.xlsx: All + A_Ao Q_Quan V_Vay K_Khoac G_Giay B_Tui
   P_PhuKien S_Set O_Khac H_Toc J_TrangSuc + Orders + Readme
+- All: ma first, source_link (Taobao/e.tb.cn) col B. Never drop link columns.
 - photo_folder = Documents/sassycloset/Photos/{ma}/
 - Sync Photos to out/Photos/{ma}/ (001.jpg…). Never invent mã. No A02 folder.
 - P02 and P05 are separate. A02 was renamed to P02 (not P05).

@@ -27,7 +27,9 @@ from schema import (  # noqa: E402
     EXPORT_HEADERS,
     HUB_ALL,
     HUB_KIND_SHEETS,
+    HUB_LINK_COLS,
     HUB_ORDERS,
+    HUB_REQUIRED_BACKUP_COLS,
     HUB_SHEETS,
     HUB_XLSX_NAME,
     MA_LIST,
@@ -44,6 +46,7 @@ from schema import (  # noqa: E402
     SQUARE_SOT_SHORT,
     STAY_OFF_SQUARE,
     MissingMaError,
+    assert_hub_backup_columns,
     hub_photo_folder,
     is_hub_ma,
     looks_like_demo_row,
@@ -191,8 +194,11 @@ def check_schema_contract() -> None:
     assert parse_ma("P02") is None
     assert photo_filename_for_ma("AO001") == "AO001.jpg"
     assert EXPORT_HEADERS[-1] == "photo_link"
+    assert HUB_ALL[0] == "ma"
+    assert HUB_ALL[1] == "source_link"
     assert HUB_ALL == (
         "ma",
+        "source_link",
         "kind",
         "colors",
         "sell_usd",
@@ -203,8 +209,12 @@ def check_schema_contract() -> None:
         "flag",
         "next_desk",
         "photo_folder",
-        "source_link",
     )
+    for name in HUB_REQUIRED_BACKUP_COLS:
+        assert name in HUB_ALL
+    for name in HUB_LINK_COLS:
+        assert name in HUB_ALL
+    assert_hub_backup_columns(HUB_ALL, "HUB_ALL")
     assert HUB_ORDERS == (
         "date",
         "ma",
@@ -410,6 +420,8 @@ def check_sassycloset_hub() -> None:
     ):
         if needle not in prompt_text:
             raise AssertionError(f"SASSYCLOSET_HUB_2026-09-07.md should keep spec line {needle!r}")
+    if "offline backup" not in prompt_text.lower() or "source_link" not in prompt_text:
+        raise AssertionError("hub spec must say Excel is an offline backup and keep source_link")
 
     kit_text = kit_md.read_text(encoding="utf-8")
     photos_text = photos_md.read_text(encoding="utf-8")
@@ -417,6 +429,8 @@ def check_sassycloset_hub() -> None:
         raise AssertionError("KIT.md must name the sassycloset hub for teammates")
     if "kit.sh save" not in kit_text or "Documents/sassycloset" not in kit_text:
         raise AssertionError("KIT.md must document kit.sh save and the OneDrive land path")
+    if "offline backup" not in kit_text.lower() or "source_link" not in kit_text:
+        raise AssertionError("KIT.md must say Excel is the offline backup and keep source_link")
     if "Documents/sassycloset/Photos/{MA}/" not in photos_text.replace(" ", ""):
         if "Documents/sassycloset/Photos/{MA}/" not in photos_text:
             raise AssertionError("PHOTOS.md must use Documents/sassycloset/Photos/{MA}/")
@@ -490,6 +504,10 @@ def check_sassycloset_hub() -> None:
             headers = [all_sheet.cell(1, c).value for c in range(1, len(HUB_ALL) + 1)]
             if headers != list(HUB_ALL):
                 raise AssertionError(f"All headers drifted: {headers}")
+            if headers[0] != "ma" or headers[1] != "source_link":
+                raise AssertionError(f"All must lead with ma + source_link, got {headers[:2]}")
+            if "source_link" not in headers or "photo_folder" not in headers:
+                raise AssertionError("never drop link columns")
             mas = []
             for row in range(2, (all_sheet.max_row or 1) + 1):
                 value = all_sheet.cell(row, 1).value
@@ -499,11 +517,16 @@ def check_sassycloset_hub() -> None:
             if mas != ["A01", "P02", "P05"]:
                 raise AssertionError(f"harness All mã should be A01,P02,P05 (no A02), got {mas}")
             photo_col = list(HUB_ALL).index("photo_folder") + 1
+            link_col = list(HUB_ALL).index("source_link") + 1
             cost_col = list(HUB_ALL).index("cost") + 1
             curr_col = list(HUB_ALL).index("currency") + 1
             flag_col = list(HUB_ALL).index("flag") + 1
             desk_col = list(HUB_ALL).index("next_desk") + 1
             colors_col = list(HUB_ALL).index("colors") + 1
+            if all_sheet.cell(2, link_col).value != "https://example.com/harness-a01":
+                raise AssertionError("source_link must copy the export Taobao/source URL")
+            if all_sheet.cell(3, link_col).value != "https://example.com/harness-p02":
+                raise AssertionError("P02 source_link must stay; never drop link columns")
             for row_index, ma in enumerate(mas, start=2):
                 folder = str(all_sheet.cell(row_index, photo_col).value)
                 if folder != f"{ONEDRIVE_HUB_PHOTOS}/{ma}/":

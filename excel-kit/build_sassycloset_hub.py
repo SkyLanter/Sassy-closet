@@ -58,6 +58,8 @@ from schema import (  # noqa: E402
     ONEDRIVE_HUB_DIR,
     ONEDRIVE_HUB_PHOTOS,
     add_list_dropdown,
+    apply_photo_link_style,
+    assert_hub_backup_columns,
     header_index,
     hub_photo_folder,
     is_hub_ma,
@@ -258,7 +260,13 @@ def write_item_sheet(ws: Worksheet, title: str, rows: list[dict[str, object]]) -
     textish = {"ma", "photo_folder", "source_link", "flag", "next_desk"}
     for row_index, item in enumerate(rows, start=2):
         for col, name in enumerate(HUB_ALL, start=1):
-            cell = ws.cell(row_index, col, item.get(name))
+            cell = ws.cell(row_index, col)
+            if name == "source_link":
+                apply_photo_link_style(cell, item.get(name))
+                cell.alignment = Alignment(vertical="center", wrap_text=True)
+                cell.number_format = FORMAT_TEXT
+                continue
+            cell.value = item.get(name)
             cell.font = PLAIN_FONT
             cell.alignment = Alignment(vertical="center", wrap_text=name in wrap)
             if name in NUMBER_HEADERS and isinstance(item.get(name), (int, float)):
@@ -505,7 +513,18 @@ def verify_hub_book(path: Path, *, expected_mas: Iterable[str] | None = None) ->
             raise AssertionError(f"retired/forbidden sheets present: {sorted(extra)}")
 
         all_sheet = workbook["All"]
+        assert_hub_backup_columns(
+            [all_sheet.cell(1, col).value for col in range(1, len(HUB_ALL) + 1)],
+            "All",
+        )
         mas = _assert_item_sheet(all_sheet, "All")
+        links = column_values(all_sheet, HUB_ALL, "source_link")
+        if not links and mas:
+            print(
+                "note: All has mã rows but no source_link values "
+                "(column kept; do not invent Taobao URLs)",
+                file=sys.stderr,
+            )
         if expected_mas is not None:
             want = [str(ma).strip() for ma in expected_mas]
             if list(mas) != want:

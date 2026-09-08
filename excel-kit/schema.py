@@ -196,8 +196,11 @@ EXPORT_HEADERS: tuple[str, ...] = (
     "photo_link",
 )
 
+# Offline backup if the website dies. ma first, source_link col B (Taobao/e.tb.cn).
+# Never drop link columns. Keep colors, sell/cost, status, photo_folder.
 HUB_ALL: tuple[str, ...] = (
     "ma",
+    "source_link",
     "kind",
     "colors",
     "sell_usd",
@@ -208,8 +211,17 @@ HUB_ALL: tuple[str, ...] = (
     "flag",
     "next_desk",
     "photo_folder",
-    "source_link",
 )
+HUB_REQUIRED_BACKUP_COLS: tuple[str, ...] = (
+    "ma",
+    "source_link",
+    "photo_folder",
+    "colors",
+    "sell_usd",
+    "cost",
+    "status",
+)
+HUB_LINK_COLS: tuple[str, ...] = ("source_link", "photo_folder")
 
 HUB_KIND_SHEETS: tuple[tuple[str, str], ...] = (
     ("A_Ao", "A"),
@@ -249,25 +261,28 @@ HUB_SHEETS: tuple[str, ...] = (
 HUB_RETIRED_MA: tuple[str, ...] = ("A02",)
 
 HUB_README_LINES: tuple[str, ...] = (
-    "sassycloset hub for teammates. Category sheets live in this one Excel file.",
-    "Boss opens Excel / OneDrive. Land path: Documents/sassycloset/ (Build lands later).",
+    "sassycloset hub for teammates: OneDrive offline backup if the website dies. Category sheets in this one Excel file.",
+    "Boss opens Excel / OneDrive. kit.sh save pulls the live export so Documents/sassycloset/ stays current.",
     "Website https://sassy-closet.vercel.app is GF intake. Square Free is on-hand SoT. Excel is not inventory.",
     "Never invent mã. Never Square Save. Never Facebook Post. No passwords.",
-    "Photos: Documents/sassycloset/Photos/{MA}/001.jpg — folder path only, no embeds, no cute theme.",
+    "Keep ma + source_link (Taobao/e.tb.cn) plus photo_folder, colors, sell/cost, status. Never drop link columns. No cute/embeds.",
 )
 
 HUB_README_TXT = """sassycloset hub
-OneDrive land path (Build lands later):
+OneDrive offline backup if the website dies.
+Land path (Build lands later):
 
 Documents/sassycloset/
   sassycloset.xlsx
   Photos/{MA}/001.jpg
   README.txt
 
+kit.sh save pulls the live export so this folder stays current.
 For teammates. Boss opens Excel / OneDrive.
 Website https://sassy-closet.vercel.app = GF intake.
 Square Free = on-hand SoT. Excel is not inventory.
-Never invent mã. Never Square Save. Never Facebook Post.
+Always keep ma + source_link (Taobao/e.tb.cn) plus photo_folder, colors, sell/cost, status.
+Never drop link columns. Never invent mã. Never Square Save. Never Facebook Post.
 No passwords. No cute / pink / embeds.
 A02 was renamed to P02 (not P05). P02 and P05 are separate.
 """
@@ -1014,6 +1029,27 @@ def assert_photo_link_last(headers: Sequence[str], sheet_label: str) -> None:
 assert_photo_link_last(MA_LIST, "MA_LIST")
 assert_photo_link_last(CANDIDATES, "CANDIDATES")
 assert_photo_link_last(SOT_WISHLIST, "SOT_WISHLIST")
+
+
+def assert_hub_backup_columns(headers: Sequence[str], sheet_label: str) -> None:
+    """Excel is the offline backup. ma first, source_link near front, never drop links."""
+    if not headers or headers[0] != "ma":
+        raise AssertionError(f"{sheet_label}: ma must be first, got {headers!r}")
+    if "source_link" not in headers:
+        raise AssertionError(f"{sheet_label}: source_link is required (offline backup / Taobao)")
+    if headers[1] != "source_link":
+        raise AssertionError(
+            f"{sheet_label}: source_link must be near front (col B), got {headers!r}"
+        )
+    missing = [name for name in HUB_REQUIRED_BACKUP_COLS if name not in headers]
+    if missing:
+        raise AssertionError(f"{sheet_label}: missing required backup columns {missing}")
+    dropped = [name for name in HUB_LINK_COLS if name not in headers]
+    if dropped:
+        raise AssertionError(f"{sheet_label}: never drop link columns {dropped}")
+
+
+assert_hub_backup_columns(HUB_ALL, "HUB_ALL")
 
 
 def photo_link_col_index(headers: Sequence[str]) -> int | None:
