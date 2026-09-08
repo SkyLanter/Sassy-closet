@@ -6,11 +6,12 @@ Bots draft only. No Square Save, no Facebook post, no Zelle. Never invent mã.
 
 Shop law (every prompt):
 
-- Square Free = on-hand inventory source of truth. Track stock ON.
-- Official Excel (`Sassy_Closet_SoT.xlsx`) = working copy / mã index / captions — not a second inventory.
-- Photos: `Documents/Sassy Closet/Photos/` as `#001.jpg` / `AO001.jpg`. `photo_link` only. No embeds.
-- Mã = `AO|QU|VA|AK|GI|PK|SET` + 3 digits. Ask Stock (Dashboard `B21:B27`). Never reuse Sold.
-- Wishlist ≠ stock. `#shop-decisions` is Boss yes/no.
+- Cute / pink / emoji / phone Excel is **retired**. Boss book = `Sassy_Closet_Data.xlsx`.
+- Website `https://sassy-closet.vercel.app` = GF input. Excel = simple mirror / edit buffer.
+- Square Free = on-hand inventory source of truth. Track stock ON. Excel is not inventory truth.
+- Photos: `Documents/Sassy Closet/Photos/{MA}/`. `photo_link` only. No embeds.
+- Live mã = letter + growing digits (`A01`…`A99` then `A100+`). A áo Q quần V váy K áo khoác G giày B túi P phụ kiện S set O khác H tóc J trang sức. Never invent. A02 → P02 (not P05).
+- Wishlist / Candidates ≠ stock. `#shop-decisions` is Boss yes/no.
 
 ---
 
@@ -22,7 +23,29 @@ Use excel-kit/. Do not commit live Official rows, customer names, Square tokens,
 After the PR merges, Kit copies built/cleaned workbooks to OneDrive Documents/Sassy Closet/.
 ```
 
-Then paste **one** task block below. GF clothes intake contract: `prompts/GF_CLOTHES_INTAKE.md`.
+Then paste **one** task block below. GF clothes intake contract: `prompts/GF_CLOTHES_INTAKE.md`.  
+Boss plain book contract: `prompts/PLAIN_DATA_EXCEL.md`.
+
+---
+
+## 0) Rebuild plain data book (Boss daily)
+
+```
+Sassy Closet — rebuild Excel as ONE plain data workbook. Cute/pink/emoji/phone themes are RETIRED.
+
+Read and follow excel-kit/prompts/PLAIN_DATA_EXCEL.md exactly.
+
+RUN
+  python3 excel-kit/build_plain_data.py --out-dir ./out
+  ./excel-kit/kit.sh pull
+  python3 excel-kit/tests/run_checks.py
+
+OUT
+  out/Sassy_Closet_Data.xlsx
+  Inventory from https://sassy-closet.vercel.app/api/export
+  Candidates + Orders blank templates (20 empty rows)
+  No Dashboard. No Bot_Activity. No embeds. No invent mã.
+```
 
 ---
 

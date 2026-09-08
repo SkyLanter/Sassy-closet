@@ -1,5 +1,7 @@
 # Prompt — boutique desktop (efficient)
 
+> **Retired 2026-09-07.** Cute / pink / emoji desktop books are retired. Boss daily book is `Sassy_Closet_Data.xlsx` via `build_plain_data.py` / `kit.sh pull`. See `PLAIN_DATA_EXCEL.md`. Do not use this prompt to rebuild a blush Wishlist.
+
 Paste this when a Cursor Cloud Agent or Kit should rebuild the **desktop** Official + Wishlist books. Do not use this to remake `Sassy_Closet_SoT.xlsx` unless Boss also pasted the SoT `BOT PROMPT`.
 
 ```

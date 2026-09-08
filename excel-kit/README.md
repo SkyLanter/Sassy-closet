@@ -2,23 +2,30 @@
 
 Builders, SoT CLIs, and prompts for Sassy Closet Excel books. **This GitHub repo is where Cursor Cloud Agents change the kit.** Kit syncs generated `.xlsx` files to OneDrive `Documents/Sassy Closet/`.
 
-Square Free is the on-hand inventory source of truth. Official Excel (`Sassy_Closet_SoT.xlsx`) is the ONE desktop working copy / mã index / captions — not a second inventory.
+**Cute / pink / emoji / phone Excel is retired** (Boss 2026-09-07). Boss opens one plain book: `Sassy_Closet_Data.xlsx`. Website `https://sassy-closet.vercel.app` stays GF input. Excel is a simple mirror / edit buffer — **not** inventory truth. Square Free remains on-hand SoT.
+
+See `KIT.md`, `PHOTOS.md`, and `prompts/PLAIN_DATA_EXCEL.md`.
 
 ## Layout
 
 ```
 excel-kit/
   README.md
+  KIT.md                     ← cute Excel retired; Boss plain book
+  PHOTOS.md                  ← Photos/{MA}/ folder links only
+  kit.sh                     ← pull | plain → Sassy_Closet_Data.xlsx
   PROMPTS.md                 ← Boss / Mini Boss paste these into Cloud Agents
   EFFICIENCY.md
   DESIGN_NOTES.md
   schema.py
+  build_plain_data.py        ← live /api/export → plain data book
   clean_sot_demo.py
-  build_boutique_desktop.py
-  sot/                       ← ONE workbook: Sassy_Closet_SoT.xlsx
+  build_boutique_desktop.py  ← retired cute builders (kept for old SoT CLIs)
+  sot/                       ← legacy SoT CLIs (AO001-style until that handoff)
   square/                    ← headers-only Square import + Track ON rules
-  prompts/BOUTIQUE_DESKTOP_EFFICIENT.md
-  prompts/BOUTIQUE_PHONE_SAFE.md
+  prompts/PLAIN_DATA_EXCEL.md
+  prompts/BOUTIQUE_DESKTOP_EFFICIENT.md   ← retired cute prompt
+  prompts/BOUTIQUE_PHONE_SAFE.md          ← retired cute prompt
   prompts/GF_CLOTHES_INTAKE.md   ← GF self-upload contract (not live inventory)
   templates/from_gf/             ← HOW_TO + INTAKE_TEMPLATE + example packets
   inbox/gf_intake_reply_templates.md
@@ -28,9 +35,9 @@ excel-kit/
 ## Shop rules
 
 - **Square Free** = on-hand inventory source of truth. Track stock ON for every item and variation. Wishlist / candidates stay off Square until Boss confirms bought and says Save.
-- **Official Excel** lives on OneDrive: `Documents/Sassy Closet/Sassy_Closet_SoT.xlsx` (working copy / mã index / captions — **not** second inventory).
-- **Photos** live in `Documents/Sassy Closet/Photos/` named `#001.jpg` / `AO001.jpg`. Excel stores `photo_link` only — **never embed images**. `photo_link` is last on Ma_List, Candidates, and SoT Wishlist.
-- **Mã** = `AO` / `QU` / `VA` / `AK` / `GI` / `PK` / `SET` + 3 digits. Never invent stock. Never reuse a Sold mã. Ask Stock (Dashboard `B21:B27`).
+- **Boss Excel** lives on OneDrive: `Documents/Sassy Closet/Sassy_Closet_Data.xlsx` (plain Inventory / Candidates / Orders). Not a second inventory.
+- **Photos** live in `Documents/Sassy Closet/Photos/{MA}/`. Excel stores `photo_link` only — **never embed images**.
+- **Live mã** = letter + growing digits (`A01`…`A99` then `A100+`). Letters: A áo Q quần V váy K áo khoác G giày B túi P phụ kiện S set O khác H tóc J trang sức. Never invent. A02 was renamed to P02 (not P05).
 - **Bots draft only.** Owner posts, sends, takes Zelle, taps Square Save.
 - **Cursor Cloud Agents** build here. **Kit** syncs files to OneDrive. Mini Boss launch steps: repo root `README.md` + `PROMPTS.md`.
 
@@ -39,10 +46,14 @@ excel-kit/
 Needs Python 3.10+ and `openpyxl` (`pip install -r requirements.txt` from the repo root).
 
 ```bash
-# Empty SoT scaffold (Dashboard!B43 morning brief formula)
+# Boss plain data book from the live site export
+python3 excel-kit/build_plain_data.py --out-dir ./out
+./excel-kit/kit.sh pull
+
+# Empty SoT scaffold (legacy; Dashboard!B43 morning brief formula)
 python3 excel-kit/sot/build_sot_desktop.py --out-dir ./out
 
-# Lean desktop Official + Wishlist
+# Retired cute desktop Official + Wishlist (do not use for Boss daily)
 python3 excel-kit/build_boutique_desktop.py --out-dir ./out
 
 # Append / brief (need a local or OneDrive SoT path)
@@ -74,8 +85,7 @@ Do not commit live inventory, customer names, secrets, or a filled Square CSV. E
 
 | File | Role |
 | --- | --- |
-| `Documents/Sassy Closet/Sassy_Closet_SoT.xlsx` | ONE desktop book (Official / Wishlist / Orders / Dashboard) |
-| `Documents/Sassy Closet/Sassy_Closet_Official_desktop.xlsx` | Lean desktop Ma_List / Orders / Bot_Activity |
-| `Documents/Sassy Closet/Sassy_Closet_Wishlist_desktop.xlsx` | Lean desktop Candidates |
-| `Documents/Sassy Closet/Photos/` | `#001.jpg` / `AO001.jpg` — links only in Excel |
+| `Documents/Sassy Closet/Sassy_Closet_Data.xlsx` | ONE plain Boss book (Inventory / Candidates / Orders) |
+| `Documents/Sassy Closet/Photos/{MA}/` | Folder per mã — `photo_link` only, no embeds |
 | `Documents/Sassy Closet/From GF/` | PRIMARY GF self-upload inbox (Kit copies HOW_TO + template) |
+| `Documents/Sassy Closet/Sassy_Closet_SoT.xlsx` | Legacy SoT (cute theme retired — do not rebuild for daily use) |

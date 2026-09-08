@@ -1,5 +1,7 @@
 # Prompt — boutique phone-safe
 
+> **Retired 2026-09-07.** Cute / pink / emoji / phone Excel is retired. Boss daily book is the plain `Sassy_Closet_Data.xlsx` (`build_plain_data.py`). See `PLAIN_DATA_EXCEL.md`.
+
 Paste this when anyone rebuilds a book that must open in **Excel iOS / OneDrive mobile**. Desktop AutoFilter books are allowed to be richer; phone books must stay typeable.
 
 ```

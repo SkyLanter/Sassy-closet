@@ -27,7 +27,14 @@ from schema import (  # noqa: E402
     MA_LIST,
     OFFICIAL_TO_MA_LIST_STATUS,
     ONEDRIVE_FROM_GF,
+    ONEDRIVE_PHOTOS,
+    ONEDRIVE_PLAIN_DATA,
     ORDER_STATUS,
+    PLAIN_CANDIDATES,
+    PLAIN_INVENTORY,
+    PLAIN_ORDERS,
+    PLAIN_SHEETS,
+    PLAIN_XLSX_NAME,
     SOT_DASHBOARD_BRIEF_CELL,
     SOT_OFFICIAL_STATUS,
     SOT_WISHLIST,
@@ -35,10 +42,12 @@ from schema import (  # noqa: E402
     SQUARE_SOT_SHORT,
     STAY_OFF_SQUARE,
     MissingMaError,
+    is_plain_ma,
     looks_like_demo_row,
     official_status_or_raise,
     parse_ma,
     photo_filename_for_ma,
+    photo_folder_link,
     require_ma,
     resolve_sheet_name,
 )
@@ -47,6 +56,7 @@ SCRIPTS = [
     KIT / "schema.py",
     KIT / "clean_sot_demo.py",
     KIT / "build_boutique_desktop.py",
+    KIT / "build_plain_data.py",
     KIT / "sot" / "workbook.py",
     KIT / "sot" / "append_official_row.py",
     KIT / "sot" / "append_wishlist_row.py",
@@ -63,6 +73,7 @@ SCRIPTS = [
 CLIS = [
     KIT / "clean_sot_demo.py",
     KIT / "build_boutique_desktop.py",
+    KIT / "build_plain_data.py",
     KIT / "sot" / "append_official_row.py",
     KIT / "sot" / "append_wishlist_row.py",
     KIT / "sot" / "append_order_row.py",
@@ -171,10 +182,67 @@ def check_schema_contract() -> None:
         raise AssertionError("Ma_List status must not pass official_status_or_raise")
     except ValueError:
         pass
-    # Legacy AO001 parse_ma — do not treat A01 as valid in this PR.
+    # Legacy AO001 parse_ma — do not treat A01 as valid here (plain mã is separate).
     assert parse_ma("AO001") == ("AO", 1)
     assert parse_ma("ao015") == ("AO", 15)
+    assert parse_ma("A01") is None
+    assert parse_ma("P02") is None
     assert photo_filename_for_ma("AO001") == "AO001.jpg"
+    assert PLAIN_INVENTORY[-1] == "photo_link"
+    assert PLAIN_INVENTORY == (
+        "ma",
+        "kind",
+        "kind_vi",
+        "size",
+        "color",
+        "color_note",
+        "color_pieces",
+        "blurb",
+        "cost_cny",
+        "cost_usd",
+        "cost_currency",
+        "sell_cny",
+        "sell_usd",
+        "sell_currency",
+        "source_link",
+        "status",
+        "square",
+        "created_at",
+        "updated_at",
+        "photo_link",
+    )
+    assert PLAIN_CANDIDATES == (
+        "title_note",
+        "source_link",
+        "size_note",
+        "color_note",
+        "cost_note",
+        "status",
+        "photo_note",
+    )
+    assert PLAIN_ORDERS == (
+        "date",
+        "ma",
+        "customer_note",
+        "pay_method",
+        "amount_usd",
+        "ship_or_meetup",
+        "status",
+        "notes",
+    )
+    assert PLAIN_SHEETS == ("Inventory", "Candidates", "Orders")
+    assert ONEDRIVE_PLAIN_DATA.endswith(PLAIN_XLSX_NAME)
+    assert is_plain_ma("A01")
+    assert is_plain_ma("P02")
+    assert is_plain_ma("A100")
+    assert is_plain_ma("A02") is True  # leftover shape; builder still refuses the row
+    assert is_plain_ma("AO001") is False
+    assert photo_folder_link("P02") == f"{ONEDRIVE_PHOTOS}/P02/"
+    try:
+        photo_folder_link("")
+        raise AssertionError("photo_folder_link must refuse an empty mã")
+    except ValueError:
+        pass
     try:
         photo_filename_for_ma("not-a-ma")
         raise AssertionError("photo_filename_for_ma must refuse invented mã")
@@ -226,6 +294,181 @@ def check_square_template() -> None:
     if "headers-only" not in proc.stdout:
         raise AssertionError("validate_import should report headers-only")
     print("square template headers-only ok")
+
+
+def _write_harness_export(path: Path) -> None:
+    """Runtime-only CSV. Not committed. Uses live-shaped mã; never invents new ones."""
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(PLAIN_INVENTORY))
+        writer.writeheader()
+        writer.writerow(
+            {
+                "ma": "A01",
+                "kind": "A",
+                "kind_vi": "Áo",
+                "size": "S M L",
+                "color": "Kem",
+                "color_note": "",
+                "color_pieces": "P1: Kem",
+                "blurb": "harness row",
+                "cost_cny": "10",
+                "cost_usd": "1.5",
+                "cost_currency": "USD",
+                "sell_cny": "",
+                "sell_usd": "20",
+                "sell_currency": "USD",
+                "source_link": "https://example.com/harness-a01",
+                "status": "staged",
+                "square": "not_square",
+                "created_at": "2026-09-07T00:00:00.000Z",
+                "updated_at": "2026-09-07T00:00:00.000Z",
+                "photo_link": "replace-me",
+            }
+        )
+        writer.writerow(
+            {
+                "ma": "P02",
+                "kind": "P",
+                "kind_vi": "Phụ kiện",
+                "size": "",
+                "color": "Đỏ",
+                "color_note": "",
+                "color_pieces": "P1: Đỏ",
+                "blurb": "",
+                "cost_cny": "63",
+                "cost_usd": "9.39",
+                "cost_currency": "CNY",
+                "sell_cny": "",
+                "sell_usd": "",
+                "sell_currency": "",
+                "source_link": "https://example.com/harness-p02",
+                "status": "staged",
+                "square": "not_square",
+                "created_at": "2026-09-08T00:00:00.000Z",
+                "updated_at": "2026-09-08T00:00:00.000Z",
+                "photo_link": "also-replace-me",
+            }
+        )
+        writer.writerow({"ma": "", "blurb": "empty mã must be skipped"})
+
+
+def check_plain_data_book() -> None:
+    prompt = KIT / "prompts" / "PLAIN_DATA_EXCEL.md"
+    kit_md = KIT / "KIT.md"
+    photos_md = KIT / "PHOTOS.md"
+    kit_sh = KIT / "kit.sh"
+    for path in (prompt, kit_md, photos_md, kit_sh, KIT / "build_plain_data.py"):
+        if not path.is_file():
+            raise AssertionError(f"missing {path.relative_to(REPO)}")
+
+    prompt_text = prompt.read_text(encoding="utf-8")
+    for needle in (
+        "Sassy_Closet_Data.xlsx",
+        "api/export",
+        "No Dashboard",
+        "A02 was renamed to P02",
+        "photo_link = Documents/Sassy Closet/Photos/{ma}/",
+        "looking/skip/bought",
+        "hold/paid/shipped/done/cancel",
+    ):
+        if needle not in prompt_text:
+            raise AssertionError(f"PLAIN_DATA_EXCEL.md should keep spec line {needle!r}")
+
+    kit_text = kit_md.read_text(encoding="utf-8").lower()
+    photos_text = photos_md.read_text(encoding="utf-8").lower()
+    if "retired" not in kit_text or "plain" not in kit_text:
+        raise AssertionError("KIT.md must note that cute Excel is retired and the book is plain")
+    if "retired" not in photos_text or "photos/{ma}/" not in photos_text:
+        raise AssertionError("PHOTOS.md must note cute Excel retired and Photos/{MA}/")
+
+    syntax = _run(["bash", "-n", str(kit_sh)])
+    if syntax.returncode != 0:
+        raise AssertionError(f"kit.sh bash -n failed:\n{syntax.stderr}")
+    help_proc = _run(["bash", str(kit_sh), "--help"])
+    if help_proc.returncode != 0:
+        raise AssertionError(help_proc.stderr)
+    help_blob = help_proc.stdout + help_proc.stderr
+    if "pull" not in help_blob or "plain" not in help_blob:
+        raise AssertionError("kit.sh --help should mention pull and plain")
+    cute = _run(["bash", str(kit_sh), "wishlist"])
+    if cute.returncode == 0:
+        raise AssertionError("kit.sh wishlist must be refused (cute pull retired)")
+    if "retired" not in (cute.stdout + cute.stderr).lower():
+        raise AssertionError("kit.sh wishlist refusal should say retired")
+
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp)
+        csv_path = out / "export.csv"
+        _write_harness_export(csv_path)
+        built = _run(
+            [
+                sys.executable,
+                str(KIT / "build_plain_data.py"),
+                "--from-csv",
+                str(csv_path),
+                "--out-dir",
+                str(out),
+            ]
+        )
+        if built.returncode != 0:
+            raise AssertionError(built.stdout + built.stderr)
+        book = out / PLAIN_XLSX_NAME
+        if not book.is_file():
+            raise AssertionError("plain builder did not write Sassy_Closet_Data.xlsx")
+        blob = built.stdout + built.stderr
+        if "sha256" not in blob:
+            raise AssertionError("plain builder should print a checksum")
+
+        from openpyxl import load_workbook
+
+        wb = load_workbook(book)
+        try:
+            if list(wb.sheetnames) != ["Inventory", "Candidates", "Orders"]:
+                raise AssertionError(f"unexpected sheets: {wb.sheetnames}")
+            inv = wb["Inventory"]
+            mas = []
+            for row in range(2, (inv.max_row or 1) + 1):
+                value = inv.cell(row, 1).value
+                if value is None or str(value).strip() == "":
+                    continue
+                mas.append(str(value).strip())
+            if mas != ["A01", "P02"]:
+                raise AssertionError(f"harness Inventory mã should be A01,P02 (no A02), got {mas}")
+            photo_col = list(PLAIN_INVENTORY).index("photo_link") + 1
+            for row_index, ma in enumerate(mas, start=2):
+                link = str(inv.cell(row_index, photo_col).value)
+                if not link.endswith(f"Photos/{ma}/"):
+                    raise AssertionError(f"photo_link for {ma} should end Photos/{ma}/, got {link}")
+            if any(cell.value == "A02" for row in inv.iter_rows() for cell in row):
+                raise AssertionError("no mã cell A02")
+            if getattr(inv, "_images", None):
+                raise AssertionError("Inventory embeds forbidden")
+            if inv.freeze_panes != "A2":
+                raise AssertionError("Inventory must freeze the header row")
+            if wb["Candidates"].freeze_panes != "A2" or wb["Orders"].freeze_panes != "A2":
+                raise AssertionError("Candidates/Orders must freeze the header row")
+        finally:
+            wb.close()
+
+        leftover = out / "leftover.csv"
+        with leftover.open("w", encoding="utf-8", newline="") as handle:
+            writer = csv.DictWriter(handle, fieldnames=list(PLAIN_INVENTORY))
+            writer.writeheader()
+            writer.writerow({"ma": "A02", "kind": "A", "kind_vi": "Áo", "status": "staged"})
+        refuse = _run(
+            [
+                sys.executable,
+                str(KIT / "build_plain_data.py"),
+                "--from-csv",
+                str(leftover),
+                "--out-dir",
+                str(out / "bad"),
+            ]
+        )
+        if refuse.returncode == 0:
+            raise AssertionError("builder must refuse leftover A02 (renamed to P02)")
+
+    print("plain data book ok")
 
 
 def check_builders_and_append() -> None:
@@ -858,6 +1101,7 @@ def main() -> int:
         check_py_compile()
         check_help()
         check_schema_contract()
+        check_plain_data_book()
         check_no_fake_inventory_in_git()
         check_square_template()
         check_builders_and_append()

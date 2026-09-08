@@ -1,11 +1,11 @@
 """Sassy Closet Excel kit — shared headers, mã rules, and workbook helpers.
 
-Desktop Official / Wishlist use MA_LIST, ORDERS, BOT_ACTIVITY, CANDIDATES.
-The OneDrive SoT workbook (Sassy_Closet_SoT.xlsx) is the ONE desktop working
-copy: Official / Wishlist / Orders / Dashboard (plus Bot_Activity when present).
-Square Free remains on-hand inventory SoT; Official Excel is a working copy /
-mã index / captions — not a second stock. Never embed images. photo_link last
-on Ma_List, Candidates, and SoT Wishlist.
+Boss daily book (2026-09-07): Sassy_Closet_Data.xlsx — PLAIN_INVENTORY /
+PLAIN_CANDIDATES / PLAIN_ORDERS. Cute / pink / emoji / phone Excel is retired.
+
+Legacy desktop Official / Wishlist still use MA_LIST, ORDERS, BOT_ACTIVITY,
+CANDIDATES. Square Free remains on-hand inventory SoT. Excel is not inventory
+truth. Never embed images. Never invent mã.
 """
 
 from __future__ import annotations
@@ -44,6 +44,10 @@ ONEDRIVE_PHOTOS = f"{ONEDRIVE_SHOP_DIR}/Photos"
 ONEDRIVE_FROM_GF = f"{ONEDRIVE_SHOP_DIR}/From GF"
 ONEDRIVE_OFFICIAL_DESKTOP = f"{ONEDRIVE_SHOP_DIR}/Sassy_Closet_Official_desktop.xlsx"
 ONEDRIVE_WISHLIST_DESKTOP = f"{ONEDRIVE_SHOP_DIR}/Sassy_Closet_Wishlist_desktop.xlsx"
+# Boss 2026-09-07: one plain data book. Cute / pink / emoji / phone Excel is retired.
+ONEDRIVE_PLAIN_DATA = f"{ONEDRIVE_SHOP_DIR}/Sassy_Closet_Data.xlsx"
+PLAIN_EXPORT_URL = "https://sassy-closet.vercel.app/api/export"
+PLAIN_XLSX_NAME = "Sassy_Closet_Data.xlsx"
 
 # ---------------------------------------------------------------------------
 # Mã
@@ -136,6 +140,82 @@ CANDIDATE_TYPES: tuple[str, ...] = (
     "Other",
     "SET",
 )
+
+# ---------------------------------------------------------------------------
+# Plain data book (Boss 2026-09-07) — English headers, no cute theme
+# Website = GF input. Excel = simple mirror / edit buffer. Not inventory truth.
+# Live mã: letter + growing digits (A01…A99 then A100+). Never invent mã.
+# ---------------------------------------------------------------------------
+
+PLAIN_MA_LETTERS: dict[str, str] = {
+    "A": "áo",
+    "Q": "quần",
+    "V": "váy",
+    "K": "áo khoác",
+    "G": "giày",
+    "B": "túi",
+    "P": "phụ kiện",
+    "S": "set",
+    "O": "khác",
+    "H": "tóc",
+    "J": "trang sức",
+}
+PLAIN_MA_RE = re.compile(
+    r"^(" + "|".join(PLAIN_MA_LETTERS) + r")(\d+)$",
+    re.IGNORECASE,
+)
+
+PLAIN_INVENTORY: tuple[str, ...] = (
+    "ma",
+    "kind",
+    "kind_vi",
+    "size",
+    "color",
+    "color_note",
+    "color_pieces",
+    "blurb",
+    "cost_cny",
+    "cost_usd",
+    "cost_currency",
+    "sell_cny",
+    "sell_usd",
+    "sell_currency",
+    "source_link",
+    "status",
+    "square",
+    "created_at",
+    "updated_at",
+    "photo_link",
+)
+
+PLAIN_CANDIDATES: tuple[str, ...] = (
+    "title_note",
+    "source_link",
+    "size_note",
+    "color_note",
+    "cost_note",
+    "status",
+    "photo_note",
+)
+
+PLAIN_ORDERS: tuple[str, ...] = (
+    "date",
+    "ma",
+    "customer_note",
+    "pay_method",
+    "amount_usd",
+    "ship_or_meetup",
+    "status",
+    "notes",
+)
+
+PLAIN_CANDIDATE_STATUS: tuple[str, ...] = ("looking", "skip", "bought")
+PLAIN_ORDER_PAY: tuple[str, ...] = ("cash", "zelle", "other")
+PLAIN_ORDER_STATUS: tuple[str, ...] = ("hold", "paid", "shipped", "done", "cancel")
+PLAIN_TEMPLATE_ROWS = 20
+PLAIN_SHEETS: tuple[str, ...] = ("Inventory", "Candidates", "Orders")
+# A02 was renamed to P02 (not P05). Bug-check leftover; do not invent replacement rows.
+PLAIN_RETIRED_MA: tuple[str, ...] = ("A02",)
 
 # ---------------------------------------------------------------------------
 # SoT workbook (pink stock book) — used by clean_sot_demo.py
@@ -486,6 +566,11 @@ PHOTO_RULE = (
     "Excel stores photo_link only — never embed images."
 )
 
+PLAIN_PHOTO_RULE = (
+    f"Photos live in {ONEDRIVE_PHOTOS}/{{MA}}/. "
+    "Excel stores photo_link only — never embed images. Cute Excel is retired."
+)
+
 # Outdated phrases → current shop law. Applied cell-by-cell; skip cells
 # that already state Square Free is on-hand SoT.
 SQUARE_WORDING_PATCHES: tuple[tuple[re.Pattern[str], str], ...] = (
@@ -646,6 +731,29 @@ def parse_ma(value: object) -> tuple[str, int] | None:
 
 def is_valid_ma(value: object) -> bool:
     return parse_ma(value) is not None
+
+
+def is_plain_ma(value: object) -> bool:
+    """True for live-site mã (A01, P02, A100). Does not invent one.
+
+    Legacy AO001 stays on parse_ma until that handoff. A02 is a valid
+    *shape* but is a leftover code (renamed to P02) — callers must not mint it.
+    """
+    if value is None:
+        return False
+    text = str(value).strip()
+    match = PLAIN_MA_RE.fullmatch(text)
+    if not match:
+        return False
+    return int(match.group(2)) >= 1
+
+
+def photo_folder_link(ma: object) -> str:
+    """OneDrive folder path for an export mã. Never invents a mã."""
+    text = "" if ma is None else str(ma).strip()
+    if not text:
+        raise ValueError("ma required for photo_link — never invent")
+    return f"{ONEDRIVE_PHOTOS}/{text}/"
 
 
 def format_ma(prefix: str, number: int) -> str:
