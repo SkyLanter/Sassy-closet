@@ -24,9 +24,18 @@ from schema import (  # noqa: E402
     APPEND_OFFICIAL_ROW_EXPORTS,
     ASK_STOCK_MA,
     CANDIDATES,
+    EXPORT_HEADERS,
+    HUB_ALL,
+    HUB_KIND_SHEETS,
+    HUB_ORDERS,
+    HUB_SHEETS,
+    HUB_XLSX_NAME,
     MA_LIST,
     OFFICIAL_TO_MA_LIST_STATUS,
     ONEDRIVE_FROM_GF,
+    ONEDRIVE_HUB,
+    ONEDRIVE_HUB_DIR,
+    ONEDRIVE_HUB_PHOTOS,
     ORDER_STATUS,
     SOT_DASHBOARD_BRIEF_CELL,
     SOT_OFFICIAL_STATUS,
@@ -35,6 +44,8 @@ from schema import (  # noqa: E402
     SQUARE_SOT_SHORT,
     STAY_OFF_SQUARE,
     MissingMaError,
+    hub_photo_folder,
+    is_hub_ma,
     looks_like_demo_row,
     official_status_or_raise,
     parse_ma,
@@ -47,6 +58,7 @@ SCRIPTS = [
     KIT / "schema.py",
     KIT / "clean_sot_demo.py",
     KIT / "build_boutique_desktop.py",
+    KIT / "build_sassycloset_hub.py",
     KIT / "sot" / "workbook.py",
     KIT / "sot" / "append_official_row.py",
     KIT / "sot" / "append_wishlist_row.py",
@@ -63,6 +75,7 @@ SCRIPTS = [
 CLIS = [
     KIT / "clean_sot_demo.py",
     KIT / "build_boutique_desktop.py",
+    KIT / "build_sassycloset_hub.py",
     KIT / "sot" / "append_official_row.py",
     KIT / "sot" / "append_wishlist_row.py",
     KIT / "sot" / "append_order_row.py",
@@ -171,10 +184,73 @@ def check_schema_contract() -> None:
         raise AssertionError("Ma_List status must not pass official_status_or_raise")
     except ValueError:
         pass
-    # Legacy AO001 parse_ma — do not treat A01 as valid in this PR.
+    # Legacy AO001 parse_ma — do not treat A01 as valid here (hub mã is separate).
     assert parse_ma("AO001") == ("AO", 1)
     assert parse_ma("ao015") == ("AO", 15)
+    assert parse_ma("A01") is None
+    assert parse_ma("P02") is None
     assert photo_filename_for_ma("AO001") == "AO001.jpg"
+    assert EXPORT_HEADERS[-1] == "photo_link"
+    assert HUB_ALL == (
+        "ma",
+        "kind",
+        "colors",
+        "sell_usd",
+        "cost",
+        "currency",
+        "square",
+        "status",
+        "flag",
+        "next_desk",
+        "photo_folder",
+        "source_link",
+    )
+    assert HUB_ORDERS == (
+        "date",
+        "ma",
+        "customer",
+        "pay",
+        "amount_usd",
+        "ship_or_meetup",
+        "status",
+        "notes",
+    )
+    assert HUB_SHEETS[0] == "All"
+    assert HUB_SHEETS[-2:] == ("Orders", "Readme")
+    assert len(HUB_SHEETS) == 14
+    assert [name for name, _letter in HUB_KIND_SHEETS] == [
+        "A_Ao",
+        "Q_Quan",
+        "V_Vay",
+        "K_Khoac",
+        "G_Giay",
+        "B_Tui",
+        "P_PhuKien",
+        "S_Set",
+        "O_Khac",
+        "H_Toc",
+        "J_TrangSuc",
+    ]
+    assert ONEDRIVE_HUB == f"{ONEDRIVE_HUB_DIR}/{HUB_XLSX_NAME}"
+    assert ONEDRIVE_HUB_DIR == "Documents/sassycloset"
+    assert is_hub_ma("A01")
+    assert is_hub_ma("P02")
+    assert is_hub_ma("P05")
+    assert is_hub_ma("A100")
+    assert is_hub_ma("A02") is True  # leftover shape; builder still refuses the row
+    assert is_hub_ma("AO001") is False
+    assert hub_photo_folder("P02") == f"{ONEDRIVE_HUB_PHOTOS}/P02/"
+    assert hub_photo_folder("P05") == f"{ONEDRIVE_HUB_PHOTOS}/P05/"
+    try:
+        hub_photo_folder("")
+        raise AssertionError("hub_photo_folder must refuse an empty mã")
+    except ValueError:
+        pass
+    try:
+        hub_photo_folder("SHIRT1")
+        raise AssertionError("hub_photo_folder must refuse an invented mã")
+    except ValueError:
+        pass
     try:
         photo_filename_for_ma("not-a-ma")
         raise AssertionError("photo_filename_for_ma must refuse invented mã")
@@ -226,6 +302,277 @@ def check_square_template() -> None:
     if "headers-only" not in proc.stdout:
         raise AssertionError("validate_import should report headers-only")
     print("square template headers-only ok")
+
+
+def _write_harness_export(path: Path) -> None:
+    """Runtime-only CSV. Not committed. Uses live-shaped mã; never invents new ones."""
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(EXPORT_HEADERS))
+        writer.writeheader()
+        writer.writerow(
+            {
+                "ma": "A01",
+                "kind": "A",
+                "kind_vi": "Áo",
+                "size": "S M L",
+                "color": "Kem",
+                "color_note": "",
+                "color_pieces": "P1: Kem",
+                "blurb": "harness row",
+                "cost_cny": "10",
+                "cost_usd": "1.5",
+                "cost_currency": "USD",
+                "sell_cny": "",
+                "sell_usd": "20",
+                "sell_currency": "USD",
+                "source_link": "https://example.com/harness-a01",
+                "status": "staged",
+                "square": "not_square",
+                "created_at": "2026-09-07T00:00:00.000Z",
+                "updated_at": "2026-09-07T00:00:00.000Z",
+                "photo_link": "replace-me",
+            }
+        )
+        writer.writerow(
+            {
+                "ma": "P02",
+                "kind": "P",
+                "kind_vi": "Phụ kiện",
+                "size": "",
+                "color": "Đỏ",
+                "color_note": "",
+                "color_pieces": "P1: Đỏ",
+                "blurb": "",
+                "cost_cny": "63",
+                "cost_usd": "9.39",
+                "cost_currency": "CNY",
+                "sell_cny": "",
+                "sell_usd": "",
+                "sell_currency": "",
+                "source_link": "https://example.com/harness-p02",
+                "status": "staged",
+                "square": "not_square",
+                "created_at": "2026-09-08T00:00:00.000Z",
+                "updated_at": "2026-09-08T00:00:00.000Z",
+                "photo_link": "also-replace-me",
+            }
+        )
+        writer.writerow(
+            {
+                "ma": "P05",
+                "kind": "P",
+                "kind_vi": "Phụ kiện",
+                "size": "",
+                "color": "Hồng",
+                "color_note": "",
+                "color_pieces": "P1: Hồng",
+                "blurb": "",
+                "cost_cny": "75",
+                "cost_usd": "11.18",
+                "cost_currency": "CNY",
+                "sell_cny": "",
+                "sell_usd": "23",
+                "sell_currency": "USD",
+                "source_link": "https://example.com/harness-p05",
+                "status": "staged",
+                "square": "not_square",
+                "created_at": "2026-09-08T00:00:00.000Z",
+                "updated_at": "2026-09-08T00:00:00.000Z",
+                "photo_link": "p05-replace",
+            }
+        )
+        writer.writerow({"ma": "", "blurb": "empty mã must be skipped"})
+
+
+def check_sassycloset_hub() -> None:
+    prompt = KIT / "prompts" / "SASSYCLOSET_HUB_2026-09-07.md"
+    kit_md = KIT / "KIT.md"
+    photos_md = KIT / "PHOTOS.md"
+    kit_sh = KIT / "kit.sh"
+    root_kit = REPO / "kit.sh"
+    builder = KIT / "build_sassycloset_hub.py"
+    for path in (prompt, kit_md, photos_md, kit_sh, root_kit, builder):
+        if not path.is_file():
+            raise AssertionError(f"missing {path.relative_to(REPO)}")
+
+    prompt_text = prompt.read_text(encoding="utf-8")
+    for needle in (
+        "sassycloset.xlsx",
+        "api/export",
+        "photo_folder",
+        "A_Ao",
+        "P_PhuKien",
+        "J_TrangSuc",
+        "Documents/sassycloset",
+        "kit.sh save",
+        "kit.sh run",
+        "P02 and P05",
+    ):
+        if needle not in prompt_text:
+            raise AssertionError(f"SASSYCLOSET_HUB_2026-09-07.md should keep spec line {needle!r}")
+
+    kit_text = kit_md.read_text(encoding="utf-8")
+    photos_text = photos_md.read_text(encoding="utf-8")
+    if "sassycloset" not in kit_text.lower() or "teammates" not in kit_text.lower():
+        raise AssertionError("KIT.md must name the sassycloset hub for teammates")
+    if "kit.sh save" not in kit_text or "Documents/sassycloset" not in kit_text:
+        raise AssertionError("KIT.md must document kit.sh save and the OneDrive land path")
+    if "Documents/sassycloset/Photos/{MA}/" not in photos_text.replace(" ", ""):
+        if "Documents/sassycloset/Photos/{MA}/" not in photos_text:
+            raise AssertionError("PHOTOS.md must use Documents/sassycloset/Photos/{MA}/")
+
+    syntax = _run(["bash", "-n", str(kit_sh)])
+    if syntax.returncode != 0:
+        raise AssertionError(f"kit.sh bash -n failed:\n{syntax.stderr}")
+    root_syntax = _run(["bash", "-n", str(root_kit)])
+    if root_syntax.returncode != 0:
+        raise AssertionError(f"root kit.sh bash -n failed:\n{root_syntax.stderr}")
+    help_proc = _run(["bash", str(kit_sh), "--help"])
+    if help_proc.returncode != 0:
+        raise AssertionError(help_proc.stderr)
+    help_blob = help_proc.stdout + help_proc.stderr
+    if "save" not in help_blob or "run" not in help_blob:
+        raise AssertionError("kit.sh --help should mention save and run")
+    if "Documents/sassycloset" not in help_blob:
+        raise AssertionError("kit.sh --help should document the OneDrive land path")
+    cute = _run(["bash", str(kit_sh), "wishlist"])
+    if cute.returncode == 0:
+        raise AssertionError("kit.sh wishlist must be refused (cute pull retired)")
+    if "retired" not in (cute.stdout + cute.stderr).lower():
+        raise AssertionError("kit.sh wishlist refusal should say retired")
+
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp)
+        csv_path = out / "export.csv"
+        _write_harness_export(csv_path)
+        built = _run(
+            [
+                sys.executable,
+                str(builder),
+                "--from-csv",
+                str(csv_path),
+                "--skip-photos",
+                "--out-dir",
+                str(out),
+            ]
+        )
+        if built.returncode != 0:
+            raise AssertionError(built.stdout + built.stderr)
+        book = out / HUB_XLSX_NAME
+        if not book.is_file():
+            raise AssertionError("hub builder did not write sassycloset.xlsx")
+        blob = built.stdout + built.stderr
+        if "sha256" not in blob:
+            raise AssertionError("builder should print a checksum")
+        if "Documents/sassycloset" not in blob:
+            raise AssertionError("builder should print the OneDrive land path")
+        readme_txt = out / "README.txt"
+        if not readme_txt.is_file():
+            raise AssertionError("hub builder must write README.txt")
+        if "Documents/sassycloset" not in readme_txt.read_text(encoding="utf-8"):
+            raise AssertionError("README.txt must document the OneDrive land path")
+        for ma in ("A01", "P02", "P05"):
+            folder = out / "Photos" / ma
+            if not folder.is_dir():
+                raise AssertionError(f"skip-photos should still create Photos/{ma}/")
+        if (out / "Photos" / "A02").exists():
+            raise AssertionError("must not create an A02 photo folder")
+
+        from openpyxl import load_workbook
+
+        wb = load_workbook(book)
+        try:
+            if list(wb.sheetnames) != list(HUB_SHEETS):
+                raise AssertionError(f"unexpected sheets: {wb.sheetnames}")
+            if "Candidates" in wb.sheetnames or "Inventory" in wb.sheetnames or "Track" in wb.sheetnames:
+                raise AssertionError("Candidates / Inventory / Track must not be hub sheets")
+            all_sheet = wb["All"]
+            headers = [all_sheet.cell(1, c).value for c in range(1, len(HUB_ALL) + 1)]
+            if headers != list(HUB_ALL):
+                raise AssertionError(f"All headers drifted: {headers}")
+            mas = []
+            for row in range(2, (all_sheet.max_row or 1) + 1):
+                value = all_sheet.cell(row, 1).value
+                if value is None or str(value).strip() == "":
+                    continue
+                mas.append(str(value).strip())
+            if mas != ["A01", "P02", "P05"]:
+                raise AssertionError(f"harness All mã should be A01,P02,P05 (no A02), got {mas}")
+            photo_col = list(HUB_ALL).index("photo_folder") + 1
+            cost_col = list(HUB_ALL).index("cost") + 1
+            curr_col = list(HUB_ALL).index("currency") + 1
+            flag_col = list(HUB_ALL).index("flag") + 1
+            desk_col = list(HUB_ALL).index("next_desk") + 1
+            colors_col = list(HUB_ALL).index("colors") + 1
+            for row_index, ma in enumerate(mas, start=2):
+                folder = str(all_sheet.cell(row_index, photo_col).value)
+                if folder != f"{ONEDRIVE_HUB_PHOTOS}/{ma}/":
+                    raise AssertionError(f"photo_folder for {ma} should be hub path, got {folder}")
+            if all_sheet.cell(2, colors_col).value != "Kem":
+                raise AssertionError("colors should come from export color, not invented")
+            if all_sheet.cell(2, cost_col).value != 1.5 or str(all_sheet.cell(2, curr_col).value) != "USD":
+                raise AssertionError("A01 cost should follow export cost_currency=USD")
+            if all_sheet.cell(3, cost_col).value != 63 or str(all_sheet.cell(3, curr_col).value) != "CNY":
+                raise AssertionError("P02 cost should follow export cost_currency=CNY")
+            if all_sheet.cell(2, flag_col).value not in (None, ""):
+                raise AssertionError("flag must stay empty unless export already has one")
+            if all_sheet.cell(2, desk_col).value not in (None, ""):
+                raise AssertionError("next_desk must stay empty by default")
+            if any(cell.value == "A02" for row in all_sheet.iter_rows() for cell in row):
+                raise AssertionError("no mã cell A02")
+            if getattr(all_sheet, "_images", None):
+                raise AssertionError("All embeds forbidden")
+            if all_sheet.freeze_panes != "A2" or wb["Orders"].freeze_panes != "A2":
+                raise AssertionError("All/Orders must freeze the header row")
+            if wb["Q_Quan"].freeze_panes != "A2":
+                raise AssertionError("empty category sheets still freeze the header")
+            ao = [
+                str(wb["A_Ao"].cell(row, 1).value).strip()
+                for row in range(2, (wb["A_Ao"].max_row or 1) + 1)
+                if wb["A_Ao"].cell(row, 1).value
+            ]
+            pk = [
+                str(wb["P_PhuKien"].cell(row, 1).value).strip()
+                for row in range(2, (wb["P_PhuKien"].max_row or 1) + 1)
+                if wb["P_PhuKien"].cell(row, 1).value
+            ]
+            quan = [
+                str(wb["Q_Quan"].cell(row, 1).value).strip()
+                for row in range(2, (wb["Q_Quan"].max_row or 1) + 1)
+                if wb["Q_Quan"].cell(row, 1).value
+            ]
+            if ao != ["A01"] or pk != ["P02", "P05"] or quan != []:
+                raise AssertionError(f"category filters wrong: A_Ao={ao} P_PhuKien={pk} Q_Quan={quan}")
+            readme_lines = [
+                str(wb["Readme"].cell(r, 1).value).strip()
+                for r in range(1, 8)
+                if wb["Readme"].cell(r, 1).value
+            ]
+            if not (4 <= len(readme_lines) <= 6):
+                raise AssertionError(f"Readme should be hub-rule lines, got {readme_lines}")
+        finally:
+            wb.close()
+
+        leftover = out / "leftover.csv"
+        with leftover.open("w", encoding="utf-8", newline="") as handle:
+            writer = csv.DictWriter(handle, fieldnames=list(EXPORT_HEADERS))
+            writer.writeheader()
+            writer.writerow({"ma": "A02", "kind": "A", "kind_vi": "Áo", "status": "staged"})
+        refuse = _run(
+            [
+                sys.executable,
+                str(builder),
+                "--from-csv",
+                str(leftover),
+                "--skip-photos",
+                "--out-dir",
+                str(out / "bad"),
+            ]
+        )
+        if refuse.returncode == 0:
+            raise AssertionError("builder must refuse leftover A02 (renamed to P02, not P05)")
+
+    print("sassycloset hub ok")
 
 
 def check_builders_and_append() -> None:
@@ -860,6 +1207,7 @@ def main() -> int:
         check_schema_contract()
         check_no_fake_inventory_in_git()
         check_square_template()
+        check_sassycloset_hub()
         check_builders_and_append()
         check_gf_intake()
         check_onedrive_from_gf_link()

@@ -2,6 +2,8 @@
 
 How the shop stays fast without a second inventory brain or bloated workbooks.
 
+`kit.sh save` rebuilds the one hub (`out/sassycloset.xlsx`) from the live export. Do not add pink sheets or embedded photos to “make it nicer.”
+
 ## Standing rules (do not “optimize” these away)
 
 - **Square Free = on-hand inventory source of truth.** Excel never wins an argument with Square about how many pieces exist.
