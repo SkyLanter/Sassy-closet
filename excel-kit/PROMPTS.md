@@ -237,3 +237,29 @@ CONTRACT
   print Boss steps (Share → Can edit → copy link) and exit 0. Never invent 1drv.ms / authkey tokens.
 - Do not ask for passwords in code. Do not commit live share URLs.
 ```
+
+---
+
+## 13) Square.xlsx + Finance.xlsx (bought tracker + tax)
+
+Contract: `excel-kit/prompts/SQUARE_AND_FINANCE_EXCEL_2026-09-07.md` (Boss 2026-09-07 ~11:30 PM PT).
+
+```
+Sassy Closet — create Square.xlsx + Finance.xlsx for Documents/Sassy Closet/.
+
+RUN
+  python3 excel-kit/build_square_finance.py --out-dir ./out
+  unzip -t out/Square.xlsx
+  unzip -t out/Finance.xlsx
+  python3 excel-kit/tests/run_checks.py
+
+CONTRACT
+- Square.xlsx = bought / on-hand team tracker. NOT the website staged list. On_Hand starts EMPTY.
+- Sheets: On_Hand, Sold_Log, Readme. status on_hand|reserved|sold|dead. photo_folder Documents/Sassy Closet/Photos/{ma}/
+- Finance.xlsx = tax-ready empty templates. Sheets: Sales, Fees, Payouts_Transfers, Expenses, Tax_Summary (YTD + monthly formulas), Readme
+- pay_method zelle|square|square_online|cash|other. Sold item → Square qty_on_hand 0 + Finance Sales row (square_xlsx_ma)
+- Square Free Dashboard remains inventory SoT. Excel is the team tracker.
+- Plain, freeze, autofilter, no cute. No invent mã/$. No Square Save.
+
+STOP if you would copy staged website mãs onto On_Hand or invent a sale.
+```
