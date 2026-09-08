@@ -167,7 +167,7 @@ export function IntakeApp({
       form.set("kind", kind);
       form.set("prefix", kind);
       form.set("size", sizes.join(" "));
-      form.set("link", link.trim());
+      form.set("link", link);
       form.set("cost_usd", costUsd);
       form.set("cost_cny", costCny);
       form.set("cost_currency", costUsd ? "USD" : costCny ? "CNY" : "USD");
