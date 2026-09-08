@@ -35,6 +35,7 @@ export function IntakeApp({
   const [photos, setPhotos] = useState<PhotoDraft[]>([]);
   const [lookupMa, setLookupMa] = useState("");
   const [loadedMa, setLoadedMa] = useState<string | null>(null);
+  const [lastMa, setLastMa] = useState<string | null>(null);
   const [renameTo, setRenameTo] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -78,7 +79,13 @@ export function IntakeApp({
     setFindPreview(null);
     if (next === "create") resetForm();
     if (next === "edit") {
-      resetForm();
+      const reopen = lastMa || lookupMa.trim();
+      if (reopen) {
+        setLookupMa(reopen);
+        void loadMa(reopen);
+      } else {
+        resetForm();
+      }
     }
   }
 
@@ -94,7 +101,7 @@ export function IntakeApp({
     }
   }
 
-  async function loadMa(raw: string) {
+  async function loadMa(raw: string): Promise<Submission | null> {
     setBusy(true);
     setError(null);
     try {
@@ -103,12 +110,15 @@ export function IntakeApp({
       if (!response.ok || !data.submission) {
         setError(data.error || "Không tìm thấy mã này 🥺");
         setLoadedMa(null);
-        return;
+        return null;
       }
       applySubmission(data.submission);
+      setLastMa(data.submission.ma);
       await refreshMas();
+      return data.submission;
     } catch {
       setError("Mạng hơi lag, thử lại nha.");
+      return null;
     } finally {
       setBusy(false);
     }
@@ -140,7 +150,7 @@ export function IntakeApp({
     setRenameTo("");
   }
 
-  async function save(renameMa?: string | null) {
+  async function save(renameMa?: string | null, editingMa?: string | null) {
     setError(null);
     setBusy(true);
     try {
@@ -164,9 +174,9 @@ export function IntakeApp({
       for (const photo of photos) {
         if (photo.file) form.append("photos", photo.file);
       }
-      const editing = tab === "edit" && loadedMa;
-      const url = editing ? `/api/submissions/${encodeURIComponent(loadedMa)}` : "/api/submissions";
-      const response = await fetch(url, { method: editing ? "PATCH" : "POST", body: form });
+      const existing = editingMa || (tab === "edit" ? loadedMa : null);
+      const url = existing ? `/api/submissions/${encodeURIComponent(existing)}` : "/api/submissions";
+      const response = await fetch(url, { method: existing ? "PATCH" : "POST", body: form });
       const data = (await response.json()) as { submission?: Submission; error?: string };
       if (!response.ok || !data.submission) {
         setError(data.error || "Chưa nhận được mã. Thử lại nha 🥺");
@@ -175,6 +185,7 @@ export function IntakeApp({
       setSaved(data.submission);
       setLoadedMa(data.submission.ma);
       setLookupMa(data.submission.ma);
+      setLastMa(data.submission.ma);
       if (tab === "create") resetForm();
       else applySubmission(data.submission);
       await refreshMas();
@@ -186,11 +197,17 @@ export function IntakeApp({
   }
 
   async function onSaveClick() {
-    if (tab === "edit" && loadedMa && renameTo.trim()) {
-      await save(renameTo.trim());
+    let current = loadedMa;
+    if (tab === "edit" && !current && lookupMa.trim()) {
+      const loaded = await loadMa(lookupMa);
+      current = loaded?.ma ?? null;
+    }
+    if (tab === "edit" && !current) return;
+    if (tab === "edit" && current && renameTo.trim()) {
+      await save(renameTo.trim(), current);
       return;
     }
-    await save(null);
+    await save(null, current);
   }
 
   function onKind(next: KindCode) {
@@ -230,7 +247,7 @@ export function IntakeApp({
     }
   }
 
-  const canSave = tab === "create" || Boolean(loadedMa);
+  const canSave = tab === "create" || Boolean(loadedMa || lookupMa.trim());
 
   return (
     <main
@@ -337,7 +354,7 @@ function renderTab(props: {
   loadedMa: string | null;
   renameTo: string;
   setRenameTo: (value: string) => void;
-  loadMa: (ma: string) => Promise<void>;
+  loadMa: (ma: string) => Promise<Submission | null>;
   onSaveClick: () => Promise<void>;
   canSave: boolean;
   busy: boolean;
@@ -430,7 +447,7 @@ function ItemForm(props: {
   loadedMa: string | null;
   renameTo: string;
   setRenameTo: (value: string) => void;
-  loadMa: (ma: string) => Promise<void>;
+  loadMa: (ma: string) => Promise<Submission | null>;
   onSaveClick: () => Promise<void>;
   canSave: boolean;
   busy: boolean;
