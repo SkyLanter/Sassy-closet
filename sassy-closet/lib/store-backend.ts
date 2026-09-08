@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { get, put } from "@vercel/blob";
+import { BlobNotFoundError, get, put } from "@vercel/blob";
 import { dataRoot, ensureDataDirs } from "./paths";
 import type { Submission } from "./types";
 
@@ -114,12 +114,20 @@ export function createLocalBackend(root: string): StoreBackend {
   };
 }
 
+export function isMissingBlobError(error: unknown): boolean {
+  if (error instanceof BlobNotFoundError) return true;
+  if (error && typeof error === "object" && "name" in error && error.name === "BlobNotFoundError") {
+    return true;
+  }
+  return error instanceof Error && /Failed to fetch blob:\s*404\b/i.test(error.message);
+}
+
 export function createBlobBackend(): StoreBackend {
   const access = blobAccess();
   return {
     kind: "blob",
     async readStore() {
-      const result = await get(STORE_BLOB_PATH, { access, useCache: false });
+      const result = await getBlobOrNull(STORE_BLOB_PATH, { access, useCache: false });
       if (!result || result.statusCode !== 200 || !result.stream) return null;
       const raw = (await streamToBuffer(result.stream)).toString("utf8");
       if (!raw.trim()) return null;
@@ -136,7 +144,7 @@ export function createBlobBackend(): StoreBackend {
     },
     async readPhoto(rel) {
       const safe = sanitizePhotoRel(rel);
-      const result = await get(`${PHOTO_BLOB_PREFIX}${safe}`, { access, useCache: true });
+      const result = await getBlobOrNull(`${PHOTO_BLOB_PREFIX}${safe}`, { access, useCache: true });
       if (!result || result.statusCode !== 200 || !result.stream) return null;
       return {
         bytes: await streamToBuffer(result.stream),
@@ -190,7 +198,10 @@ export function resetStoreBackendForTests(): void {
 export async function migrateLocalToDurableIfNeeded(): Promise<boolean> {
   if (!blobConfigured()) return false;
   if (!migrateOnce) {
-    migrateOnce = runLegacyLocalMigrate();
+    migrateOnce = runLegacyLocalMigrate().catch((error) => {
+      migrateOnce = null;
+      throw error;
+    });
   }
   return migrateOnce;
 }
@@ -241,6 +252,18 @@ function resolveLocalPhoto(photosRoot: string, rel: string): string | null {
   const root = photosRoot.endsWith(path.sep) ? photosRoot : photosRoot + path.sep;
   if (file !== photosRoot && !file.startsWith(root)) return null;
   return file;
+}
+
+async function getBlobOrNull(
+  pathname: string,
+  options: { access: "private" | "public"; useCache?: boolean },
+) {
+  try {
+    return await get(pathname, options);
+  } catch (error) {
+    if (isMissingBlobError(error)) return null;
+    throw error;
+  }
 }
 
 async function streamToBuffer(stream: ReadableStream<Uint8Array>): Promise<Buffer> {

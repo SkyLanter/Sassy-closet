@@ -3,9 +3,11 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, test } from "node:test";
+import { BlobError, BlobNotFoundError } from "@vercel/blob";
 import {
   copyStoreAndPhotos,
   createLocalBackend,
+  isMissingBlobError,
   parseStore,
   resetStoreBackendForTests,
   sanitizePhotoRel,
@@ -206,5 +208,13 @@ describe("durable / local store", { concurrency: 1 }, () => {
     const backend = createLocalBackend(tmp);
     const escaped = await backend.readPhoto("../submissions.json");
     assert.equal(escaped, null);
+  });
+
+  test("missing Blob store/photo is empty, not a crash", () => {
+    assert.equal(isMissingBlobError(new BlobNotFoundError()), true);
+    assert.equal(isMissingBlobError({ name: "BlobNotFoundError" }), true);
+    assert.equal(isMissingBlobError(new BlobError("Failed to fetch blob: 404 Not Found")), true);
+    assert.equal(isMissingBlobError(new Error("Failed to fetch blob: 403 Forbidden")), false);
+    assert.equal(isMissingBlobError(new Error("Kho mã đọc lỗi — không ghi đè.")), false);
   });
 });
