@@ -97,6 +97,13 @@ test("non-array on-hand data stays empty — no fake Square Free counts", () => 
   assert.equal(photoFolder("a01"), "Documents/Sassy Closet/Photos/A01/");
 });
 
+test("staged photo_paths stay as stored — never invent extra files", () => {
+  const withPhotos = buildMaLookup(stagedItem(), []);
+  assert.deepEqual(withPhotos.staged.photo_paths, ["A01/001.jpg"]);
+  const none = buildMaLookup(stagedItem({ photo_paths: [] }), []);
+  assert.deepEqual(none.staged.photo_paths, []);
+});
+
 test("card passes through real on-hand rows when the store actually has them", () => {
   const onHand = sanitizeOnHandRows(
     [{ size: "M", color: "Kem", qty_on_hand: 1, status: "reserved" }],

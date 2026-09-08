@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { PhotoThumbs } from "@/components/PhotoThumbs";
 import { captionStarter, editDeepLink, kindColorsLine } from "@/lib/captions";
 import {
   STAGED_ONLY_MESSAGE,
@@ -103,22 +104,14 @@ export function FindMaCard({
           <Field testId="find-card-status" label="Status" value={`${staged.status} · ${staged.square}`} />
         </dl>
 
-        {staged.photo_paths.length ? (
-          <div data-testid="find-card-photos" className="mt-4 grid grid-cols-3 gap-2">
-            {staged.photo_paths.map((rel) => (
-              <img
-                key={rel}
-                src={`/api/photos/${rel}`}
-                alt=""
-                className="h-24 w-full rounded-xl object-cover"
-              />
-            ))}
-          </div>
-        ) : (
-          <p data-testid="find-card-photos-empty" className="mt-4 text-center text-xs text-rose-700/70">
-            —
-          </p>
-        )}
+        <PhotoThumbs
+          photos={staged.photo_paths}
+          layout="row"
+          testId="find-card-photos"
+          emptyTestId="find-card-photos-empty"
+          moreTestId="find-card-photos-more"
+          thumbTestIdPrefix="find-card-photo"
+        />
 
         <OnHandBlock rows={result.on_hand} stagedOnly={result.staged_only} />
 
