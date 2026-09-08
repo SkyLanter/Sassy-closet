@@ -6,3 +6,4 @@
 - Tìm mã: code box (sheet with staged + on-hand) **and** existing photo / color detect. Both stay.
 - Missing on-hand = **Staged only — not on Square On_Hand yet**. Never invent qty / $ / storage.
 - Square Free = on-hand SoT. Never invent mã. Never Square Save from the site.
+- Production persistence: Vercel → Storage → Create **Blob** → **Private** → connect Production. Without this, redeploy wipes mã + photos. Verify: Lưu → Redeploy → mã still in export. See `README.md` Durable store.

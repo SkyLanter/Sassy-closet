@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     );
   }
   const bytes = Buffer.from(await photo.arrayBuffer());
-  const matches = findByPhotoHash(hashBytes(bytes)).map((row) => ({
+  const matches = (await findByPhotoHash(hashBytes(bytes))).map((row) => ({
     ma: row.ma,
     kind: row.kind,
     color: row.color,

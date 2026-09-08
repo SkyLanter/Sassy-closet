@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getFx, setFx } from "@/lib/store";
 
 export async function GET() {
-  return NextResponse.json(getFx());
+  return NextResponse.json(await getFx());
 }
 
 export async function POST(request: Request) {
@@ -19,5 +19,5 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
-  return NextResponse.json(setFx(usdCny));
+  return NextResponse.json(await setFx(usdCny));
 }
