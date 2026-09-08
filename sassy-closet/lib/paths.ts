@@ -12,3 +12,15 @@ export function ensureDataDirs(): string {
   fs.mkdirSync(path.join(root, "photos"), { recursive: true });
   return root;
 }
+
+export function submissionsFile(): string {
+  return path.join(ensureDataDirs(), "submissions.json");
+}
+
+export function asksFile(): string {
+  return path.join(ensureDataDirs(), "asks.json");
+}
+
+export function photosRoot(): string {
+  return path.join(ensureDataDirs(), "photos");
+}

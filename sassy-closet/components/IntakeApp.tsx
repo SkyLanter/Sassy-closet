@@ -5,8 +5,8 @@ import { AskPanel } from "@/components/AskPanel";
 import { BrandHeader } from "@/components/BrandHeader";
 import { FindMaCard } from "@/components/FindMaCard";
 import { SavedCard } from "@/components/SavedCard";
+import { canSaveEdit, editSaveIntent, renameAfterKindChange } from "@/lib/edit-form";
 import { COLORS, KINDS, SIZES, assertNever } from "@/lib/kinds";
-import { nextMa, parseHubMa } from "@/lib/mint";
 import { normalizeFindCode } from "@/lib/on-hand";
 import type { KindCode } from "@/lib/kinds";
 import type { MaLookup, Submission, TabId } from "@/lib/types";
@@ -204,26 +204,30 @@ export function IntakeApp({
   }
 
   async function onSaveClick() {
-    let current = loadedMa;
-    if (tab === "edit" && !current && lookupMa.trim()) {
-      const loaded = await loadMa(lookupMa);
-      current = loaded?.ma ?? null;
+    switch (tab) {
+      case "create":
+        await save(null, null);
+        return;
+      case "edit": {
+        const intent = editSaveIntent(loadedMa, renameTo);
+        if (!intent) return;
+        await save(intent.renameTo, intent.ma);
+        return;
+      }
+      case "find":
+      case "ask":
+        return;
+      default: {
+        const _never: never = tab;
+        return _never;
+      }
     }
-    if (tab === "edit" && !current) return;
-    if (tab === "edit" && current && renameTo.trim()) {
-      await save(renameTo.trim(), current);
-      return;
-    }
-    await save(null, current);
   }
 
   function onKind(next: KindCode) {
     setKind(next);
-    if (tab === "edit" && loadedMa) {
-      const current = parseHubMa(loadedMa)?.kind;
-      if (current && current !== next) {
-        setRenameTo(nextMa(next, knownMas));
-      }
+    if (tab === "edit") {
+      setRenameTo(renameAfterKindChange(loadedMa, next, knownMas));
     }
   }
 
@@ -285,7 +289,7 @@ export function IntakeApp({
     }
   }
 
-  const canSave = tab === "create" || Boolean(loadedMa || lookupMa.trim());
+  const canSave = tab === "create" || canSaveEdit(loadedMa);
 
   return (
     <main

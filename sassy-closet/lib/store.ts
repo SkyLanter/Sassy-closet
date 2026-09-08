@@ -5,7 +5,7 @@ import { isKindCode } from "./kinds";
 import { formatMa, maExists, nextMa, normalizeMa, parseHubMa } from "./mint";
 import { sanitizeOnHandRows } from "./on-hand";
 import { buildCaptionVi } from "./captions";
-import { ensureDataDirs } from "./paths";
+import { photosRoot, submissionsFile } from "./paths";
 import type { KindCode } from "./kinds";
 import type { OnHandRow, Piece, Submission } from "./types";
 
@@ -21,7 +21,11 @@ const globalStore = globalThis as typeof globalThis & {
 };
 
 function storePath(): string {
-  return path.join(ensureDataDirs(), "submissions.json");
+  return submissionsFile();
+}
+
+export function clearStoreCache(): void {
+  delete globalStore.__sassyStore;
 }
 
 function emptyStore(): StoreFile {
@@ -127,20 +131,22 @@ export function saveSubmission(input: SaveInput): Submission {
   });
 
   const now = new Date().toISOString();
-  const photoPaths = [...input.keep_photos];
+  let photoPaths = [...input.keep_photos];
   const photoHashes = existing ? [...existing.photo_hashes] : [];
   if (input.keep_photos.length === 0 && existing) {
     photoHashes.length = 0;
+  } else if (existing && existing.ma !== ma) {
+    photoPaths = relocateKeptPhotos(photoPaths, existing.ma, ma);
   }
 
-  const photoDir = path.join(ensureDataDirs(), "photos", ma);
+  const photoDir = path.join(photosRoot(), ma);
   fs.mkdirSync(photoDir, { recursive: true });
   let index = photoPaths.length;
   for (const photo of input.photos) {
     index += 1;
     const name = `${String(index).padStart(3, "0")}${photo.ext}`;
     const rel = `${ma}/${name}`;
-    fs.writeFileSync(path.join(ensureDataDirs(), "photos", rel), photo.bytes);
+    fs.writeFileSync(path.join(photosRoot(), rel), photo.bytes);
     photoPaths.push(rel);
     photoHashes.push(photo.hash);
   }
@@ -192,9 +198,11 @@ export function findByPhotoHash(hash: string): Submission[] {
 }
 
 export function readPhoto(rel: string): { bytes: Buffer; type: string } | null {
-  const safe = rel.replace(/^\/+/, "").replace(/\.\./g, "");
-  const file = path.join(ensureDataDirs(), "photos", safe);
-  if (!file.startsWith(path.join(ensureDataDirs(), "photos"))) return null;
+  const safe = safePhotoRel(rel);
+  if (!safe) return null;
+  const root = photosRoot();
+  const file = path.join(root, safe);
+  if (!file.startsWith(root)) return null;
   if (!fs.existsSync(file)) return null;
   const ext = path.extname(file).toLowerCase();
   const type =
@@ -295,6 +303,46 @@ function kindVi(kind: KindCode): string {
 function csvCell(value: string): string {
   if (/[",\n]/.test(value)) return `"${value.replaceAll('"', '""')}"`;
   return value;
+}
+
+function safePhotoRel(rel: string): string | null {
+  const cleaned = rel.replace(/^\/+/, "").replace(/\.\./g, "");
+  if (!cleaned || cleaned.includes("\0")) return null;
+  return cleaned;
+}
+
+function relocateKeptPhotos(keep: string[], fromMa: string, toMa: string): string[] {
+  if (fromMa === toMa) return keep;
+  const root = photosRoot();
+  const next: string[] = [];
+  const copied: string[] = [];
+  for (const rel of keep) {
+    const safe = safePhotoRel(rel);
+    if (!safe) continue;
+    const name = path.basename(safe);
+    const destRel = `${toMa}/${name}`;
+    const src = path.join(root, safe);
+    const dest = path.join(root, destRel);
+    if (!src.startsWith(root) || !dest.startsWith(root)) continue;
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    if (fs.existsSync(src) && path.resolve(src) !== path.resolve(dest)) {
+      fs.copyFileSync(src, dest);
+      copied.push(src);
+    }
+    next.push(destRel);
+  }
+  for (const src of copied) {
+    if (fs.existsSync(src)) fs.unlinkSync(src);
+  }
+  const oldDir = path.join(root, fromMa);
+  if (oldDir.startsWith(root) && fs.existsSync(oldDir)) {
+    try {
+      fs.rmdirSync(oldDir);
+    } catch {
+      // leftover files stay; do not wipe another mã's folder
+    }
+  }
+  return next;
 }
 
 function resolveSaveMa(input: {

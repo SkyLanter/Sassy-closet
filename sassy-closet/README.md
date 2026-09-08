@@ -26,6 +26,7 @@ If webhook envs are missing, the current rules fallback answers and the UI shows
 - `ASK_REPLY_SECRET`
 - optional `GROK_API_KEY` (unused unless you wire LLM later; rules draft is default)
 - optional `SASSY_DATA_DIR` (local data root; Vercel uses `/tmp/sassy-closet-data`)
+- optional `BLOB_READ_WRITE_TOKEN` or `BLOB_STORE_ID` (Vercel Blob; shares items + asks + photos across serverless instances. Without these, `/tmp` stays instance-local.)
 
 ## Run
 

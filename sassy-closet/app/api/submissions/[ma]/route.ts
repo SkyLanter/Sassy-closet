@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import { saveFromForm } from "@/lib/form-save";
 import { getSubmission } from "@/lib/store";
+import { withSharedStore } from "@/lib/with-shared";
 
 export async function GET(
   _request: Request,
   context: { params: Promise<{ ma: string }> },
 ) {
   const { ma } = await context.params;
-  const submission = getSubmission(ma);
+  const submission = await withSharedStore(() => getSubmission(ma), "read");
   if (!submission) {
     return NextResponse.json({ error: "Không tìm thấy mã này 🥺" }, { status: 404 });
   }
@@ -25,7 +26,7 @@ export async function PATCH(
   const { ma } = await context.params;
   try {
     const form = await request.formData();
-    const submission = await saveFromForm(form, ma);
+    const submission = await withSharedStore(() => saveFromForm(form, ma), "write");
     return NextResponse.json({ submission });
   } catch (error) {
     const status = (error as { status?: number }).status ?? 400;

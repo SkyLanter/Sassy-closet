@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto";
+import fs from "node:fs";
 import { localAskAnswer } from "./ask-fallback";
+import { asksFile } from "./paths";
 import type { AskRecord } from "./types";
 
 const ASK_TIMEOUT_MS = 45_000;
@@ -8,9 +10,29 @@ const globalAsk = globalThis as typeof globalThis & {
   __sassyAsks?: Map<string, AskRecord>;
 };
 
+type AskFile = {
+  asks: AskRecord[];
+};
+
 function asks(): Map<string, AskRecord> {
-  if (!globalAsk.__sassyAsks) globalAsk.__sassyAsks = new Map();
+  if (globalAsk.__sassyAsks) return globalAsk.__sassyAsks;
+  const file = asksFile();
+  if (fs.existsSync(file)) {
+    const parsed = JSON.parse(fs.readFileSync(file, "utf8")) as AskFile;
+    globalAsk.__sassyAsks = new Map((parsed.asks ?? []).map((row) => [row.id, row]));
+    return globalAsk.__sassyAsks;
+  }
+  globalAsk.__sassyAsks = new Map();
   return globalAsk.__sassyAsks;
+}
+
+function writeAsks(map: Map<string, AskRecord>): void {
+  globalAsk.__sassyAsks = map;
+  fs.writeFileSync(asksFile(), JSON.stringify({ asks: [...map.values()] }, null, 2));
+}
+
+export function clearAskCache(): void {
+  delete globalAsk.__sassyAsks;
 }
 
 export function webhookConfigured(): boolean {
@@ -37,7 +59,9 @@ export function createAsk(question: string): AskRecord {
     created_at: now,
     updated_at: now,
   };
-  asks().set(record.id, record);
+  const map = asks();
+  map.set(record.id, record);
+  writeAsks(map);
   return record;
 }
 
@@ -58,7 +82,9 @@ export function applyLocalFallback(record: AskRecord): AskRecord {
   record.source = "local";
   record.offline = true;
   record.updated_at = new Date().toISOString();
-  asks().set(record.id, record);
+  const map = asks();
+  map.set(record.id, record);
+  writeAsks(map);
   return record;
 }
 
@@ -77,7 +103,9 @@ export function replyAsk(id: string, answer: string): AskRecord {
   record.source = "relay";
   record.offline = false;
   record.updated_at = new Date().toISOString();
-  asks().set(record.id, record);
+  const map = asks();
+  map.set(record.id, record);
+  writeAsks(map);
   return record;
 }
 

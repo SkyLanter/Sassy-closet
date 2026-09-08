@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { getFx, setFx } from "@/lib/store";
+import { withSharedStore } from "@/lib/with-shared";
 
 export async function GET() {
-  return NextResponse.json(getFx());
+  return NextResponse.json(await withSharedStore(() => getFx(), "read"));
 }
 
 export async function POST(request: Request) {
@@ -19,5 +20,5 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
-  return NextResponse.json(setFx(usdCny));
+  return NextResponse.json(await withSharedStore(() => setFx(usdCny), "write"));
 }

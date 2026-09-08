@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { publicAsk, readReplySecret, replyAsk, replySecretOk } from "@/lib/ask-store";
+import { withSharedStore } from "@/lib/with-shared";
 
 export async function POST(request: Request) {
   let body: { id?: string; answer?: string; secret?: string } = {};
@@ -14,7 +15,10 @@ export async function POST(request: Request) {
   }
 
   try {
-    const record = replyAsk(String(body.id ?? ""), String(body.answer ?? ""));
+    const record = await withSharedStore(
+      () => replyAsk(String(body.id ?? ""), String(body.answer ?? "")),
+      "write",
+    );
     return NextResponse.json(publicAsk(record));
   } catch (error) {
     const status = (error as { status?: number }).status ?? 500;
