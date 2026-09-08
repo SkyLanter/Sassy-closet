@@ -44,6 +44,8 @@ ONEDRIVE_PHOTOS = f"{ONEDRIVE_SHOP_DIR}/Photos"
 ONEDRIVE_FROM_GF = f"{ONEDRIVE_SHOP_DIR}/From GF"
 ONEDRIVE_OFFICIAL_DESKTOP = f"{ONEDRIVE_SHOP_DIR}/Sassy_Closet_Official_desktop.xlsx"
 ONEDRIVE_WISHLIST_DESKTOP = f"{ONEDRIVE_SHOP_DIR}/Sassy_Closet_Wishlist_desktop.xlsx"
+ONEDRIVE_SQUARE = f"{ONEDRIVE_SHOP_DIR}/Square.xlsx"
+ONEDRIVE_FINANCE = f"{ONEDRIVE_SHOP_DIR}/Finance.xlsx"
 
 # ---------------------------------------------------------------------------
 # Mã
@@ -164,6 +166,13 @@ SHEET_ALIASES: dict[str, tuple[str, ...]] = {
     "dashboard": ("Dashboard",),
     "lists": ("Lists",),
     "start_here": ("START HERE", "How_to_use"),
+    "on_hand": ("On_Hand",),
+    "sold_log": ("Sold_Log",),
+    "sales": ("Sales",),
+    "fees": ("Fees",),
+    "payouts_transfers": ("Payouts_Transfers",),
+    "expenses": ("Expenses",),
+    "tax_summary": ("Tax_Summary",),
 }
 
 SOT_OFFICIAL: tuple[str, ...] = (
@@ -330,6 +339,26 @@ HEADER_ALIASES: dict[str, tuple[str, ...]] = {
     "condition": ("condition",),
     "storage": ("storage",),
     "fb_url": ("fb_url",),
+    "costs": ("costs", "cost"),
+    "buy_date": ("buy_date",),
+    "sold_date": ("sold_date",),
+    "photo_folder": ("photo_folder",),
+    "square_item_name": ("square_item_name", "square_name"),
+    "track_on": ("track_on",),
+    "gross_usd": ("gross_usd",),
+    "ship_usd": ("ship_usd", "ship_fee"),
+    "discount_usd": ("discount_usd",),
+    "net_usd": ("net_usd", "net"),
+    "pay_ref": ("pay_ref",),
+    "customer_note": ("customer_note",),
+    "square_xlsx_ma": ("square_xlsx_ma",),
+    "tax_category": ("tax_category",),
+    "fee_type": ("fee_type",),
+    "direction": ("direction",),
+    "from_account": ("from_account",),
+    "to_account": ("to_account",),
+    "vendor": ("vendor",),
+    "receipt_ref": ("receipt_ref",),
 }
 
 # Sheets whose data rows may hold kit-seeded demo stock / fake buyers.
@@ -446,6 +475,170 @@ SQUARE_SKU_IS_MA = (
     "SKU = mã (AO001). Item Name = mã + short name. "
     "Variation Name = Asia size + color (M / đen). "
     "Stockable = Y (Track stock ON). Never put No in New Quantity to kill tracking."
+)
+
+# ---------------------------------------------------------------------------
+# Square.xlsx + Finance.xlsx (Boss 2026-09-07 ~11:30 PM PT)
+# Bought / on-hand team tracker + tax-ready books. Not the website staged list.
+# Square Free Dashboard remains inventory SoT. Empty templates — no invented $.
+# ---------------------------------------------------------------------------
+
+SQUARE_XLSX_NAME = "Square.xlsx"
+FINANCE_XLSX_NAME = "Finance.xlsx"
+SQUARE_FINANCE_TEMPLATE_ROWS = 20
+SQUARE_FINANCE_TAX_YEAR = 2026
+
+SQUARE_ON_HAND: tuple[str, ...] = (
+    "ma",
+    "kind",
+    "colors",
+    "size",
+    "qty_on_hand",
+    "costs",
+    "buy_date",
+    "source_link",
+    "photo_folder",
+    "square_item_name",
+    "track_on",
+    "status",
+    "sold_date",
+    "notes",
+)
+
+SQUARE_SOLD_LOG: tuple[str, ...] = (
+    "sold_date",
+    "ma",
+    "kind",
+    "colors",
+    "size",
+    "qty",
+    "costs",
+    "buy_date",
+    "source_link",
+    "square_item_name",
+    "notes",
+)
+
+SQUARE_ON_HAND_STATUS: tuple[str, ...] = ("on_hand", "reserved", "sold", "dead")
+SQUARE_TRACK_ON: tuple[str, ...] = ("Y", "N")
+SQUARE_XLSX_SHEETS: tuple[str, ...] = ("On_Hand", "Sold_Log", "Readme")
+
+SQUARE_XLSX_README_LINES: tuple[str, ...] = (
+    "Square.xlsx is the bought / on-hand team tracker. It is NOT the website staged list.",
+    "Square Free Dashboard remains on-hand inventory source of truth. Excel is a team tracker.",
+    "On_Hand starts empty. Staged website mãs are not bought — do not copy them here.",
+    "Sold item: qty_on_hand 0, status=sold, sold_date, and one Finance.xlsx Sales row (square_xlsx_ma).",
+    "photo_folder = Documents/Sassy Closet/Photos/{ma}/. Never invent mã. Never Square Save. No cute.",
+)
+
+FINANCE_SALES: tuple[str, ...] = (
+    "date",
+    "ma",
+    "description",
+    "qty",
+    "gross_usd",
+    "ship_usd",
+    "discount_usd",
+    "net_usd",
+    "pay_method",
+    "pay_ref",
+    "customer_note",
+    "channel",
+    "square_xlsx_ma",
+    "tax_category",
+    "notes",
+)
+
+FINANCE_FEES: tuple[str, ...] = (
+    "date",
+    "source",
+    "fee_type",
+    "amount_usd",
+    "pay_ref",
+    "notes",
+)
+
+FINANCE_PAYOUTS: tuple[str, ...] = (
+    "date",
+    "direction",
+    "from_account",
+    "to_account",
+    "amount_usd",
+    "pay_ref",
+    "notes",
+)
+
+FINANCE_EXPENSES: tuple[str, ...] = (
+    "date",
+    "vendor",
+    "category",
+    "amount_usd",
+    "pay_method",
+    "receipt_ref",
+    "tax_category",
+    "notes",
+)
+
+FINANCE_PAY_METHOD: tuple[str, ...] = (
+    "zelle",
+    "square",
+    "square_online",
+    "cash",
+    "other",
+)
+FINANCE_SALES_CHANNEL: tuple[str, ...] = (
+    "Facebook",
+    "IG",
+    "Walk-in",
+    "Friend",
+    "Square Online",
+    "Other",
+)
+FINANCE_SALES_TAX_CATEGORY: tuple[str, ...] = ("clothing", "shipping", "other")
+FINANCE_FEE_SOURCE: tuple[str, ...] = ("square", "square_online", "other")
+FINANCE_FEE_TYPE: tuple[str, ...] = ("processing", "payout", "chargeback", "other")
+FINANCE_PAYOUT_DIRECTION: tuple[str, ...] = ("in", "out")
+FINANCE_EXPENSE_CATEGORY: tuple[str, ...] = (
+    "inventory",
+    "shipping_supplies",
+    "packaging",
+    "ads",
+    "other",
+)
+FINANCE_EXPENSE_TAX_CATEGORY: tuple[str, ...] = ("cogs", "opex", "other")
+
+FINANCE_SHEETS: tuple[str, ...] = (
+    "Sales",
+    "Fees",
+    "Payouts_Transfers",
+    "Expenses",
+    "Tax_Summary",
+    "Readme",
+)
+
+FINANCE_TAX_SUMMARY_HEADERS: tuple[str, ...] = (
+    "metric",
+    "ytd",
+    *(f"{SQUARE_FINANCE_TAX_YEAR}-{month:02d}" for month in range(1, 13)),
+)
+
+FINANCE_TAX_SUMMARY_METRICS: tuple[str, ...] = (
+    "gross_usd",
+    "ship_usd",
+    "discount_usd",
+    "net_usd",
+    "fees_usd",
+    "expenses_usd",
+    "net_after_fees_expenses",
+    "payouts_transfers_usd",
+)
+
+FINANCE_README_LINES: tuple[str, ...] = (
+    "Finance.xlsx is tax-ready. Empty templates are correct — do not invent sales or dollar amounts.",
+    "Sold item → Square.xlsx On_Hand qty_on_hand 0 + one Sales row. square_xlsx_ma must match that mã.",
+    "Tax_Summary is formulas (YTD + monthly 2026). Open in Excel. 0 means no rows yet, not invented revenue.",
+    "Payouts_Transfers are cash movement, not income. Fees and Expenses are not sales.",
+    "Never invent mã or $. Never Square Save. customer_note is a short note — no PII in git. No cute.",
 )
 
 # ---------------------------------------------------------------------------
@@ -715,6 +908,14 @@ def resolve_sheet_name(sheetnames: Sequence[str], logical: str) -> str | None:
         if name.strip().lower() in wanted:
             return name
     return None
+
+
+def photo_folder_for_ma(ma: str) -> str:
+    """Folder path only. Requires a real mã — never invent one to name a folder."""
+    text = "" if ma is None else str(ma).strip()
+    if not text:
+        raise ValueError("mã required for photo_folder — never invent one")
+    return f"{ONEDRIVE_PHOTOS}/{text}/"
 
 
 def photo_filename_for_ma(ma: str, extra: int | None = None) -> str:

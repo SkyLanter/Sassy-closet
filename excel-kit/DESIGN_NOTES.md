@@ -55,6 +55,17 @@ SoT Official uses a different status set (`Available` → `Reserved` → `Sold`,
 
 Deep rose / blush headers, yellow meaning “type here” on the SoT book, no sheet protection. A locked-feeling preview is a failed build. Freeze the header row only so a phone can still reach size and price.
 
+## Square.xlsx + Finance.xlsx (Boss 2026-09-07 ~11:30 PM PT)
+
+Separate from SoT / desktop / website hub.
+
+| File | Job |
+| --- | --- |
+| `Documents/Sassy Closet/Square.xlsx` | Bought / on-hand **team tracker**. Not the website staged list. On_Hand starts empty. |
+| `Documents/Sassy Closet/Finance.xlsx` | Tax-ready Sales / Fees / Payouts_Transfers / Expenses / Tax_Summary. Empty until a real sale. |
+
+Square Free Dashboard still wins on-hand. Sold piece = On_Hand `qty_on_hand` 0 + one Finance Sales row (`square_xlsx_ma`). Plain freeze + AutoFilter. No cute. Builder: `build_square_finance.py`. Contract: `prompts/SQUARE_AND_FINANCE_EXCEL_2026-09-07.md`.
+
 ## What we refuse to ship
 
 - Fake live inventory rows (“~25 sample Official lines”)

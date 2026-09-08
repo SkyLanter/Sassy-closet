@@ -22,6 +22,8 @@ How the shop stays fast without a second inventory brain or bloated workbooks.
 | Rebuilding SoT for a caption tweak | Loses Boss typing | Edit the live OneDrive file; rebuild only from `BOT PROMPT` |
 | Demo / sample rows left in Official | Looks like live stock | `clean_sot_demo.py` |
 
+Bought / on-hand tracking for teammates lives in `Square.xlsx` (empty until a real buy). Tax rows live in `Finance.xlsx`. Do not copy staged website mãs onto On_Hand to “fill the sheet.”
+
 ## Fast daily path
 
 1. **In-hand piece** → Square Save (Boss yes) with Track stock ON → one Official / Ma_List row → mã Boss assigned → photo in `Photos/` → paste share URL in `photo_link`.

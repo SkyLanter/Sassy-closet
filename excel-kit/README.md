@@ -20,6 +20,9 @@ excel-kit/
   prompts/BOUTIQUE_DESKTOP_EFFICIENT.md
   prompts/BOUTIQUE_PHONE_SAFE.md
   prompts/GF_CLOTHES_INTAKE.md   ← GF self-upload contract (not live inventory)
+  prompts/SQUARE_AND_FINANCE_EXCEL_2026-09-07.md
+  build_square_finance.py        ← Square.xlsx + Finance.xlsx (empty team trackers)
+  KIT.md
   templates/from_gf/             ← HOW_TO + INTAKE_TEMPLATE + example packets
   inbox/gf_intake_reply_templates.md
   tests/run_checks.py
@@ -28,6 +31,7 @@ excel-kit/
 ## Shop rules
 
 - **Square Free** = on-hand inventory source of truth. Track stock ON for every item and variation. Wishlist / candidates stay off Square until Boss confirms bought and says Save.
+- **Square.xlsx** = bought / on-hand **team tracker** (not the website staged list). **Finance.xlsx** = tax-ready log. Sold piece → On_Hand qty 0 + one Sales row. Empty templates are correct.
 - **Official Excel** lives on OneDrive: `Documents/Sassy Closet/Sassy_Closet_SoT.xlsx` (working copy / mã index / captions — **not** second inventory).
 - **Photos** live in `Documents/Sassy Closet/Photos/` named `#001.jpg` / `AO001.jpg`. Excel stores `photo_link` only — **never embed images**. `photo_link` is last on Ma_List, Candidates, and SoT Wishlist.
 - **Mã** = `AO` / `QU` / `VA` / `AK` / `GI` / `PK` / `SET` + 3 digits. Never invent stock. Never reuse a Sold mã. Ask Stock (Dashboard `B21:B27`).
@@ -61,6 +65,9 @@ python3 excel-kit/sot/onedrive_from_gf_link.py --help
 # Strip demo rows + Square wording
 python3 excel-kit/clean_sot_demo.py path/to/Sassy_Closet_SoT.xlsx -o ./out/Sassy_Closet_SoT_cleaned.xlsx
 
+# Square.xlsx + Finance.xlsx (bought tracker + tax-ready; On_Hand empty)
+python3 excel-kit/build_square_finance.py --out-dir ./out
+
 # Square headers-only check
 python3 excel-kit/square/validate_import.py excel-kit/square/square_import_template.csv
 
@@ -77,5 +84,7 @@ Do not commit live inventory, customer names, secrets, or a filled Square CSV. E
 | `Documents/Sassy Closet/Sassy_Closet_SoT.xlsx` | ONE desktop book (Official / Wishlist / Orders / Dashboard) |
 | `Documents/Sassy Closet/Sassy_Closet_Official_desktop.xlsx` | Lean desktop Ma_List / Orders / Bot_Activity |
 | `Documents/Sassy Closet/Sassy_Closet_Wishlist_desktop.xlsx` | Lean desktop Candidates |
-| `Documents/Sassy Closet/Photos/` | `#001.jpg` / `AO001.jpg` — links only in Excel |
+| `Documents/Sassy Closet/Photos/` | `#001.jpg` / `AO001.jpg` / `{ma}/` — links / folder path only in Excel |
 | `Documents/Sassy Closet/From GF/` | PRIMARY GF self-upload inbox (Kit copies HOW_TO + template) |
+| `Documents/Sassy Closet/Square.xlsx` | Bought / on-hand team tracker (not website staged list; On_Hand starts empty) |
+| `Documents/Sassy Closet/Finance.xlsx` | Tax-ready Sales / Fees / Payouts / Expenses / Tax_Summary (empty templates) |

@@ -26,8 +26,17 @@ from schema import (  # noqa: E402
     CANDIDATES,
     MA_LIST,
     OFFICIAL_TO_MA_LIST_STATUS,
+    FINANCE_PAY_METHOD,
+    FINANCE_SALES,
+    FINANCE_SHEETS,
+    FINANCE_TAX_SUMMARY_METRICS,
+    ONEDRIVE_FINANCE,
     ONEDRIVE_FROM_GF,
+    ONEDRIVE_SQUARE,
     ORDER_STATUS,
+    SQUARE_ON_HAND,
+    SQUARE_ON_HAND_STATUS,
+    SQUARE_XLSX_SHEETS,
     SOT_DASHBOARD_BRIEF_CELL,
     SOT_OFFICIAL_STATUS,
     SOT_WISHLIST,
@@ -39,6 +48,7 @@ from schema import (  # noqa: E402
     official_status_or_raise,
     parse_ma,
     photo_filename_for_ma,
+    photo_folder_for_ma,
     require_ma,
     resolve_sheet_name,
 )
@@ -57,6 +67,7 @@ SCRIPTS = [
     KIT / "sot" / "gf_intake_apply.py",
     KIT / "sot" / "onedrive_from_gf_link.py",
     KIT / "square" / "validate_import.py",
+    KIT / "build_square_finance.py",
     KIT / "tests" / "run_checks.py",
 ]
 
@@ -72,6 +83,7 @@ CLIS = [
     KIT / "sot" / "gf_intake_apply.py",
     KIT / "sot" / "onedrive_from_gf_link.py",
     KIT / "square" / "validate_import.py",
+    KIT / "build_square_finance.py",
 ]
 
 FAKE_TOKENS = (
@@ -182,6 +194,30 @@ def check_schema_contract() -> None:
         pass
     assert resolve_sheet_name(["Official", "Wishlist"], "official") == "Official"
     assert resolve_sheet_name(["Ma_List"], "official") == "Ma_List"
+    assert SQUARE_XLSX_SHEETS == ("On_Hand", "Sold_Log", "Readme")
+    assert SQUARE_ON_HAND[0] == "ma"
+    assert SQUARE_ON_HAND[8] == "photo_folder"
+    assert SQUARE_ON_HAND_STATUS == ("on_hand", "reserved", "sold", "dead")
+    assert FINANCE_SHEETS == (
+        "Sales",
+        "Fees",
+        "Payouts_Transfers",
+        "Expenses",
+        "Tax_Summary",
+        "Readme",
+    )
+    assert FINANCE_SALES[8] == "pay_method"
+    assert FINANCE_SALES[12] == "square_xlsx_ma"
+    assert FINANCE_PAY_METHOD == ("zelle", "square", "square_online", "cash", "other")
+    assert FINANCE_TAX_SUMMARY_METRICS[0] == "gross_usd"
+    assert ONEDRIVE_SQUARE.endswith("Square.xlsx")
+    assert ONEDRIVE_FINANCE.endswith("Finance.xlsx")
+    assert photo_folder_for_ma("A01") == "Documents/Sassy Closet/Photos/A01/"
+    try:
+        photo_folder_for_ma("")
+        raise AssertionError("photo_folder_for_ma must refuse an empty mã")
+    except ValueError:
+        pass
     print("schema contract ok")
 
 
@@ -853,6 +889,85 @@ def check_onedrive_from_gf_link() -> None:
     print("From GF OneDrive link helper ok")
 
 
+SQUARE_FINANCE_BUILDER = KIT / "build_square_finance.py"
+SQUARE_FINANCE_CONTRACT = KIT / "prompts" / "SQUARE_AND_FINANCE_EXCEL_2026-09-07.md"
+KIT_MD = KIT / "KIT.md"
+
+
+def check_square_finance() -> None:
+    from openpyxl import load_workbook
+
+    for path in (SQUARE_FINANCE_BUILDER, SQUARE_FINANCE_CONTRACT, KIT_MD):
+        if not path.is_file():
+            raise AssertionError(f"missing {path.relative_to(REPO)}")
+
+    spec = SQUARE_FINANCE_CONTRACT.read_text(encoding="utf-8")
+    for needle in (
+        "On_Hand",
+        "Sold_Log",
+        "Tax_Summary",
+        "square_xlsx_ma",
+        "staged",
+        "No Square Save",
+        "Documents/Sassy Closet/",
+    ):
+        if needle not in spec:
+            raise AssertionError(f"SQUARE_AND_FINANCE spec should mention {needle!r}")
+
+    kit = KIT_MD.read_text(encoding="utf-8")
+    for needle in ("Square.xlsx", "Finance.xlsx", "team tracker", "invented"):
+        if needle not in kit:
+            raise AssertionError(f"KIT.md should mention {needle!r}")
+
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp)
+        built = _run(
+            [sys.executable, str(SQUARE_FINANCE_BUILDER), "--out-dir", str(out)]
+        )
+        if built.returncode != 0:
+            raise AssertionError(built.stdout + built.stderr)
+        square = out / "Square.xlsx"
+        finance = out / "Finance.xlsx"
+        if not square.is_file() or not finance.is_file():
+            raise AssertionError("builder must write Square.xlsx and Finance.xlsx")
+
+        verify = _run(
+            [
+                sys.executable,
+                str(SQUARE_FINANCE_BUILDER),
+                "--verify-only",
+                str(square),
+                str(finance),
+            ]
+        )
+        if verify.returncode != 0:
+            raise AssertionError(verify.stdout + verify.stderr)
+
+        square_wb = load_workbook(square)
+        try:
+            on_hand = square_wb["On_Hand"]
+            if on_hand.cell(2, 1).value not in (None, ""):
+                raise AssertionError("On_Hand must start empty — staged mãs are not bought")
+        finally:
+            square_wb.close()
+
+        finance_wb = load_workbook(finance, data_only=False)
+        try:
+            sales = finance_wb["Sales"]
+            if sales.cell(2, 5).value not in (None, ""):
+                raise AssertionError("Sales must not invent gross_usd")
+            ytd = finance_wb["Tax_Summary"].cell(2, 2).value
+            if not isinstance(ytd, str) or not ytd.startswith("="):
+                raise AssertionError(f"Tax_Summary YTD must be a formula, got {ytd!r}")
+        finally:
+            finance_wb.close()
+
+        if "staged" not in built.stdout.lower() and "empty" not in built.stdout.lower():
+            raise AssertionError("builder should print that On_Hand is empty / staged mãs are not bought")
+
+    print("Square.xlsx + Finance.xlsx builder ok")
+
+
 def main() -> int:
     try:
         check_py_compile()
@@ -863,6 +978,7 @@ def main() -> int:
         check_builders_and_append()
         check_gf_intake()
         check_onedrive_from_gf_link()
+        check_square_finance()
     except Exception as exc:  # noqa: BLE001 — kit runner prints and exits
         print(f"FAIL: {exc}", file=sys.stderr)
         return 1
