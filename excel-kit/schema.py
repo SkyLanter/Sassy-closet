@@ -1,11 +1,9 @@
 """Sassy Closet Excel kit — shared headers, mã rules, and workbook helpers.
 
-Desktop Official / Wishlist use MA_LIST, ORDERS, BOT_ACTIVITY, CANDIDATES.
-The OneDrive SoT workbook (Sassy_Closet_SoT.xlsx) is the ONE desktop working
-copy: Official / Wishlist / Orders / Dashboard (plus Bot_Activity when present).
-Square Free remains on-hand inventory SoT; Official Excel is a working copy /
-mã index / captions — not a second stock. Never embed images. photo_link last
-on Ma_List, Candidates, and SoT Wishlist.
+Boss 2026-09-07 ~10:24 PM PT: Sassy_Closet_Track.xlsx is a thin floor tracker
+for teammates (Track / Orders / Readme). Cute / pink / emoji / phone Excel
+is retired. Square Free remains on-hand inventory SoT. Excel is not inventory
+truth. Never embed images. Never invent mã.
 """
 
 from __future__ import annotations
@@ -44,6 +42,12 @@ ONEDRIVE_PHOTOS = f"{ONEDRIVE_SHOP_DIR}/Photos"
 ONEDRIVE_FROM_GF = f"{ONEDRIVE_SHOP_DIR}/From GF"
 ONEDRIVE_OFFICIAL_DESKTOP = f"{ONEDRIVE_SHOP_DIR}/Sassy_Closet_Official_desktop.xlsx"
 ONEDRIVE_WISHLIST_DESKTOP = f"{ONEDRIVE_SHOP_DIR}/Sassy_Closet_Wishlist_desktop.xlsx"
+# Boss 2026-09-07 ~10:24 PT: floor tracker for teammates. Cute Excel is retired.
+ONEDRIVE_TRACK = f"{ONEDRIVE_SHOP_DIR}/Sassy_Closet_Track.xlsx"
+ONEDRIVE_PLAIN_DATA = ONEDRIVE_TRACK  # alias — old Data.xlsx name is retired
+PLAIN_EXPORT_URL = "https://sassy-closet.vercel.app/api/export"
+TRACK_XLSX_NAME = "Sassy_Closet_Track.xlsx"
+PLAIN_XLSX_NAME = TRACK_XLSX_NAME
 
 # ---------------------------------------------------------------------------
 # Mã
@@ -135,6 +139,98 @@ CANDIDATE_TYPES: tuple[str, ...] = (
     "Shoes",
     "Other",
     "SET",
+)
+
+# ---------------------------------------------------------------------------
+# Floor tracker (Boss 2026-09-07 ~10:24 PT) — thin teammate book, no cute theme
+# Website = GF intake. Excel = floor tracker, not a data-entry dump / inventory.
+# Live mã: letter + growing digits (A01…A99 then A100+). Never invent mã.
+# ---------------------------------------------------------------------------
+
+PLAIN_MA_LETTERS: dict[str, str] = {
+    "A": "áo",
+    "Q": "quần",
+    "V": "váy",
+    "K": "áo khoác",
+    "G": "giày",
+    "B": "túi",
+    "P": "phụ kiện",
+    "S": "set",
+    "O": "khác",
+    "H": "tóc",
+    "J": "trang sức",
+}
+PLAIN_MA_RE = re.compile(
+    r"^(" + "|".join(PLAIN_MA_LETTERS) + r")(\d+)$",
+    re.IGNORECASE,
+)
+
+# Live /api/export CSV — used only to populate Track. Not a sheet.
+EXPORT_HEADERS: tuple[str, ...] = (
+    "ma",
+    "kind",
+    "kind_vi",
+    "size",
+    "color",
+    "color_note",
+    "color_pieces",
+    "blurb",
+    "cost_cny",
+    "cost_usd",
+    "cost_currency",
+    "sell_cny",
+    "sell_usd",
+    "sell_currency",
+    "source_link",
+    "status",
+    "square",
+    "created_at",
+    "updated_at",
+    "photo_link",
+)
+PLAIN_INVENTORY = EXPORT_HEADERS  # retired dump name; keep import-stable
+
+TRACK: tuple[str, ...] = (
+    "ma",
+    "kind",
+    "colors",
+    "sell_usd",
+    "cost",
+    "currency",
+    "square",
+    "status",
+    "flag",
+    "next_desk",
+    "photo_folder",
+    "source_link",
+)
+
+TRACK_ORDERS: tuple[str, ...] = (
+    "date",
+    "ma",
+    "customer",
+    "pay",
+    "amount_usd",
+    "ship_or_meetup",
+    "status",
+    "notes",
+)
+PLAIN_ORDERS = TRACK_ORDERS
+
+PLAIN_ORDER_PAY: tuple[str, ...] = ("cash", "zelle", "other")
+PLAIN_ORDER_STATUS: tuple[str, ...] = ("hold", "paid", "shipped", "done", "cancel")
+PLAIN_TEMPLATE_ROWS = 20
+TRACK_SHEETS: tuple[str, ...] = ("Track", "Orders", "Readme")
+PLAIN_SHEETS = TRACK_SHEETS
+# A02 was renamed to P02 (not P05). Bug-check leftover; do not invent replacement rows.
+PLAIN_RETIRED_MA: tuple[str, ...] = ("A02",)
+
+TRACK_README_LINES: tuple[str, ...] = (
+    "Floor tracker for teammates (Inventory / Inbox / Caption / Buy Research / Build).",
+    "Boss opens this book on OneDrive with Excel. It is not a full data-entry dump.",
+    "Website https://sassy-closet.vercel.app is GF intake. Square Free is on-hand SoT. Excel is not inventory truth.",
+    "Never invent mã. Never Square Save. Never Facebook Post.",
+    "Photos live in Documents/Sassy Closet/Photos/{MA}/ — folder path only, no embeds.",
 )
 
 # ---------------------------------------------------------------------------
@@ -486,6 +582,11 @@ PHOTO_RULE = (
     "Excel stores photo_link only — never embed images."
 )
 
+PLAIN_PHOTO_RULE = (
+    f"Photos live in {ONEDRIVE_PHOTOS}/{{MA}}/. "
+    "Excel stores photo_link only — never embed images. Cute Excel is retired."
+)
+
 # Outdated phrases → current shop law. Applied cell-by-cell; skip cells
 # that already state Square Free is on-hand SoT.
 SQUARE_WORDING_PATCHES: tuple[tuple[re.Pattern[str], str], ...] = (
@@ -646,6 +747,29 @@ def parse_ma(value: object) -> tuple[str, int] | None:
 
 def is_valid_ma(value: object) -> bool:
     return parse_ma(value) is not None
+
+
+def is_plain_ma(value: object) -> bool:
+    """True for live-site mã (A01, P02, A100). Does not invent one.
+
+    Legacy AO001 stays on parse_ma until that handoff. A02 is a valid
+    *shape* but is a leftover code (renamed to P02) — callers must not mint it.
+    """
+    if value is None:
+        return False
+    text = str(value).strip()
+    match = PLAIN_MA_RE.fullmatch(text)
+    if not match:
+        return False
+    return int(match.group(2)) >= 1
+
+
+def photo_folder_link(ma: object) -> str:
+    """OneDrive folder path for an export mã. Never invents a mã."""
+    text = "" if ma is None else str(ma).strip()
+    if not text:
+        raise ValueError("ma required for photo_link — never invent")
+    return f"{ONEDRIVE_PHOTOS}/{text}/"
 
 
 def format_ma(prefix: str, number: int) -> str:

@@ -1,5 +1,7 @@
 # Prompt — boutique phone-safe
 
+> **Retired 2026-09-07.** Cute / pink / emoji / phone Excel is retired. Live book is the teammate floor tracker `Sassy_Closet_Track.xlsx` (`build_floor_track.py`). See `FLOOR_TRACK.md`.
+
 Paste this when anyone rebuilds a book that must open in **Excel iOS / OneDrive mobile**. Desktop AutoFilter books are allowed to be richer; phone books must stay typeable.
 
 ```

@@ -26,8 +26,16 @@ from schema import (  # noqa: E402
     CANDIDATES,
     MA_LIST,
     OFFICIAL_TO_MA_LIST_STATUS,
+    EXPORT_HEADERS,
     ONEDRIVE_FROM_GF,
+    ONEDRIVE_PHOTOS,
+    ONEDRIVE_TRACK,
     ORDER_STATUS,
+    PLAIN_INVENTORY,
+    TRACK,
+    TRACK_ORDERS,
+    TRACK_SHEETS,
+    TRACK_XLSX_NAME,
     SOT_DASHBOARD_BRIEF_CELL,
     SOT_OFFICIAL_STATUS,
     SOT_WISHLIST,
@@ -35,10 +43,12 @@ from schema import (  # noqa: E402
     SQUARE_SOT_SHORT,
     STAY_OFF_SQUARE,
     MissingMaError,
+    is_plain_ma,
     looks_like_demo_row,
     official_status_or_raise,
     parse_ma,
     photo_filename_for_ma,
+    photo_folder_link,
     require_ma,
     resolve_sheet_name,
 )
@@ -47,6 +57,8 @@ SCRIPTS = [
     KIT / "schema.py",
     KIT / "clean_sot_demo.py",
     KIT / "build_boutique_desktop.py",
+    KIT / "build_floor_track.py",
+    KIT / "build_plain_data.py",
     KIT / "sot" / "workbook.py",
     KIT / "sot" / "append_official_row.py",
     KIT / "sot" / "append_wishlist_row.py",
@@ -63,6 +75,8 @@ SCRIPTS = [
 CLIS = [
     KIT / "clean_sot_demo.py",
     KIT / "build_boutique_desktop.py",
+    KIT / "build_floor_track.py",
+    KIT / "build_plain_data.py",
     KIT / "sot" / "append_official_row.py",
     KIT / "sot" / "append_wishlist_row.py",
     KIT / "sot" / "append_order_row.py",
@@ -171,10 +185,51 @@ def check_schema_contract() -> None:
         raise AssertionError("Ma_List status must not pass official_status_or_raise")
     except ValueError:
         pass
-    # Legacy AO001 parse_ma — do not treat A01 as valid in this PR.
+    # Legacy AO001 parse_ma — do not treat A01 as valid here (plain mã is separate).
     assert parse_ma("AO001") == ("AO", 1)
     assert parse_ma("ao015") == ("AO", 15)
+    assert parse_ma("A01") is None
+    assert parse_ma("P02") is None
     assert photo_filename_for_ma("AO001") == "AO001.jpg"
+    assert EXPORT_HEADERS[-1] == "photo_link"
+    assert PLAIN_INVENTORY == EXPORT_HEADERS
+    assert TRACK == (
+        "ma",
+        "kind",
+        "colors",
+        "sell_usd",
+        "cost",
+        "currency",
+        "square",
+        "status",
+        "flag",
+        "next_desk",
+        "photo_folder",
+        "source_link",
+    )
+    assert TRACK_ORDERS == (
+        "date",
+        "ma",
+        "customer",
+        "pay",
+        "amount_usd",
+        "ship_or_meetup",
+        "status",
+        "notes",
+    )
+    assert TRACK_SHEETS == ("Track", "Orders", "Readme")
+    assert ONEDRIVE_TRACK.endswith(TRACK_XLSX_NAME)
+    assert is_plain_ma("A01")
+    assert is_plain_ma("P02")
+    assert is_plain_ma("A100")
+    assert is_plain_ma("A02") is True  # leftover shape; builder still refuses the row
+    assert is_plain_ma("AO001") is False
+    assert photo_folder_link("P02") == f"{ONEDRIVE_PHOTOS}/P02/"
+    try:
+        photo_folder_link("")
+        raise AssertionError("photo_folder_link must refuse an empty mã")
+    except ValueError:
+        pass
     try:
         photo_filename_for_ma("not-a-ma")
         raise AssertionError("photo_filename_for_ma must refuse invented mã")
@@ -226,6 +281,206 @@ def check_square_template() -> None:
     if "headers-only" not in proc.stdout:
         raise AssertionError("validate_import should report headers-only")
     print("square template headers-only ok")
+
+
+def _write_harness_export(path: Path) -> None:
+    """Runtime-only CSV. Not committed. Uses live-shaped mã; never invents new ones."""
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(EXPORT_HEADERS))
+        writer.writeheader()
+        writer.writerow(
+            {
+                "ma": "A01",
+                "kind": "A",
+                "kind_vi": "Áo",
+                "size": "S M L",
+                "color": "Kem",
+                "color_note": "",
+                "color_pieces": "P1: Kem",
+                "blurb": "harness row",
+                "cost_cny": "10",
+                "cost_usd": "1.5",
+                "cost_currency": "USD",
+                "sell_cny": "",
+                "sell_usd": "20",
+                "sell_currency": "USD",
+                "source_link": "https://example.com/harness-a01",
+                "status": "staged",
+                "square": "not_square",
+                "created_at": "2026-09-07T00:00:00.000Z",
+                "updated_at": "2026-09-07T00:00:00.000Z",
+                "photo_link": "replace-me",
+            }
+        )
+        writer.writerow(
+            {
+                "ma": "P02",
+                "kind": "P",
+                "kind_vi": "Phụ kiện",
+                "size": "",
+                "color": "Đỏ",
+                "color_note": "",
+                "color_pieces": "P1: Đỏ",
+                "blurb": "",
+                "cost_cny": "63",
+                "cost_usd": "9.39",
+                "cost_currency": "CNY",
+                "sell_cny": "",
+                "sell_usd": "",
+                "sell_currency": "",
+                "source_link": "https://example.com/harness-p02",
+                "status": "staged",
+                "square": "not_square",
+                "created_at": "2026-09-08T00:00:00.000Z",
+                "updated_at": "2026-09-08T00:00:00.000Z",
+                "photo_link": "also-replace-me",
+            }
+        )
+        writer.writerow({"ma": "", "blurb": "empty mã must be skipped"})
+
+
+def check_floor_track_book() -> None:
+    prompt = KIT / "prompts" / "FLOOR_TRACK.md"
+    kit_md = KIT / "KIT.md"
+    photos_md = KIT / "PHOTOS.md"
+    kit_sh = KIT / "kit.sh"
+    for path in (prompt, kit_md, photos_md, kit_sh, KIT / "build_floor_track.py"):
+        if not path.is_file():
+            raise AssertionError(f"missing {path.relative_to(REPO)}")
+
+    prompt_text = prompt.read_text(encoding="utf-8")
+    for needle in (
+        "Sassy_Closet_Track.xlsx",
+        "api/export",
+        "photo_folder",
+        "teammates",
+        "A02 was renamed to P02" if "A02" in prompt_text else "do not invent",
+    ):
+        if needle not in prompt_text.lower() and needle not in prompt_text:
+            raise AssertionError(f"FLOOR_TRACK.md should keep spec line {needle!r}")
+    if "Candidates" in prompt_text and "Drop" not in prompt_text:
+        raise AssertionError("FLOOR_TRACK.md should drop Candidates, not keep the sheet")
+
+    kit_text = kit_md.read_text(encoding="utf-8").lower()
+    photos_text = photos_md.read_text(encoding="utf-8").lower()
+    if "floor tracker" not in kit_text or "teammates" not in kit_text or "onedrive" not in kit_text:
+        raise AssertionError("KIT.md must say: floor tracker for teammates on OneDrive")
+    if "retired" not in photos_text or "photos/{ma}/" not in photos_text:
+        raise AssertionError("PHOTOS.md must note cute Excel retired and Photos/{MA}/")
+
+    syntax = _run(["bash", "-n", str(kit_sh)])
+    if syntax.returncode != 0:
+        raise AssertionError(f"kit.sh bash -n failed:\n{syntax.stderr}")
+    help_proc = _run(["bash", str(kit_sh), "--help"])
+    if help_proc.returncode != 0:
+        raise AssertionError(help_proc.stderr)
+    help_blob = help_proc.stdout + help_proc.stderr
+    if "pull" not in help_blob or "track" not in help_blob:
+        raise AssertionError("kit.sh --help should mention pull and track")
+    cute = _run(["bash", str(kit_sh), "wishlist"])
+    if cute.returncode == 0:
+        raise AssertionError("kit.sh wishlist must be refused (cute pull retired)")
+    if "retired" not in (cute.stdout + cute.stderr).lower():
+        raise AssertionError("kit.sh wishlist refusal should say retired")
+
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp)
+        csv_path = out / "export.csv"
+        _write_harness_export(csv_path)
+        built = _run(
+            [
+                sys.executable,
+                str(KIT / "build_floor_track.py"),
+                "--from-csv",
+                str(csv_path),
+                "--out-dir",
+                str(out),
+            ]
+        )
+        if built.returncode != 0:
+            raise AssertionError(built.stdout + built.stderr)
+        book = out / TRACK_XLSX_NAME
+        if not book.is_file():
+            raise AssertionError("floor tracker did not write Sassy_Closet_Track.xlsx")
+        blob = built.stdout + built.stderr
+        if "sha256" not in blob:
+            raise AssertionError("builder should print a checksum")
+
+        from openpyxl import load_workbook
+
+        wb = load_workbook(book)
+        try:
+            if list(wb.sheetnames) != ["Track", "Orders", "Readme"]:
+                raise AssertionError(f"unexpected sheets: {wb.sheetnames}")
+            if "Candidates" in wb.sheetnames or "Inventory" in wb.sheetnames:
+                raise AssertionError("Candidates / 20-col Inventory dump must be dropped")
+            track = wb["Track"]
+            headers = [track.cell(1, c).value for c in range(1, len(TRACK) + 1)]
+            if headers != list(TRACK):
+                raise AssertionError(f"Track headers drifted: {headers}")
+            mas = []
+            for row in range(2, (track.max_row or 1) + 1):
+                value = track.cell(row, 1).value
+                if value is None or str(value).strip() == "":
+                    continue
+                mas.append(str(value).strip())
+            if mas != ["A01", "P02"]:
+                raise AssertionError(f"harness Track mã should be A01,P02 (no A02), got {mas}")
+            photo_col = list(TRACK).index("photo_folder") + 1
+            cost_col = list(TRACK).index("cost") + 1
+            curr_col = list(TRACK).index("currency") + 1
+            flag_col = list(TRACK).index("flag") + 1
+            desk_col = list(TRACK).index("next_desk") + 1
+            colors_col = list(TRACK).index("colors") + 1
+            for row_index, ma in enumerate(mas, start=2):
+                folder = str(track.cell(row_index, photo_col).value)
+                if not folder.endswith(f"Photos/{ma}/"):
+                    raise AssertionError(f"photo_folder for {ma} should end Photos/{ma}/, got {folder}")
+            if track.cell(2, colors_col).value != "Kem":
+                raise AssertionError("colors should come from export color, not invented")
+            if track.cell(2, cost_col).value != 1.5 or str(track.cell(2, curr_col).value) != "USD":
+                raise AssertionError("A01 cost should follow export cost_currency=USD")
+            if track.cell(3, cost_col).value != 63 or str(track.cell(3, curr_col).value) != "CNY":
+                raise AssertionError("P02 cost should follow export cost_currency=CNY")
+            if track.cell(2, flag_col).value not in (None, ""):
+                raise AssertionError("flag must stay empty unless export already has one")
+            if track.cell(2, desk_col).value not in (None, ""):
+                raise AssertionError("next_desk must stay empty by default")
+            if any(cell.value == "A02" for row in track.iter_rows() for cell in row):
+                raise AssertionError("no mã cell A02")
+            if getattr(track, "_images", None):
+                raise AssertionError("Track embeds forbidden")
+            if track.freeze_panes != "A2" or wb["Orders"].freeze_panes != "A2":
+                raise AssertionError("Track/Orders must freeze the header row")
+            readme_lines = [
+                str(wb["Readme"].cell(r, 1).value).strip()
+                for r in range(1, 8)
+                if wb["Readme"].cell(r, 1).value
+            ]
+            if not (4 <= len(readme_lines) <= 5):
+                raise AssertionError(f"Readme should be 4–5 lines, got {readme_lines}")
+        finally:
+            wb.close()
+
+        leftover = out / "leftover.csv"
+        with leftover.open("w", encoding="utf-8", newline="") as handle:
+            writer = csv.DictWriter(handle, fieldnames=list(EXPORT_HEADERS))
+            writer.writeheader()
+            writer.writerow({"ma": "A02", "kind": "A", "kind_vi": "Áo", "status": "staged"})
+        refuse = _run(
+            [
+                sys.executable,
+                str(KIT / "build_floor_track.py"),
+                "--from-csv",
+                str(leftover),
+                "--out-dir",
+                str(out / "bad"),
+            ]
+        )
+        if refuse.returncode == 0:
+            raise AssertionError("builder must refuse leftover A02 (renamed to P02)")
+
+    print("floor tracker book ok")
 
 
 def check_builders_and_append() -> None:
@@ -858,6 +1113,7 @@ def main() -> int:
         check_py_compile()
         check_help()
         check_schema_contract()
+        check_floor_track_book()
         check_no_fake_inventory_in_git()
         check_square_template()
         check_builders_and_append()

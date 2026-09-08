@@ -1,5 +1,7 @@
 # Prompt — boutique desktop (efficient)
 
+> **Retired 2026-09-07.** Cute / pink / emoji desktop books are retired. Live book is `Sassy_Closet_Track.xlsx` via `build_floor_track.py` / `kit.sh pull`. See `FLOOR_TRACK.md`. Do not use this prompt to rebuild a blush Wishlist.
+
 Paste this when a Cursor Cloud Agent or Kit should rebuild the **desktop** Official + Wishlist books. Do not use this to remake `Sassy_Closet_SoT.xlsx` unless Boss also pasted the SoT `BOT PROMPT`.
 
 ```

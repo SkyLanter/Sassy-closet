@@ -1,5 +1,7 @@
 # Design notes
 
+Cute / pink / emoji / phone Excel is **retired**. The live book is the teammate floor tracker `Sassy_Closet_Track.xlsx` (`build_floor_track.py`, `kit.sh pull`). Notes below describe the legacy SoT / blush desktop builders still in this repo.
+
 Why the kit looks the way it does.
 
 ## Two Excel layers, one stock brain
