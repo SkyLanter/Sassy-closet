@@ -24,23 +24,41 @@ from schema import (  # noqa: E402
     APPEND_OFFICIAL_ROW_EXPORTS,
     ASK_STOCK_MA,
     CANDIDATES,
+    FINANCE_PAY_METHOD,
+    FINANCE_SALES,
+    FINANCE_SHEETS,
+    FINANCE_TAX_CATEGORY,
+    FINANCE_TAX_SUMMARY_ROWS,
+    FINANCE_XLSX_NAME,
     MA_LIST,
     OFFICIAL_TO_MA_LIST_STATUS,
+    ONEDRIVE_FINANCE,
     ONEDRIVE_FROM_GF,
+    ONEDRIVE_PHOTOS,
+    ONEDRIVE_SHOP_DIR,
+    ONEDRIVE_SQUARE,
     ORDER_STATUS,
     SOT_DASHBOARD_BRIEF_CELL,
     SOT_OFFICIAL_STATUS,
     SOT_WISHLIST,
     SQUARE_IMPORT_HEADERS,
+    SQUARE_ON_HAND,
+    SQUARE_ON_HAND_STATUS,
+    SQUARE_SHEETS,
     SQUARE_SOT_SHORT,
+    SQUARE_SOLD_LOG,
+    SQUARE_XLSX_NAME,
     STAY_OFF_SQUARE,
     MissingMaError,
+    finance_net_usd_formula,
     looks_like_demo_row,
     official_status_or_raise,
     parse_ma,
     photo_filename_for_ma,
     require_ma,
     resolve_sheet_name,
+    square_photo_folder,
+    square_photo_folder_formula,
 )
 
 SCRIPTS = [
@@ -57,6 +75,7 @@ SCRIPTS = [
     KIT / "sot" / "gf_intake_apply.py",
     KIT / "sot" / "onedrive_from_gf_link.py",
     KIT / "square" / "validate_import.py",
+    KIT / "build_square_finance.py",
     KIT / "tests" / "run_checks.py",
 ]
 
@@ -72,6 +91,7 @@ CLIS = [
     KIT / "sot" / "gf_intake_apply.py",
     KIT / "sot" / "onedrive_from_gf_link.py",
     KIT / "square" / "validate_import.py",
+    KIT / "build_square_finance.py",
 ]
 
 FAKE_TOKENS = (
@@ -182,6 +202,77 @@ def check_schema_contract() -> None:
         pass
     assert resolve_sheet_name(["Official", "Wishlist"], "official") == "Official"
     assert resolve_sheet_name(["Ma_List"], "official") == "Ma_List"
+    assert SQUARE_ON_HAND == (
+        "ma",
+        "kind",
+        "colors",
+        "size",
+        "qty_on_hand",
+        "cost_cny",
+        "cost_usd",
+        "cost_currency",
+        "buy_date",
+        "source_link",
+        "photo_folder",
+        "square_item_name",
+        "track_on",
+        "status",
+        "sold_date",
+        "notes",
+    )
+    assert SQUARE_ON_HAND_STATUS == ("on_hand", "reserved", "sold", "dead")
+    assert SQUARE_SOLD_LOG == (
+        "sold_date",
+        "ma",
+        "kind",
+        "colors",
+        "size",
+        "qty",
+        "square_item_name",
+        "notes",
+    )
+    assert SQUARE_SHEETS == ("On_Hand", "Sold_Log", "Readme")
+    assert FINANCE_SALES == (
+        "date",
+        "ma",
+        "description",
+        "qty",
+        "gross_usd",
+        "ship_usd",
+        "discount_usd",
+        "net_usd",
+        "pay_method",
+        "pay_ref",
+        "customer_note",
+        "channel",
+        "square_xlsx_ma",
+        "tax_category",
+        "notes",
+    )
+    assert FINANCE_PAY_METHOD == ("zelle", "square", "square_online", "cash", "other")
+    assert FINANCE_TAX_CATEGORY == ("product_sale", "shipping", "other")
+    assert FINANCE_SHEETS == (
+        "Sales",
+        "Fees",
+        "Payouts_Transfers",
+        "Expenses",
+        "Tax_Summary",
+        "Readme",
+    )
+    assert ONEDRIVE_SQUARE == f"{ONEDRIVE_SHOP_DIR}/{SQUARE_XLSX_NAME}"
+    assert ONEDRIVE_FINANCE == f"{ONEDRIVE_SHOP_DIR}/{FINANCE_XLSX_NAME}"
+    assert ONEDRIVE_SQUARE == "Documents/Sassy Closet/Square.xlsx"
+    assert ONEDRIVE_FINANCE == "Documents/Sassy Closet/Finance.xlsx"
+    assert square_photo_folder("P02") == f"{ONEDRIVE_PHOTOS}/P02/"
+    assert square_photo_folder_formula(2) == f'=IF(A2="","","{ONEDRIVE_PHOTOS}/"&A2&"/")'
+    assert finance_net_usd_formula(2).startswith("=IF(COUNTA(E2:G2)=0")
+    try:
+        square_photo_folder("")
+        raise AssertionError("square_photo_folder must refuse an empty mã")
+    except ValueError:
+        pass
+    net_row = [formula for label, formula in FINANCE_TAX_SUMMARY_ROWS if label.startswith("Net after")]
+    assert net_row == ["=B6-B10-B11"]
     print("schema contract ok")
 
 
@@ -853,6 +944,93 @@ def check_onedrive_from_gf_link() -> None:
     print("From GF OneDrive link helper ok")
 
 
+SQUARE_FINANCE_PROMPT = KIT / "prompts" / "SQUARE_AND_FINANCE_EXCEL_2026-09-07.md"
+SQUARE_FINANCE_BUILDER = KIT / "build_square_finance.py"
+KIT_MD = KIT / "KIT.md"
+KIT_SH = KIT / "kit.sh"
+ROOT_KIT_SH = REPO / "kit.sh"
+
+
+def check_square_finance() -> None:
+    for path in (SQUARE_FINANCE_PROMPT, SQUARE_FINANCE_BUILDER, KIT_MD, KIT_SH, ROOT_KIT_SH):
+        if not path.is_file():
+            raise AssertionError(f"missing {path.relative_to(REPO)}")
+
+    prompt = SQUARE_FINANCE_PROMPT.read_text(encoding="utf-8")
+    for needle in (
+        "On_Hand",
+        "Sold_Log",
+        "tax_category",
+        "square_xlsx_ma",
+        "Documents/Sassy Closet/Square.xlsx",
+        "Documents/Sassy Closet/Finance.xlsx",
+        "Staged site mãs are NOT bought",
+        "No Square Save",
+        "build_square_finance.py",
+        "on_hand",
+        "reserved",
+        "sold",
+        "dead",
+        "zelle",
+        "square_online",
+        "product_sale",
+    ):
+        if needle not in prompt:
+            raise AssertionError(f"SQUARE_AND_FINANCE_EXCEL_2026-09-07.md should keep spec line {needle!r}")
+
+    kit_md = KIT_MD.read_text(encoding="utf-8")
+    for needle in ("Square.xlsx", "Finance.xlsx", "kit.sh square", "Staged site"):
+        if needle not in kit_md:
+            raise AssertionError(f"KIT.md should mention {needle!r}")
+
+    help_proc = _run(["bash", str(KIT_SH), "--help"])
+    if help_proc.returncode != 0:
+        raise AssertionError(help_proc.stderr)
+    help_blob = help_proc.stdout + help_proc.stderr
+    for needle in ("square", "finance", "books", "Square.xlsx", "Finance.xlsx"):
+        if needle not in help_blob:
+            raise AssertionError(f"kit.sh --help should mention {needle!r}")
+
+    cute = _run(["bash", str(KIT_SH), "cute"])
+    if cute.returncode != 2:
+        raise AssertionError(f"kit.sh cute should exit 2, got {cute.returncode}")
+
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp)
+        built = _run(
+            [sys.executable, str(SQUARE_FINANCE_BUILDER), "--out-dir", str(out)]
+        )
+        if built.returncode != 0:
+            raise AssertionError(built.stdout + built.stderr)
+        square = out / SQUARE_XLSX_NAME
+        finance = out / FINANCE_XLSX_NAME
+        if not square.is_file() or not finance.is_file():
+            raise AssertionError("builder must write Square.xlsx and Finance.xlsx")
+        verify = _run(
+            [
+                sys.executable,
+                str(SQUARE_FINANCE_BUILDER),
+                "--verify-only",
+                str(square),
+                str(finance),
+            ]
+        )
+        if verify.returncode != 0:
+            raise AssertionError(verify.stdout + verify.stderr)
+
+        kit_out = out / "kit"
+        kit_out.mkdir()
+        kit = _run(["bash", str(KIT_SH), "square", str(kit_out)])
+        if kit.returncode != 0:
+            raise AssertionError(kit.stdout + kit.stderr)
+        if not (kit_out / SQUARE_XLSX_NAME).is_file():
+            raise AssertionError("kit.sh square must write Square.xlsx")
+        if not (kit_out / FINANCE_XLSX_NAME).is_file():
+            raise AssertionError("kit.sh square must write Finance.xlsx")
+
+    print("Square.xlsx + Finance.xlsx builder ok")
+
+
 def main() -> int:
     try:
         check_py_compile()
@@ -863,6 +1041,7 @@ def main() -> int:
         check_builders_and_append()
         check_gf_intake()
         check_onedrive_from_gf_link()
+        check_square_finance()
     except Exception as exc:  # noqa: BLE001 — kit runner prints and exits
         print(f"FAIL: {exc}", file=sys.stderr)
         return 1

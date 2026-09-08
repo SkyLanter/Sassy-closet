@@ -218,7 +218,34 @@ STOP if you would invent a mã or Save in Square.
 
 ---
 
-## 12) From GF OneDrive link (do not hand Graph webUrl)
+## 12) Square.xlsx + Finance.xlsx (bought tracker + tax-ready)
+
+Contract: `excel-kit/prompts/SQUARE_AND_FINANCE_EXCEL_2026-09-07.md`.
+
+```
+Sassy Closet — create Square.xlsx + Finance.xlsx for Documents/Sassy Closet/.
+On_Hand starts EMPTY (staged site mãs are NOT bought). Finance empty — no invented sales.
+
+RUN
+  python3 excel-kit/build_square_finance.py --out-dir ./out
+  ./excel-kit/kit.sh square
+  python3 excel-kit/tests/run_checks.py
+  unzip -t out/Square.xlsx
+  unzip -t out/Finance.xlsx
+
+CONTRACT
+- Square.xlsx: On_Hand, Sold_Log, Readme. Plain freeze + AutoFilter. No cute.
+- On_Hand cols: ma, kind, colors, size, qty_on_hand, cost_cny, cost_usd, cost_currency, buy_date, source_link, photo_folder, square_item_name, track_on, status, sold_date, notes
+- status on_hand|reserved|sold|dead. photo_folder = Documents/Sassy Closet/Photos/{ma}/
+- Finance.xlsx: Sales, Fees, Payouts_Transfers, Expenses, Tax_Summary formulas, Readme
+- Sold → Square qty 0 + Finance Sales row. Square Free = SoT. No Square Save. No invent mã/$.
+
+STOP if you would copy staged site mãs onto On_Hand or invent a sale.
+```
+
+---
+
+## 13) From GF OneDrive link (do not hand Graph webUrl)
 
 Docs: `excel-kit/templates/from_gf/LINKING.md` (slash after `.com`, encode `!` as `%21`). Watcher: `excel-kit/sot/FROM_GF_WATCH.md`.
 

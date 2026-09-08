@@ -42,3 +42,4 @@ How the shop stays fast without a second inventory brain or bloated workbooks.
 - Run `python3 excel-kit/tests/run_checks.py` (py_compile + `--help` + no fake inventory in git).
 - Prefer patching wording / clearing demo rows (`clean_sot_demo.py`) over a full SoT rebuild.
 - After a good desktop build, Kit copies the two `.xlsx` files to OneDrive. This repo stays code + prompts.
+- `kit.sh square` rebuilds empty `Square.xlsx` + `Finance.xlsx`. Do not prefill staged site mãs.
