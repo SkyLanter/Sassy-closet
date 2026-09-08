@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #fff1f5;
+}
+
+body {
+  background:
+    radial-gradient(1200px 600px at 50% -10%, #ffd6e4 0%, transparent 55%),
+    #fff1f5;
+  color: #7a1f3d;
+}
+
+.sassy-shell {
+  min-height: 100%;
+}

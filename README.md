@@ -47,4 +47,8 @@ python3 excel-kit/tests/run_checks.py
 | `excel-kit/square/` | Headers-only import template (Track ON, mã = SKU) |
 | `excel-kit/PROMPTS.md` | Paste-ready Cloud Agent prompts |
 
-Prompts also live in `excel-kit/prompts/BOUTIQUE_DESKTOP_EFFICIENT.md`, `BOUTIQUE_PHONE_SAFE.md`, and `GF_CLOTHES_INTAKE.md`.
+Prompts also live in `excel-kit/prompts/` (`BOUTIQUE_DESKTOP_EFFICIENT.md`, `BOUTIQUE_PHONE_SAFE.md`, `GF_CLOTHES_INTAKE.md`, `SAVED_CARD_AND_REAL_MINIBOSS_ASK_2026-09-07.md`).
+
+## Intake site
+
+Next.js app in [`sassy-closet/`](sassy-closet/). Vercel Root Directory: `sassy-closet`. Env **names** (no values): `MINIBOSS_ASK_WEBHOOK_URL`, `MINIBOSS_ASK_WEBHOOK_KEY`, `ASK_REPLY_SECRET` — see `excel-kit/KIT.md` and `sassy-closet/README.md`.
