@@ -1,4 +1,5 @@
 import { hashBytes, saveSubmission } from "./store";
+import { normalizeSourceLink } from "./source-link";
 import type { Piece } from "./types";
 
 export async function saveFromForm(form: FormData, existingMa?: string) {
@@ -33,7 +34,7 @@ export async function saveFromForm(form: FormData, existingMa?: string) {
   return saveSubmission({
     kind: String(form.get("kind") || form.get("prefix") || "A"),
     size: String(form.get("size") ?? ""),
-    link: String(form.get("link") ?? ""),
+    link: normalizeSourceLink(String(form.get("link") ?? "")),
     color: String(form.get("color") ?? ""),
     color_note: String(form.get("color_note") ?? ""),
     pieces,

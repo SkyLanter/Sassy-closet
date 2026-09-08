@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { isKindCode } from "./kinds";
 import { formatMa, maExists, nextMa, normalizeMa, parseHubMa } from "./mint";
+import { normalizeSourceLink } from "./source-link";
 import { sanitizeOnHandRows } from "./on-hand";
 import { buildCaptionVi } from "./captions";
 import {
@@ -134,7 +135,7 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
     color: input.color.trim(),
     color_note: input.color_note.trim(),
     pieces: input.pieces,
-    link: input.link.trim(),
+    link: normalizeSourceLink(input.link),
     price: input.sell_usd.trim(),
     cost_cny: input.cost_cny.trim(),
     cost_usd: input.cost_usd.trim(),
