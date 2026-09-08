@@ -4,9 +4,9 @@ GitHub home for the Excel kit. **Cursor Cloud Agents build here. Kit syncs files
 
 The shop’s live working copy is **not** this repo. It is:
 
-`Documents/Sassy Closet/Sassy_Closet_Data.xlsx` on OneDrive
+`Documents/Sassy Closet/Sassy_Closet_Track.xlsx` on OneDrive
 
-Cute / pink / emoji / phone Excel is **retired**. Website `https://sassy-closet.vercel.app` is GF input. The plain workbook is Boss’s simple mirror / edit buffer. Square Free stays on-hand inventory truth.
+Cute / pink / emoji / phone Excel is **retired**. Website `https://sassy-closet.vercel.app` is GF intake. The plain workbook is a floor tracker for teammates. Square Free stays on-hand inventory truth.
 
 ## How Mini Boss launches Agents here
 
@@ -14,7 +14,7 @@ Cute / pink / emoji / phone Excel is **retired**. Website `https://sassy-closet.
 2. Start a **Cursor Cloud Agent** on `main` (Cursor → Agents, or the Cloud Agent composer pointed at this repo).
 3. Paste **one** task from [`excel-kit/PROMPTS.md`](excel-kit/PROMPTS.md) (plain data rebuild, Official row, Wishlist, Order, morning brief, clean demo, Square draft, GF clothes intake).
 4. The agent works on a `cursor/…` branch and opens a PR. Mini Boss / Boss review. No Square Save from the agent.
-5. After merge, **Kit** syncs the plain book to OneDrive `Documents/Sassy Closet/Sassy_Closet_Data.xlsx` (`kit.sh pull`). `Photos/{MA}/` stays links-only. Do not delete other OneDrive files blindly.
+5. After merge, **Kit** syncs the floor tracker to OneDrive `Documents/Sassy Closet/Sassy_Closet_Track.xlsx` (`kit.sh pull`). `Photos/{MA}/` stays links-only. Do not delete other OneDrive files blindly.
 6. Never commit live Official rows, customer names, Square tokens, or a filled import CSV.
 
 Boss yes/no stays in Slack `#shop-decisions`. Facebook inbox is the store.
@@ -22,7 +22,7 @@ Boss yes/no stays in Slack `#shop-decisions`. Facebook inbox is the store.
 ## Shop rules
 
 - **Square Free = on-hand inventory source of truth.** Track stock ON for every item and variation. Wishlist / candidates stay off Square until Boss confirms bought and says yes to Save.
-- **Plain Excel** (`Sassy_Closet_Data.xlsx`) is the ONE Boss desktop book — **not** a second inventory.
+- **Plain Excel** (`Sassy_Closet_Track.xlsx`) is the teammate floor tracker — **not** a second inventory.
 - **Photos** live in `Documents/Sassy Closet/Photos/{MA}/`. Excel stores `photo_link` only — **never embed images**.
 - **Live mã** = letter + growing digits (`A01`…`A99` then `A100+`). Never invent stock. A02 was renamed to P02 (not P05).
 - **Bots draft only.** The owner posts on Facebook, sends the message, takes Zelle, and taps Save in Square.
@@ -34,14 +34,14 @@ See [`excel-kit/`](excel-kit/) — schema, SoT CLIs, Square headers, prompts.
 
 ```bash
 pip install -r requirements.txt
-python3 excel-kit/build_plain_data.py --out-dir ./out
+python3 excel-kit/build_floor_track.py --out-dir ./out
 ./excel-kit/kit.sh pull
 python3 excel-kit/tests/run_checks.py
 ```
 
 | Path | Job |
 | --- | --- |
-| `excel-kit/build_plain_data.py` | Live `/api/export` → `Sassy_Closet_Data.xlsx` |
+| `excel-kit/build_floor_track.py` | Live `/api/export` → `Sassy_Closet_Track.xlsx` |
 | `excel-kit/kit.sh` | `pull` / `plain` lands the Boss book (not cute Wishlist) |
 | `excel-kit/schema.py` | Headers, mã, Dashboard `B43`, Square import columns |
 | `excel-kit/sot/` | Legacy SoT append CLIs; GF intake; morning brief |

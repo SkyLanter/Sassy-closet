@@ -1,5 +1,7 @@
 # Plain data Excel rebuild — Boss 2026-09-07 ~10:15 PM PT
 
+> **Superseded ~10:24 PM PT.** Do not rebuild the 20-column Inventory dump or Candidates sheet. Current book is the teammate floor tracker: `Sassy_Closet_Track.xlsx` via `build_floor_track.py`. See `FLOOR_TRACK.md`.
+
 ## Outcome Boss sees
 One plain Excel: `out/Sassy_Closet_Data.xlsx`
 - English headers only

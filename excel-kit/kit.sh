@@ -1,21 +1,23 @@
 #!/usr/bin/env bash
 # Kit helper. Cute / pink / emoji / phone Excel is retired.
-# pull | plain  → build Sassy_Closet_Data.xlsx from the live site export
-#                 and copy it to OneDrive only if the shop folder already exists.
+# pull | plain | track  → build Sassy_Closet_Track.xlsx from the live site export
+#                         and copy it to OneDrive only if the shop folder already exists.
 # Does not delete Boss OneDrive files. No Square Save. No passwords.
 set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: kit.sh pull|plain [out-dir]
+Usage: kit.sh pull|plain|track [out-dir]
 
-Build the Boss plain data book (Sassy_Closet_Data.xlsx) from
+Build the teammate floor tracker (Sassy_Closet_Track.xlsx) from
 https://sassy-closet.vercel.app/api/export and leave it under out/.
 
-  pull   same as plain (replaces the old cute Wishlist pull)
-  plain  build + verify + optional OneDrive copy (no deletes)
+  pull    same as track (replaces cute Wishlist and the 20-column dump)
+  plain   same as track
+  track   build + verify + optional OneDrive copy (no deletes)
 
 Does not rebuild blush / emoji / phone workbooks.
+Does not delete Sassy_Closet_Data.xlsx or other OneDrive files.
 EOF
 }
 
@@ -23,7 +25,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 CMD="${1:-}"
 OUT_DIR="${2:-${SASSY_OUT:-$REPO_ROOT/out}}"
-XLSX_NAME="Sassy_Closet_Data.xlsx"
+XLSX_NAME="Sassy_Closet_Track.xlsx"
 PYTHON="${PYTHON:-python3}"
 
 if [[ -z "$CMD" || "$CMD" == "-h" || "$CMD" == "--help" ]]; then
@@ -36,31 +38,29 @@ if [[ "$CMD" == "wishlist" || "$CMD" == "cute" || "$CMD" == "boutique" ]]; then
   exit 2
 fi
 
-if [[ "$CMD" != "pull" && "$CMD" != "plain" ]]; then
-  echo "kit.sh: unknown command '$CMD' (want pull or plain)." >&2
+if [[ "$CMD" != "pull" && "$CMD" != "plain" && "$CMD" != "track" ]]; then
+  echo "kit.sh: unknown command '$CMD' (want pull, plain, or track)." >&2
   echo "Cute Wishlist rebuilds are retired." >&2
   usage >&2
   exit 2
 fi
 
 mkdir -p "$OUT_DIR"
-"$PYTHON" "$SCRIPT_DIR/build_plain_data.py" --out-dir "$OUT_DIR"
+"$PYTHON" "$SCRIPT_DIR/build_floor_track.py" --out-dir "$OUT_DIR"
 SRC="$OUT_DIR/$XLSX_NAME"
 if [[ ! -f "$SRC" ]]; then
   echo "kit.sh: builder did not write $SRC" >&2
   exit 1
 fi
 
-# Second local landing so excel-kit/out also has the artifact.
 KIT_OUT="$SCRIPT_DIR/out"
 mkdir -p "$KIT_OUT"
 if [[ "$(cd "$OUT_DIR" && pwd)" != "$(cd "$KIT_OUT" && pwd)" ]]; then
   cp "$SRC" "$KIT_OUT/$XLSX_NAME"
 fi
 
-echo "kit: plain book $SRC"
+echo "kit: floor tracker $SRC"
 
-# Copy into OneDrive shop dir if it already exists. Never rm siblings.
 shop_dirs=()
 if [[ -n "${SASSY_SHOP_DIR:-}" ]]; then
   shop_dirs+=("${SASSY_SHOP_DIR}")

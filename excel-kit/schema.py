@@ -1,10 +1,8 @@
 """Sassy Closet Excel kit — shared headers, mã rules, and workbook helpers.
 
-Boss daily book (2026-09-07): Sassy_Closet_Data.xlsx — PLAIN_INVENTORY /
-PLAIN_CANDIDATES / PLAIN_ORDERS. Cute / pink / emoji / phone Excel is retired.
-
-Legacy desktop Official / Wishlist still use MA_LIST, ORDERS, BOT_ACTIVITY,
-CANDIDATES. Square Free remains on-hand inventory SoT. Excel is not inventory
+Boss 2026-09-07 ~10:24 PM PT: Sassy_Closet_Track.xlsx is a thin floor tracker
+for teammates (Track / Orders / Readme). Cute / pink / emoji / phone Excel
+is retired. Square Free remains on-hand inventory SoT. Excel is not inventory
 truth. Never embed images. Never invent mã.
 """
 
@@ -44,10 +42,12 @@ ONEDRIVE_PHOTOS = f"{ONEDRIVE_SHOP_DIR}/Photos"
 ONEDRIVE_FROM_GF = f"{ONEDRIVE_SHOP_DIR}/From GF"
 ONEDRIVE_OFFICIAL_DESKTOP = f"{ONEDRIVE_SHOP_DIR}/Sassy_Closet_Official_desktop.xlsx"
 ONEDRIVE_WISHLIST_DESKTOP = f"{ONEDRIVE_SHOP_DIR}/Sassy_Closet_Wishlist_desktop.xlsx"
-# Boss 2026-09-07: one plain data book. Cute / pink / emoji / phone Excel is retired.
-ONEDRIVE_PLAIN_DATA = f"{ONEDRIVE_SHOP_DIR}/Sassy_Closet_Data.xlsx"
+# Boss 2026-09-07 ~10:24 PT: floor tracker for teammates. Cute Excel is retired.
+ONEDRIVE_TRACK = f"{ONEDRIVE_SHOP_DIR}/Sassy_Closet_Track.xlsx"
+ONEDRIVE_PLAIN_DATA = ONEDRIVE_TRACK  # alias — old Data.xlsx name is retired
 PLAIN_EXPORT_URL = "https://sassy-closet.vercel.app/api/export"
-PLAIN_XLSX_NAME = "Sassy_Closet_Data.xlsx"
+TRACK_XLSX_NAME = "Sassy_Closet_Track.xlsx"
+PLAIN_XLSX_NAME = TRACK_XLSX_NAME
 
 # ---------------------------------------------------------------------------
 # Mã
@@ -142,8 +142,8 @@ CANDIDATE_TYPES: tuple[str, ...] = (
 )
 
 # ---------------------------------------------------------------------------
-# Plain data book (Boss 2026-09-07) — English headers, no cute theme
-# Website = GF input. Excel = simple mirror / edit buffer. Not inventory truth.
+# Floor tracker (Boss 2026-09-07 ~10:24 PT) — thin teammate book, no cute theme
+# Website = GF intake. Excel = floor tracker, not a data-entry dump / inventory.
 # Live mã: letter + growing digits (A01…A99 then A100+). Never invent mã.
 # ---------------------------------------------------------------------------
 
@@ -165,7 +165,8 @@ PLAIN_MA_RE = re.compile(
     re.IGNORECASE,
 )
 
-PLAIN_INVENTORY: tuple[str, ...] = (
+# Live /api/export CSV — used only to populate Track. Not a sheet.
+EXPORT_HEADERS: tuple[str, ...] = (
     "ma",
     "kind",
     "kind_vi",
@@ -187,35 +188,50 @@ PLAIN_INVENTORY: tuple[str, ...] = (
     "updated_at",
     "photo_link",
 )
+PLAIN_INVENTORY = EXPORT_HEADERS  # retired dump name; keep import-stable
 
-PLAIN_CANDIDATES: tuple[str, ...] = (
-    "title_note",
-    "source_link",
-    "size_note",
-    "color_note",
-    "cost_note",
+TRACK: tuple[str, ...] = (
+    "ma",
+    "kind",
+    "colors",
+    "sell_usd",
+    "cost",
+    "currency",
+    "square",
     "status",
-    "photo_note",
+    "flag",
+    "next_desk",
+    "photo_folder",
+    "source_link",
 )
 
-PLAIN_ORDERS: tuple[str, ...] = (
+TRACK_ORDERS: tuple[str, ...] = (
     "date",
     "ma",
-    "customer_note",
-    "pay_method",
+    "customer",
+    "pay",
     "amount_usd",
     "ship_or_meetup",
     "status",
     "notes",
 )
+PLAIN_ORDERS = TRACK_ORDERS
 
-PLAIN_CANDIDATE_STATUS: tuple[str, ...] = ("looking", "skip", "bought")
 PLAIN_ORDER_PAY: tuple[str, ...] = ("cash", "zelle", "other")
 PLAIN_ORDER_STATUS: tuple[str, ...] = ("hold", "paid", "shipped", "done", "cancel")
 PLAIN_TEMPLATE_ROWS = 20
-PLAIN_SHEETS: tuple[str, ...] = ("Inventory", "Candidates", "Orders")
+TRACK_SHEETS: tuple[str, ...] = ("Track", "Orders", "Readme")
+PLAIN_SHEETS = TRACK_SHEETS
 # A02 was renamed to P02 (not P05). Bug-check leftover; do not invent replacement rows.
 PLAIN_RETIRED_MA: tuple[str, ...] = ("A02",)
+
+TRACK_README_LINES: tuple[str, ...] = (
+    "Floor tracker for teammates (Inventory / Inbox / Caption / Buy Research / Build).",
+    "Boss opens this book on OneDrive with Excel. It is not a full data-entry dump.",
+    "Website https://sassy-closet.vercel.app is GF intake. Square Free is on-hand SoT. Excel is not inventory truth.",
+    "Never invent mã. Never Square Save. Never Facebook Post.",
+    "Photos live in Documents/Sassy Closet/Photos/{MA}/ — folder path only, no embeds.",
+)
 
 # ---------------------------------------------------------------------------
 # SoT workbook (pink stock book) — used by clean_sot_demo.py
