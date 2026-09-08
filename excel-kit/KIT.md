@@ -13,4 +13,7 @@ Document **names only**. Never paste secret values into git, PRs, or chat logs.
 
 If `MINIBOSS_ASK_WEBHOOK_URL` or `MINIBOSS_ASK_WEBHOOK_KEY` is missing, Ask uses the on-site rules draft and shows **Mini Boss offline — local draft**.
 
-Full contract: `prompts/SAVED_CARD_AND_REAL_MINIBOSS_ASK_2026-09-07.md`.
+Full contracts:
+
+- `prompts/SAVED_CARD_AND_REAL_MINIBOSS_ASK_2026-09-07.md`
+- `prompts/FIND_MA_CARD_2026-09-08.md` — Tìm mã code box + full info card. Keep find-by-photo / color detect. `GET /api/ma/{code}` is read-only staged + `on_hand` (empty = staged-only, never fake Square Free).
