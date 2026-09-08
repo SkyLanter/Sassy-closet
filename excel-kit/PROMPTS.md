@@ -265,3 +265,30 @@ CONTRACT
 
 Vercel Root Directory: sassy-closet. Live: https://sassy-closet.vercel.app
 ```
+
+---
+
+## 14) Tìm mã find-by-code + full info card
+
+Contract: `prompts/FIND_MA_CARD_2026-09-08.md`. Site folder: `sassy-closet/`. Keep Saved card + Ask.
+
+```
+Sassy Closet site — Tìm mã code box + full info card. Keep photo/color detect.
+
+RUN
+  cd sassy-closet && npm install && npm test && npm run typecheck && npm run build
+
+CONTRACT
+- Tìm mã keeps the existing find-by-photo / color detect box.
+- ADD a mã code box above/beside it (placeholder Nhập mã · e.g. A01).
+- Trim + upper. Enter or Tìm. Soft “Không tìm thấy mã”.
+- Valid mã → sheet (no new tab): every known staged field, Copy mã /
+  Copy link (?ma=) / Copy caption starter, optional Open in Sửa.
+- On-hand block: size · color · qty_on_hand · status on_hand|reserved|sold|dead.
+  Where stored = Documents/Sassy Closet/Photos/{ma}/ (+ storage if in model).
+- Missing = — or “Staged only — not on Square On_Hand yet”. Never invent
+  mã / qty / $ / storage. GET /api/ma/{code} read-only staged + on_hand.
+- Four tabs only. No Post / Send / Square Save. No Production promote.
+
+Vercel Root Directory: sassy-closet. Do not change sassy-closet.vercel.app Production.
+```

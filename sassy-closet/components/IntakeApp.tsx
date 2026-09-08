@@ -3,11 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { AskPanel } from "@/components/AskPanel";
 import { BrandHeader } from "@/components/BrandHeader";
+import { FindMaCard } from "@/components/FindMaCard";
 import { SavedCard } from "@/components/SavedCard";
 import { COLORS, KINDS, SIZES, assertNever } from "@/lib/kinds";
 import { nextMa, parseHubMa } from "@/lib/mint";
+import { normalizeFindCode } from "@/lib/on-hand";
 import type { KindCode } from "@/lib/kinds";
-import type { Submission, TabId } from "@/lib/types";
+import type { MaLookup, Submission, TabId } from "@/lib/types";
 
 type PhotoDraft = {
   id: string;
@@ -45,6 +47,9 @@ export function IntakeApp({
   const [findPreview, setFindPreview] = useState<string | null>(null);
   const [findMatches, setFindMatches] = useState<{ ma: string; kind: string; color: string }[]>([]);
   const [findCopied, setFindCopied] = useState<string | null>(null);
+  const [findCode, setFindCode] = useState("");
+  const [findCard, setFindCard] = useState<MaLookup | null>(null);
+  const [findMiss, setFindMiss] = useState(false);
 
   useEffect(() => {
     const ma = new URLSearchParams(window.location.search).get("ma");
@@ -77,6 +82,8 @@ export function IntakeApp({
     setError(null);
     setFindMatches([]);
     setFindPreview(null);
+    setFindMiss(false);
+    setFindCard(null);
     if (next === "create") resetForm();
     if (next === "edit") {
       const reopen = lastMa || lookupMa.trim();
@@ -220,6 +227,37 @@ export function IntakeApp({
     }
   }
 
+  async function onFindCode() {
+    const code = normalizeFindCode(findCode);
+    setFindCode(code);
+    setFindMiss(false);
+    setFindCard(null);
+    if (!code) {
+      setFindMiss(true);
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const response = await fetch(`/api/ma/${encodeURIComponent(code)}`);
+      const data = (await response.json()) as MaLookup & { error?: string };
+      if (!response.ok || !data.staged) {
+        setFindMiss(true);
+        return;
+      }
+      setFindCard({
+        code: data.code,
+        staged: data.staged,
+        on_hand: data.on_hand ?? [],
+        staged_only: Boolean(data.staged_only ?? (data.on_hand ?? []).length === 0),
+      });
+    } catch {
+      setError("Mạng hơi lag, thử lại nha.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function onFindPhoto(file: File) {
     setError(null);
     setFindCopied(null);
@@ -309,6 +347,11 @@ export function IntakeApp({
           findCopied,
           setFindCopied,
           onFindPhoto,
+          findCode,
+          setFindCode,
+          onFindCode,
+          findMiss,
+          findBusy: busy,
         })}
         {error ? (
           <p data-testid="intake-error" className="mt-4 text-center text-sm text-rose-700">
@@ -323,6 +366,7 @@ export function IntakeApp({
         · Boss one-pager trong README / BOSS.md
       </p>
       <SavedCard result={saved} onClose={() => setSaved(null)} />
+      <FindMaCard result={findCard} onClose={() => setFindCard(null)} />
     </main>
   );
 }
@@ -364,6 +408,11 @@ function renderTab(props: {
   findCopied: string | null;
   setFindCopied: (value: string | null) => void;
   onFindPhoto: (file: File) => Promise<void>;
+  findCode: string;
+  setFindCode: (value: string) => void;
+  onFindCode: () => Promise<void>;
+  findMiss: boolean;
+  findBusy: boolean;
 }) {
   switch (props.tab) {
     case "ask":
@@ -376,6 +425,11 @@ function renderTab(props: {
           copied={props.findCopied}
           setCopied={props.setFindCopied}
           onPhoto={props.onFindPhoto}
+          code={props.findCode}
+          setCode={props.setFindCode}
+          onFindCode={props.onFindCode}
+          miss={props.findMiss}
+          busy={props.findBusy}
         />
       );
     case "create":
@@ -690,15 +744,63 @@ function FindPanel({
   copied,
   setCopied,
   onPhoto,
+  code,
+  setCode,
+  onFindCode,
+  miss,
+  busy,
 }: {
   preview: string | null;
   matches: { ma: string; kind: string; color: string }[];
   copied: string | null;
   setCopied: (value: string | null) => void;
   onPhoto: (file: File) => Promise<void>;
+  code: string;
+  setCode: (value: string) => void;
+  onFindCode: () => Promise<void>;
+  miss: boolean;
+  busy: boolean;
 }) {
   return (
-    <div data-testid="find-ma" className="space-y-4">
+    <div data-testid="find-ma" className="space-y-5">
+      <form
+        data-testid="find-code-box"
+        className="rounded-2xl bg-white p-3 ring-1 ring-rose-100"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void onFindCode();
+        }}
+      >
+        <label className="mb-2 block text-sm font-medium" htmlFor="find-code">
+          Tìm theo mã · Find by code
+        </label>
+        <div className="flex gap-2">
+          <input
+            id="find-code"
+            data-testid="find-code"
+            value={code}
+            onChange={(event) => setCode(event.target.value)}
+            placeholder="Nhập mã · e.g. A01"
+            autoCapitalize="characters"
+            autoCorrect="off"
+            spellCheck={false}
+            className="h-11 flex-1 rounded-xl bg-[oklch(0.995_0.01_50)] px-3 ring-1 ring-rose-100"
+          />
+          <button
+            type="submit"
+            data-testid="find-code-submit"
+            disabled={busy}
+            className="h-11 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+          >
+            Tìm
+          </button>
+        </div>
+        {miss ? (
+          <p data-testid="find-code-miss" className="mt-2 text-center text-sm text-rose-700">
+            Không tìm thấy mã
+          </p>
+        ) : null}
+      </form>
       <label
         data-testid="find-drop"
         className="flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-rose-200 bg-white text-center text-sm text-rose-700"

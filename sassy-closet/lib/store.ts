@@ -3,15 +3,17 @@ import path from "node:path";
 import { createHash } from "node:crypto";
 import { isKindCode } from "./kinds";
 import { formatMa, maExists, nextMa, normalizeMa, parseHubMa } from "./mint";
+import { sanitizeOnHandRows } from "./on-hand";
 import { buildCaptionVi } from "./captions";
 import { ensureDataDirs } from "./paths";
 import type { KindCode } from "./kinds";
-import type { Piece, Submission } from "./types";
+import type { OnHandRow, Piece, Submission } from "./types";
 
 type StoreFile = {
   nextId: number;
   submissions: Submission[];
   fx: { usd_cny: number; updated: string };
+  on_hand?: Record<string, unknown>;
 };
 
 const globalStore = globalThis as typeof globalThis & {
@@ -55,6 +57,14 @@ export function listSubmissions(): Submission[] {
 export function getSubmission(ma: string): Submission | null {
   const target = normalizeMa(ma);
   return readStore().submissions.find((row) => normalizeMa(row.ma) === target) ?? null;
+}
+
+export function getOnHandRows(ma: string): OnHandRow[] {
+  const target = normalizeMa(ma);
+  const bag = readStore().on_hand;
+  if (!bag || typeof bag !== "object") return [];
+  const raw = bag[target] ?? bag[ma];
+  return sanitizeOnHandRows(raw, target);
 }
 
 export function listMas(): string[] {

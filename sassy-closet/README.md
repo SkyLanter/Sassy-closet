@@ -37,4 +37,13 @@ npm run typecheck
 npm run dev
 ```
 
-Hard stops: no invent mã, no Square Save, no Facebook Post/Send.
+## Tìm mã · Find
+
+Two boxes on the same tab (do not drop either):
+
+1. **Code box** — type / paste mã (`Nhập mã · e.g. A01`), Enter or Tìm. Trim + upper. Valid mã opens a sheet with staged fields + on-hand block. Soft **Không tìm thấy mã** if missing. Done / ✕ closes.
+2. **Photo / color detect box** — existing drop / choose a saved photo.
+
+`GET /api/ma/{code}` is read-only `{ staged, on_hand, staged_only }`. Empty `on_hand` → **Staged only — not on Square On_Hand yet**. Never invent stock, $, storage, or mã.
+
+Hard stops: no invent mã / qty / $, no Square Save, no Facebook Post/Send.
