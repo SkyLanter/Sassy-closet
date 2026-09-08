@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type SyntheticEvent } from "react";
 import { createPortal } from "react-dom";
 
 export function PhotoLightbox({
@@ -44,30 +44,38 @@ export function PhotoLightbox({
     };
   }, [src]);
 
+  function closeFromPointer(event: SyntheticEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    window.setTimeout(() => onCloseRef.current(), 0);
+  }
+
   if (!src || !mounted) return null;
 
   return createPortal(
     <div
-      data-testid="photo-lightbox"
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-rose-950/50 p-4"
+      className="fixed inset-0 z-[80] flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
-      onClick={onClose}
     >
       <p id={titleId} className="sr-only">
         Ảnh lớn
       </p>
+      <button
+        type="button"
+        data-testid="photo-lightbox"
+        aria-label="Đóng"
+        className="absolute inset-0 bg-rose-950/70"
+        onClick={closeFromPointer}
+      />
       <button
         ref={closeRef}
         type="button"
         data-testid="photo-lightbox-close"
         aria-label="Đóng"
         className="absolute right-3 top-3 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/95 text-lg font-bold text-rose-700 shadow-md ring-1 ring-rose-100 sm:right-5 sm:top-5"
-        onClick={(event) => {
-          event.stopPropagation();
-          onClose();
-        }}
+        onClick={closeFromPointer}
       >
         ✕
       </button>
@@ -75,8 +83,7 @@ export function PhotoLightbox({
         data-testid="photo-lightbox-image"
         src={src}
         alt={alt}
-        className="max-h-[88dvh] max-w-full rounded-3xl object-contain shadow-2xl ring-4 ring-white/70"
-        onClick={(event) => event.stopPropagation()}
+        className="relative z-[1] max-h-[88dvh] max-w-full rounded-3xl object-contain shadow-2xl ring-4 ring-white/80"
       />
     </div>,
     document.body,
