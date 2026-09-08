@@ -2,7 +2,13 @@
 
 GitHub home for the Excel kit. **Cursor Cloud Agents build here. Kit syncs files to OneDrive.**
 
-The shop’s live working copy is **not** this repo. It is:
+**ONE hub (Boss 2026-09-07 ~10:33 PM PT):** `sassycloset`. Lands at `Documents/Sassy Closet/sassycloset.xlsx` (`Photos/{MA}/`, `README.txt` in the same shop folder).
+
+```bash
+./kit.sh save    # same as: ./kit.sh run
+```
+
+The older SoT working copy (still in this kit for existing CLIs) is:
 
 `Documents/Sassy Closet/Sassy_Closet_SoT.xlsx` on OneDrive
 
@@ -32,14 +38,17 @@ See [`excel-kit/`](excel-kit/) — schema, SoT CLIs, Square headers, prompts.
 
 ```bash
 pip install -r requirements.txt
+./kit.sh save
+python3 excel-kit/tests/run_checks.py
 python3 excel-kit/sot/build_sot_desktop.py --out-dir ./out
 python3 excel-kit/build_boutique_desktop.py --out-dir ./out
 python3 excel-kit/sot/dashboard_brief.py -w ./out/Sassy_Closet_SoT.xlsx
-python3 excel-kit/tests/run_checks.py
 ```
 
 | Path | Job |
 | --- | --- |
+| `excel-kit/KIT.md` | Hub command: `kit.sh save` (= `run`) |
+| `excel-kit/build_sassycloset_hub.py` | Live export → `out/sassycloset.xlsx` + `out/Photos/{ma}/` |
 | `excel-kit/schema.py` | Headers, mã, Dashboard `B43`, Square import columns |
 | `excel-kit/sot/` | Append Official / Wishlist / Orders / Bot_Activity; GF intake; morning brief |
 | `excel-kit/clean_sot_demo.py` | Demo wipe + Square wording + no embeds |

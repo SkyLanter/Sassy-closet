@@ -2,6 +2,10 @@
 
 Why the kit looks the way it does.
 
+## ONE hub (Boss 2026-09-07 ~10:33 PM PT)
+
+`sassycloset.xlsx` is the teammate hub and the **OneDrive offline backup if the website dies**. **All** plus category sheets filtered by kind letter, a blank **Orders** log, and a **Readme**. `ma` is first; `source_link` (Taobao / e.tb.cn) is col B — never drop link columns. Photos stay on disk at `Documents/Sassy Closet/Photos/{MA}/001.jpg` — Excel stores `photo_folder` only. `kit.sh save` (= `run`) fetches the live site export so OneDrive stays current. Square Free still wins on-hand. A02 is retired (renamed to P02, not P05). Plain workbook — no pink, no embeds.
+
 ## Two Excel layers, one stock brain
 
 | Layer | File | Job |

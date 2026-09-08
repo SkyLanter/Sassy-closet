@@ -1,7 +1,7 @@
 # Cursor prompts — Boss / Mini Boss
 
 Paste one block into a **Cursor Cloud Agent** on `https://github.com/SkyLanter/Sassy-closet`.  
-Agents change kit code here. **Kit** syncs `.xlsx` to OneDrive `Documents/Sassy Closet/`.  
+Agents change kit code here. **ONE hub** is `sassycloset` (`./kit.sh save`). Lands at OneDrive `Documents/Sassy Closet/sassycloset.xlsx`.  
 Bots draft only. No Square Save, no Facebook post, no Zelle. Never invent mã.
 
 Shop law (every prompt):
@@ -236,4 +236,32 @@ CONTRACT
 - Prefer Graph createLink type=edit when MSAL/Graph env is already documented. This repo has none —
   print Boss steps (Share → Can edit → copy link) and exit 0. Never invent 1drv.ms / authkey tokens.
 - Do not ask for passwords in code. Do not commit live share URLs.
+```
+
+---
+
+## 13) sassycloset hub (ONE book)
+
+Contract: `prompts/SASSYCLOSET_HUB_2026-09-07.md`.
+
+```
+Sassy Closet — ONE hub named sassycloset.
+
+RUN
+  ./kit.sh save
+  # same as: ./kit.sh run
+  python3 excel-kit/tests/run_checks.py
+  unzip -t out/sassycloset.xlsx
+
+CONTRACT
+- Fetch live GET https://sassy-closet.vercel.app/api/export
+- Rebuild out/sassycloset.xlsx: All + A_Ao Q_Quan V_Vay K_Khoac G_Giay B_Tui
+  P_PhuKien S_Set O_Khac H_Toc J_TrangSuc + Orders + Readme
+- All: ma first, source_link (Taobao/e.tb.cn) col B. Never drop link columns.
+- photo_folder = Documents/Sassy Closet/Photos/{ma}/
+- Sync Photos to out/Photos/{ma}/ (001.jpg…). Never invent mã. No A02 folder.
+- P02 and P05 are separate. A02 was renamed to P02 (not P05).
+- Plain only. No cute / pink / embeds. No Square Save. No FB Post.
+
+OneDrive land path: Documents/Sassy Closet/sassycloset.xlsx
 ```
