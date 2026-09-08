@@ -1,13 +1,42 @@
 import assert from "node:assert/strict";
-import { afterEach, test } from "node:test";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { afterEach, beforeEach, test } from "node:test";
+import { localAskAnswer } from "../lib/ask-fallback";
 import { captionStarter, editDeepLink, kindColorsLine } from "../lib/captions";
-import { applyLocalFallback, createAsk, getAsk, replyAsk, webhookConfigured } from "../lib/ask-store";
+import {
+  applyLocalFallback,
+  clearAskCache,
+  createAsk,
+  getAsk,
+  replyAsk,
+  webhookConfigured,
+} from "../lib/ask-store";
 import { formatMa, nextMa, parseHubMa } from "../lib/mint";
+import { saveSubmission } from "../lib/store";
+
+type StoreCache = typeof globalThis & { __sassyStore?: unknown; __sassyAsks?: unknown };
+
+function resetIsolatedStore(): void {
+  process.env.SASSY_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "sassy-ask-"));
+  delete (globalThis as StoreCache).__sassyStore;
+  delete (globalThis as StoreCache).__sassyAsks;
+}
+
+beforeEach(() => {
+  resetIsolatedStore();
+});
 
 afterEach(() => {
   delete process.env.MINIBOSS_ASK_WEBHOOK_URL;
   delete process.env.MINIBOSS_ASK_WEBHOOK_KEY;
   delete process.env.ASK_REPLY_SECRET;
+  delete process.env.SASSY_DATA_DIR;
+  delete process.env.BLOB_READ_WRITE_TOKEN;
+  delete process.env.BLOB_STORE_ID;
+  delete (globalThis as StoreCache).__sassyStore;
+  delete (globalThis as StoreCache).__sassyAsks;
 });
 
 test("caption starter is mã on line 1", () => {
@@ -47,4 +76,52 @@ test("local fallback banner fields when webhook envs missing", () => {
   assert.match(local.answer, /2XS/);
   const fetched = getAsk(local.id);
   assert.equal(fetched?.offline, true);
+});
+
+test("pending ask survives a process-local map reset", () => {
+  process.env.MINIBOSS_ASK_WEBHOOK_URL = "https://example.invalid/hook";
+  process.env.MINIBOSS_ASK_WEBHOOK_KEY = "hook-key";
+  const pending = createAsk("còn A01 không?");
+  clearAskCache();
+  const fetched = getAsk(pending.id);
+  assert.equal(fetched?.id, pending.id);
+  assert.equal(fetched?.question, "còn A01 không?");
+  assert.equal(fetched?.status, "waiting");
+});
+
+test("size plus mã reports the saved size, not the generic size list", () => {
+  const saved = saveSubmission({
+    kind: "A",
+    size: "M L",
+    link: "",
+    color: "Kem",
+    color_note: "",
+    pieces: [],
+    cost_usd: "",
+    cost_cny: "",
+    cost_currency: "USD",
+    sell_usd: "",
+    sell_cny: "",
+    sell_currency: "USD",
+    keep_photos: [],
+    photos: [],
+    newMa: "A01",
+  });
+  assert.equal(saved.ma, "A01");
+
+  const withMa = localAskAnswer("size A01");
+  assert.match(withMa.reply, /A01 size đã lưu: M L/);
+  assert.doesNotMatch(withMa.reply, /Gõ mã nếu muốn xem size đã lưu/);
+  assert.deepEqual(withMa.copies, [{ id: "size", label: "Copy size", text: "M L" }]);
+
+  const flipped = localAskAnswer("A01 size bao nhiêu");
+  assert.match(flipped.reply, /A01 size đã lưu: M L/);
+
+  const generic = localAskAnswer("size nào được?");
+  assert.match(generic.reply, /Gõ mã nếu muốn xem size đã lưu/);
+  assert.doesNotMatch(generic.reply, /size đã lưu:/);
+
+  const missing = localAskAnswer("size A99");
+  assert.match(missing.reply, /Không thấy A99/);
+  assert.doesNotMatch(missing.reply, /size đã lưu:/);
 });

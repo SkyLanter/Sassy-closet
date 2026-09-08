@@ -46,6 +46,21 @@ export function localAskAnswer(question: string): FallbackAnswer {
   }
 
   if (/size/i.test(q)) {
+    if (item) {
+      const saved = item.size.trim();
+      return {
+        reply: saved
+          ? `${item.ma} size đã lưu: ${saved}. Size trên form: 2XS XS S M L XL 2XL (Asian). Không đổi sang US.`
+          : `${item.ma} chưa có size đã lưu. Size trên form: 2XS XS S M L XL 2XL (Asian). Không đổi sang US.`,
+        copies: saved ? [{ id: "size", label: "Copy size", text: saved }] : [],
+      };
+    }
+    if (ma) {
+      return {
+        reply: `Không thấy ${ma} trên site. Hỏi Stock / Boss — Mini Boss không invent mã.`,
+        copies: [],
+      };
+    }
     return {
       reply: "Size trên form: 2XS XS S M L XL 2XL (Asian). Không đổi sang US. Gõ mã nếu muốn xem size đã lưu.",
       copies: [],

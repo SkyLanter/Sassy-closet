@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
 import { lookupMaCard } from "@/lib/ma-card";
+import { withSharedStore } from "@/lib/with-shared";
 
 export async function GET(
   _request: Request,
   context: { params: Promise<{ code: string }> },
 ) {
   const { code } = await context.params;
-  const card = lookupMaCard(decodeURIComponent(code ?? ""));
+  const card = await withSharedStore(
+    () => lookupMaCard(decodeURIComponent(code ?? "")),
+    "read",
+  );
   if (!card) {
     return NextResponse.json({ error: "Không tìm thấy mã" }, { status: 404 });
   }
