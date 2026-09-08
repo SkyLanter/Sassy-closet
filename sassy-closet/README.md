@@ -41,7 +41,7 @@ npm run dev
 
 Two boxes on the same tab (do not drop either):
 
-1. **Code box** — type / paste mã (`Nhập mã · e.g. A01`), Enter or Tìm. Trim + upper. Valid mã opens a sheet with staged fields + on-hand block. Soft **Không tìm thấy mã** if missing. Done / ✕ closes.
+1. **Code box** — type / paste mã (`Nhập mã · e.g. A01`), Enter or Tìm. Trim + upper. Valid mã opens a sheet with staged fields + on-hand block. Soft **Không tìm thấy mã** if missing. Done / ✕ closes. Photo thumbs (up to 3 in one row, `+N` if more) open a soft fullscreen lightbox; backdrop / ✕ / Esc closes. Zero photos stays text-only.
 2. **Photo / color detect box** — existing drop / choose a saved photo.
 
 `GET /api/ma/{code}` is read-only `{ staged, on_hand, staged_only }`. Empty `on_hand` → **Staged only — not on Square On_Hand yet**. Never invent stock, $, storage, or mã.

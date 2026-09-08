@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { AskPanel } from "@/components/AskPanel";
 import { BrandHeader } from "@/components/BrandHeader";
 import { FindMaCard } from "@/components/FindMaCard";
+import { PhotoLightbox } from "@/components/PhotoLightbox";
+import { PhotoThumbs } from "@/components/PhotoThumbs";
 import { SavedCard } from "@/components/SavedCard";
 import { COLORS, KINDS, SIZES, assertNever } from "@/lib/kinds";
 import { nextMa, parseHubMa } from "@/lib/mint";
@@ -598,11 +600,13 @@ function ItemForm(props: {
             />
           </label>
           {props.photos.length ? (
-            <div className="mt-3 grid grid-cols-3 gap-2">
-              {props.photos.map((photo) => (
-                <img key={photo.id} src={photo.url} alt="" className="h-24 w-full rounded-xl object-cover" />
-              ))}
-            </div>
+            <PhotoThumbs
+              photos={props.photos.map((photo) => photo.url)}
+              layout="grid"
+              testId="form-photos"
+              thumbTestIdPrefix="form-photo"
+              className="mt-3"
+            />
           ) : null}
           <div className="mt-4" data-testid="available-colors">
             <label className="mb-2 block text-sm font-medium">
@@ -738,6 +742,24 @@ function ItemForm(props: {
   );
 }
 
+function FindPreview({ src }: { src: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        type="button"
+        data-testid="find-preview-thumb"
+        aria-label="Xem ảnh lớn"
+        className="mb-2"
+        onClick={() => setOpen(true)}
+      >
+        <img src={src} alt="" className="h-28 rounded-xl object-cover" />
+      </button>
+      <PhotoLightbox src={open ? src : null} onClose={() => setOpen(false)} />
+    </>
+  );
+}
+
 function FindPanel({
   preview,
   matches,
@@ -805,7 +827,7 @@ function FindPanel({
         data-testid="find-drop"
         className="flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-rose-200 bg-white text-center text-sm text-rose-700"
       >
-        {preview ? <img src={preview} alt="" className="mb-2 h-28 rounded-xl object-cover" /> : null}
+        {preview ? <FindPreview src={preview} /> : null}
         Thả / chọn ảnh đã lưu để tìm mã
         <input
           type="file"
