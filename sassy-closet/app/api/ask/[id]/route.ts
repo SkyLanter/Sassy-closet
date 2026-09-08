@@ -6,7 +6,7 @@ export async function GET(
   context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
-  const record = getAsk(id);
+  const record = await getAsk(id);
   if (!record) {
     return NextResponse.json({ error: "Ask id không có." }, { status: 404 });
   }

@@ -6,7 +6,7 @@ export async function GET(
   context: { params: Promise<{ path: string[] }> },
 ) {
   const { path } = await context.params;
-  const photo = readPhoto(path.join("/"));
+  const photo = await readPhoto(path.join("/"));
   if (!photo) {
     return NextResponse.json({ error: "Không thấy ảnh." }, { status: 404 });
   }

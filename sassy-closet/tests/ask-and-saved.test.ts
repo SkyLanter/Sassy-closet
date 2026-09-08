@@ -37,14 +37,14 @@ test("ask stays waiting until reply when webhook envs exist", () => {
   assert.equal(replied.offline, false);
 });
 
-test("local fallback banner fields when webhook envs missing", () => {
+test("local fallback banner fields when webhook envs missing", async () => {
   assert.equal(webhookConfigured(), false);
   const pending = createAsk("size nào được?");
-  const local = applyLocalFallback(pending);
+  const local = await applyLocalFallback(pending);
   assert.equal(local.status, "ready");
   assert.equal(local.source, "local");
   assert.equal(local.offline, true);
   assert.match(local.answer, /2XS/);
-  const fetched = getAsk(local.id);
+  const fetched = await getAsk(local.id);
   assert.equal(fetched?.offline, true);
 });

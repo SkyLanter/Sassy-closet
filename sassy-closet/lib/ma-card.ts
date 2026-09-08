@@ -3,12 +3,12 @@ import { normalizeFindCode, photoFolder } from "./on-hand";
 import { getOnHandRows, getSubmission } from "./store";
 import type { MaLookup, MaStaged, OnHandRow, Submission } from "./types";
 
-export function lookupMaCard(raw: string): MaLookup | null {
+export async function lookupMaCard(raw: string): Promise<MaLookup | null> {
   const code = normalizeFindCode(raw);
   if (!code) return null;
-  const submission = getSubmission(code);
+  const submission = await getSubmission(code);
   if (!submission) return null;
-  return buildMaLookup(submission, getOnHandRows(submission.ma));
+  return buildMaLookup(submission, await getOnHandRows(submission.ma));
 }
 
 export function buildMaLookup(submission: Submission, onHand: OnHandRow[]): MaLookup {

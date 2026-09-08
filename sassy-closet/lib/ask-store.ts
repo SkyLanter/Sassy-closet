@@ -41,17 +41,17 @@ export function createAsk(question: string): AskRecord {
   return record;
 }
 
-export function getAsk(id: string): AskRecord | null {
+export async function getAsk(id: string): Promise<AskRecord | null> {
   const record = asks().get(id);
   if (!record) return null;
   if (record.status === "waiting" && isTimedOut(record)) {
-    applyLocalFallback(record);
+    await applyLocalFallback(record);
   }
   return record;
 }
 
-export function applyLocalFallback(record: AskRecord): AskRecord {
-  const local = localAskAnswer(record.question);
+export async function applyLocalFallback(record: AskRecord): Promise<AskRecord> {
+  const local = await localAskAnswer(record.question);
   record.status = "ready";
   record.answer = local.reply;
   record.copies = local.copies;
