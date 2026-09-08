@@ -33,6 +33,8 @@ See [`excel-kit/`](excel-kit/) — schema, SoT CLIs, Square headers, prompts.
 ```bash
 pip install -r requirements.txt
 python3 excel-kit/sot/build_sot_desktop.py --out-dir ./out
+python3 excel-kit/build_square_finance.py --out-dir ./out
+./excel-kit/kit.sh square
 python3 excel-kit/build_boutique_desktop.py --out-dir ./out
 python3 excel-kit/sot/dashboard_brief.py -w ./out/Sassy_Closet_SoT.xlsx
 python3 excel-kit/tests/run_checks.py
@@ -41,10 +43,11 @@ python3 excel-kit/tests/run_checks.py
 | Path | Job |
 | --- | --- |
 | `excel-kit/schema.py` | Headers, mã, Dashboard `B43`, Square import columns |
+| `excel-kit/build_square_finance.py` | Empty `Square.xlsx` + `Finance.xlsx` (bought tracker + tax-ready) |
 | `excel-kit/sot/` | Append Official / Wishlist / Orders / Bot_Activity; GF intake; morning brief |
 | `excel-kit/clean_sot_demo.py` | Demo wipe + Square wording + no embeds |
 | `excel-kit/build_boutique_desktop.py` | Lean Official + Wishlist desktop books |
 | `excel-kit/square/` | Headers-only import template (Track ON, mã = SKU) |
 | `excel-kit/PROMPTS.md` | Paste-ready Cloud Agent prompts |
 
-Prompts also live in `excel-kit/prompts/BOUTIQUE_DESKTOP_EFFICIENT.md`, `BOUTIQUE_PHONE_SAFE.md`, and `GF_CLOTHES_INTAKE.md`.
+Prompts also live in `excel-kit/prompts/BOUTIQUE_DESKTOP_EFFICIENT.md`, `BOUTIQUE_PHONE_SAFE.md`, `GF_CLOTHES_INTAKE.md`, and `SQUARE_AND_FINANCE_EXCEL_2026-09-07.md`.

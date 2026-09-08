@@ -44,6 +44,11 @@ ONEDRIVE_PHOTOS = f"{ONEDRIVE_SHOP_DIR}/Photos"
 ONEDRIVE_FROM_GF = f"{ONEDRIVE_SHOP_DIR}/From GF"
 ONEDRIVE_OFFICIAL_DESKTOP = f"{ONEDRIVE_SHOP_DIR}/Sassy_Closet_Official_desktop.xlsx"
 ONEDRIVE_WISHLIST_DESKTOP = f"{ONEDRIVE_SHOP_DIR}/Sassy_Closet_Wishlist_desktop.xlsx"
+ONEDRIVE_SQUARE = f"{ONEDRIVE_SHOP_DIR}/Square.xlsx"
+ONEDRIVE_FINANCE = f"{ONEDRIVE_SHOP_DIR}/Finance.xlsx"
+SQUARE_XLSX_NAME = "Square.xlsx"
+FINANCE_XLSX_NAME = "Finance.xlsx"
+SQUARE_PHOTO_FOLDER_PREFIX = f"{ONEDRIVE_PHOTOS}/"
 
 # ---------------------------------------------------------------------------
 # Mã
@@ -135,6 +140,155 @@ CANDIDATE_TYPES: tuple[str, ...] = (
     "Shoes",
     "Other",
     "SET",
+)
+
+# ---------------------------------------------------------------------------
+# Square.xlsx + Finance.xlsx (Boss 2026-09-07 ~11:30 PT)
+# Bought / on-hand tracker + tax-ready books. Staged site mãs are NOT bought.
+# Square Free remains on-hand SoT. Empty data is correct. No cute.
+# ---------------------------------------------------------------------------
+
+SQUARE_TEMPLATE_ROWS = 20
+SQUARE_FORMULA_LAST_ROW = 1001
+
+SQUARE_ON_HAND: tuple[str, ...] = (
+    "ma",
+    "kind",
+    "colors",
+    "size",
+    "qty_on_hand",
+    "cost_cny",
+    "cost_usd",
+    "cost_currency",
+    "buy_date",
+    "source_link",
+    "photo_folder",
+    "square_item_name",
+    "track_on",
+    "status",
+    "sold_date",
+    "notes",
+)
+SQUARE_ON_HAND_STATUS: tuple[str, ...] = ("on_hand", "reserved", "sold", "dead")
+SQUARE_TRACK_ON: tuple[str, ...] = ("Y", "N")
+SQUARE_COST_CURRENCY: tuple[str, ...] = ("CNY", "USD")
+
+SQUARE_SOLD_LOG: tuple[str, ...] = (
+    "sold_date",
+    "ma",
+    "kind",
+    "colors",
+    "size",
+    "qty",
+    "square_item_name",
+    "notes",
+)
+SQUARE_SHEETS: tuple[str, ...] = ("On_Hand", "Sold_Log", "Readme")
+
+SQUARE_README_LINES: tuple[str, ...] = (
+    "Square.xlsx is the bought / on-hand tracker. On_Hand starts empty — staged site mãs are not bought.",
+    "Boss opens Excel / OneDrive. Kit lands Documents/Sassy Closet/Square.xlsx. Website is GF intake.",
+    "Square Free is on-hand SoT. This book is not a second warehouse. Track stock ON when a piece is in Square.",
+    "Sold: qty_on_hand 0, status sold, Sold_Log row, Finance Sales row (square_xlsx_ma). Dead = write-off, no Sales row.",
+    "photo_folder = Documents/Sassy Closet/Photos/{ma}/. Never invent mã or $. Never Square Save. No cute / embeds.",
+)
+
+FINANCE_SALES: tuple[str, ...] = (
+    "date",
+    "ma",
+    "description",
+    "qty",
+    "gross_usd",
+    "ship_usd",
+    "discount_usd",
+    "net_usd",
+    "pay_method",
+    "pay_ref",
+    "customer_note",
+    "channel",
+    "square_xlsx_ma",
+    "tax_category",
+    "notes",
+)
+FINANCE_PAY_METHOD: tuple[str, ...] = ("zelle", "square", "square_online", "cash", "other")
+FINANCE_CHANNEL: tuple[str, ...] = ("facebook", "meetup", "website", "other")
+FINANCE_TAX_CATEGORY: tuple[str, ...] = ("product_sale", "shipping", "other")
+
+FINANCE_FEES: tuple[str, ...] = (
+    "date",
+    "source",
+    "fee_type",
+    "amount_usd",
+    "pay_ref",
+    "related_ma",
+    "notes",
+)
+FINANCE_FEE_SOURCE: tuple[str, ...] = ("square", "square_online", "bank", "other")
+FINANCE_FEE_TYPE: tuple[str, ...] = ("processing", "payout", "chargeback", "other")
+
+FINANCE_PAYOUTS: tuple[str, ...] = (
+    "date",
+    "kind",
+    "from_account",
+    "to_account",
+    "amount_usd",
+    "pay_ref",
+    "notes",
+)
+FINANCE_PAYOUT_KIND: tuple[str, ...] = ("square_payout", "zelle", "bank", "other")
+
+FINANCE_EXPENSES: tuple[str, ...] = (
+    "date",
+    "vendor",
+    "category",
+    "amount_usd",
+    "pay_method",
+    "pay_ref",
+    "ma",
+    "notes",
+)
+FINANCE_EXPENSE_CATEGORY: tuple[str, ...] = (
+    "inventory",
+    "shipping_supply",
+    "ads",
+    "software",
+    "meetup",
+    "other",
+)
+FINANCE_EXPENSE_PAY: tuple[str, ...] = ("zelle", "square", "cash", "other")
+
+FINANCE_SHEETS: tuple[str, ...] = (
+    "Sales",
+    "Fees",
+    "Payouts_Transfers",
+    "Expenses",
+    "Tax_Summary",
+    "Readme",
+)
+
+# Tax_Summary B-column formulas. Empty books total 0 — that is correct.
+FINANCE_TAX_SUMMARY_ROWS: tuple[tuple[str, str], ...] = (
+    ("metric", "amount_usd"),
+    ("Period (type year)", ""),
+    ("Gross sales (USD)", "=SUM(Sales!E2:E1001)"),
+    ("Shipping collected (USD)", "=SUM(Sales!F2:F1001)"),
+    ("Discounts (USD)", "=SUM(Sales!G2:G1001)"),
+    ("Net sales (USD)", "=SUM(Sales!H2:H1001)"),
+    ("Product sale (tax_category)", '=SUMIF(Sales!N2:N1001,"product_sale",Sales!H2:H1001)'),
+    ("Shipping (tax_category)", '=SUMIF(Sales!N2:N1001,"shipping",Sales!H2:H1001)'),
+    ("Other (tax_category)", '=SUMIF(Sales!N2:N1001,"other",Sales!H2:H1001)'),
+    ("Fees (USD)", "=SUM(Fees!D2:D1001)"),
+    ("Expenses (USD)", "=SUM(Expenses!D2:D1001)"),
+    ("Payouts / transfers (USD, not income)", "=SUM(Payouts_Transfers!E2:E1001)"),
+    ("Net after fees and expenses (USD)", "=B6-B10-B11"),
+)
+
+FINANCE_README_LINES: tuple[str, ...] = (
+    "Finance.xlsx is tax-ready. Sales / Fees / Payouts_Transfers / Expenses start empty — no invented sales or $.",
+    "Sold in Square.xlsx → one Sales row. square_xlsx_ma is the On_Hand mã. Tax_Summary is formulas; open in Excel.",
+    "pay_method zelle|square|square_online|cash|other. channel facebook|meetup|website|other. tax_category product_sale|shipping|other.",
+    "Payouts / transfers are not income. Empty Tax_Summary totals of 0 are correct. Never invent $. Never Square Save.",
+    "Kit lands Documents/Sassy Closet/Finance.xlsx. No cute / embeds.",
 )
 
 # ---------------------------------------------------------------------------
@@ -301,6 +455,9 @@ HEADER_ALIASES: dict[str, tuple[str, ...]] = {
     "channel": ("channel",),
     "pay": ("pay", "pay_method"),
     "pay_method": ("pay_method", "pay"),
+    "square_xlsx_ma": ("square_xlsx_ma",),
+    "tax_category": ("tax_category",),
+    "photo_folder": ("photo_folder",),
     "ship_or_local": ("ship_or_local", "fulfill", "meetup_or_ship"),
     "agreed_price": ("agreed_price", "price", "list_price"),
     "wish_id": ("wish_id", "#"),
@@ -731,6 +888,28 @@ def photo_filename_for_wish(number: int, extra: int | None = None) -> str:
         raise ValueError("wishlist photo numbers are #001–#999")
     stem = f"#{number:03d}"
     return f"{stem}_{extra}.jpg" if extra else f"{stem}.jpg"
+
+
+def square_photo_folder(ma: object) -> str:
+    """On_Hand photo_folder path. Requires a typed mã — never invent one."""
+    text = "" if ma is None else str(ma).strip()
+    if not text:
+        raise ValueError("ma required for photo_folder — never invent")
+    return f"{ONEDRIVE_PHOTOS}/{text}/"
+
+
+def square_photo_folder_formula(row: int) -> str:
+    """Fill photo_folder from On_Hand!A{row}. Blank while mã is blank."""
+    if row < 2:
+        raise ValueError(f"photo_folder formula row must be a data row, got {row}")
+    return f'=IF(A{row}="","","{ONEDRIVE_PHOTOS}/"&A{row}&"/")'
+
+
+def finance_net_usd_formula(row: int) -> str:
+    """net = gross + ship − discount. Blank when all three money cells are blank."""
+    if row < 2:
+        raise ValueError(f"net_usd formula row must be a data row, got {row}")
+    return f'=IF(COUNTA(E{row}:G{row})=0,"",N(E{row})+N(F{row})-N(G{row}))'
 
 
 def looks_like_demo_row(values: Iterable[object]) -> bool:

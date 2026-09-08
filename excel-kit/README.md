@@ -17,9 +17,12 @@ excel-kit/
   build_boutique_desktop.py
   sot/                       ← ONE workbook: Sassy_Closet_SoT.xlsx
   square/                    ← headers-only Square import + Track ON rules
+  build_square_finance.py    ← Square.xlsx (bought/on-hand) + Finance.xlsx (tax)
+  KIT.md                     ← kit.sh square lands both books
   prompts/BOUTIQUE_DESKTOP_EFFICIENT.md
   prompts/BOUTIQUE_PHONE_SAFE.md
   prompts/GF_CLOTHES_INTAKE.md   ← GF self-upload contract (not live inventory)
+  prompts/SQUARE_AND_FINANCE_EXCEL_2026-09-07.md
   templates/from_gf/             ← HOW_TO + INTAKE_TEMPLATE + example packets
   inbox/gf_intake_reply_templates.md
   tests/run_checks.py
@@ -39,6 +42,10 @@ excel-kit/
 Needs Python 3.10+ and `openpyxl` (`pip install -r requirements.txt` from the repo root).
 
 ```bash
+# Bought / on-hand tracker + tax-ready books (empty on purpose)
+python3 excel-kit/build_square_finance.py --out-dir ./out
+./excel-kit/kit.sh square
+
 # Empty SoT scaffold (Dashboard!B43 morning brief formula)
 python3 excel-kit/sot/build_sot_desktop.py --out-dir ./out
 
@@ -74,6 +81,8 @@ Do not commit live inventory, customer names, secrets, or a filled Square CSV. E
 
 | File | Role |
 | --- | --- |
+| `Documents/Sassy Closet/Square.xlsx` | Bought / on-hand tracker (On_Hand starts empty) |
+| `Documents/Sassy Closet/Finance.xlsx` | Tax-ready Sales / Fees / Payouts / Expenses / Tax_Summary |
 | `Documents/Sassy Closet/Sassy_Closet_SoT.xlsx` | ONE desktop book (Official / Wishlist / Orders / Dashboard) |
 | `Documents/Sassy Closet/Sassy_Closet_Official_desktop.xlsx` | Lean desktop Ma_List / Orders / Bot_Activity |
 | `Documents/Sassy Closet/Sassy_Closet_Wishlist_desktop.xlsx` | Lean desktop Candidates |

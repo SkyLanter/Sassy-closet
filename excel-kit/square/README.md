@@ -1,5 +1,7 @@
 # Square Free import (Sassy Closet)
 
+Bought / on-hand rows for teammates live in **`Documents/Sassy Closet/Square.xlsx`** (`build_square_finance.py`). That book starts empty. This folder is the **headers-only Square import CSV**, not that tracker.
+
 Headers-only template for Stock. **This file must never grow live inventory rows in git.**
 
 Square Free is the on-hand inventory source of truth. Official Excel is a working copy. Wishlist stays off Square until Boss confirms bought and says **yes** in `#shop-decisions`.

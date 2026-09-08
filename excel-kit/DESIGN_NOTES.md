@@ -9,6 +9,8 @@ Why the kit looks the way it does.
 | Square Free | Square Item library | On-hand count. Track stock ON. Boss Save only. |
 | SoT book | `Documents/Sassy Closet/Sassy_Closet_SoT.xlsx` | Working copy / mã index / captions / photos. Official + Wishlist + Orders + Dashboard. |
 | Desktop lean | `Sassy_Closet_Official_desktop.xlsx` + `Sassy_Closet_Wishlist_desktop.xlsx` | Filter/sort on a computer. Same shop law, fewer columns. |
+| Square.xlsx | `Documents/Sassy Closet/Square.xlsx` | Bought / on-hand tracker. Starts empty — staged site mãs are not bought. |
+| Finance.xlsx | `Documents/Sassy Closet/Finance.xlsx` | Tax-ready Sales / Fees / Payouts / Expenses. Tax_Summary is formulas. |
 
 SoT Official columns (`ma`, `name_vi`, `qty_on_hand`, `square_name`, …) answer “còn AO015 size M không?”. Desktop `MA_LIST` is the daily index (`ma`, `item`, `sizes_in_stock`, `on_hand`, `status`, `notes`, `photo_link`). They are not a second warehouse.
 
@@ -24,6 +26,8 @@ Defined in `schema.py`:
 - **SOT_OFFICIAL** — richer working-copy columns (`ma_num`, `prefix`, `square_name`, measurements). `photo_link` is not last here on purpose so live SoT books do not shuffle; append scripts map by header name.
 
 `photo_link` is last on Ma_List, Candidates, and SoT Wishlist so a phone can ignore it and a desktop can still AutoFilter it. Never add a picture column.
+
+Square.xlsx / Finance.xlsx are **plain** (Calibri 11, freeze A2, AutoFilter, no blush). `photo_folder` is `Documents/Sassy Closet/Photos/{ma}/`. Sold on Square.xlsx sets qty 0 and needs a Finance Sales row. Empty books are correct.
 
 ## SoT automation (`excel-kit/sot/`)
 
