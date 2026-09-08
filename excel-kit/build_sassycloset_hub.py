@@ -617,10 +617,9 @@ def load_rows(from_csv: Path | None, export_url: str) -> list[dict[str, object]]
 
 
 def print_land_path() -> None:
-    print(f"OneDrive land path (Build lands later): {ONEDRIVE_HUB_DIR}/")
-    print(f"  {HUB_XLSX_NAME}")
-    print("  Photos/{MA}/001.jpg")
-    print("  README.txt")
+    print(f"OneDrive land path: {ONEDRIVE_HUB}")
+    print(f"  Photos/{{MA}}/ = {ONEDRIVE_HUB_PHOTOS}/{{MA}}/")
+    print("  README.txt notes that path")
     print(f"sync target: OneDrive {ONEDRIVE_HUB}")
 
 

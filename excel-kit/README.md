@@ -2,7 +2,7 @@
 
 Builders, SoT CLIs, and prompts for Sassy Closet Excel books. **This GitHub repo is where Cursor Cloud Agents change the kit.**
 
-**ONE hub:** `sassycloset`. `kit.sh save` (= `run`) fetches the live site export, rebuilds `out/sassycloset.xlsx`, and syncs `out/Photos/{ma}/`. OneDrive land path (Build lands later): `Documents/sassycloset/`. See `KIT.md` and `prompts/SASSYCLOSET_HUB_2026-09-07.md`.
+**ONE hub:** `sassycloset`. `kit.sh save` (= `run`) fetches the live site export, rebuilds `out/sassycloset.xlsx`, and syncs `out/Photos/{ma}/`. OneDrive land path: `Documents/Sassy Closet/sassycloset.xlsx`. See `KIT.md` and `prompts/SASSYCLOSET_HUB_2026-09-07.md`.
 
 Square Free is the on-hand inventory source of truth. Legacy Official Excel (`Sassy_Closet_SoT.xlsx`) remains a working copy / mã index / captions — not a second inventory.
 
@@ -84,8 +84,8 @@ Do not commit live inventory, customer names, secrets, or a filled Square CSV. E
 
 | File | Role |
 | --- | --- |
-| `Documents/sassycloset/sassycloset.xlsx` | ONE hub (All + category sheets + Orders + Readme). Build lands later. |
-| `Documents/sassycloset/Photos/{MA}/` | `001.jpg`… — folder path in Excel, never embeds |
+| `Documents/Sassy Closet/sassycloset.xlsx` | ONE hub (All + category sheets + Orders + Readme) |
+| `Documents/Sassy Closet/Photos/{MA}/` | `001.jpg`… — folder path in Excel, never embeds |
 | `Documents/Sassy Closet/Sassy_Closet_SoT.xlsx` | Legacy desktop book (Official / Wishlist / Orders / Dashboard) |
 | `Documents/Sassy Closet/Sassy_Closet_Official_desktop.xlsx` | Lean desktop Ma_List / Orders / Bot_Activity |
 | `Documents/Sassy Closet/Sassy_Closet_Wishlist_desktop.xlsx` | Lean desktop Candidates |

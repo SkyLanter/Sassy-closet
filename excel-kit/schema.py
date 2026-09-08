@@ -1,6 +1,7 @@
 """Sassy Closet Excel kit — shared headers, mã rules, and workbook helpers.
 
-Boss 2026-09-07 ~10:33 PM PT: ONE hub is sassycloset (Documents/sassycloset/).
+Boss 2026-09-07 ~10:33 PM PT: ONE hub is sassycloset
+(Documents/Sassy Closet/sassycloset.xlsx).
 sassycloset.xlsx holds All + category sheets + Orders + Readme. Cute / pink /
 embeds are retired. Square Free remains on-hand inventory SoT. Excel is not
 inventory. Never invent mã.
@@ -46,12 +47,13 @@ ONEDRIVE_FROM_GF = f"{ONEDRIVE_SHOP_DIR}/From GF"
 ONEDRIVE_OFFICIAL_DESKTOP = f"{ONEDRIVE_SHOP_DIR}/Sassy_Closet_Official_desktop.xlsx"
 ONEDRIVE_WISHLIST_DESKTOP = f"{ONEDRIVE_SHOP_DIR}/Sassy_Closet_Wishlist_desktop.xlsx"
 
-# ONE hub (Boss 2026-09-07 ~10:33 PT). Build lands later on this path.
+# ONE hub (Boss 2026-09-07 ~10:33 PT). Lands in the existing shop folder.
+# Do not use Documents/sassycloset/ — that land path is dropped.
 HUB_NAME = "sassycloset"
 HUB_XLSX_NAME = "sassycloset.xlsx"
-ONEDRIVE_HUB_DIR = "Documents/sassycloset"
+ONEDRIVE_HUB_DIR = ONEDRIVE_SHOP_DIR
 ONEDRIVE_HUB = f"{ONEDRIVE_HUB_DIR}/{HUB_XLSX_NAME}"
-ONEDRIVE_HUB_PHOTOS = f"{ONEDRIVE_HUB_DIR}/Photos"
+ONEDRIVE_HUB_PHOTOS = ONEDRIVE_PHOTOS
 ONEDRIVE_HUB_README = f"{ONEDRIVE_HUB_DIR}/README.txt"
 HUB_EXPORT_URL = "https://sassy-closet.vercel.app/api/export"
 HUB_PHOTO_API = "https://sassy-closet.vercel.app/api/photos"
@@ -262,7 +264,7 @@ HUB_RETIRED_MA: tuple[str, ...] = ("A02",)
 
 HUB_README_LINES: tuple[str, ...] = (
     "sassycloset hub for teammates: OneDrive offline backup if the website dies. Category sheets in this one Excel file.",
-    "Boss opens Excel / OneDrive. kit.sh save pulls the live export so Documents/sassycloset/ stays current.",
+    "Boss opens Excel / OneDrive. kit.sh save pulls the live export so Documents/Sassy Closet/ stays current.",
     "Website https://sassy-closet.vercel.app is GF intake. Square Free is on-hand SoT. Excel is not inventory.",
     "Never invent mã. Never Square Save. Never Facebook Post. No passwords.",
     "Keep ma + source_link (Taobao/e.tb.cn) plus photo_folder, colors, sell/cost, status. Never drop link columns. No cute/embeds.",
@@ -272,7 +274,7 @@ HUB_README_TXT = """sassycloset hub
 OneDrive offline backup if the website dies.
 Land path (Build lands later):
 
-Documents/sassycloset/
+Documents/Sassy Closet/
   sassycloset.xlsx
   Photos/{MA}/001.jpg
   README.txt

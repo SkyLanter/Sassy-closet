@@ -17,11 +17,10 @@ out/Photos/{ma}/.
   save    fetch export → rebuild xlsx → sync Photos (the one command)
   run     same as save
 
-OneDrive land path (Build lands later):
-  Documents/sassycloset/
-    sassycloset.xlsx
-    Photos/{MA}/001.jpg
-    README.txt
+OneDrive land path:
+  Documents/Sassy Closet/sassycloset.xlsx
+  Documents/Sassy Closet/Photos/{MA}/001.jpg
+  Documents/Sassy Closet/README.txt
 
 Does not rebuild blush / emoji / phone workbooks.
 Does not invent mã. Does not Square Save. Does not Facebook Post.
@@ -61,19 +60,24 @@ if [[ ! -f "$SRC" ]]; then
 fi
 
 echo "kit: sassycloset hub $SRC"
-echo "kit: OneDrive land path (Build lands later): Documents/sassycloset/"
-echo "kit:   sassycloset.xlsx"
-echo "kit:   Photos/{MA}/001.jpg"
-echo "kit:   README.txt"
+echo "kit: OneDrive land path: Documents/Sassy Closet/sassycloset.xlsx"
+echo "kit:   Photos/{MA}/ = Documents/Sassy Closet/Photos/{MA}/"
+echo "kit:   README.txt notes that path"
 
 shop_dirs=()
 if [[ -n "${SASSY_HUB_DIR:-}" ]]; then
   shop_dirs+=("${SASSY_HUB_DIR}")
 fi
+if [[ -n "${SASSY_SHOP_DIR:-}" ]]; then
+  shop_dirs+=("${SASSY_SHOP_DIR}")
+fi
+if [[ -n "${SASSY_SOT_DIR:-}" ]]; then
+  shop_dirs+=("${SASSY_SOT_DIR}")
+fi
 shop_dirs+=(
-  "${HOME}/OneDrive/Documents/sassycloset"
-  "${HOME}/OneDrive - Personal/Documents/sassycloset"
-  "${HOME}/Library/CloudStorage/OneDrive-Personal/Documents/sassycloset"
+  "${HOME}/OneDrive/Documents/Sassy Closet"
+  "${HOME}/OneDrive - Personal/Documents/Sassy Closet"
+  "${HOME}/Library/CloudStorage/OneDrive-Personal/Documents/Sassy Closet"
 )
 
 copied=0
@@ -104,6 +108,6 @@ for dest_dir in "${shop_dirs[@]}"; do
 done
 
 if [[ "$copied" -eq 0 ]]; then
-  echo "kit: OneDrive Documents/sassycloset/ not mounted; left artifact at $OUT_DIR"
+  echo "kit: OneDrive Documents/Sassy Closet/ not mounted; left artifact at $OUT_DIR"
   echo "kit: did not delete or touch OneDrive files"
 fi

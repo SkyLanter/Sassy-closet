@@ -2,14 +2,16 @@
 
 ## Outcome
 
-ONE hub named **sassycloset**. Build lands later on OneDrive:
+ONE hub named **sassycloset**. Lands on the existing OneDrive shop folder:
 
 ```
-Documents/sassycloset/
+Documents/Sassy Closet/
   sassycloset.xlsx
   Photos/{MA}/001.jpg…
   README.txt
 ```
+
+Do not use `Documents/sassycloset/` — that land path is dropped.
 
 Website https://sassy-closet.vercel.app = GF intake. Square Free = on-hand SoT. Excel on OneDrive is the **offline backup if the website dies**. Cute / pink / embeds are retired.
 
@@ -19,7 +21,7 @@ Website https://sassy-closet.vercel.app = GF intake. Square Free = on-hand SoT. 
    cols: `ma, source_link, kind, colors, sell_usd, cost, currency, square, status, flag, next_desk, photo_folder`  
    **First-class:** `ma` first, `source_link` (Taobao / e.tb.cn) in col B. Never drop link columns.  
    Always keep at minimum: `ma` + `source_link` + `photo_folder` + `colors` + sell/cost + `status`.  
-   `photo_folder` = `Documents/sassycloset/Photos/{ma}/`  
+   `photo_folder` = `Documents/Sassy Closet/Photos/{ma}/`  
    `flag` / `next_desk` empty unless the export already has them.
 
 2–12. Category sheets (headers even if empty). Filter **All** by kind letter:
@@ -48,7 +50,7 @@ Freeze + autofilter on data sheets. Plain only — no cute / pink / embeds.
 
 One command: fetch live export → rebuild `out/sassycloset.xlsx` (all sheets) → sync Photos to `out/Photos/{ma}/` so OneDrive stays current.
 
-Document OneDrive land path `Documents/sassycloset/`.
+Document OneDrive land path `Documents/Sassy Closet/sassycloset.xlsx`.
 
 Alias: `kit.sh run` → same as `save`.
 

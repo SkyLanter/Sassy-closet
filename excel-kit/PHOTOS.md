@@ -4,7 +4,7 @@ Cute Excel (pink books, emoji covers, embedded stickers) is **retired**.
 
 Hub path on OneDrive (Build lands later):
 
-`Documents/sassycloset/Photos/{MA}/001.jpg`
+`Documents/Sassy Closet/Photos/{MA}/001.jpg`
 
 Excel stores that folder in `photo_folder` only. Never embed images.
 

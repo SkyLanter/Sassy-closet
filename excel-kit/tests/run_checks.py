@@ -35,6 +35,7 @@ from schema import (  # noqa: E402
     MA_LIST,
     OFFICIAL_TO_MA_LIST_STATUS,
     ONEDRIVE_FROM_GF,
+    ONEDRIVE_SHOP_DIR,
     ONEDRIVE_HUB,
     ONEDRIVE_HUB_DIR,
     ONEDRIVE_HUB_PHOTOS,
@@ -242,7 +243,11 @@ def check_schema_contract() -> None:
         "J_TrangSuc",
     ]
     assert ONEDRIVE_HUB == f"{ONEDRIVE_HUB_DIR}/{HUB_XLSX_NAME}"
-    assert ONEDRIVE_HUB_DIR == "Documents/sassycloset"
+    assert ONEDRIVE_HUB_DIR == ONEDRIVE_SHOP_DIR
+    assert ONEDRIVE_HUB_DIR == "Documents/Sassy Closet"
+    assert ONEDRIVE_HUB == "Documents/Sassy Closet/sassycloset.xlsx"
+    assert ONEDRIVE_HUB_PHOTOS == "Documents/Sassy Closet/Photos"
+    assert ONEDRIVE_HUB_DIR != "Documents/sassycloset"
     assert is_hub_ma("A01")
     assert is_hub_ma("P02")
     assert is_hub_ma("P05")
@@ -413,7 +418,7 @@ def check_sassycloset_hub() -> None:
         "A_Ao",
         "P_PhuKien",
         "J_TrangSuc",
-        "Documents/sassycloset",
+        "Documents/Sassy Closet",
         "kit.sh save",
         "kit.sh run",
         "P02 and P05",
@@ -427,13 +432,14 @@ def check_sassycloset_hub() -> None:
     photos_text = photos_md.read_text(encoding="utf-8")
     if "sassycloset" not in kit_text.lower() or "teammates" not in kit_text.lower():
         raise AssertionError("KIT.md must name the sassycloset hub for teammates")
-    if "kit.sh save" not in kit_text or "Documents/sassycloset" not in kit_text:
+    if "kit.sh save" not in kit_text or "Documents/Sassy Closet" not in kit_text:
         raise AssertionError("KIT.md must document kit.sh save and the OneDrive land path")
+    if "Documents/sassycloset" in kit_text:
+        raise AssertionError("KIT.md must not land on Documents/sassycloset/")
     if "offline backup" not in kit_text.lower() or "source_link" not in kit_text:
         raise AssertionError("KIT.md must say Excel is the offline backup and keep source_link")
-    if "Documents/sassycloset/Photos/{MA}/" not in photos_text.replace(" ", ""):
-        if "Documents/sassycloset/Photos/{MA}/" not in photos_text:
-            raise AssertionError("PHOTOS.md must use Documents/sassycloset/Photos/{MA}/")
+    if "Documents/Sassy Closet/Photos/{MA}/" not in photos_text:
+        raise AssertionError("PHOTOS.md must use Documents/Sassy Closet/Photos/{MA}/")
 
     syntax = _run(["bash", "-n", str(kit_sh)])
     if syntax.returncode != 0:
@@ -447,8 +453,10 @@ def check_sassycloset_hub() -> None:
     help_blob = help_proc.stdout + help_proc.stderr
     if "save" not in help_blob or "run" not in help_blob:
         raise AssertionError("kit.sh --help should mention save and run")
-    if "Documents/sassycloset" not in help_blob:
+    if "Documents/Sassy Closet" not in help_blob:
         raise AssertionError("kit.sh --help should document the OneDrive land path")
+    if "Documents/sassycloset" in help_blob:
+        raise AssertionError("kit.sh --help must not land on Documents/sassycloset/")
     cute = _run(["bash", str(kit_sh), "wishlist"])
     if cute.returncode == 0:
         raise AssertionError("kit.sh wishlist must be refused (cute pull retired)")
@@ -478,13 +486,18 @@ def check_sassycloset_hub() -> None:
         blob = built.stdout + built.stderr
         if "sha256" not in blob:
             raise AssertionError("builder should print a checksum")
-        if "Documents/sassycloset" not in blob:
+        if "Documents/Sassy Closet" not in blob:
             raise AssertionError("builder should print the OneDrive land path")
+        if "Documents/sassycloset" in blob:
+            raise AssertionError("builder must not land on Documents/sassycloset/")
         readme_txt = out / "README.txt"
         if not readme_txt.is_file():
             raise AssertionError("hub builder must write README.txt")
-        if "Documents/sassycloset" not in readme_txt.read_text(encoding="utf-8"):
+        readme_body = readme_txt.read_text(encoding="utf-8")
+        if "Documents/Sassy Closet" not in readme_body:
             raise AssertionError("README.txt must document the OneDrive land path")
+        if "Documents/sassycloset" in readme_body:
+            raise AssertionError("README.txt must not land on Documents/sassycloset/")
         for ma in ("A01", "P02", "P05"):
             folder = out / "Photos" / ma
             if not folder.is_dir():

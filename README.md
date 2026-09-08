@@ -2,7 +2,7 @@
 
 GitHub home for the Excel kit. **Cursor Cloud Agents build here. Kit syncs files to OneDrive.**
 
-**ONE hub (Boss 2026-09-07 ~10:33 PM PT):** `sassycloset`. Build lands later at `Documents/sassycloset/` (`sassycloset.xlsx`, `Photos/{MA}/`, `README.txt`).
+**ONE hub (Boss 2026-09-07 ~10:33 PM PT):** `sassycloset`. Lands at `Documents/Sassy Closet/sassycloset.xlsx` (`Photos/{MA}/`, `README.txt` in the same shop folder).
 
 ```bash
 ./kit.sh save    # same as: ./kit.sh run
