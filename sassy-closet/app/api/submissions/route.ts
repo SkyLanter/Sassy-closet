@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { saveFromForm } from "@/lib/form-save";
-import { listSubmissions } from "@/lib/store";
+import { listSubmissions, storeHealth } from "@/lib/store";
 
 export async function GET() {
-  return NextResponse.json({ submissions: listSubmissions() });
+  return NextResponse.json({
+    submissions: await listSubmissions(),
+    storage: storeHealth(),
+  });
 }
 
 export async function POST(request: Request) {

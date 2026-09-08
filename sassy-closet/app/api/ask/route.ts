@@ -19,14 +19,14 @@ export async function POST(request: Request) {
   try {
     const record = createAsk(question);
     if (!webhookConfigured()) {
-      applyLocalFallback(record);
+      await applyLocalFallback(record);
       return NextResponse.json(publicAsk(record));
     }
     try {
       const ok = await notifyWebhook(record);
-      if (!ok) applyLocalFallback(record);
+      if (!ok) await applyLocalFallback(record);
     } catch {
-      applyLocalFallback(record);
+      await applyLocalFallback(record);
     }
     return NextResponse.json(publicAsk(record));
   } catch (error) {

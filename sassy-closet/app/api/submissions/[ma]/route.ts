@@ -7,7 +7,7 @@ export async function GET(
   context: { params: Promise<{ ma: string }> },
 ) {
   const { ma } = await context.params;
-  const submission = getSubmission(ma);
+  const submission = await getSubmission(ma);
   if (!submission) {
     return NextResponse.json({ error: "Không tìm thấy mã này 🥺" }, { status: 404 });
   }

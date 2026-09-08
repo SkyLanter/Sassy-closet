@@ -10,10 +10,10 @@ export type FallbackAnswer = {
 const HARD_STOP =
   "Copy thôi — Mini Boss không Post, không Send, không Square Save, không tự đặt mã.";
 
-export function localAskAnswer(question: string): FallbackAnswer {
+export async function localAskAnswer(question: string): Promise<FallbackAnswer> {
   const q = question.trim();
   const ma = extractMa(q);
-  const item = ma ? getSubmission(ma) : null;
+  const item = ma ? await getSubmission(ma) : null;
 
   if (/caption|viết caption|title/i.test(q) && item) {
     const caption = item.caption_vi || buildCaptionVi(item);
@@ -65,7 +65,7 @@ export function localAskAnswer(question: string): FallbackAnswer {
     };
   }
 
-  const count = listSubmissions().length;
+  const count = (await listSubmissions()).length;
   return {
     reply: [
       "Món mới: ảnh / màu / size / giá / link tuỳ chọn → Lưu & lấy mã.",

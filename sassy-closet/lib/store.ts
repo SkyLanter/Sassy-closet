@@ -1,93 +1,22 @@
-import fs from "node:fs";
-import path from "node:path";
 import { createHash } from "node:crypto";
 import { isKindCode } from "./kinds";
 import { formatMa, maExists, nextMa, normalizeMa, parseHubMa } from "./mint";
 import { sanitizeOnHandRows } from "./on-hand";
 import { buildCaptionVi } from "./captions";
-import { ensureDataDirs } from "./paths";
+import {
+  activeBackend,
+  emptyStore,
+  migrateLocalToDurableIfNeeded,
+  photoContentType,
+  sanitizePhotoRel,
+  storageStatus,
+} from "./store-backend";
+import type { StoreFile } from "./store-backend";
 import type { KindCode } from "./kinds";
 import type { OnHandRow, Piece, Submission } from "./types";
 
-type StoreFile = {
-  nextId: number;
-  submissions: Submission[];
-  fx: { usd_cny: number; updated: string };
-  on_hand?: Record<string, unknown>;
-};
-
-const globalStore = globalThis as typeof globalThis & {
-  __sassyStore?: StoreFile;
-};
-
-function storePath(): string {
-  return path.join(ensureDataDirs(), "submissions.json");
-}
-
-function emptyStore(): StoreFile {
-  return {
-    nextId: 1,
-    submissions: [],
-    fx: { usd_cny: 6.71, updated: "2026-09-07" },
-  };
-}
-
-function readStore(): StoreFile {
-  if (globalStore.__sassyStore) return globalStore.__sassyStore;
-  const file = storePath();
-  if (!fs.existsSync(file)) {
-    const created = emptyStore();
-    globalStore.__sassyStore = created;
-    return created;
-  }
-  const parsed = JSON.parse(fs.readFileSync(file, "utf8")) as StoreFile;
-  globalStore.__sassyStore = parsed;
-  return parsed;
-}
-
-function writeStore(store: StoreFile): void {
-  globalStore.__sassyStore = store;
-  fs.writeFileSync(storePath(), JSON.stringify(store, null, 2));
-}
-
-export function listSubmissions(): Submission[] {
-  return readStore().submissions;
-}
-
-export function getSubmission(ma: string): Submission | null {
-  const target = normalizeMa(ma);
-  return readStore().submissions.find((row) => normalizeMa(row.ma) === target) ?? null;
-}
-
-export function getOnHandRows(ma: string): OnHandRow[] {
-  const target = normalizeMa(ma);
-  const bag = readStore().on_hand;
-  if (!bag || typeof bag !== "object") return [];
-  const raw = bag[target] ?? bag[ma];
-  return sanitizeOnHandRows(raw, target);
-}
-
-export function listMas(): string[] {
-  return readStore().submissions.map((row) => row.ma);
-}
-
-export function getFx(): { usd_cny: number; updated: string; label: string } {
-  const fx = readStore().fx;
-  return {
-    ...fx,
-    label: `Tỷ giá: 1 USD = ${fx.usd_cny} ¥ CNY · cập nhật mỗi tuần`,
-  };
-}
-
-export function setFx(usdCny: number): { usd_cny: number; updated: string; label: string } {
-  const store = readStore();
-  store.fx = {
-    usd_cny: usdCny,
-    updated: new Date().toISOString().slice(0, 10),
-  };
-  writeStore(store);
-  return getFx();
-}
+export type { StoreFile, StorageMode } from "./store-backend";
+export { storageMode, storageStatus, blobConfigured } from "./store-backend";
 
 export type SaveInput = {
   kind: string;
@@ -108,13 +37,66 @@ export type SaveInput = {
   newMa?: string;
 };
 
-export function saveSubmission(input: SaveInput): Submission {
+async function loadStore(): Promise<StoreFile> {
+  await migrateLocalToDurableIfNeeded();
+  return (await activeBackend().readStore()) ?? emptyStore();
+}
+
+async function persistStore(store: StoreFile): Promise<void> {
+  await activeBackend().writeStore(store);
+}
+
+export async function listSubmissions(): Promise<Submission[]> {
+  return (await loadStore()).submissions;
+}
+
+export async function getSubmission(ma: string): Promise<Submission | null> {
+  const target = normalizeMa(ma);
+  return (await loadStore()).submissions.find((row) => normalizeMa(row.ma) === target) ?? null;
+}
+
+export async function getOnHandRows(ma: string): Promise<OnHandRow[]> {
+  const target = normalizeMa(ma);
+  const bag = (await loadStore()).on_hand;
+  if (!bag || typeof bag !== "object") return [];
+  const raw = bag[target] ?? bag[ma];
+  return sanitizeOnHandRows(raw, target);
+}
+
+export async function listMas(): Promise<string[]> {
+  return (await loadStore()).submissions.map((row) => row.ma);
+}
+
+export async function getFx(): Promise<{ usd_cny: number; updated: string; label: string }> {
+  const fx = (await loadStore()).fx;
+  return {
+    ...fx,
+    label: `Tỷ giá: 1 USD = ${fx.usd_cny} ¥ CNY · cập nhật mỗi tuần`,
+  };
+}
+
+export async function setFx(
+  usdCny: number,
+): Promise<{ usd_cny: number; updated: string; label: string }> {
+  const store = await loadStore();
+  store.fx = {
+    usd_cny: usdCny,
+    updated: new Date().toISOString().slice(0, 10),
+  };
+  await persistStore(store);
+  return getFx();
+}
+
+export async function saveSubmission(input: SaveInput): Promise<Submission> {
   if (!isKindCode(input.kind)) {
     throw Object.assign(new Error("Loại đồ không đúng."), { status: 400 });
   }
-  const store = readStore();
+  const store = await loadStore();
   const mas = store.submissions.map((row) => row.ma);
-  const existing = input.existingMa ? getSubmission(input.existingMa) : null;
+  const existing = input.existingMa
+    ? store.submissions.find((row) => normalizeMa(row.ma) === normalizeMa(input.existingMa!)) ??
+      null
+    : null;
   if (input.existingMa && !existing) {
     throw Object.assign(new Error("Không tìm thấy mã này 🥺"), { status: 404 });
   }
@@ -133,14 +115,13 @@ export function saveSubmission(input: SaveInput): Submission {
     photoHashes.length = 0;
   }
 
-  const photoDir = path.join(ensureDataDirs(), "photos", ma);
-  fs.mkdirSync(photoDir, { recursive: true });
+  const backend = activeBackend();
   let index = photoPaths.length;
   for (const photo of input.photos) {
     index += 1;
     const name = `${String(index).padStart(3, "0")}${photo.ext}`;
     const rel = `${ma}/${name}`;
-    fs.writeFileSync(path.join(ensureDataDirs(), "photos", rel), photo.bytes);
+    await backend.writePhoto(rel, photo.bytes, photoContentType(rel));
     photoPaths.push(rel);
     photoHashes.push(photo.hash);
   }
@@ -176,37 +157,30 @@ export function saveSubmission(input: SaveInput): Submission {
   base.caption_vi = buildCaptionVi(base);
 
   if (existing) {
-    store.submissions = store.submissions.map((row) =>
-      row.id === existing.id ? base : row,
-    );
+    store.submissions = store.submissions.map((row) => (row.id === existing.id ? base : row));
   } else {
     store.nextId += 1;
     store.submissions.push(base);
   }
-  writeStore(store);
+  await persistStore(store);
   return base;
 }
 
-export function findByPhotoHash(hash: string): Submission[] {
-  return readStore().submissions.filter((row) => row.photo_hashes.includes(hash));
+export async function findByPhotoHash(hash: string): Promise<Submission[]> {
+  return (await loadStore()).submissions.filter((row) => row.photo_hashes.includes(hash));
 }
 
-export function readPhoto(rel: string): { bytes: Buffer; type: string } | null {
-  const safe = rel.replace(/^\/+/, "").replace(/\.\./g, "");
-  const file = path.join(ensureDataDirs(), "photos", safe);
-  if (!file.startsWith(path.join(ensureDataDirs(), "photos"))) return null;
-  if (!fs.existsSync(file)) return null;
-  const ext = path.extname(file).toLowerCase();
-  const type =
-    ext === ".png" ? "image/png" : ext === ".webp" ? "image/webp" : "image/jpeg";
-  return { bytes: fs.readFileSync(file), type };
+export async function readPhoto(rel: string): Promise<{ bytes: Buffer; type: string } | null> {
+  await migrateLocalToDurableIfNeeded();
+  const safe = sanitizePhotoRel(rel);
+  return activeBackend().readPhoto(safe);
 }
 
 export function hashBytes(bytes: Buffer): string {
   return createHash("sha256").update(bytes).digest("hex");
 }
 
-export function exportCsv(): string {
+export async function exportCsv(): Promise<string> {
   const headers = [
     "ma",
     "kind",
@@ -229,7 +203,7 @@ export function exportCsv(): string {
     "updated_at",
     "photo_link",
   ];
-  const rows = readStore().submissions.map((row) =>
+  const rows = (await loadStore()).submissions.map((row) =>
     [
       row.ma,
       row.kind,
@@ -259,6 +233,10 @@ export function exportCsv(): string {
       .join(","),
   );
   return [headers.join(","), ...rows].join("\n") + "\n";
+}
+
+export function storeHealth(): ReturnType<typeof storageStatus> {
+  return storageStatus();
 }
 
 function kindVi(kind: KindCode): string {

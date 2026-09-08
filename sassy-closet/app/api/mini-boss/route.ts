@@ -9,7 +9,7 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json({ error: "JSON body cần question." }, { status: 400 });
   }
-  const answer = localAskAnswer(question);
+  const answer = await localAskAnswer(question);
   return NextResponse.json({
     reply: answer.reply,
     copies: answer.copies,

@@ -6,7 +6,7 @@ export async function GET(
   context: { params: Promise<{ code: string }> },
 ) {
   const { code } = await context.params;
-  const card = lookupMaCard(decodeURIComponent(code ?? ""));
+  const card = await lookupMaCard(decodeURIComponent(code ?? ""));
   if (!card) {
     return NextResponse.json({ error: "Không tìm thấy mã" }, { status: 404 });
   }
