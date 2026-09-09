@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import json
 import py_compile
 import subprocess
 import sys
@@ -56,6 +57,8 @@ SCRIPTS = [
     KIT / "sot" / "build_sot_desktop.py",
     KIT / "sot" / "gf_intake_apply.py",
     KIT / "sot" / "onedrive_from_gf_link.py",
+    KIT / "sot" / "validate_sell_catalog_export.py",
+    KIT / "sell_test_allowlist.py",
     KIT / "square" / "validate_import.py",
     KIT / "tests" / "run_checks.py",
 ]
@@ -71,6 +74,7 @@ CLIS = [
     KIT / "sot" / "build_sot_desktop.py",
     KIT / "sot" / "gf_intake_apply.py",
     KIT / "sot" / "onedrive_from_gf_link.py",
+    KIT / "sot" / "validate_sell_catalog_export.py",
     KIT / "square" / "validate_import.py",
 ]
 
@@ -853,6 +857,142 @@ def check_onedrive_from_gf_link() -> None:
     print("From GF OneDrive link helper ok")
 
 
+def check_sell_catalog_export() -> None:
+    import importlib.util
+
+    from sell_test_allowlist import (  # noqa: WPS433 — kit check
+        SELL_TEST_KIND,
+        SELL_TEST_MAS,
+        is_allowed_sell_ma,
+        refuse_invented_ma,
+    )
+
+    spec = importlib.util.spec_from_file_location(
+        "validate_sell_catalog_export",
+        KIT / "sot" / "validate_sell_catalog_export.py",
+    )
+    if spec is None or spec.loader is None:
+        raise AssertionError("cannot load validate_sell_catalog_export.py")
+    export_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(export_mod)
+    validate_rows = export_mod.validate_rows
+
+    want = (
+        "A01",
+        "S01",
+        "P01",
+        "P02",
+        "P03",
+        "P04",
+        "P05",
+        "K01",
+        "H01",
+        "A02",
+    )
+    if SELL_TEST_MAS != want:
+        raise AssertionError(f"sell-test allowlist drifted: {SELL_TEST_MAS}")
+    if len(SELL_TEST_MAS) != 10 or len(set(SELL_TEST_MAS)) != 10:
+        raise AssertionError("allowlist must be 10 unique mãs")
+    for ma in SELL_TEST_MAS:
+        if not is_allowed_sell_ma(ma.lower()):
+            raise AssertionError(f"allowlist miss {ma}")
+        if SELL_TEST_KIND[ma] != ma[0]:
+            raise AssertionError(f"{ma} kind letter mismatch")
+    try:
+        refuse_invented_ma("A03")
+        raise AssertionError("A03 must be refused")
+    except ValueError as exc:
+        if "invent" not in str(exc).lower() and "allowlist" not in str(exc).lower():
+            raise AssertionError(f"invent-mã error unclear: {exc}") from exc
+    try:
+        refuse_invented_ma("AO001")
+        raise AssertionError("AO001 must not alias A01")
+    except ValueError:
+        pass
+
+    good = [{"ma": ma, "kind": SELL_TEST_KIND[ma], "status": "Available"} for ma in SELL_TEST_MAS]
+    good[3]["status"] = "Hold"
+    good[3]["inbox_for_price"] = True
+    good[6]["status"] = "Hold"
+    good[6]["inbox_for_price"] = True
+    errors = validate_rows(good, strict_complete=True)
+    if errors:
+        raise AssertionError(f"complete allowlist export should pass: {errors}")
+
+    invented = good + [{"ma": "A03", "kind": "A"}]
+    if not any("invent" in e.lower() or "A03" in e for e in validate_rows(invented, strict_complete=False)):
+        raise AssertionError("validator must refuse A03")
+
+    collision = [good[0], dict(good[0])]
+    if not any("collision" in e.lower() for e in validate_rows(collision, strict_complete=False)):
+        raise AssertionError("validator must flag mã collision")
+
+    hold_priced = [{"ma": "P02", "status": "Hold", "inbox_for_price": True, "price_usd": "18"}]
+    if not any("Inbox" in e or "price" in e.lower() for e in validate_rows(hold_priced, strict_complete=False)):
+        raise AssertionError("Hold + USD must fail")
+
+    missing = [row for row in good if row["ma"] != "H01"]
+    if not any("seed drift" in e or "missing" in e.lower() for e in validate_rows(missing, strict_complete=True)):
+        raise AssertionError("strict-complete must flag missing allowlist mãs")
+
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "export.json"
+        path.write_text(
+            json.dumps([{"ma": ma} for ma in SELL_TEST_MAS]),
+            encoding="utf-8",
+        )
+        proc = _run(
+            [sys.executable, str(KIT / "sot" / "validate_sell_catalog_export.py"), str(path)]
+        )
+        if proc.returncode != 0:
+            raise AssertionError(proc.stdout + proc.stderr)
+        if "OK" not in proc.stdout:
+            raise AssertionError("CLI should print OK for a complete allowlist export")
+
+        bad = Path(tmp) / "bad.json"
+        bad.write_text('[{"ma":"A03"}]', encoding="utf-8")
+        bad_proc = _run(
+            [sys.executable, str(KIT / "sot" / "validate_sell_catalog_export.py"), str(bad)]
+        )
+        if bad_proc.returncode == 0:
+            raise AssertionError("CLI must fail invented mã")
+
+        v1 = Path(tmp) / "catalog.v1.json"
+        v1.write_text(
+            json.dumps(
+                {
+                    "schema": "catalog.v1",
+                    "products": [
+                        {
+                            "ma": ma,
+                            "type": "thermos" if ma in {"P02", "P05"} else SELL_TEST_KIND[ma],
+                            "status": "hold" if ma in {"P02", "P05"} else "available",
+                            "priceUsd": None if ma in {"P02", "P05"} else {"A01": 25, "S01": 28, "P01": 5, "P03": 18, "P04": 13, "K01": 37, "H01": 8, "A02": 22}[ma],
+                        }
+                        for ma in SELL_TEST_MAS
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+        v1_proc = _run(
+            [sys.executable, str(KIT / "sot" / "validate_sell_catalog_export.py"), str(v1)]
+        )
+        if v1_proc.returncode != 0:
+            raise AssertionError("catalog.v1 sibling shape should pass:\n" + v1_proc.stdout + v1_proc.stderr)
+
+    playbook = REPO / "docs" / "ai-clothing-shop" / "README.md"
+    apply_md = KIT / "prompts" / "AI_CLOTHING_SHOP_APPLY_TO_SELL_TEST.md"
+    if not playbook.is_file() or not apply_md.is_file():
+        raise AssertionError("playbook + apply list must exist")
+    apply_text = apply_md.read_text(encoding="utf-8")
+    for needle in ("A01", "S01", "P05", "K01", "H01", "A02", "No Square Save", "No Facebook Send", "intake"):
+        if needle.lower() not in apply_text.lower() and needle not in apply_text:
+            raise AssertionError(f"apply list missing {needle!r}")
+
+    print("sell-test allowlist + catalog export validator ok")
+
+
 def main() -> int:
     try:
         check_py_compile()
@@ -863,6 +1003,7 @@ def main() -> int:
         check_builders_and_append()
         check_gf_intake()
         check_onedrive_from_gf_link()
+        check_sell_catalog_export()
     except Exception as exc:  # noqa: BLE001 — kit runner prints and exits
         print(f"FAIL: {exc}", file=sys.stderr)
         return 1

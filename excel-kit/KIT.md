@@ -20,3 +20,4 @@ Full contracts:
 
 - `prompts/SAVED_CARD_AND_REAL_MINIBOSS_ASK_2026-09-07.md`
 - `prompts/FIND_MA_CARD_2026-09-08.md` — Tìm mã code box + full info card. Keep find-by-photo / color detect. `GET /api/ma/{code}` is read-only staged + `on_hand` (empty = staged-only, never fake Square Free).
+- `prompts/AI_CLOTHING_SHOP_APPLY_TO_SELL_TEST.md` — apply playbook to https://sassy-closet-shop.vercel.app (not intake, not Origin main). Allowlist `sell_test_allowlist.py`. Export gate `sot/validate_sell_catalog_export.py`. Playbook: `docs/ai-clothing-shop/`.
