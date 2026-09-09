@@ -20,3 +20,4 @@ Full contracts:
 
 - `prompts/SAVED_CARD_AND_REAL_MINIBOSS_ASK_2026-09-07.md`
 - `prompts/FIND_MA_CARD_2026-09-08.md` — Tìm mã code box + full info card. Keep find-by-photo / color detect. `GET /api/ma/{code}` is read-only staged + `on_hand` (empty = staged-only, never fake Square Free).
+- `prompts/CATALOG_EXPORT_CLONE_OFFICIAL_2026-09-09.md` — OD `sassycloset.xlsx` → sell-site `catalog.v1` (allowlist A01 S01 P01 P02 P03 P04 P05 K01 H01 A02; P02/P05 Hold). Docs: `docs/SELL_CATALOG_CONTRACT.md`, `docs/CLONE_TO_OFFICIAL.md`. Scripts: `scripts/export_sell_catalog.py`, `scripts/validate_sell_catalog.py`. Artifact: repo-root `out/sell-catalog.v1.json`. Never invent mã. Intake untouched. Origin owns the live shop. Do not edit `docs/ai-clothing-shop/**` (other kit lane).

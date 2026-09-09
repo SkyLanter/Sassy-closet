@@ -292,3 +292,33 @@ CONTRACT
 
 Vercel Root Directory: sassy-closet. Do not change sassy-closet.vercel.app Production.
 ```
+
+---
+
+## 15) Sell catalog export + clone-to-official (kit only)
+
+Contract: `prompts/CATALOG_EXPORT_CLONE_OFFICIAL_2026-09-09.md`. Schema: `docs/SELL_CATALOG_CONTRACT.md`. Boss runbook: `docs/CLONE_TO_OFFICIAL.md`.
+
+```
+Sassy Closet kit — export sassycloset.xlsx All → sell-site catalog.v1 JSON.
+Lane: SkyLanter/Sassy-closet only. Do not push Origin sassy-closet-shop. Intake untouched.
+
+RUN
+  python3 excel-kit/scripts/export_sell_catalog.py \
+    -w "$HOME/OneDrive/Documents/Sassy Closet/sassycloset.xlsx" \
+    --photos-dir "$HOME/OneDrive/Documents/Sassy Closet/Photos" \
+    -o ./out/sell-catalog.v1.json
+  python3 excel-kit/scripts/validate_sell_catalog.py ./out/sell-catalog.v1.json
+  python3 excel-kit/tests/run_checks.py
+
+CONTRACT
+- Allowlist ONLY: A01 S01 P01 P02 P03 P04 P05 K01 H01 A02
+- Prices: A01 25 · S01 28 · P01 5 · P02 Hold · P03 18 · P04 13 · P05 Hold · K01 37 · H01 8 · A02 22
+- Hold when sell_usd empty or allowlist Hold. qty=1. No invented mã / $.
+- Omit cost, source_link, customer names. Colors text-only (no invented hex).
+- If the xlsx is missing, print run steps and exit 2 — do not invent rows.
+- Official stand-up later: docs/CLONE_TO_OFFICIAL.md (new Vercel project, never intake).
+- Committed artifact: out/sell-catalog.v1.json (allowlist only). Do not edit docs/ai-clothing-shop/**.
+
+STOP if you would invent a mã or edit Origin shop / intake Production.
+```
