@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import json
 import py_compile
 import subprocess
 import sys
@@ -57,6 +58,9 @@ SCRIPTS = [
     KIT / "sot" / "gf_intake_apply.py",
     KIT / "sot" / "onedrive_from_gf_link.py",
     KIT / "square" / "validate_import.py",
+    KIT / "sell_catalog.py",
+    KIT / "scripts" / "export_sell_catalog.py",
+    KIT / "scripts" / "validate_sell_catalog.py",
     KIT / "tests" / "run_checks.py",
 ]
 
@@ -72,6 +76,8 @@ CLIS = [
     KIT / "sot" / "gf_intake_apply.py",
     KIT / "sot" / "onedrive_from_gf_link.py",
     KIT / "square" / "validate_import.py",
+    KIT / "scripts" / "export_sell_catalog.py",
+    KIT / "scripts" / "validate_sell_catalog.py",
 ]
 
 FAKE_TOKENS = (
@@ -853,6 +859,254 @@ def check_onedrive_from_gf_link() -> None:
     print("From GF OneDrive link helper ok")
 
 
+SELL_EXPORT = KIT / "scripts" / "export_sell_catalog.py"
+SELL_VALIDATE = KIT / "scripts" / "validate_sell_catalog.py"
+SELL_CONTRACT = KIT / "docs" / "SELL_CATALOG_CONTRACT.md"
+SELL_CLONE = KIT / "docs" / "CLONE_TO_OFFICIAL.md"
+SELL_PROMPT = KIT / "prompts" / "CATALOG_EXPORT_CLONE_OFFICIAL_2026-09-09.md"
+SELL_SAMPLE = KIT / "samples" / "sell-catalog.v1.json"
+
+
+def check_sell_catalog() -> None:
+    from sell_catalog import (  # noqa: E402
+        SCHEMA_ID,
+        SELL_ALLOWLIST,
+        SELL_ALLOWLIST_PRICE_USD,
+        CatalogError,
+        allowlist_fixture_rows,
+        catalog_envelope,
+        export_products,
+        format_sell_ma,
+        load_catalog_json,
+        parse_sell_ma,
+        parse_colors_text,
+        resolve_sell_status_and_price,
+        sell_type_for_ma,
+        validate_catalog,
+        write_xlsx_fixture,
+    )
+
+    for path in (SELL_CONTRACT, SELL_CLONE, SELL_PROMPT, SELL_EXPORT, SELL_VALIDATE):
+        if not path.is_file():
+            raise AssertionError(f"missing {path.relative_to(REPO)}")
+
+    for doc in (SELL_CONTRACT, SELL_CLONE, SELL_PROMPT, KIT / "KIT.md", KIT / "PROMPTS.md"):
+        text = doc.read_text(encoding="utf-8")
+        for needle in ("catalog.v1", "A01", "P02", "Hold"):
+            if needle not in text:
+                raise AssertionError(f"{doc.name} should mention {needle!r}")
+    clone = SELL_CLONE.read_text(encoding="utf-8")
+    for needle in (
+        "sassy-closet.vercel.app",
+        "never intake",
+        "BLOB_READ_WRITE_TOKEN",
+        "Messenger",
+        "Zelle",
+        "personal name",
+        "sassy-closet-shop.vercel.app",
+    ):
+        if needle.lower() not in clone.lower() and needle not in clone:
+            raise AssertionError(f"CLONE_TO_OFFICIAL.md should mention {needle!r}")
+
+    assert parse_sell_ma("A01") == ("A", 1)
+    assert parse_sell_ma("A100") == ("A", 100)
+    assert parse_sell_ma("AO001") is None
+    assert parse_sell_ma("A1") is None
+    assert parse_sell_ma("Z01") is None
+    assert format_sell_ma("a", 2) == "A02"
+    assert sell_type_for_ma("P02") == "thermos"
+    assert sell_type_for_ma("P01") == "accessory"
+    assert sell_type_for_ma("A01") == "top"
+    colors = parse_colors_text("Kem, Xanh")
+    assert [c["name"] for c in colors] == ["Kem", "Xanh"]
+    assert "hex" not in colors[0]
+    do_den = parse_colors_text("Đỏ, Đen")
+    assert [c["id"] for c in do_den] == ["do", "den"]
+    assert [c["name"] for c in do_den] == ["Đỏ", "Đen"]
+    status, price, _notes = resolve_sell_status_and_price("P02", None)
+    assert status == "hold" and price is None
+    status, price, notes = resolve_sell_status_and_price("P05", 23)
+    assert status == "hold" and price is None
+    assert any("23" in n for n in notes)
+    try:
+        resolve_sell_status_and_price("A01", 99)
+        raise AssertionError("mismatched allowlist price must fail")
+    except CatalogError:
+        pass
+
+    help_export = _run([sys.executable, str(SELL_EXPORT), "--help"])
+    if help_export.returncode != 0:
+        raise AssertionError(help_export.stderr)
+    help_blob = (help_export.stdout + help_export.stderr).lower()
+    for needle in ("allowlist", "hold", "workbook", "dry-run"):
+        if needle not in help_blob:
+            raise AssertionError(f"export_sell_catalog --help should mention {needle!r}")
+
+    missing_xlsx = _run([sys.executable, str(SELL_EXPORT), "-w", str(REPO / "no-such-sassycloset.xlsx")])
+    if missing_xlsx.returncode != 2:
+        raise AssertionError(f"missing xlsx should exit 2, got {missing_xlsx.returncode}")
+    miss_blob = missing_xlsx.stdout + missing_xlsx.stderr
+    if "do not invent" not in miss_blob.lower() and "never invent" not in miss_blob.lower():
+        raise AssertionError("missing xlsx must print run steps / never invent")
+
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+        book = tmp_path / "sassycloset.xlsx"
+        write_xlsx_fixture(book, allowlist_fixture_rows())
+        photos = tmp_path / "Photos"
+        (photos / "A01").mkdir(parents=True)
+        (photos / "A01" / "001.jpg").write_bytes(b"x")
+        (photos / "A01" / "_placeholder.jpg").write_bytes(b"x")
+        out = tmp_path / "sell-catalog.v1.json"
+        exported = _run(
+            [
+                sys.executable,
+                str(SELL_EXPORT),
+                "-w",
+                str(book),
+                "--photos-dir",
+                str(photos),
+                "-o",
+                str(out),
+                "--exported-at",
+                "2026-09-09T00:00:00Z",
+            ]
+        )
+        if exported.returncode != 0:
+            raise AssertionError(exported.stdout + exported.stderr)
+        doc = load_catalog_json(out)
+        validate_catalog(doc)
+        assert doc["schema"] == SCHEMA_ID
+        assert [p["ma"] for p in doc["products"]] == list(SELL_ALLOWLIST)
+        by_ma = {p["ma"]: p for p in doc["products"]}
+        assert by_ma["A01"]["priceUsd"] == 25
+        assert by_ma["A01"]["status"] == "available"
+        assert by_ma["P02"]["status"] == "hold" and by_ma["P02"]["priceUsd"] is None
+        assert by_ma["P05"]["status"] == "hold" and by_ma["P05"]["priceUsd"] is None
+        assert by_ma["P02"]["type"] == "thermos"
+        assert by_ma["A01"]["qty"] == 1
+        assert [c["name"] for c in by_ma["A01"]["colors"]] == ["Kem", "Xanh"]
+        srcs = [img["src"] for img in by_ma["A01"]["images"]]
+        if not any(s.endswith("A01/001.jpg") for s in srcs):
+            raise AssertionError(f"A01 should list real 001.jpg, got {srcs}")
+        if any("_placeholder" in s for s in srcs):
+            raise AssertionError("placeholders must not be exported")
+        assert by_ma["K01"]["images"] == []
+        if "source_link" in by_ma["A01"] or "cost" in by_ma["A01"]:
+            raise AssertionError("cost/source_link must not appear on products")
+
+        ok = _run([sys.executable, str(SELL_VALIDATE), str(out)])
+        if ok.returncode != 0:
+            raise AssertionError(ok.stdout + ok.stderr)
+        if "PASS" not in ok.stdout:
+            raise AssertionError("validator should print PASS")
+
+        extra_rows = allowlist_fixture_rows() + [
+            {
+                "ma": "A99",
+                "kind": "A",
+                "sell_usd": 1,
+                "status": "staged",
+            }
+        ]
+        extra_book = tmp_path / "extra.xlsx"
+        write_xlsx_fixture(extra_book, extra_rows)
+        extra = _run(
+            [sys.executable, str(SELL_EXPORT), "-w", str(extra_book), "-o", str(tmp_path / "extra.json")]
+        )
+        if extra.returncode == 0:
+            raise AssertionError("non-allowlist mã A99 must hard-fail")
+
+        invent = allowlist_fixture_rows()
+        invent[0] = {**invent[0], "ma": "SHIRT1"}
+        invent_book = tmp_path / "invent.xlsx"
+        write_xlsx_fixture(invent_book, invent)
+        bad = _run(
+            [sys.executable, str(SELL_EXPORT), "-w", str(invent_book), "-o", str(tmp_path / "invent.json")]
+        )
+        if bad.returncode == 0:
+            raise AssertionError("invented mã SHIRT1 must hard-fail")
+
+        gap = [r for r in allowlist_fixture_rows() if r["ma"] != "H01"]
+        gap_book = tmp_path / "gap.xlsx"
+        write_xlsx_fixture(gap_book, gap)
+        gap_run = _run(
+            [sys.executable, str(SELL_EXPORT), "-w", str(gap_book), "-o", str(tmp_path / "gap.json")]
+        )
+        if gap_run.returncode == 0:
+            raise AssertionError("missing allowlist mã must hard-fail (never invent H01)")
+
+        mismatch = allowlist_fixture_rows()
+        mismatch[0] = {**mismatch[0], "sell_usd": 99}
+        mismatch_book = tmp_path / "mismatch.xlsx"
+        write_xlsx_fixture(mismatch_book, mismatch)
+        mismatch_run = _run(
+            [
+                sys.executable,
+                str(SELL_EXPORT),
+                "-w",
+                str(mismatch_book),
+                "-o",
+                str(tmp_path / "mismatch.json"),
+            ]
+        )
+        if mismatch_run.returncode == 0:
+            raise AssertionError("xlsx $99 vs allowlist $25 must hard-fail")
+
+        empty_hold = allowlist_fixture_rows()
+        empty_hold[3] = {**empty_hold[3], "ma": "P02", "sell_usd": ""}
+        # P02 already Hold; flip A01 price empty while allowlist is $25 — should still export $25
+        empty_hold[0] = {**empty_hold[0], "sell_usd": ""}
+        empty_book = tmp_path / "empty.xlsx"
+        write_xlsx_fixture(empty_book, empty_hold)
+        empty_out = tmp_path / "empty.json"
+        empty_run = _run(
+            [
+                sys.executable,
+                str(SELL_EXPORT),
+                "-w",
+                str(empty_book),
+                "-o",
+                str(empty_out),
+            ]
+        )
+        if empty_run.returncode != 0:
+            raise AssertionError(empty_run.stdout + empty_run.stderr)
+        empty_doc = load_catalog_json(empty_out)
+        empty_a01 = next(p for p in empty_doc["products"] if p["ma"] == "A01")
+        if empty_a01["priceUsd"] != 25 or empty_a01["status"] != "available":
+            raise AssertionError("empty xlsx cell uses Boss allowlist $25, does not invent another $")
+
+        dry = _run(
+            [sys.executable, str(SELL_EXPORT), "-w", str(book), "--dry-run", "--exported-at", "2026-09-09T00:00:00Z"]
+        )
+        if dry.returncode != 0:
+            raise AssertionError(dry.stdout + dry.stderr)
+        if '"schema": "catalog.v1"' not in dry.stdout:
+            raise AssertionError("dry-run should print catalog.v1 JSON")
+
+        tampered = catalog_envelope(export_products(book)[0])
+        tampered["products"][0]["ma"] = "A03"
+        bad_json = tmp_path / "tamper.json"
+        bad_json.write_text(json.dumps(tampered), encoding="utf-8")
+        tamper = _run([sys.executable, str(SELL_VALIDATE), str(bad_json)])
+        if tamper.returncode == 0:
+            raise AssertionError("validator must reject invented A03")
+
+    if SELL_SAMPLE.is_file():
+        sample = _run([sys.executable, str(SELL_VALIDATE), str(SELL_SAMPLE)])
+        if sample.returncode != 0:
+            raise AssertionError(sample.stdout + sample.stderr)
+        sample_doc = load_catalog_json(SELL_SAMPLE)
+        validate_catalog(sample_doc)
+        if [p["ma"] for p in sample_doc["products"]] != list(SELL_ALLOWLIST):
+            raise AssertionError("committed sample must be allowlist-only, allowlist order")
+        if any(p.get("priceUsd") != SELL_ALLOWLIST_PRICE_USD[p["ma"]] for p in sample_doc["products"]):
+            raise AssertionError("committed sample prices must match Boss allowlist (Hold=null)")
+
+    print("sell catalog.v1 export + validate ok")
+
+
 def main() -> int:
     try:
         check_py_compile()
@@ -863,6 +1117,7 @@ def main() -> int:
         check_builders_and_append()
         check_gf_intake()
         check_onedrive_from_gf_link()
+        check_sell_catalog()
     except Exception as exc:  # noqa: BLE001 — kit runner prints and exits
         print(f"FAIL: {exc}", file=sys.stderr)
         return 1

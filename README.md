@@ -10,7 +10,7 @@ The shop’s live working copy is **not** this repo. It is:
 
 1. Open this repo: [SkyLanter/Sassy-closet](https://github.com/SkyLanter/Sassy-closet).
 2. Start a **Cursor Cloud Agent** on `main` (Cursor → Agents, or the Cloud Agent composer pointed at this repo).
-3. Paste **one** task from [`excel-kit/PROMPTS.md`](excel-kit/PROMPTS.md) (Official row, Wishlist, Order, morning brief, clean demo, rebuild, Square draft, GF clothes intake).
+3. Paste **one** task from [`excel-kit/PROMPTS.md`](excel-kit/PROMPTS.md) (Official row, Wishlist, Order, morning brief, clean demo, rebuild, Square draft, GF clothes intake, sell catalog export).
 4. The agent works on a `cursor/…` branch and opens a PR. Mini Boss / Boss review. No Square Save from the agent.
 5. After merge, **Kit** syncs built or cleaned `.xlsx` to OneDrive `Documents/Sassy Closet/` (`Sassy_Closet_SoT.xlsx`, optional lean desktop books, `Photos/` stays links-only).
 6. Never commit live Official rows, customer names, Square tokens, or a filled import CSV.
@@ -47,7 +47,7 @@ python3 excel-kit/tests/run_checks.py
 | `excel-kit/square/` | Headers-only import template (Track ON, mã = SKU) |
 | `excel-kit/PROMPTS.md` | Paste-ready Cloud Agent prompts |
 
-Prompts also live in `excel-kit/prompts/` (`BOUTIQUE_DESKTOP_EFFICIENT.md`, `BOUTIQUE_PHONE_SAFE.md`, `GF_CLOTHES_INTAKE.md`, `SAVED_CARD_AND_REAL_MINIBOSS_ASK_2026-09-07.md`).
+Prompts also live in `excel-kit/prompts/` (`BOUTIQUE_DESKTOP_EFFICIENT.md`, `BOUTIQUE_PHONE_SAFE.md`, `GF_CLOTHES_INTAKE.md`, `SAVED_CARD_AND_REAL_MINIBOSS_ASK_2026-09-07.md`, `CATALOG_EXPORT_CLONE_OFFICIAL_2026-09-09.md`). Sell-site JSON: `excel-kit/docs/SELL_CATALOG_CONTRACT.md` + `excel-kit/docs/CLONE_TO_OFFICIAL.md`.
 
 ## Intake site
 
