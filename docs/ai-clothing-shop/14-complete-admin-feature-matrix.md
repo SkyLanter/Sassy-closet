@@ -112,25 +112,25 @@ Legend: **HAVE** = live sell-test 2026-09-09 · **GAP** = Origin must land · **
 | ID | Verb | Ready-to-sell need | Live sell-test `/admin` | Intake (this repo) | Kit `catalog.v1` | Status | Origin APPLY |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | **A1** | Add (allowlisted row) | Not needed — ten already on Blob | Catalog (10) tiles | Món mới mints **draft** `nextMa` | Allowlist closed at ten | **HAVE** the ten | Do not add an 11th |
-| **A2** | Add (next unused) | **Refuse.** Stock/Boss only | **Add A03** + letter tiles Q01 V01 K02 G01 B01 P06 H02 J01 S02 O01 D01 | `nextMa()` intake-local | Extra mã **hard-fail** export | **GAP / REFUSE** | [O1](#o1--kill-next-grid-publish) |
-| **E1** | Edit copy | EN/VN title + description | Fields exist; A01 EN/VN already filled | Sửa theo mã (staff fields, cost, Taobao) | Titles often `""` (hub has no title cols) | **HAVE** | [O11](#o11--edit-contract) — merge: empty JSON must not wipe shop copy |
-| **E2** | Edit price / status | Hold ↔ Available inside Boss table | Dropdown + Price USD; placeholder `Inbox for price` | `sell_usd` on hub; always `status=staged` | Hold ⇔ `priceUsd` null | **HAVE UI / GAP server** | [O8](#o8--hold--price-server-side) |
+| **A2** | Add (next unused) | **Refuse.** Stock/Boss only | **Add A03** + letter tiles Q01 V01 K02 G01 B01 P06 H02 J01 S02 O01 D01 | `nextMa()` intake-local | Extra mã **hard-fail** export | **GAP / REFUSE** | [O1](#o1) |
+| **E1** | Edit copy | EN/VN title + description | Fields exist; A01 EN/VN already filled | Sửa theo mã (staff fields, cost, Taobao) | Titles often `""` (hub has no title cols) | **HAVE** | [O11](#o11) — merge: empty JSON must not wipe shop copy |
+| **E2** | Edit price / status | Hold ↔ Available inside Boss table | Dropdown + Price USD; placeholder `Inbox for price` | `sell_usd` on hub; always `status=staged` | Hold ⇔ `priceUsd` null | **HAVE UI / GAP server** | [O8](#o8) |
 | **E3** | Edit qty | Locked **1** | Copy: “Qty is always 1.” No qty field | No qty on CSV (test-locked) | `qty` must be `1` | **HAVE** | Keep lock. No stock counter |
-| **R1** | Rename mã | Allowlist closed → **refuse** on sell-test | **No rename field** | **Đổi mã** (`data-testid="rename-ma"`) | mã is product id | **HAVE refuse-by-absence** | [O15](#o15--rename-policy) — keep closed; 400 if typed |
-| **C1** | Colors (customer) | Text names from hub: `kem` `xanh`… | **Boxes only — no names on the swatches** | Color chips + `color` / `color_note` | `{id,name}` text; **no invented hex** | **GAP** (hex-first UI) | [O12](#o12--colors-text-first) |
+| **R1** | Rename mã | Allowlist closed → **refuse** on sell-test | **No rename field** | **Đổi mã** (`data-testid="rename-ma"`) | mã is product id | **HAVE refuse-by-absence** | [O15](#o15) — keep closed; 400 if typed |
+| **C1** | Colors (customer) | Text names from hub: `kem` `xanh`… | **Boxes only — no names on the swatches** | Color chips + `color` / `color_note` | `{id,name}` text; **no invented hex** | **GAP** (hex-first UI) | [O12](#o12) |
 | **C2** | Colors (admin hex) | Optional staff boxes; gold `#B08968` is **theme**, not a garment | Palette + custom hex; default `#B08968`; notes admin-only | Intake chips are VN words, not gold token | `hex?` optional; do not invent | **HAVE boxes** | Keep boxes; do not publish names of hex on PDP |
-| **P1** | Photos attach | URL or upload on **existing** mã | Add URL / Upload image; cover `/products/{MA}/cover.jpg` | `{ma}/001.jpg` on Blob; keep_photos | OD relative `src`; `colorId` null today | **HAVE attach / GAP cache** | [O13](#o13--photos-hashed-path--colorid) |
-| **P2** | Per-color bind | `images[].colorId` ∈ that mã’s colors, or `null` | “Add a color above to tag this image.” | `pieces[]` typed; live form often `[]` | All `colorId` **null** (honest) | **HAVE tag UI / GAP honesty** | [O13](#o13--photos-hashed-path--colorid) |
-| **H1** | Hold display | Inbox for price; no `$` | P02 / P05 Hold; public `/` matches | Always `staged` ≠ Hold | P02 P05 hold + null $ | **HAVE** | [O8](#o8--hold--price-server-side) keep pairing |
+| **P1** | Photos attach | URL or upload on **existing** mã | Add URL / Upload image; cover `/products/{MA}/cover.jpg` | `{ma}/001.jpg` on Blob; keep_photos | OD relative `src`; `colorId` null today | **HAVE attach / GAP cache** | [O13](#o13) |
+| **P2** | Per-color bind | `images[].colorId` ∈ that mã’s colors, or `null` | “Add a color above to tag this image.” | `pieces[]` typed; live form often `[]` | All `colorId` **null** (honest) | **HAVE tag UI / GAP honesty** | [O13](#o13) |
+| **H1** | Hold display | Inbox for price; no `$` | P02 / P05 Hold; public `/` matches | Always `staged` ≠ Hold | P02 P05 hold + null $ | **HAVE** | [O8](#o8) keep pairing |
 | **H2** | Sold | Retire identity; leave allowlist | No Sold dropdown (correct for 10 live) | on_hand `sold` if rows exist | `hold\|available` only | **HAVE (omit Sold)** | Do not add Sold that recycles mã |
-| **S1** | Settings chrome | Blob badge, Back to shop, Test only, noindex | All present. No Settings panel | Kho + CSV only | n/a | **HAVE strip / GAP panel** | [O16](#o16--settings-strip) |
+| **S1** | Settings chrome | Blob badge, Back to shop, Test only, noindex | All present. No Settings panel | Kho + CSV only | n/a | **HAVE strip / GAP panel** | [O16](#o16) |
 | **S2** | Settings secrets | **Refuse** passwords, Square tokens, Zelle handle | None (correct) | Ask webhook **names** only | n/a | **REFUSE** | Keep none |
-| **I1** | Import `catalog.v1` | Button + hard-fail extras | **No Import string** in HTML | CSV restore ≠ shop import | Exporter + validator on PR #18 | **GAP** | [O17](#o17--import-catalogv1) |
-| **I2** | Export `catalog.v1` | Dump shop Blob (allowlist, no cost/source) | **No Export** | `/admin` Tải CSV (staff) | Kit export from All | **GAP** | [O18](#o18--export-catalogv1) |
-| **X1** | Save receipt | `{ok, ma, blobWritten, catalogSha, revalidated[]}` | **Save {MA}** × 10; no receipt in HTML | Saved card ≠ durable proof | n/a | **GAP** | [O4](#o4--save-ma-receipt) |
-| **X2** | Cache bust | `revalidatePath` + two public warms | Public `/` `/m/*` ISR `STALE`/`HIT`; `/admin` `MISS` `no-store` | Intake already `force-dynamic` | n/a | **GAP** | [O5](#o5--revalidatepath)--[O7](#o7--failed-regenerate-must-not-lie) |
-| **X3** | Catalog JSON API | `GET /api/admin/catalog` no-store | **404 HIT** (age 6000s this fetch) | `GET /api/submissions` | File on disk | **GAP** | [O19](#o19--get-apiadmincatalog) |
-| **X4** | Manual revalidate | `POST /api/admin/revalidate` | **404 HIT** | n/a | n/a | **GAP** | [O20](#o20--post-apiadminrevalidate) |
+| **I1** | Import `catalog.v1` | Button + hard-fail extras | **No Import string** in HTML | CSV restore ≠ shop import | Exporter + validator on PR #18 | **GAP** | [O17](#o17) |
+| **I2** | Export `catalog.v1` | Dump shop Blob (allowlist, no cost/source) | **No Export** | `/admin` Tải CSV (staff) | Kit export from All | **GAP** | [O18](#o18) |
+| **X1** | Save receipt | `{ok, ma, blobWritten, catalogSha, revalidated[]}` | **Save {MA}** × 10; no receipt in HTML | Saved card ≠ durable proof | n/a | **GAP** | [O4](#o4) |
+| **X2** | Cache bust | `revalidatePath` + two public warms | Public `/` `/m/*` ISR `STALE`/`HIT`; `/admin` `MISS` `no-store` | Intake already `force-dynamic` | n/a | **GAP** | [O5](#o5)--[O7](#o7) |
+| **X3** | Catalog JSON API | `GET /api/admin/catalog` no-store | **404 HIT** (age 6000s this fetch) | `GET /api/submissions` | File on disk | **GAP** | [O19](#o19) |
+| **X4** | Manual revalidate | `POST /api/admin/revalidate` | **404 HIT** | n/a | n/a | **GAP** | [O20](#o20) |
 
 Live confirmation this run (2026-09-09): `/admin` 200, `cache-control: private, no-cache, no-store`, `x-vercel-cache: MISS`, title `Admin · Sassy Closet`. `/` Featured collection All 10; P02/P05 Hold · Inbox for price; no `$23`; no A03. `/m/A03` 404 (`x-matched-path: /m/[ma]`, prerender). `/api/admin/catalog` and `/api/admin/revalidate` 404 HIT. [[S4]](#s4-live-2026-09-09)
 
@@ -205,7 +205,7 @@ Each of the ten tiles on `/admin` (2026-09-09):
 | Description (EN) / Description (VN flavor) | Textareas | Shop Blob owns copy today (kit JSON titles are `""`) |
 | Colors | Hex boxes + optional admin note | [§8](#8-colors) |
 | Images | Remove / Add URL / Upload | [§9](#9-photos) |
-| **Save {MA}** | Explicit, not autosave | Keep explicit; add receipt ([O4](#o4--save-ma-receipt)) |
+| **Save {MA}** | Explicit, not autosave | Keep explicit; add receipt ([O4](#o4)) |
 
 Recorded EN/VN this fetch (do not “improve” in APPLY):
 
@@ -228,6 +228,8 @@ Recorded EN/VN this fetch (do not “improve” in APPLY):
 | Price **to the Boss table value** | P05 `$23` or any off-table USD |
 | Image URL / upload on **this** mã | Another piece’s photos; `_placeholder` |
 | Admin color note | Invented customer colorway |
+
+<a id="63-import-merge-edit--import"></a>
 
 ### 6.3 Import merge (Edit × Import)
 
@@ -369,6 +371,8 @@ Those paths are **not** public URLs. Import leaves letter-placeholders until byt
 
 Tiny-boutique **sell-facing** life is three words. `catalog.v1` today encodes only `hold|available`. Sold is Official / Square later — not a recycle button. [03](./03-tiny-boutique-admin.md) §7; [02](./02-pdp-color-size-ux.md) §10.
 
+<a id="101-pairing-non-negotiable"></a>
+
 ### 10.1 Pairing (non-negotiable)
 
 | Status | Buyer meaning | Price | Live codes |
@@ -438,7 +442,7 @@ Add a **single strip** at the top of `/admin` (not a fifth intake tab). Suggeste
 | `noindex` | Boss only | Default on until `#shop-decisions` index |
 | Import `catalog.v1` | file picker | [§12](#12-import--export) |
 | Export `catalog.v1` | download | Allowlist; strip cost/source |
-| Revalidate | button | [O20](#o20--post-apiadminrevalidate) |
+| Revalidate | button | [O20](#o20) |
 
 ### 11.3 Must never appear in Settings
 
@@ -523,9 +527,9 @@ Same three clusters as [03](./03-tiny-boutique-admin.md) §11 / [07](./07-failur
 
 | Cluster | Admin symptom | Matrix row |
 | --- | --- | --- |
-| **Silent save** | Save {MA} 200, Blob old, `/` still $25 after Hold | X1 X2 — [O4](#o4--save-ma-receipt)–[O7](#o7--failed-regenerate-must-not-lie) |
-| **Seed drift** | Add A03 / next Q01 / P05 $23 / shared Blob / gold hex as `kem` | A2 C1 I1 — [O1](#o1--kill-next-grid-publish) [O8](#o8--hold--price-server-side) [O12](#o12--colors-text-first) |
-| **Duplicate codes** | Rename onto taken mã; `A01`/`AO001` bridge; two Blobs both “A01” | R1 — [O15](#o15--rename-policy) [O21](#o21--two-blob-stores) |
+| **Silent save** | Save {MA} 200, Blob old, `/` still $25 after Hold | X1 X2 — [O4](#o4)–[O7](#o7) |
+| **Seed drift** | Add A03 / next Q01 / P05 $23 / shared Blob / gold hex as `kem` | A2 C1 I1 — [O1](#o1) [O8](#o8) [O12](#o12) |
+| **Duplicate codes** | Rename onto taken mã; `A01`/`AO001` bridge; two Blobs both “A01” | R1 — [O15](#o15) [O21](#o21) |
 
 ISR keeps the **last good page** if regenerate throws. Validate **before** `put`. [04](./04-next-blob-catalog-arch.md) §7.5; [Next.js ISR](https://nextjs.org/docs/app/guides/incremental-static-regeneration).
 
@@ -539,9 +543,13 @@ Sister fix ids from [11](./11-vercel-blob-admin-qa.md) §18 are in parentheses.
 
 ### Wave 0 — Stop the bleed (before any new feature)
 
+<a id="o0"></a>
+
 #### O0 — Look lock (F12)
 
 Paper/blush/gold, Cormorant + Be Vietnam Pro, Messenger / Zelle / `Facebook livestream`, Page `61594312648057`, `Message to buy`, `rounded-full`, admin “Boxes only.” Qty=1. No cart. `--look` stays green if [11](./11-vercel-blob-admin-qa.md) gate is present.
+
+<a id="o1"></a>
 
 #### O1 — Kill Next-grid publish (F8)
 
@@ -551,13 +559,19 @@ Disable **Add A03** + letter tiles. Save/create ∉ allowlist → **400**. `/m/A
 
 ### Wave 1 — Save cannot lie
 
+<a id="o2"></a>
+
 #### O2 — Catalog JSON consistent read (F1)
 
 `get(catalogPath, { useCache: false })` on admin + RSC catalog reads. Do not wrap Blob URL in `fetch(..., { next: { revalidate: 3600 } })`.
 
+<a id="o3"></a>
+
 #### O3 — Catalog JSON overwrite write (F2)
 
 `put(..., { addRandomSuffix: false, allowOverwrite: true, contentType: "application/json", cacheControlMaxAge: 0 })`. Remember: Blob **minimum** overwrite cache is still **60s** without O2. [Vercel Blob](https://vercel.com/docs/vercel-blob)
+
+<a id="o4"></a>
 
 #### O4 — Save {MA} receipt (F3)
 
@@ -576,6 +590,8 @@ Server Action (preferred) or gated `POST /api/admin/save`. Do **not** paint Save
 
 On throw: `ok: false`, dirty form stays, **no** Saved toast.
 
+<a id="o5"></a>
+
 #### O5 — `revalidatePath` signatures (F4)
 
 - `revalidatePath("/")`
@@ -584,21 +600,31 @@ On throw: `ok: false`, dirty form stays, **no** Saved toast.
 
 `revalidatePath("/m/[ma]")` **without** `"page"` is a miss. [revalidatePath](https://nextjs.org/docs/app/api-reference/functions/revalidatePath)
 
+<a id="o6"></a>
+
 #### O6 — Router Cache + two warms (F5)
 
 Server Action + `router.refresh()`, or tell the operator to hard-refresh. Regeneration runs on the **next** visit — GET `/m/{MA}` and `/` **twice**. First `STALE` allowed; second must match Blob.
+
+<a id="o7"></a>
 
 #### O7 — Failed regenerate must not lie (F6)
 
 Validate before `put` so a Hold row cannot throw halfway and leave `$23` on the tile.
 
+<a id="o8"></a>
+
 #### O8 — Hold ⇔ price server-side (F11)
 
 Reject Available + blank. Reject Hold + any USD. Pairing is the contract, not the dropdown label.
 
+<a id="o9"></a>
+
 #### O9 — Admin marker (F14)
 
 On `/admin` document: `data-save-contract="blob+revalidate"` **only** when O4+O5 are wired.
+
+<a id="o10"></a>
 
 #### O10 — `/admin` stays uncached (F10)
 
@@ -608,17 +634,25 @@ Keep `force-dynamic` + `private, no-store` + `x-vercel-cache: MISS`. Already tru
 
 ### Wave 2 — Merchandising completeness (the ten)
 
+<a id="o11"></a>
+
 #### O11 — Edit contract
 
 Keep per-mã Save (not autosave). Bilingual fields stay. Empty kit titles must not wipe shop copy on import (see O17 merge). Do not add qty, cost, or `source_link` to the customer payload.
+
+<a id="o12"></a>
 
 #### O12 — Colors text-first
 
 Persist hub `id`/`name`. Hex boxes stay admin-only. No invented `hex` on `catalog.v1`. `colorId` must belong to that mã or be `null`.
 
+<a id="o13"></a>
+
 #### O13 — Photos hashed path + colorId (F7)
 
 Stop silent overwrite of `/products/{MA}/cover.jpg`. Tag uploads to a color or leave `null`. Reject junk prefixes and `blob:` URLs.
+
+<a id="o14"></a>
 
 #### O14 — Hold display lock
 
@@ -628,25 +662,37 @@ Public copy stays `Hold` + `Inbox for price`. Available stays `$` + Boss table. 
 
 ### Wave 3 — Missing verbs (settings / import / rename policy)
 
+<a id="o15"></a>
+
 #### O15 — Rename policy
 
 Do **not** add a casual Đổi mã. If a field exists, it 400s unless the new code is already allowlisted and free. Never bridge `A01`↔`AO001`.
+
+<a id="o16"></a>
 
 #### O16 — Settings strip
 
 [§11.2](#112-ready-to-sell-settings-strip-apply--small). Read-only Blob + sha + allowlist. Optional Page URL / Zelle word / noindex. **No passwords.** Import/Export/Revalidate buttons live here.
 
+<a id="o17"></a>
+
 #### O17 — Import `catalog.v1` (F16)
 
 `POST /api/admin/catalog/import`. Same rules as `validate_catalog()`. Merge empty titles. Then O3+O5 for **all** public paths.
+
+<a id="o18"></a>
 
 #### O18 — Export `catalog.v1`
 
 Download or `GET /api/admin/catalog/export`. Allowlist only. No cost/source/names.
 
+<a id="o19"></a>
+
 #### O19 — `GET /api/admin/catalog` (F9)
 
 `{ products, catalogSha, updatedAt }`, ten in allowlist order. `private, no-store`. After **adding** the route, bust the **cached 404 HIT** on that exact path (this fetch: age 6066s).
+
+<a id="o20"></a>
 
 #### O20 — `POST /api/admin/revalidate` (F15)
 
@@ -656,9 +702,13 @@ Gated. Marks `/`, `/c/[slug]` `'page'`, `/m/[ma]` `'page'`. GET may 401/405 — 
 
 ### Wave 4 — Isolation + gate
 
+<a id="o21"></a>
+
 #### O21 — Two Blob stores (F13)
 
 Sell-test Blob ≠ intake `sassy-closet/store.json`. Official (when cloned) = third. A Save that writes the wrong store is silent on the host you are staring at.
+
+<a id="o22"></a>
 
 #### O22 — Gate green
 
