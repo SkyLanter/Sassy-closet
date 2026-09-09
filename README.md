@@ -47,7 +47,7 @@ python3 excel-kit/tests/run_checks.py
 | `excel-kit/square/` | Headers-only import template (Track ON, mã = SKU) |
 | `excel-kit/PROMPTS.md` | Paste-ready Cloud Agent prompts |
 
-Prompts also live in `excel-kit/prompts/` (`BOUTIQUE_DESKTOP_EFFICIENT.md`, `BOUTIQUE_PHONE_SAFE.md`, `GF_CLOTHES_INTAKE.md`, `SAVED_CARD_AND_REAL_MINIBOSS_ASK_2026-09-07.md`, `CATALOG_EXPORT_CLONE_OFFICIAL_2026-09-09.md`). Sell-site JSON: `excel-kit/docs/SELL_CATALOG_CONTRACT.md` + `excel-kit/docs/CLONE_TO_OFFICIAL.md`.
+Prompts also live in `excel-kit/prompts/` (`BOUTIQUE_DESKTOP_EFFICIENT.md`, `BOUTIQUE_PHONE_SAFE.md`, `GF_CLOTHES_INTAKE.md`, `SAVED_CARD_AND_REAL_MINIBOSS_ASK_2026-09-07.md`, `CATALOG_EXPORT_CLONE_OFFICIAL_2026-09-09.md`). Sell-site JSON: `excel-kit/docs/SELL_CATALOG_CONTRACT.md` + `excel-kit/docs/CLONE_TO_OFFICIAL.md` + committed `out/sell-catalog.v1.json`.
 
 ## Intake site
 

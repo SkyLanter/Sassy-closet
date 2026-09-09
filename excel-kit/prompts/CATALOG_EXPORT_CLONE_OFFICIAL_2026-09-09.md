@@ -46,4 +46,4 @@ python3 excel-kit/scripts/validate_sell_catalog.py ./out/sell-catalog.v1.json
 python3 excel-kit/tests/run_checks.py
 ```
 
-Repo-root `/out/` is gitignored. Committed sample: `excel-kit/samples/sell-catalog.v1.json`.
+Committed artifact: `out/sell-catalog.v1.json` (other `/out/` files stay gitignored). Kit-local copy: `excel-kit/samples/sell-catalog.v1.json` (must match).

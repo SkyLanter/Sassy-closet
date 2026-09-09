@@ -318,6 +318,7 @@ CONTRACT
 - Omit cost, source_link, customer names. Colors text-only (no invented hex).
 - If the xlsx is missing, print run steps and exit 2 — do not invent rows.
 - Official stand-up later: docs/CLONE_TO_OFFICIAL.md (new Vercel project, never intake).
+- Committed artifact: out/sell-catalog.v1.json (allowlist only). Do not edit docs/ai-clothing-shop/**.
 
 STOP if you would invent a mã or edit Origin shop / intake Production.
 ```

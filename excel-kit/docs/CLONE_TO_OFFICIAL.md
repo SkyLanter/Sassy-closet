@@ -53,7 +53,7 @@ python3 excel-kit/scripts/export_sell_catalog.py \
 python3 excel-kit/scripts/validate_sell_catalog.py ./out/sell-catalog.v1.json
 ```
 
-Contract: `SELL_CATALOG_CONTRACT.md`. Sample (allowlist only): `excel-kit/samples/sell-catalog.v1.json`.
+Contract: `SELL_CATALOG_CONTRACT.md`. Committed catalog (allowlist only): `out/sell-catalog.v1.json`.
 
 On official `/admin`, use the shop’s **import catalog.v1** control when Origin lands it. Until that button exists, Mini Boss imports on Origin — **do not** fork shop code in this kit repo.
 

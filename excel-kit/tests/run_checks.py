@@ -199,7 +199,10 @@ def check_no_fake_inventory_in_git() -> None:
     for path in REPO.rglob("*"):
         if not path.is_file():
             continue
-        if ".git" in path.parts or "out" in path.parts or "__pycache__" in path.parts:
+        if ".git" in path.parts or "__pycache__" in path.parts:
+            continue
+        # Generated /out/ stays local except the committed catalog.v1 artifact.
+        if "out" in path.parts and path.name != "sell-catalog.v1.json":
             continue
         if path.suffix.lower() == ".xlsx":
             leaked.append(f"committed xlsx (forbidden): {path.relative_to(REPO)}")
@@ -865,6 +868,7 @@ SELL_CONTRACT = KIT / "docs" / "SELL_CATALOG_CONTRACT.md"
 SELL_CLONE = KIT / "docs" / "CLONE_TO_OFFICIAL.md"
 SELL_PROMPT = KIT / "prompts" / "CATALOG_EXPORT_CLONE_OFFICIAL_2026-09-09.md"
 SELL_SAMPLE = KIT / "samples" / "sell-catalog.v1.json"
+SELL_CATALOG = REPO / "out" / "sell-catalog.v1.json"
 
 
 def check_sell_catalog() -> None:
@@ -886,13 +890,13 @@ def check_sell_catalog() -> None:
         write_xlsx_fixture,
     )
 
-    for path in (SELL_CONTRACT, SELL_CLONE, SELL_PROMPT, SELL_EXPORT, SELL_VALIDATE):
+    for path in (SELL_CONTRACT, SELL_CLONE, SELL_PROMPT, SELL_EXPORT, SELL_VALIDATE, SELL_CATALOG):
         if not path.is_file():
             raise AssertionError(f"missing {path.relative_to(REPO)}")
 
     for doc in (SELL_CONTRACT, SELL_CLONE, SELL_PROMPT, KIT / "KIT.md", KIT / "PROMPTS.md"):
         text = doc.read_text(encoding="utf-8")
-        for needle in ("catalog.v1", "A01", "P02", "Hold"):
+        for needle in ("catalog.v1", "A01", "P02", "Hold", "out/sell-catalog.v1.json"):
             if needle not in text:
                 raise AssertionError(f"{doc.name} should mention {needle!r}")
     clone = SELL_CLONE.read_text(encoding="utf-8")
@@ -1093,16 +1097,24 @@ def check_sell_catalog() -> None:
         if tamper.returncode == 0:
             raise AssertionError("validator must reject invented A03")
 
+    catalog = _run([sys.executable, str(SELL_VALIDATE), str(SELL_CATALOG)])
+    if catalog.returncode != 0:
+        raise AssertionError(catalog.stdout + catalog.stderr)
+    catalog_doc = load_catalog_json(SELL_CATALOG)
+    validate_catalog(catalog_doc)
+    if [p["ma"] for p in catalog_doc["products"]] != list(SELL_ALLOWLIST):
+        raise AssertionError("committed out/sell-catalog.v1.json must be allowlist-only, allowlist order")
+    if any(p.get("priceUsd") != SELL_ALLOWLIST_PRICE_USD[p["ma"]] for p in catalog_doc["products"]):
+        raise AssertionError("committed catalog prices must match Boss allowlist (Hold=null)")
+
     if SELL_SAMPLE.is_file():
         sample = _run([sys.executable, str(SELL_VALIDATE), str(SELL_SAMPLE)])
         if sample.returncode != 0:
             raise AssertionError(sample.stdout + sample.stderr)
         sample_doc = load_catalog_json(SELL_SAMPLE)
         validate_catalog(sample_doc)
-        if [p["ma"] for p in sample_doc["products"]] != list(SELL_ALLOWLIST):
-            raise AssertionError("committed sample must be allowlist-only, allowlist order")
-        if any(p.get("priceUsd") != SELL_ALLOWLIST_PRICE_USD[p["ma"]] for p in sample_doc["products"]):
-            raise AssertionError("committed sample prices must match Boss allowlist (Hold=null)")
+        if sample_doc != catalog_doc:
+            raise AssertionError("excel-kit/samples/sell-catalog.v1.json must match out/sell-catalog.v1.json")
 
     print("sell catalog.v1 export + validate ok")
 

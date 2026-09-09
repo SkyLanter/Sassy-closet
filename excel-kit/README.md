@@ -26,7 +26,7 @@ excel-kit/
   docs/CLONE_TO_OFFICIAL.md       ← Boss: new Vercel shop, never intake
   scripts/export_sell_catalog.py  ← sassycloset.xlsx → catalog.v1 JSON
   scripts/validate_sell_catalog.py
-  samples/sell-catalog.v1.json    ← 10 known mãs only
+  samples/sell-catalog.v1.json    ← kit-local copy of the 10 known mãs
   KIT.md                         ← site env names (no secret values)
   templates/from_gf/             ← HOW_TO + INTAKE_TEMPLATE + example packets
   inbox/gf_intake_reply_templates.md
@@ -81,6 +81,7 @@ python3 excel-kit/scripts/export_sell_catalog.py \
   --photos-dir "$HOME/OneDrive/Documents/Sassy Closet/Photos" \
   -o ./out/sell-catalog.v1.json
 python3 excel-kit/scripts/validate_sell_catalog.py ./out/sell-catalog.v1.json
+# committed artifact: out/sell-catalog.v1.json
 ```
 
 Do not commit live inventory, customer names, secrets, or a filled Square CSV. Empty data sheets are intentional.

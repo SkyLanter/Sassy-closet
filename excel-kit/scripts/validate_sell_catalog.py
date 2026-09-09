@@ -3,7 +3,6 @@
 
 Usage:
   python3 excel-kit/scripts/validate_sell_catalog.py out/sell-catalog.v1.json
-  python3 excel-kit/scripts/validate_sell_catalog.py excel-kit/samples/sell-catalog.v1.json
 """
 
 from __future__ import annotations
