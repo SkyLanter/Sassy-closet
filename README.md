@@ -47,7 +47,9 @@ python3 excel-kit/tests/run_checks.py
 | `excel-kit/square/` | Headers-only import template (Track ON, mã = SKU) |
 | `excel-kit/PROMPTS.md` | Paste-ready Cloud Agent prompts |
 
-Prompts also live in `excel-kit/prompts/` (`BOUTIQUE_DESKTOP_EFFICIENT.md`, `BOUTIQUE_PHONE_SAFE.md`, `GF_CLOTHES_INTAKE.md`, `SAVED_CARD_AND_REAL_MINIBOSS_ASK_2026-09-07.md`).
+Prompts also live in `excel-kit/prompts/` (`BOUTIQUE_DESKTOP_EFFICIENT.md`, `BOUTIQUE_PHONE_SAFE.md`, `GF_CLOTHES_INTAKE.md`, `SAVED_CARD_AND_REAL_MINIBOSS_ASK_2026-09-07.md`, `AI_CLOTHING_SHOP_APPLY_TO_SELL_TEST.md`).
+
+AI clothing-shop learn notes (kit lane, sell-test apply, not Origin main): [`docs/ai-clothing-shop/`](docs/ai-clothing-shop/).
 
 ## Intake site
 
