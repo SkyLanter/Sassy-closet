@@ -104,6 +104,30 @@ describe("durable / local store", { concurrency: 1 }, () => {
     assert.ok(fs.existsSync(path.join(tmp, "photos", "A01", "001.jpg")));
   });
 
+  test("kind D mints D01 and does not invent extra mãs", async () => {
+    const saved = await saveSubmission({
+      kind: "D",
+      size: "",
+      link: "",
+      color: "Đen",
+      color_note: "",
+      pieces: [],
+      cost_usd: "12",
+      cost_cny: "80.52",
+      cost_currency: "USD",
+      sell_usd: "",
+      sell_cny: "",
+      sell_currency: "USD",
+      keep_photos: [],
+      photos: [],
+    });
+    assert.equal(saved.ma, "D01");
+    assert.equal(saved.kind, "D");
+    const listed = await listSubmissions();
+    assert.equal(listed.length, 1);
+    assert.equal(listed[0].ma, "D01");
+  });
+
   test("second save mints A02 and find-by-hash only matches the real photo", async () => {
     const first = Buffer.from("photo-one");
     const second = Buffer.from("photo-two");

@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { isKindCode } from "./kinds";
+import { isKindCode, kindLabel } from "./kinds";
 import { formatMa, maExists, nextMa, normalizeMa, parseHubMa } from "./mint";
 import { normalizeSourceLink } from "./source-link";
 import { sanitizeOnHandRows } from "./on-hand";
@@ -208,7 +208,7 @@ export async function exportCsv(): Promise<string> {
     [
       row.ma,
       row.kind,
-      kindVi(row.kind),
+      kindLabel(row.kind),
       row.size,
       row.color,
       row.color_note,
@@ -238,37 +238,6 @@ export async function exportCsv(): Promise<string> {
 
 export function storeHealth(): ReturnType<typeof storageStatus> {
   return storageStatus();
-}
-
-function kindVi(kind: KindCode): string {
-  switch (kind) {
-    case "A":
-      return "Áo";
-    case "Q":
-      return "Quần";
-    case "V":
-      return "Váy";
-    case "K":
-      return "Áo khoác";
-    case "G":
-      return "Giày";
-    case "B":
-      return "Túi";
-    case "P":
-      return "Phụ kiện";
-    case "H":
-      return "Tóc";
-    case "J":
-      return "Trang sức";
-    case "S":
-      return "Set đồ";
-    case "O":
-      return "Khác / Other";
-    default: {
-      const _never: never = kind;
-      return _never;
-    }
-  }
 }
 
 function csvCell(value: string): string {

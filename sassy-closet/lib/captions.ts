@@ -5,6 +5,7 @@ const BLURB_VI: Record<string, string> = {
   A: "Chiếc áo cưng xỉu 💕",
   Q: "Chiếc quần cưng xỉu 💕",
   V: "Chiếc váy cưng xỉu 💕",
+  D: "Chiếc đầm cưng xỉu 💕",
   K: "Áo khoác cưng xỉu 💕",
   G: "Đôi giày cưng xỉu 💕",
   B: "Chiếc túi cưng xỉu 💕",

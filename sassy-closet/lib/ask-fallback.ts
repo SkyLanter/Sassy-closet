@@ -1,4 +1,5 @@
 import { buildCaptionVi, kindColorsLine } from "./captions";
+import { KIND_CODES } from "./kinds";
 import { getSubmission, listSubmissions } from "./store";
 import type { AskCopy } from "./types";
 
@@ -80,6 +81,6 @@ export async function localAskAnswer(question: string): Promise<FallbackAnswer> 
 }
 
 function extractMa(question: string): string | null {
-  const match = question.toUpperCase().match(/\b([AQVKGBPHJSO]\d{2,3})\b/);
+  const match = question.toUpperCase().match(new RegExp(`\\b([${KIND_CODES.join("")}]\\d{2,3})\\b`));
   return match ? match[1] : null;
 }
