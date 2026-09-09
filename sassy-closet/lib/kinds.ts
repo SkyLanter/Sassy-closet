@@ -1,4 +1,4 @@
-export const KIND_CODES = ["A", "Q", "V", "K", "G", "B", "P", "H", "J", "S", "O"] as const;
+export const KIND_CODES = ["A", "Q", "V", "D", "K", "G", "B", "P", "H", "J", "S", "O"] as const;
 
 export type KindCode = (typeof KIND_CODES)[number];
 
@@ -12,6 +12,7 @@ export const KINDS: Kind[] = [
   { code: "A", label: "Áo", hint: "A" },
   { code: "Q", label: "Quần", hint: "Q" },
   { code: "V", label: "Váy", hint: "V" },
+  { code: "D", label: "Đầm / Dress", hint: "D" },
   { code: "K", label: "Áo khoác", hint: "K" },
   { code: "G", label: "Giày", hint: "G" },
   { code: "B", label: "Túi", hint: "B" },

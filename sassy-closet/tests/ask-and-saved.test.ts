@@ -13,6 +13,8 @@ afterEach(() => {
 test("caption starter is mã on line 1", () => {
   assert.equal(captionStarter("a01"), "A01");
   assert.equal(kindColorsLine({ kind: "A", color: "Kem, Xanh" }), "Áo · Kem, Xanh");
+  assert.equal(kindColorsLine({ kind: "D", color: "Đen" }), "Đầm / Dress · Đen");
+  assert.equal(kindColorsLine({ kind: "V", color: "Kem" }), "Váy · Kem");
   assert.equal(
     editDeepLink("https://sassy-closet.vercel.app/foo", "P05"),
     "https://sassy-closet.vercel.app/?ma=P05",
@@ -21,8 +23,12 @@ test("caption starter is mã on line 1", () => {
 
 test("mint next mã without inventing extras", () => {
   assert.deepEqual(parseHubMa("A01"), { kind: "A", n: 1 });
+  assert.deepEqual(parseHubMa("D01"), { kind: "D", n: 1 });
+  assert.deepEqual(parseHubMa("V01"), { kind: "V", n: 1 });
   assert.equal(nextMa("P", ["P01", "P02", "P05"]), "P06");
+  assert.equal(nextMa("D", ["D01"]), "D02");
   assert.equal(formatMa("A", 100), "A100");
+  assert.equal(parseHubMa("X01"), null);
 });
 
 test("ask stays waiting until reply when webhook envs exist", () => {

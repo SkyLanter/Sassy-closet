@@ -1,11 +1,11 @@
-import { isKindCode, type KindCode } from "./kinds";
+import { KIND_CODES, isKindCode, type KindCode } from "./kinds";
 
 export type ParsedMa = {
   kind: KindCode;
   n: number;
 };
 
-const MA_RE = /^([AQVKGBPHJSO])(\d{2,})$/i;
+const MA_RE = new RegExp(`^([${KIND_CODES.join("")}])(\\d{2,})$`, "i");
 
 export function parseHubMa(raw: string): ParsedMa | null {
   const match = raw.trim().toUpperCase().match(MA_RE);

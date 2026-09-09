@@ -7,6 +7,7 @@ import { FindMaCard } from "@/components/FindMaCard";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
 import { PhotoThumbs } from "@/components/PhotoThumbs";
 import { SavedCard } from "@/components/SavedCard";
+import { convertCnyToUsd, convertUsdToCny } from "@/lib/fx";
 import { COLORS, KINDS, SIZES, assertNever } from "@/lib/kinds";
 import { nextMa, parseHubMa } from "@/lib/mint";
 import { normalizeFindCode } from "@/lib/on-hand";
@@ -20,7 +21,7 @@ type PhotoDraft = {
 };
 
 export function IntakeApp({
-  initialFxRate: _initialFxRate,
+  initialFxRate,
   initialFxLabel,
 }: {
   initialFxRate: number;
@@ -45,6 +46,7 @@ export function IntakeApp({
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState<Submission | null>(null);
   const [knownMas, setKnownMas] = useState<string[]>([]);
+  const [fxRate] = useState(initialFxRate);
   const [fxLabel] = useState(initialFxLabel);
   const [findPreview, setFindPreview] = useState<string | null>(null);
   const [findMatches, setFindMatches] = useState<{ ma: string; kind: string; color: string }[]>([]);
@@ -343,6 +345,7 @@ export function IntakeApp({
           onSaveClick,
           canSave,
           busy,
+          fxRate,
           fxLabel,
           findPreview,
           findMatches,
@@ -404,6 +407,7 @@ function renderTab(props: {
   onSaveClick: () => Promise<void>;
   canSave: boolean;
   busy: boolean;
+  fxRate: number;
   fxLabel: string;
   findPreview: string | null;
   findMatches: { ma: string; kind: string; color: string }[];
@@ -507,6 +511,7 @@ function ItemForm(props: {
   onSaveClick: () => Promise<void>;
   canSave: boolean;
   busy: boolean;
+  fxRate: number;
   fxLabel: string;
 }) {
   return (
@@ -678,14 +683,24 @@ function ItemForm(props: {
             <input
               data-testid="cost-cny"
               value={props.costCny}
-              onChange={(event) => props.setCostCny(event.target.value)}
+              onChange={(event) => {
+                const value = event.target.value;
+                props.setCostCny(value);
+                const usd = convertCnyToUsd(value, props.fxRate);
+                if (usd !== null) props.setCostUsd(usd);
+              }}
               placeholder="¥ CNY"
               className="h-11 rounded-xl bg-white px-3 ring-1 ring-rose-100"
             />
             <input
               data-testid="cost-usd"
               value={props.costUsd}
-              onChange={(event) => props.setCostUsd(event.target.value)}
+              onChange={(event) => {
+                const value = event.target.value;
+                props.setCostUsd(value);
+                const cny = convertUsdToCny(value, props.fxRate);
+                if (cny !== null) props.setCostCny(cny);
+              }}
               placeholder="$ USD"
               className="h-11 rounded-xl bg-white px-3 ring-1 ring-rose-100"
             />
@@ -697,14 +712,24 @@ function ItemForm(props: {
             <input
               data-testid="sell-cny"
               value={props.sellCny}
-              onChange={(event) => props.setSellCny(event.target.value)}
+              onChange={(event) => {
+                const value = event.target.value;
+                props.setSellCny(value);
+                const usd = convertCnyToUsd(value, props.fxRate);
+                if (usd !== null) props.setSellUsd(usd);
+              }}
               placeholder="¥ CNY"
               className="h-11 rounded-xl bg-white px-3 ring-1 ring-rose-100"
             />
             <input
               data-testid="sell-usd"
               value={props.sellUsd}
-              onChange={(event) => props.setSellUsd(event.target.value)}
+              onChange={(event) => {
+                const value = event.target.value;
+                props.setSellUsd(value);
+                const cny = convertUsdToCny(value, props.fxRate);
+                if (cny !== null) props.setSellCny(cny);
+              }}
               placeholder="$ USD"
               className="h-11 rounded-xl bg-white px-3 ring-1 ring-rose-100"
             />
