@@ -146,7 +146,7 @@ python3 excel-kit/scripts/validate_sell_catalog.py ./out/sell-catalog.v1.json
 
 Committed artifact (allowlist only, no invented codes): `out/sell-catalog.v1.json`. Other files under `/out/` stay gitignored. `excel-kit/samples/sell-catalog.v1.json` is the same 10-mã copy for kit-local browsing and must match the committed artifact.
 
-If the workbook is missing, the exporter exits `2` and prints the run steps. It does **not** emit a fake catalog.
+If the workbook is missing, the exporter exits `2` and prints the run steps. It does **not** emit a fake catalog. If `-w` is set and that file is missing, exit `2` — do **not** fall back to OneDrive / env / cwd (a typo must not export a different book).
 
 ## Related
 

@@ -10,6 +10,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+import os
 import py_compile
 import subprocess
 import sys
@@ -91,13 +92,19 @@ FAKE_TOKENS = (
 )
 
 
-def _run(args: list[str], *, cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
+def _run(
+    args: list[str],
+    *,
+    cwd: Path | None = None,
+    env: dict[str, str] | None = None,
+) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         args,
         cwd=cwd or REPO,
         text=True,
         capture_output=True,
         check=False,
+        env=env,
     )
 
 
@@ -877,11 +884,14 @@ def check_sell_catalog() -> None:
         SELL_ALLOWLIST,
         SELL_ALLOWLIST_PRICE_USD,
         CatalogError,
+        ENV_CATALOG,
         allowlist_fixture_rows,
         catalog_envelope,
         export_products,
         format_sell_ma,
         load_catalog_json,
+        locate_catalog_xlsx,
+        candidate_catalog_paths,
         parse_sell_ma,
         parse_colors_text,
         resolve_sell_status_and_price,
@@ -952,11 +962,65 @@ def check_sell_catalog() -> None:
     miss_blob = missing_xlsx.stdout + missing_xlsx.stderr
     if "do not invent" not in miss_blob.lower() and "never invent" not in miss_blob.lower():
         raise AssertionError("missing xlsx must print run steps / never invent")
+    if "no-such-sassycloset.xlsx" not in miss_blob:
+        raise AssertionError("missing -w path must be named in the error")
+
+    stale_explicit = Path("/tmp/typo-no-such-sassycloset.xlsx")
+    assert candidate_catalog_paths(stale_explicit) == [stale_explicit]
+    assert locate_catalog_xlsx(stale_explicit) is None
 
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
         book = tmp_path / "sassycloset.xlsx"
         write_xlsx_fixture(book, allowlist_fixture_rows())
+        decoy_env = {**os.environ, ENV_CATALOG: str(book)}
+        stale_w = tmp_path / "typo-sassycloset.xlsx"
+        stale_out = tmp_path / "stale-fallback.json"
+        stale = _run(
+            [
+                sys.executable,
+                str(SELL_EXPORT),
+                "-w",
+                str(stale_w),
+                "-o",
+                str(stale_out),
+            ],
+            cwd=tmp_path,
+            env=decoy_env,
+        )
+        if stale.returncode != 2:
+            raise AssertionError(
+                f"explicit -w missing must exit 2 even if env/cwd have a book, got {stale.returncode}\n"
+                f"{stale.stdout}\n{stale.stderr}"
+            )
+        if stale_out.exists():
+            raise AssertionError("must not write catalog from a fallback workbook")
+        stale_blob = stale.stdout + stale.stderr
+        if "typo-sassycloset.xlsx" not in stale_blob:
+            raise AssertionError("stale -w must name the missing path")
+        if "do not invent" not in stale_blob.lower() and "never invent" not in stale_blob.lower():
+            raise AssertionError("stale -w must print never-invent run steps")
+
+        discovered = tmp_path / "from-env.json"
+        env_ok = _run(
+            [
+                sys.executable,
+                str(SELL_EXPORT),
+                "-o",
+                str(discovered),
+                "--exported-at",
+                "2026-09-09T00:00:00Z",
+            ],
+            cwd=tmp_path,
+            env=decoy_env,
+        )
+        if env_ok.returncode != 0:
+            raise AssertionError(
+                f"omitted -w should still find SASSY_CATALOG_XLSX:\n{env_ok.stdout}\n{env_ok.stderr}"
+            )
+        if not discovered.is_file():
+            raise AssertionError("env discovery should write catalog when -w is omitted")
+
         photos = tmp_path / "Photos"
         (photos / "A01").mkdir(parents=True)
         (photos / "A01" / "001.jpg").write_bytes(b"x")

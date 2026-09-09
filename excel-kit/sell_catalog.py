@@ -399,9 +399,15 @@ def catalog_envelope(
 
 
 def candidate_catalog_paths(explicit: Path | None = None) -> list[Path]:
-    found: list[Path] = []
+    """Workbook candidates.
+
+    An explicit ``-w`` path is the only candidate (typo/stale must not
+    silently pick OneDrive, env, or cwd). Search the hub locations only
+    when ``-w`` is omitted.
+    """
     if explicit is not None:
-        found.append(Path(explicit).expanduser())
+        return [Path(explicit).expanduser()]
+    found: list[Path] = []
     for key in (ENV_CATALOG, ENV_CATALOG_ALT):
         env = os.environ.get(key)
         if env:

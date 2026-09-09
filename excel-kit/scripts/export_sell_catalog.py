@@ -73,6 +73,8 @@ def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     workbook = locate_catalog_xlsx(args.workbook)
     if workbook is None:
+        if args.workbook is not None:
+            print(f"error: workbook not found: {args.workbook.expanduser()}", file=sys.stderr)
         print(MISSING_XLSX_STEPS, file=sys.stderr)
         return 2
     photos = args.photos_dir.expanduser() if args.photos_dir else None
