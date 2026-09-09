@@ -7,7 +7,7 @@
 **Date researched / crawled:** 2026-09-09.  
 **This file does not assign stock, mint a mã, Save in Square, post to Facebook, or redesign the boutique.**
 
-Kelly Ying *look* is locked (`01` §1.3, §11). Fancy motion is locked (`07` §11.0; `09` §0). This note is the **motion reliability** book: boutique micro-interactions that feel premium **because they tell the truth**, not because they add more movement.
+Kelly Ying *look* is locked (`01` §1.3, §11). Fancy motion is locked (`07` §11.0; `09` §0). This note exists to **improve the live sell-test**, not to admire it: boutique micro-interactions that feel premium **because they tell the truth**. Mini Boss pastes **§18** into the Origin agent. Do not paraphrase §18 into “make it nicer.”
 
 ---
 
@@ -545,8 +545,10 @@ Motion-specific:
 ## 13. APPLY — [sassy-closet-shop.vercel.app](https://sassy-closet-shop.vercel.app)
 
 **Owner:** Origin `sassy-closet-shop` (not this kit).  
-**Look:** Kelly Ying rhythm. **Motion:** keep the named keyframes; make them **tell the truth**.  
+**Look:** Kelly Ying rhythm. **Job:** ship the five site fixes in **§18** (CSS + named components + verify URLs).  
 **Mã:** allowlist only. **No** Square Save. **No** FB Send. **No** cart.
+
+Human-readable ticks below. **Paste block for the Origin agent is §18 — copy that, not this section.**
 
 ### 13.0 Do not touch (lock — tick first)
 
@@ -744,20 +746,282 @@ Theme posts that claim “+X% conversion from microinteractions” without a pub
 
 ---
 
-## 18. One-page APPLY card (tear-off)
+## 18. PASTE INTO ORIGIN AGENT (do not paraphrase)
+
+Copy everything between the markers into a Cloud Agent on the **Origin `sassy-closet-shop` repo** (the git behind https://sassy-closet-shop.vercel.app). Not this kit. Not intake `sassy-closet/`.
 
 ```text
-SELL-TEST MOTION — Sassy Closet lookbook
-Look: Kelly Ying rhythm (Cormorant / Be Vietnam / ink-gold-paper). NO cart.
-Keep: announce-fade · shimmer-slide · cta-flash · gold rule · VT names
-Category: Featured tabs filter the TEN. Empty /c/quan stays empty. No Q01.
-Color: TEXT chips only when stored. Filter THIS mã. 150–250ms fade.
-Lightbox: PR #14 behavior, lookbook chrome. Esc / focus / no other folder.
-Reduce: kill loops + VT zoom + 1.08 hover. Instant state. Header clickable.
-Hero VT name = this mã (A01→product-A01). Never morph into the neighbor.
-Hold P02/P05: word Hold, no $. Message stays the CTA.
-Never invent mã / hex / $ / V984 / $10-over-$300.
-Store: Facebook inbox. Bots draft. No Save. No Post.
+===== BEGIN ORIGIN PASTE — motion UX (LEARN 10) =====
+
+You are editing Origin sassy-closet-shop. Ship FIVE concrete site improvements
+on the live Kelly Ying lookbook. Do not restyle. Do not invent mã.
+
+HOST: https://sassy-closet-shop.vercel.app
+LAW: Facebook inbox is the store. No cart. No Square Save. No FB Post/Send.
+ALLOWLIST ONLY (do not add a tile): A01 S01 P01 P02 P03 P04 P05 K01 H01 A02
+HOLD (no $): P02 P05
+PRICES: A01 $25 · S01 $28 · P01 $5 · P03 $18 · P04 $13 · K01 $37 · H01 $8 · A02 $22
+LOOK LOCK: Cormorant Garamond + Be Vietnam Pro; paper / ink / gold / blush;
+ma-mark; 11px uppercase tracking; gold h-px underline; announce-fade;
+shimmer + shimmer-slide; cta-shine + cta-flash; rounded-full ink Message CTAs.
+Do NOT switch to intake rose / Allura / Nunito. Do NOT add Shopify cart.
+Do NOT copy Kelly Ying V984 codes or “$10 shipping on $300+”.
+
+FIND FILES (rg — names may differ; match these strings, then edit those files):
+
+  rg -n "announce-fade|shimmer-slide|cta-flash|cta-shine|prefers-reduced-motion" 
+  rg -n "Filter featured collection|view-transition-name:product-|site-header"
+  rg -n "group-hover:scale-\\[1\\.08\\]|group-hover:-translate-y-1.5"
+  rg -n "opacity-0" --glob "*.tsx"
+  rg -n "Facebook livestream|cta-shine"
+
+Expected App Router shape (use what exists):
+  app/globals.css          (or the stylesheet that holds @keyframes announce-fade)
+  app/layout.tsx           (html font variables, sticky header)
+  app/page.tsx             (home hero + Featured)
+  app/m/[ma]/page.tsx      (PDP)
+  app/c/[slug]/page.tsx    (category)
+  components/*Header*      (style view-transition-name:site-header)
+  components/*Card* / *Tile* / *Product*   (shimmer + product-{MA})
+  components/*Featured* / *Board* / home filter tabs
+  components/*Cta* / Message link (class cta-shine)
+
+If a file is missing, create the smallest new file next to the PDP — do not
+invent a second design system.
+
+────────────────────────────────────────
+FIX 1 — CSS motion (globals / motion stylesheet)
+────────────────────────────────────────
+Keep the three keyframes exactly (do not rename, do not delete):
+
+  @keyframes announce-fade { 0%,12%{opacity:0} 20%,80%{opacity:1} 92%,to{opacity:0} }
+  @keyframes shimmer-slide { 0%{background-position:120% 0} to{background-position:-20% 0} }
+  @keyframes cta-flash { to{transform:translate(120%)} }
+
+PATCH A — stop infinite shimmer unless the OS wants motion.
+Move the line that currently is (live 2026-09-09):
+
+  .shimmer{background-size:200% 100%;animation:1.3s ease-in-out infinite shimmer-slide}
+
+into:
+
+  @media (prefers-reduced-motion: no-preference) {
+    .shimmer { background-size: 200% 100%; animation: 1.3s ease-in-out infinite shimmer-slide; }
+    .announce-fade { animation: 4.2s ease-in-out announce-fade; }
+    .cta-shine:hover:after { animation: 0.7s cta-flash; }
+  }
+
+Keep .shimmer gradient + .cta-shine:after shine layer as they are (static paint).
+
+PATCH B — expand the existing reduce query. Today it is:
+
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    .announce-fade,.shimmer,.cta-shine:hover:after{animation:none!important}
+    ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}
+  }
+
+Keep those lines. ADD (so hover lift/zoom dies — live gap MOT-03):
+
+  @media (prefers-reduced-motion: reduce) {
+    .group:hover [class*="group-hover:-translate-y"],
+    .group:hover [class*="group-hover:scale"] {
+      transform: none !important;
+      translate: none !important;
+      scale: none !important;
+    }
+    .group:hover [class*="group-hover:shadow"] { box-shadow: none !important; }
+    .group:hover [class*="scale-x-0"],
+    .group:hover [class*="group-hover:scale-x-100"] {
+      transform: none !important;
+    }
+  }
+
+Safer equivalent if you own the class names: on the card wrapper that has
+`group-hover:-translate-y-1.5` and the img that has `group-hover:scale-[1.08]`,
+gate those two Tailwind classes behind a `motion-safe:` prefix
+(`motion-safe:group-hover:-translate-y-1.5`, `motion-safe:group-hover:scale-[1.08]`,
+`motion-safe:duration-[800ms]`, `motion-safe:group-hover:scale-x-100`).
+Same for editorial tiles `group-hover:scale-105` / `duration-700`.
+Prefer motion-safe: prefixes over a brittle !important club.
+
+PATCH C — opt documents into MPA view transitions (both layout + pages):
+
+  @view-transition { navigation: auto; }
+
+Keep existing:
+  ::view-transition { pointer-events: none }
+  ::view-transition-group(site-header) { z-index: 100; animation: none }
+  ::view-transition-old(site-header) { display: none }
+  ::view-transition-new(site-header) { animation: none }
+
+Do not animate the header. Do not remove pointer-events:none.
+
+────────────────────────────────────────
+FIX 2 — Product card: covers must paint; VT name stays on THIS mã
+────────────────────────────────────────
+File: the component that renders
+  <a class="group block" href="/m/A01">
+    <div class="… group-hover:-translate-y-1.5 …">
+      <div class="relative aspect-[3/4] …" style="view-transition-name:product-A01">
+        <div class="shimmer absolute inset-0 z-[1]"></div>
+        <img … class="… group-hover:scale-[1.08] opacity-0" />
+
+DO:
+  1. REMOVE `opacity-0` from the cover <img>. Covers must be visible without JS.
+     If you fade-in on load, start at opacity-100, or use opacity-0 ONLY until
+     onLoad and never leave it at 0 when JS is late. bg-[#f3f1ee] is the
+     placeholder, not an invisible photo.
+  2. KEEP `style={{ viewTransitionName: `product-${ma}` }}` on the aspect-[3/4]
+     wrapper (not on the <a>, not on the related-rail of a different mã).
+  3. KEEP .shimmer, gold hairline `h-0.5 origin-left scale-x-0 … group-hover:scale-x-100`,
+     Available (bg-ink) / Hold (gold) badge + sr-only “Status: ”, ma-mark, price
+     or “Inbox for price”, “Message to buy”.
+  4. Badge must stay readable on top of shimmer (z-[2] stays). Hold P02/P05
+     must still say Hold with no dollar.
+
+────────────────────────────────────────
+FIX 3 — PDP hero: same-mã view transition + lightbox
+────────────────────────────────────────
+File: app/m/[ma]/page.tsx (or ProductDetail / Gallery child).
+Live /m/A01 hero TODAY (broken morph):
+
+  <div class="relative overflow-hidden bg-[#f3f1ee]">
+    <div style="opacity:1;transform:none">
+      <img src="/products/A01/cover.jpg" alt="A01. TOP" class="aspect-[3/4] w-full object-cover "/>
+    </div>
+  </div>
+
+Related rail on that page sets view-transition-name:product-A02 — WRONG target
+if the user came from A01.
+
+DO:
+  1. Put view-transition-name: product-{THIS mã} on the PDP hero wrapper
+     (the aspect-[3/4] / bg-[#f3f1ee] box around `/products/{ma}/cover.jpg`).
+     /m/A01 → product-A01. /m/P02 → product-P02. Never product-A02 on A01’s hero.
+  2. Related-rail tiles keep product-{neighbor mã} only (A02 card = product-A02).
+  3. ADD a lookbook lightbox. New file e.g. components/PhotoLightbox.tsx
+     (do not import intake rose). Wrap the hero <img> in <button type="button"
+     aria-label="Xem ảnh lớn · View larger"> — not a bare img onclick.
+
+     Lightbox contract (steal behavior from kit PhotoLightbox, restyle):
+       - createPortal to document.body
+       - role="dialog" aria-modal="true" aria-labelledby=…
+       - veil: bg-ink/70 (NOT bg-rose-950/70)
+       - image: object-contain max-h-[88dvh] rounded (existing radius language)
+         ring in paper/gold, not rose
+       - close: 44×44 button, ink/paper, top-right, aria-label="Đóng"
+       - Esc + backdrop + ✕
+       - focus close on open; restore document.activeElement on close
+       - lock document.body.style.overflow
+       - close via setTimeout(0) so the click does not hit the sticky Message CTA
+       - reduced-motion: no scale pop; instant veil
+       - gallery set = current mã + current color filter only
+       - src list = images that already 200 on this host. Today that is
+         `/products/{MA}/cover.jpg`. Do NOT invent /products/A01/001.jpg
+         because OneDrive HQ listed 001.jpg (that URL 404’d).
+       - arrows/swipe only inside this mã’s set. Never wrap to A02.
+     Sticky footer Message {MA} (class cta-shine, Page id 61594312648057)
+     must work after close.
+
+────────────────────────────────────────
+FIX 4 — Featured category switch (home tablist)
+────────────────────────────────────────
+File: the client component that renders
+  role="tablist" aria-label="Filter featured collection"
+  buttons: All 10 · Tops 2 · Sets 1 · Accessories 5 · Jackets 1 · Hair 1
+  + “N pieces” + <ul class="grid grid-cols-2 …">
+
+Live tabs are <button role="tab"> with gold h-px only on the selected All tab.
+
+DO:
+  1. Keep those six labels and the counts. Counts must stay math on the TEN.
+     Tops = A01+A02. Accessories = P01 P02 P03 P04 P05 (P02+P05 stay Hold).
+     Do not hide Holds to make Available look fuller.
+  2. Wire APG tabs: aria-selected, aria-controls → the grid id, keyboard
+     Left/Right (and Home/End). One tabpanel = the <ul> grid.
+  3. Gold underline (`absolute inset-x-0 bottom-0 h-px bg-gold`) moves to the
+     selected tab. transition-colors duration-300 may stay.
+     Filter motion: ≤200ms opacity on the <ul> wrapper (live already has
+     style="opacity:1;transform:none" — likely motion lib). If you use
+     document.startViewTransition around the filter setState, SKIP it when
+     matchMedia('(prefers-reduced-motion: reduce)').matches.
+  4. Reduce Motion: instant grid swap; no leftover opacity:0 ghost tiles.
+  5. Empty kinds stay empty. /c/quan must NOT gain a fake Q01. Home filter
+     must not invent Sleepwear / Kids / Cosmetics to match Kelly Ying.
+  6. “N pieces” text matches the visible count (All→10, Tops→2, Accessories→5).
+  7. Do not change /c/ao /c/set /c/phu-kien /c/ao-khoac /c/toc routes except
+     to reuse the same card component (so VT names + shimmer stay consistent).
+
+────────────────────────────────────────
+FIX 5 — Color → gallery (PDP), text only, this mã
+────────────────────────────────────────
+File: same PDP as FIX 3. Data: product.colors[] and product.images[{src,colorId}].
+
+Live 2026-09-09: every row colors: []. Empty = NO chip row. That is a pass.
+Do not paint Kem/Xanh chips until THAT product’s Blob/admin row has them.
+
+WHEN colors.length > 0 (admin already stored names — do not invent):
+  1. Render TEXT pills under the hero, lookbook chrome:
+       rounded-full px-3 min-h-10 text-[11px] uppercase tracking-[0.14em]
+       selected: text-ink + gold h-px (same as Featured tabs)
+       idle: text-muted hover:text-ink
+       aria-pressed + visible name (Kem, Xanh, Hoa, Đỏ, Hồng, Đen, Chấm bi)
+     NO hex circles. hoa and cham-bi stay words. No invented hex.
+  2. Recorded ids you may show IF present on that row (do not add missing ones):
+       A01 kem,xanh · S01 kem · P01 hoa · P02 do · P03 den,do · P04 kem
+       P05 hong,do,xanh · A02 cham-bi · K01 none · H01 none
+  3. On activate: filter hero + thumbs + lightbox to images where
+     colorId === selected.id OR colorId == null (shared).
+     Crossfade ONLY the <img> opacity 150–250ms
+     (motion-safe: / @media no-preference). Reduce = instant src swap.
+     Do not change mã, $, Hold, or route. Size chips (if any) do not swap photos.
+  4. Missing photos for a selected color: keep the muted paper box +
+     existing “Message {MA} for real photos” line. NEVER swap in
+     /products/A02/cover.jpg on /m/A01. NEVER mint A03 for “the other color”.
+
+JS: if you call startViewTransition for color or tabs:
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce || !document.startViewTransition) { update(); }
+  else { document.startViewTransition(update); }
+
+────────────────────────────────────────
+HARD STOPS
+────────────────────────────────────────
+- No new mã. Next-mã A03 / Q01 / AO001 stay unpublished.
+- No cart, bag icon, Shop now, flying-to-cart.
+- No warehouse ticker, no fake 24h countdown, no “1 in warehouse” animation.
+- Do not rewrite P02/P05 to $23. Do not put e.tb.cn, ¥, or customer names in client JS.
+- Do not restyle fonts, gold, or Message CTAs “to look cleaner”.
+- Do not touch https://sassy-closet.vercel.app (intake).
+- Do not Production-promote without Boss. Open a Preview.
+
+────────────────────────────────────────
+VERIFY (you click these; do not skip)
+────────────────────────────────────────
+Desktop (hover) + phone (no hover) + OS Reduce Motion on:
+
+1. /  Featured All→Tops→Accessories→All. Counts 10 / 2 / 5 / 10.
+   P02 + P05 still Hold · Inbox for price. Keyboard arrows move tabs.
+2. /  card A01 → /m/A01. In Chrome with motion ON, A01 tile morphs into
+   A01 hero (product-A01 → product-A01). A02 related tile is NOT the morph.
+3. /m/A01 cover is VISIBLE (no opacity-0 blank). Tap opens lightbox.
+   Esc / ✕ / backdrop close. Focus returns. Message A01 still works.
+   Lightbox src is /products/A01/cover.jpg only (unless more files 200).
+4. /c/ao = A01 $25 + A02 $22. /c/quan empty, no invented pants.
+5. /m/P02 and /m/P05: no dollar. Message still opens
+   facebook.com/profile.php?id=61594312648057
+6. Reduce Motion: no shimmer slide, no announce loop, no 1.08 zoom,
+   no card lift, no VT zoom. Tabs + Message + lightbox still work.
+7. If any mã has colors[] in admin (do not invent): text chips filter
+   that gallery; Reduce Motion instant.
+8. View-source / network: no e.tb.cn, no ¥, no A03, no V984.
+
+Commit on an Origin cursor/* branch. Preview URL in the PR. Do not merge.
+
+===== END ORIGIN PASTE =====
 ```
+
+Mini Boss: copy the block above as the **entire** Origin prompt. Do not add “also make it more premium.” The five fixes *are* the premium.
 
 End of 10.
