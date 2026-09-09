@@ -1,12 +1,14 @@
 # 11 — Vercel Blob admin QA (Add / Edit / rename / persist / cache / Hold / per-color)
 
-**LEARN TRACK (Ultra burn)** · learn → **run** · Next.js App Router + Vercel Blob.
+**LEARN TRACK (Ultra burn)** · learn → **improve sell-test** · Next.js App Router + Vercel Blob.
 
-This chapter is the **QA pack** for boutique admin: concrete curl / Node / browser scripts and print-and-tick checklists. It does **not** change Origin shop code, intake Production, or Square. Sibling architecture lives in [`04-next-blob-catalog-arch.md`](./04-next-blob-catalog-arch.md) (ISR + Blob clocks). Sibling ops live in [`03-tiny-boutique-admin.md`](./03-tiny-boutique-admin.md) (add / edit / rename law). Sibling media lives in [`05-ai-product-media.md`](./05-ai-product-media.md) (per-color bind). This file is the **pass/fail harness** those notes assume.
+This chapter is the **sell-test APPLY pack**. Origin `sassy-closet-shop` must land the [§18 admin/Blob fix list](#18-origin-adminblob-fix-list--prevent-silent-save--cache-drift) so Save cannot look green while Blob or public HTML stays old. The kit **does not fork** Origin shop code — it ships the fail-until-green gate in [`qa/qa_selltest_origin_gate.py`](./qa/qa_selltest_origin_gate.py). Sibling clocks live in [`04-next-blob-catalog-arch.md`](./04-next-blob-catalog-arch.md). Sibling ops live in [`03-tiny-boutique-admin.md`](./03-tiny-boutique-admin.md). Sibling media lives in [`05-ai-product-media.md`](./05-ai-product-media.md).
 
-**Never invent mã.** The only sell-site codes this lane may name are the Boss allowlist of ten. Admin “Next mã A03” is a suggestion, not a test fixture. Do not POST a new live row to Production to “have something to QA.” [[S1]](#s1-sell-catalog-contract)
+**Kelly Ying look stays.** Improving sell-test means **Save + Blob + cache correctness**, not a restyle. Do not swap paper/blush/gold + Messenger/Zelle/livestream for Inter / dark luxury / Shopify Horizon. Do not paste intake Allura / `#D82B60` onto the shop to “match.” Lock: [§1.5](#15-kelly-ying-look-lock--do-not-restyle).
 
-Written 2026-09-09 against `main` @ `ba33024` plus the open kit handoff on [PR #18](https://github.com/SkyLanter/Sassy-closet/pull/18). Live headers below were fetched the same day (sell-test + intake). Granola MCP was not signed in; Slack / Linear / Notion had no extra QA script. Shop law is taken from repo contracts + live HTML, not from a recalled conversation.
+**Never invent mã.** The only sell-site codes this lane may name are the Boss allowlist of ten. Admin “Next mã A03” / **Add A03** is a publish invitation — the Origin gate **fails** until that tile cannot Save. Do not POST a new live row to Production to “have something to QA.” [[S1]](#s1-sell-catalog-contract)
+
+Written 2026-09-09 against `main` @ `ba33024` plus the open kit handoff on [PR #18](https://github.com/SkyLanter/Sassy-closet/pull/18). Live headers and the Origin gate were run the same day (sell-test + intake). Granola MCP was unauthorized; Slack had no extra Kelly Ying script. Shop law is repo contracts + live HTML.
 
 ---
 
@@ -15,6 +17,7 @@ Written 2026-09-09 against `main` @ `ba33024` plus the open kit handoff on [PR #
 | If you need… | Jump to |
 | --- | --- |
 | What you may mutate vs read-only | [§1 Surfaces](#1-surfaces--what-qa-may-touch) |
+| Kelly Ying look lock | [§1.5](#15-kelly-ying-look-lock--do-not-restyle) |
 | App Router + Blob map | [§3 System under test](#3-system-under-test--app-router--blob) |
 | Preflight before any Save | [§4 QA-00](#4-qa-00--preflight) |
 | Add mã | [§5 QA-A](#5-qa-a--add-mã) |
@@ -26,10 +29,12 @@ Written 2026-09-09 against `main` @ `ba33024` plus the open kit handoff on [PR #
 | Per-color photos | [§11 QA-G](#11-qa-g--per-color-photos) |
 | One golden path | [§12](#12-golden-path--90-minutes-sell-test--local-intake) |
 | Printable ticks | [§15](#15-printable-checklists) |
+| **Executable Origin gate** | [§17](#17-executable-qa--fails-until-origin-lands-18) |
+| **Origin admin/Blob fix list** | [§18](#18-origin-adminblob-fix-list--prevent-silent-save--cache-drift) |
 
-**Default stance:** live sell-test and intake Production are **read-only** until Boss says yes in `#shop-decisions`. Mutation scripts run against **local** `SASSY_DATA_DIR` (intake) or a **Preview** shop — never invent a Production mã to fill a hole.
+**Default stance:** live sell-test and intake Production are **read-only** until Boss says yes in `#shop-decisions`. Mutation scripts run against **local** `SASSY_DATA_DIR` (intake) or a **Preview** shop — never invent a Production mã to fill a hole. The [§17 gate](#17-executable-qa--fails-until-origin-lands-18) is read-only and **must stay red** on Production until Origin lands §18.
 
-A screenshot of `/admin` is **not** a pass. Headers, bytes, and a second GET after Save are.
+A screenshot of `/admin` is **not** a pass. Headers, bytes, a Save **receipt**, and a second public GET after Save are.
 
 ---
 
@@ -59,6 +64,20 @@ Hard stops on every script:
 - Never Square Save / Facebook Post-Send from QA.
 - Never commit `BLOB_*` **values**, Square tokens, or customer names.
 - Never treat intake `nextMa()` or admin **Next mã A03** as an assigned sell-site code.
+
+---
+
+## 1.5 Kelly Ying look lock — do not restyle
+
+Kelly Ying Boutique (Garden Grove, CA) is the **feel** reference: pink/orchid boutique, Facebook livestream, Messenger-first, diaspora VN–EN, Zelle — not luxury-minimal Shopify. Sell-test already has the Sassy Closet equivalent. **This LEARN does not change that look.**
+
+| Surface | Locked chrome (2026-09-09 live) | Forbidden “upgrade” |
+| --- | --- | --- |
+| Customer `/` `/c/*` `/m/{MA}` | `Facebook livestream` · Messenger · Zelle · Page [`profile.php?id=61594312648057`](https://www.facebook.com/profile.php?id=61594312648057) · `Message to buy` · `bg-paper` `text-ink` `border-gold` `ma-mark` `rounded-full` · Hold `Inbox for price` | Inter, Shopify Horizon, dark luxury, cart, named customer color chips, invented countdown |
+| `/admin` | Paper/blush/gold (`bg-paper` `bg-blush` `border-gold` `text-ink`) · `Test only · not in the main nav` · `Storage: Vercel Blob` · hex **boxes only** (“Boxes only — no names on the swatches”) · `Save {MA}` | Horizon admin, Allura/`#D82B60` pasted from intake, customer-facing hex **names** |
+| Intake (this repo) | Allura + Nunito + `#D82B60` · `rounded-full` pills | Unrelated to sell-test CSS — do not steal intake DNS or restyle the shop to match |
+
+`--look` in the [§17 gate](#17-executable-qa--fails-until-origin-lands-18) asserts the sell-test column. Exit **2** means chrome drifted — restore look **before** any cache work. Exit **1** (gate red, look green) is the expected Production state until §18 lands. [[S4]](#s4-live-2026-09-09) [[S33]](#s33-look-lock-2026-09-09)
 
 ---
 
@@ -167,7 +186,20 @@ Recommended shop admin contract (from 04; not implemented in this repo):
 | POST | `/api/admin/revalidate` (if landed) | Same marks; still warm the URL |
 | POST | `/api/admin/catalog/import` | Reject extras; then revalidate **all** public paths |
 
-No public `GET /api/catalog` on sell-test (404, and that 404 is itself cached). After adding a route later, a **cached 404** can keep serving until that exact path is revalidated. [[S4]](#s4-live-2026-09-09) [[S11]](#s11-next-isr)
+No public `GET /api/catalog` on sell-test (404, and that 404 is itself cached — 2026-09-09 `HIT` age ~2200s). After adding a route later, a **cached 404** can keep serving until that exact path is revalidated. [[S4]](#s4-live-2026-09-09) [[S11]](#s11-next-isr)
+
+**Sell-test defects this LEARN closes (Origin, not this git):**
+
+| Live 2026-09-09 | Why Save feels silent | §18 fix |
+| --- | --- | --- |
+| Public `/` `/m/*` ISR `STALE` / `HIT` | First GET after Save can be last-good HTML | F3–F6 `revalidatePath` + two warms + receipt |
+| `/products/A01/cover.jpg` `HIT` age 2000+ · bare `<img src>` | In-place JPEG replace never changes the URL | F7 hashed path or `?v=` |
+| `/admin` **Add A03** / Next-grid Q01 V01… | Operator can mint a public row | F8 disable + 400 |
+| No catalog JSON API · 404 `HIT` | QA cannot compare Blob vs HTML | F9 `GET /api/admin/catalog` no-store |
+| `Save A01` with no receipt | UI success ≠ Blob write + bust | F3 receipt + F14 marker |
+| `/api/admin/revalidate` 404 `HIT` | No manual / script bust | F15 |
+
+Kelly Ying chrome on those same pages **stays**. Do not “fix cache” by redesigning the boutique.
 
 ### 3.3 Four Next.js caches + two Blob layers (cheat sheet)
 
@@ -347,7 +379,7 @@ def main() -> int:
     if "Catalog" not in vis or "10" not in vis:
         print("FAIL admin Catalog (10) missing")
         failed += 1
-    # Next A03 may appear. That is OK. Public must not.
+    # Public must not list A03. Admin Add A03 is a §17 GATE fail (see Origin §18 F8).
 
     print("failed=", failed)
     return 1 if failed else 0
@@ -1131,11 +1163,12 @@ Print. Soft-launch stays sell-test until green.
 **A. Read-only live (20 min)**
 
 1. QA-00 header dump.
-2. `qa_public_catalog.py` exit 0.
-3. Hold script §10.3 exit 0.
-4. `/m/A03` 404. Home has no A03. No `$23`.
-5. Intake `/admin` Kho durable. `storage.durable` true.
-6. Kit `validate_sell_catalog.py` PASS if PR #18 is on disk.
+2. [`qa/qa_selltest_origin_gate.py --look`](./qa/qa_selltest_origin_gate.py) exit 0 (Kelly Ying). Full gate may exit 1 until Origin lands §18.
+3. `qa_public_catalog.py` exit 0.
+4. Hold script §10.3 exit 0.
+5. `/m/A03` 404. Home has no A03. No `$23`.
+6. Intake `/admin` Kho durable. `storage.durable` true.
+7. Kit `validate_sell_catalog.py` PASS if PR #18 is on disk.
 
 **B. Local intake mutate (25 min)** — `SASSY_DATA_DIR` temp, **no** Production
 
@@ -1243,10 +1276,12 @@ Sell-catalog tests live on [PR #18](https://github.com/SkyLanter/Sassy-closet/pu
 ### 15.6 Cache bust after Save
 
 - [ ] Admin MISS / no-store
+- [ ] `qa_selltest_origin_gate.py --look` exit 0 (Kelly Ying still)
+- [ ] Full Origin gate exit 0 **or** Preview Save drill exit 0 after §18
 - [ ] Public pair script: sha256 changed or proven STALE→HIT
 - [ ] Second GET done (SWR)
 - [ ] Cover image etag or `?v=` after overwrite
-- [ ] `/m/A03` still 404
+- [ ] `/m/A03` still 404 · **Add A03** disabled
 - [ ] Phone tab refreshed
 
 ### 15.7 Hold display
@@ -1273,7 +1308,7 @@ Sell-catalog tests live on [PR #18](https://github.com/SkyLanter/Sassy-closet/pu
 
 | Doc | Job |
 | --- | --- |
-| This file | **QA scripts** for Add / Edit / rename / Blob / cache / Hold / per-color |
+| This file | **Sell-test APPLY** — §17 gate + §18 Origin admin/Blob fix list. Look stays. |
 | [`03-tiny-boutique-admin.md`](./03-tiny-boutique-admin.md) | Law + failure modes (silent save, seed drift, duplicate codes) |
 | [`04-next-blob-catalog-arch.md`](./04-next-blob-catalog-arch.md) | ISR + Blob clocks + clone |
 | [`05-ai-product-media.md`](./05-ai-product-media.md) | Lighting + bind rule + AI refusals |
@@ -1281,6 +1316,186 @@ Sell-catalog tests live on [PR #18](https://github.com/SkyLanter/Sassy-closet/pu
 | `excel-kit/docs/SELL_CATALOG_CONTRACT.md` (PR #18) | Schema + allowlist |
 | `excel-kit/docs/CLONE_TO_OFFICIAL.md` (PR #18) | New project + own Blob |
 | `sassy-closet/README.md` · `BOSS.md` | Intake Blob / four tabs |
+
+---
+
+## 17. Executable QA — fails until Origin lands §18
+
+Copy-paste from the repo. **Do not invent a host.** Default `SHOP` is sell-test.
+
+```bash
+# Kelly Ying look — must stay green (exit 0). Exit 2 = chrome drifted.
+python3 docs/ai-clothing-shop/qa/qa_selltest_origin_gate.py --look
+
+# Silent Save + cache-drift gate — exit 1 until §18 is on Origin.
+python3 docs/ai-clothing-shop/qa/qa_selltest_origin_gate.py
+echo $?   # expect 1 on Production today; expect 0 after Origin APPLY
+```
+
+| Exit | Meaning | What Origin does |
+| --- | --- | --- |
+| **0** | Look + gate green | §18 landed. Sell-test improved. |
+| **1** | Look green, gate red | Expected until F1–F16. Do **not** restyle to chase green. |
+| **2** | Look red | Restore Messenger / Zelle / livestream / paper-blush-gold **first**. |
+| **3** | Transport | Retry; do not mint a mã to “fix” a timeout. |
+
+### 17.1 What the gate asserts (read-only, no POST)
+
+**LOOK** (must pass on live sell-test today):
+
+- Allowlist of ten on `/`. No public `A03`. No `$23`. Boss USD on the eight priced mãs.
+- P02 / P05: `Hold` + `Inbox for price` + `no USD`.
+- Customer chrome: `Facebook livestream`, Messenger, Zelle, Page id `61594312648057`, `Message to buy`, `bg-paper` `text-ink` `border-gold` `ma-mark` `rounded-full`. Not Inter / Shopify / Horizon.
+- `/admin`: `private, no-store`, `x-vercel-cache: MISS`, `Storage: Vercel Blob`, `Catalog (10)`, paper/blush/gold, **Boxes only** hex (no names).
+- `/m/A03` `/m/Q01` `/m/V01` → **404**.
+
+**GATE** (red on live 2026-09-09 this run — this is the sell-test gap):
+
+| Check | Live fact | Green only when |
+| --- | --- | --- |
+| Next-grid | `/admin` has **Add A03** + Next mã A03 | Tile cannot POST, or `data-publishable="false"` |
+| Catalog JSON | `/api/admin/catalog` (and twins) **404 HIT** age ~2200s | One path **200** JSON, `private`/`no-store`, `products` = allowlist, `catalogSha`, `updatedAt`, Hold ⇔ `priceUsd` null |
+| Save receipt | No `data-save-contract` | `/admin` root has `data-save-contract="blob+revalidate"` |
+| Revalidate route | `/api/admin/revalidate` **404 HIT** | 200 / 401 / 403 / 405 (exists). Then **revalidate this exact path** so the old 404 HIT dies |
+| Cover bust | `<img src="/products/{MA}/cover.jpg">` + A01 cover **HIT** age 2000+ etag `ff42d884…` | Hashed filename or `?v=` on every cover + stop treating in-place overwrite as Save |
+
+Recorded this run: `look_failed=0` `gate_failed=6` (next-grid, catalog hole, receipt, revalidate 404, 10 bare covers, A01 cover HIT). Public pages were `STALE`/`HIT` with `max-age=0, must-revalidate`. That ISR shape is allowed **after** Save only if the **second** warm GET matches Blob. [[S33]](#s33-look-lock-2026-09-09)
+
+### 17.2 Preview Save drill (executable, not Production)
+
+After Origin lands F3 + F9 + F15, prove Save is not silent. Script: [`qa/qa_origin_save_drill.sh`](./qa/qa_origin_save_drill.sh).
+
+```bash
+# Preview only. Refuses sassy-closet-shop.vercel.app unless Boss CONFIRM_PROD_DRILL=YES.
+SHOP="https://<preview>.vercel.app" \
+ADMIN_COOKIE="…" \
+MA=A01 \
+bash docs/ai-clothing-shop/qa/qa_origin_save_drill.sh
+```
+
+It nudges **A01 `titleEn`** by a nonce (never Hold, never a new mã), then:
+
+1. `--look` on that host (Kelly Ying still green).
+2. `GET /api/admin/catalog` snapshot (`catalogSha`).
+3. `POST /api/admin/save` with `{ ma, titleEn }` — receipt **must** include `ok`, `blobWritten`, `catalogSha`, `revalidated`.
+4. Catalog `catalogSha` **must change**.
+5. `GET /m/A01` **twice** — second body must contain the nonce (first STALE is allowed once).
+6. Restore the old title. `--look` again.
+
+**Fail = silent Save or cache drift.** Restore before leaving the Preview. Do not run against P02/P05. Do not type 23.
+
+### 17.3 One-shot header proof (copy if you are off-repo)
+
+```bash
+export SHOP=https://sassy-closet-shop.vercel.app
+python3 docs/ai-clothing-shop/qa/qa_selltest_origin_gate.py; echo exit:$?
+# then, only on Preview after §18:
+# SHOP=$PREVIEW ADMIN_COOKIE=… bash docs/ai-clothing-shop/qa/qa_origin_save_drill.sh
+```
+
+---
+
+## 18. Origin admin/Blob fix list — prevent silent Save + cache drift
+
+APPLY on **Origin** `sassy-closet-shop` (not this kit). Do **not** fork shop code into this repo. Do **not** restyle ([§1.5](#15-kelly-ying-look-lock--do-not-restyle)). Cite intake [`store-backend.ts`](../../sassy-closet/lib/store-backend.ts) as the **read/write pattern**, not as a file to copy into the shop.
+
+Silent Save = admin shows Saved / `Save {MA}` returns 200 **and** any of: Blob `get` still old, public HTML sha256 unchanged after two warms, cover etag unchanged after photo replace. Cache drift = admin Hold + tile `$23`, or admin new JPEG + CDN `HIT` old bytes.
+
+### F1 — Catalog JSON: consistent read
+
+`get(catalogPath, { useCache: false })` on every admin and RSC catalog read. Do **not** wrap the Blob URL in `fetch(..., { next: { revalidate: 3600 } })` (two clocks). [[S10]](#s10-blob-consistent-reads)
+
+### F2 — Catalog JSON: overwrite write
+
+`put(catalogPath, bytes, { addRandomSuffix: false, allowOverwrite: true, contentType: "application/json", cacheControlMaxAge: 0 })`. Blob **minimum** overwrite cache is still **60s** — `cacheControlMaxAge: 0` is not enough without F1. [[S9]](#s9-vercel-blob)
+
+### F3 — Save {MA} receipt (no silent success)
+
+Server Action (preferred) or gated `POST /api/admin/save`. **Do not** paint Saved until all of:
+
+1. Validate: allowlist only; Hold ⇔ `priceUsd` null; Available ⇔ Boss USD from §2; reject `A03` / next-grid codes (F8).
+2. `put` resolves (F2).
+3. Confirm: `get({ useCache: false })` shows new `updatedAt` / sha256.
+4. `revalidatePath` (F4).
+5. Return JSON:
+
+```ts
+{
+  ok: true,
+  ma: "A01",
+  blobWritten: true,
+  catalogSha: "<hex>",
+  updatedAt: "<iso>",
+  revalidated: ["/", "/c/ao", "/m/A01"],
+}
+```
+
+On any throw: `ok: false`, keep the dirty form, **no** Saved toast. UI success **is** this receipt.
+
+### F4 — `revalidatePath` signatures
+
+After a successful put:
+
+- `revalidatePath("/")`
+- `revalidatePath("/c/[slug]", "page")` **or** the literal category (`/c/ao` for A01)
+- `revalidatePath("/m/[ma]", "page")` **or** literal `/m/${ma}`
+
+`revalidatePath("/m/[ma]")` **without** `"page"` is a miss. Import / bulk Save revalidates `/` + every `/c/*` + every `/m/{allowlist}`. [[S13]](#s13-revalidate-path)
+
+### F5 — Router Cache + two public warms
+
+Route Handler Save does **not** drop an open tab’s Router Cache. Use a Server Action and `router.refresh()`, or tell the operator to hard-refresh. Regeneration runs on the **next visit** — QA/operator **GET `/m/{MA}` and `/` twice**. First `STALE` + old sha is allowed; second must match Blob. [[S11]](#s11-next-isr) [[S14]](#s14-next-caching)
+
+### F6 — Failed regenerate must not keep last-good lies
+
+ISR keeps the last good page if generate throws. Validate **before** `put` (F3.1) so a Hold row cannot throw halfway and leave `$23` on the tile. Optional: after `revalidatePath`, the Action `fetch`es `/m/${ma}` once to warm.
+
+### F7 — Photos: never silent overwrite
+
+Do not replace `/products/A01/cover.jpg` in place. Write `cover-{sha12}.jpg` (or `001-{sha}.jpg`) and point the catalog at the new path **or** append `?v={updatedAt}` on every `<img src>`. Blob overwrite can look stale for 60s; browsers ignore your hope. Live fail: bare `/products/{MA}/cover.jpg` + CDN `HIT` age 2000+. [[S21]](#s21-blob-kb)
+
+### F8 — Kill Next-grid publish
+
+`/admin` live: **Add A03**, tiles Q01 V01 K02 G01 B01 P06 H02 J01 S02 O01 D01. Those are **not** sell-site codes.
+
+- Disable or hide **Add A03** / letter tiles (`data-publishable="false"` if the label stays).
+- Save / create of any non-allowlist mã → **400**.
+- `generateStaticParams` = **Blob ∩ allowlist** only. Empty placeholder PDPs are a fail.
+- `/m/A03` stays **404**.
+
+### F9 — `GET /api/admin/catalog` (QA + admin)
+
+Private JSON, `cache-control: private, no-store`, `x-vercel-cache: MISS`. Body: `{ products, catalogSha, updatedAt }` with the ten in §2 order. After **adding** this route, `revalidatePath("/api/admin/catalog")` (and `/api/catalog` if you add it) — a **cached 404 HIT** will otherwise keep failing the gate. Do not make a public uncached dump of cost/source.
+
+### F10 — `/admin` stays uncached
+
+Keep `dynamic = "force-dynamic"` (or equivalent) + `private, no-store`. Already true on 2026-09-09 — do not “optimize” admin onto ISR.
+
+### F11 — Hold ⇔ price server-side
+
+Reject Available + blank price. Reject Hold + any USD (including hub **23** on P05). Pairing is the contract, not the dropdown label. [[S15]](#s15-sell-catalog-py)
+
+### F12 — Look lock (non-negotiable)
+
+Do not change fonts, Messenger / Zelle / Facebook livestream / Page id, `Message to buy`, paper/blush/gold classes, `rounded-full` pills, or “Boxes only” admin hex. Customer colors stay **text**. Qty stays 1. No cart. `--look` must remain exit 0.
+
+### F13 — Two Blob stores
+
+Sell-test Blob ≠ intake `sassy-closet/store.json`. Official (when cloned) gets a **third** store. A Save that writes the wrong store is silent on the host you are staring at. [[S2]](#s2-clone-to-official)
+
+### F14 — Admin marker the gate can see
+
+On the `/admin` document: `data-save-contract="blob+revalidate"`. Set it only when F3+F4 are wired. No `data-testid` invention elsewhere required.
+
+### F15 — `POST /api/admin/revalidate`
+
+Gated. Marks `/`, `/c/[slug]` `'page'`, `/m/[ma]` `'page'` (or literals). GET may 401/405 — **must not 404**. After shipping, bust the cached 404 on that exact path.
+
+### F16 — Import catalog.v1 (when landed)
+
+Reject extras (A03, invented hex, P05 `23`). Then F2 + F4 for **all** public paths. Button is not on sell-test today — do not fake a catalog to click it. [[S2]](#s2-clone-to-official)
+
+**Done when:** `python3 docs/ai-clothing-shop/qa/qa_selltest_origin_gate.py` exits **0** on sell-test **and** `qa_origin_save_drill.sh` exits **0** on a Preview (A01 title nudge + restore) **and** `--look` is still 0.
 
 ---
 
@@ -1414,6 +1629,10 @@ Sell-catalog tests live on [PR #18](https://github.com/SkyLanter/Sassy-closet/pu
 
 **S32.** [`README.md`](../../README.md) — Square Free = on-hand SoT; bots draft only; never invent mã.
 
+<a id="s33-look-lock-2026-09-09"></a>
+
+**S33.** Live GET 2026-09-09 this run (look lock + Origin gate): sell-test `/` `/admin` `/m/A01` `/m/P02` `/m/P05` `/c/ao` `/products/A01/cover.jpg` `/api/catalog` `/api/admin/catalog` `/api/admin/revalidate`. LOOK exit 0 (Messenger, Zelle, `Facebook livestream`, Page `61594312648057`, paper/blush/gold, Hold Inbox, no `$23`). GATE exit 1: **Add A03**, catalog/revalidate **404 HIT**, no `data-save-contract`, bare `/products/{MA}/cover.jpg` + cover `HIT` age ~2292 etag `ff42d88433b351134d6ab6693f6ce336`. Public HTML `STALE`/`HIT`. Admin `MISS` `no-store`. Scripts: [`qa/qa_selltest_origin_gate.py`](./qa/qa_selltest_origin_gate.py), [`qa/qa_origin_save_drill.sh`](./qa/qa_origin_save_drill.sh).
+
 ---
 
-*End of 11. If `SELL_CATALOG_CONTRACT.md` merges with a different allowlist or Hold table, update §2 and the Python asserts from that file — do not keep a shadow price list in this note.*
+*End of 11 = [§17 executable QA](#17-executable-qa--fails-until-origin-lands-18) + [§18 Origin admin/Blob fix list](#18-origin-adminblob-fix-list--prevent-silent-save--cache-drift). Kelly Ying look stays. If `SELL_CATALOG_CONTRACT.md` merges with a different allowlist or Hold table, update §2 and the Python asserts from that file — do not keep a shadow price list in this note.*
