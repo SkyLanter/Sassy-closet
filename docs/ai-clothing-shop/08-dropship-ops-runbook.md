@@ -204,7 +204,7 @@ Need these before Buy Research can Pass a *sell* quote:
 
 1. **Mã** they mean (published lookbook code, or Stock-assigned Official).
 2. **Color word they want** (Kem / Xanh / …) — text, not “cái trong ảnh.”
-3. **Asia size + cm** (ngực / eo / dài as relevant). Chips on intake: `2XS XSS M L XL 2XL` ([`sassy-closet/lib/kinds.ts`](../../sassy-closet/lib/kinds.ts)). Never convert to US.
+3. **Asia size + cm** (ngực / eo / dài as relevant). Chips on intake: `2XS XS S M L XL 2XL` ([`sassy-closet/lib/kinds.ts`](../../sassy-closet/lib/kinds.ts)). Never convert to US.
 4. **City / ship vs Bay Area pickup.**
 5. Whether they are asking **this** look or a hunt (Wishlist / no `source_link`).
 
@@ -1025,7 +1025,7 @@ Grep check: extra codes (`A03`, `Q01`, `AO016`, …) appear only as **refusals**
 | --- | --- |
 | [CBP CSMS #64917563](https://content.govdelivery.com/accounts/USDHSCBP/bulletins/3de903b) | 2025-05-02: no de minimis for CN/HK products |
 | [Federal Register 2025-04-28](https://www.govinfo.gov/content/pkg/FR-2025-04-28/html/2025-07325.htm) | EO 14256 implementation |
-| [90 FR 42418 / EO 14324 notice](https://www.federalregister.gov/documents/2025/08/29/2025-16802/notice-of-implementation-of-the-presidents-executive-order-14324-suspending-duty-free-de-minimis) | Later broader de minimis suspension — rates still not for customer copy |
+| [90 FR 42418 / EO 14324 notice](https://www.federalregister.gov/documents/2025/08/29/2025-16802/notice-of-implementation-of-the-presidents-executive-order-14324-suspending-duty-free-de-minimis) ([mirror](https://thefederalregister.org/documents/2025-16802/notice-of-implementation-of-the-president-s-executive-order-14324-suspending-duty-free-de-minimis-treatment-for-all-coun)) | Later broader de minimis suspension — rates still not for customer copy |
 | [FTC 30-day Rule — business guide](https://www.ftc.gov/business-guidance/resources/business-guide-ftcs-mail-internet-or-telephone-order-merchandise-rule) | Reasonable basis; delay-or-refund |
 | [16 CFR 435](https://www.ecfr.gov/current/title-16/chapter-I/subchapter-D/part-435) | Internet/phone orders; prompt refund definition |
 | [Zelle FAQ — unknown payee / no reverse](https://www.zelle.com/faq/im-unsure-about-using-zelle-pay-someone-i-dont-know-what-should-i-do) | No purchase protection; cannot reverse |
