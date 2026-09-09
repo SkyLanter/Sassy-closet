@@ -7,6 +7,8 @@ Message-first clipboard for a Taobao dropship boutique that **discovers on Faceb
 **Live APPLY target:** [https://sassy-closet-shop.vercel.app](https://sassy-closet-shop.vercel.app)  
 Kelly Ying *look* is locked (Cormorant + Be Vietnam Pro, paper / blush / gold, `announce-fade`, no cart). Honesty is **type on existing chrome**, not a redesign.
 
+**Origin entry:** **§9** is the sell-test clipboard — announcement / how-to-buy / Hold CTAs with **live → replace** strings and DOM slots. Messenger banks (§2–§6) stay Owner-paste. This kit repo cannot edit the Origin shop git.
+
 **Sister files (do not collapse jobs):**
 
 | Doc | Job | This file |
@@ -1038,113 +1040,214 @@ Do not add `Shop now`. Message destinations use **Send message** ([CTA by object
 
 ---
 
-## 9. APPLY — sell-test strings + where they go
+## 9. APPLY — sell-test clipboard (Origin pastes these)
 
-Origin shop git is **not** this repo. This section is the **clipboard for the Origin agent**. Keep motion (`announce-fade`, `cta-flash`, `shimmer-slide`), fonts, hero, no cart, footer word **Zelle**, Hold treatment on P02/P05. **Replace warehouse idioms only.**
+**Owner:** Origin shop repo — **not** this kit. This section is the improve-the-sell-test brief: **copy strings + DOM slot**. Re-inspected Production HTML 2026-09-09.
 
-Inspected 2026-09-09:
+Kelly Ying *look* stays. How-to-buy is **type in the existing two-line PDP stack**, not a new route, not a cart, not a shipping calculator. Announcement bar is **32px / overflow-hidden / `tracking-[0.22em]`** — long honesty does **not** fit there (Kelly’s own site puts livestream on the banner and dollars on a *different* banner; we keep livestream and refuse the dollars — [kellyyingboutique.net](https://www.kellyyingboutique.net/)).
 
-| Slot on site | Live text | Class / place |
+### 9.0 Do not touch (look lock)
+
+Same chrome [LEARN 07](https://github.com/SkyLanter/Sassy-closet/pull/21) §11.0 already locked:
+
+| Keep | Live evidence 2026-09-09 |
+| --- | --- |
+| **Cormorant Garamond** + **Be Vietnam Pro** | `html` class vars |
+| `announce-fade` / `shimmer-slide` / `cta-flash` / `cta-shine` | Announcement + footer CTA |
+| Hero `/editorial/hero.jpg` + category tiles | Home |
+| Header wordmark + gold-underline `Messenger` | `Header` / `MessengerCta` → Page `61594312648057` |
+| Card verb **Message to buy** | Home + `/c/*` |
+| Hold **gold** badge + `Inbox for price` in the **price** slot | `/m/P02` `/m/P05` (`text-gold-deep` rail) |
+| Footer word **Zelle** (no handle) | `Zelle · Message on Messenger` |
+| No cart / no Shop now / no bag | Entire IA |
+| `/admin` off the main nav | — |
+
+If honesty seems to need a calmer layout, **stop**. Change the **strings** in the table below.
+
+Site voice ≠ Messenger voice: **no 💕** on the lookbook. EN then VI, short, uppercase tracking on rails. Chinese 现货/预售 stays in **Messenger** (§6) and in one optional 9px badge crumb — not in the announcement bar.
+
+### 9.1 Placement map (where the Origin agent types)
+
+| Slot | Component / DOM (live) | Surfaces |
 | --- | --- | --- |
-| Announcement | `Facebook livestream` | Top `h-8` ink bar, `p.announce-fade`, uppercase 10px tracking |
-| Header CTA | `Messenger` | Links Page `61594312648057` |
-| Card CTA | `Message to buy` | Under price / Inbox for price |
-| Hold price | `Inbox for price` | P02, P05 |
-| PDP Available rail | `1 piece · Message to buy. No cart.` | `/m/A01` `/m/K01` … |
-| PDP Available body | `One unique top on hand.` / `một chiếc đang có.` | **Replace** |
-| PDP Hold rail | `Hold · Inbox for price. Message to buy — photo-check, no USD yet.` | `/m/P02` — **keep shape** |
-| Footer | `Zelle · Message on Messenger` | Keep word Zelle; no handle |
-| Meta description | `unique pieces. Facebook livestream. Zelle · Message on Messenger.` | Keep |
+| **Announcement** | `AnnouncementBar` → `div.z-[60].h-8.overflow-hidden` → `p.announce-fade.text-[10px].uppercase.tracking-[0.22em]` | `/` `/c/*` `/m/*` |
+| **How-to-buy EN** | PDP `div.mt-6.max-w-md.space-y-2` → first `p.text-sm.leading-relaxed.text-muted` | `/m/{code}` Available |
+| **How-to-buy VI** | Same stack → second `p.text-[13px].leading-relaxed.text-muted` | `/m/{code}` Available |
+| **How-to-buy meta** | `<meta name="description">` (today **duplicates** the EN body — including “on hand”) | `/m/{code}` |
+| **Commerce rail** | `p.text-sm.text-muted` under the price | Available PDP |
+| **Hold price CTA** | `span.mt-5.text-2xl` (price slot) | `/m/P02` `/m/P05` |
+| **Hold rail CTA** | `p.text-sm.text-gold-deep` under that price | Hold PDP |
+| **Hold how-to EN/VI** | Same `space-y-2` stack as Available | Hold PDP |
+| **Card CTA** | Line under `$` / `Inbox for price` | Home, `/c/*` |
+| **PDP button** | `a` `aria-label="Message {code} on Messenger"` → Page | Available: label **Message {code}**; Hold: **Message to buy** |
+| **Footer how-to crumb** | `footer p.text-[11px].uppercase.tracking-[0.14em]` | All |
 
-There is **no** `/how-to-buy` route today. Do **not** add a new page (redesign). Put how-to-buy on **announcement + PDP one-liner + optional footer crumb**.
+There is **no** `/how-to-buy`. Do **not** add one.
 
-### 9.1 Announcement (`AnnouncementBar` / `announce-fade`)
+### 9.2 Announcement — keep Kelly livestream; add a *short* rotate
 
-Keep the bar. Swap the string. Stay uppercase-ish, short, **no `$`**, no 11th mã.
+**Character budget:** the bar is `h-8` + `overflow-hidden` + `tracking-[0.22em]` at 10px. Live `Facebook livestream` = **19** characters and fits a 320px phone. **Do not** paste a how-to paragraph here. Safe rotate ≤ **22** characters (spaces count).
 
-**Preferred (bilingual crumb, one line):**
+| # | Use | String (exact) | Chars | Why |
+| --- | --- | --- | --- | --- |
+| A0 | **Default — keep** | `Facebook livestream` | 19 | Kelly rail. Do not delete. |
+| A1 | **Rotate slide 2** (same `p.announce-fade`, no second bar) | `Inbox · Zelle · US` | 18 | Message-first + pay word + US ship *without* `$` |
+| A2 | Alt slide 2 if A1 feels too terse | `Message · no cart` | 16 | Anti-checkout. Redundant with cards — prefer A1. |
 
-> Inbox mã · Zelle · ship US quote in chat
+**Do not ship in this bar:**
 
-If the bar must stay a *livestream* pointer (Kelly rail), use a **rotating** second slide — same class, do not add a second bar:
+- `Inbox mã · Zelle · ship US quote in chat` (37) — **clips**
+- `no printed ship $` / Kelly `$10` / `$300+`
+- `{zelle}` name / phone
+- `A03` / any 11th mã
+- 现货 / 预售 / Taobao (ops — PDP / Messenger)
 
-1. `Facebook livestream` (keep)
-2. `Message to buy · no cart · no printed ship $`
+Origin: if `AnnouncementBar` is a **single** string today, **leave A0**. How-to-buy still lands in §9.3. If you already fade between slides, add **A1** as the second slide only.
 
-**Do not** put `{zelle}` name here. **Do not** put `A03`.
+Cite: [LEARN 01](https://github.com/SkyLanter/Sassy-closet/pull/22) §7.1 (announce already correct as livestream); Kelly livestream banner vs their *other* banner’s ship `$` (do not copy dollars).
 
-### 9.2 How-to-buy (no new IA)
+### 9.3 How-to-buy — Available PDP (this is the improve)
 
-**PDP Available one-liner** (replaces “on hand” / “một chiếc đang có”) — same hierarchy, both languages:
+**Template today** (warehouse lie): `One unique {kind} on hand. …` / `{kind VI} — một chiếc đang có.`  
+Also in `<title>` stay `{code} · {Kind} · Sassy Closet` (keep).  
+Also in `<meta name="description">` = EN body (**must change with EN**).
 
-**EN**
+**Keep on every Available PDP:** mã, type, **Available** ink badge, Boss-table `$`, button **Message {code}**, related rail, no cart.
 
-> Message to buy. We confirm color, Asia size, and Taobao spot vs pre-sale, then order and ship US.
+**Commerce rail** (one word — `qty: 1` must not read as a stockroom):
 
-**VI**
+| Live | Replace with |
+| --- | --- |
+| `1 piece · Message to buy. No cart.` | `1 look · Message to buy. No cart.` |
 
-> Inbox để mua. Shop xác nhận màu, size Á châu, và 现货/预售, rồi order Taobao, ship US.
+**Body + meta — paste per mã.** Same two-line hierarchy. No 💕. Names Taobao only here (honesty), not in the announcement.
 
-**Optional footer crumb** (append after existing Zelle · Messenger, still 11px uppercase):
+#### `/m/A01` — keep **$25**
 
-> Ship quote in chat · cash meetup
-
-**Optional microcopy under Available badge** (small, no new section):
-
-> 现货 / 预售 chốt khi inbox
-
-**Do not** add a shipping calculator, Shop now, or a cart.
-
-Worked PDP replacements (keep printed USD from the Boss table):
-
-| Route | Keep | Replace body with |
+| Field | Live | Replace with |
 | --- | --- | --- |
-| `/m/A01` | A01 · TOP · Available · **$25** · Message to buy | How-to-buy EN/VI above. Drop “on hand.” |
-| `/m/A02` | **$22** | Same |
-| `/m/S01` | **$28** | Same; “set” in the type line stays |
-| `/m/P01` `/m/P03` `/m/P04` | $5 / $18 / $13 | Same |
-| `/m/K01` | **$37** | Same. Drop “One jacket on hand.” |
-| `/m/H01` | **$8** | Same |
+| EN + meta | `One unique top on hand. Message A01 for real photos and size.` | `Listed top. Message A01 for color, Asia size, and photos — we order Taobao, then ship US.` |
+| VI | `Áo độc bản — một chiếc đang có.` | `Áo độc bản — inbox màu / size Á châu. Shop order Taobao, rồi ship US.` |
 
-### 9.3 Hold CTAs (P02 / P05)
+#### `/m/A02` — keep **$22**
 
-**Keep:** badge `Hold`, price slot `Inbox for price`, button `Message to buy`, photo-check sentence.
+| Field | Live | Replace with |
+| --- | --- | --- |
+| EN + meta | `One unique top on hand. Message A02 for real photos and size.` | `Listed top. Message A02 for color, Asia size, and photos — we order Taobao, then ship US.` |
+| VI | `Áo độc bản — một chiếc đang có.` | `Áo độc bản — inbox màu / size Á châu. Shop order Taobao, rồi ship US.` |
 
-**Keep rail:**
+#### `/m/S01` — keep **$28**
 
-> Hold · Inbox for price. Message to buy — photo-check, no USD yet.
+| Field | Live | Replace with |
+| --- | --- | --- |
+| EN + meta | `One set on hand. Message S01 for details and photos.` | `Listed set. Message S01 for color, Asia size, and photos — we order Taobao, then ship US.` |
+| VI | `Set đồ — một set đang có.` | `Set đồ — inbox màu / size Á châu. Shop order Taobao, rồi ship US.` |
 
-**Tighten body (optional, same voice):**
+#### `/m/P01` — keep **$5**
 
-**EN**
+| Field | Live | Replace with |
+| --- | --- | --- |
+| EN + meta | `One accessory on hand. Inbox P01 to buy.` | `Listed accessory. Inbox P01 for color and photos — we order Taobao, then ship US.` |
+| VI | `Phụ kiện — một món đang có.` | `Phụ kiện — inbox để order Taobao, rồi ship US.` |
 
-> Thermos on Hold (photo-check). No USD yet — inbox for price. Not reserved for another buyer.
+#### `/m/P03` — keep **$18**
 
-**VI**
+| Field | Live | Replace with |
+| --- | --- | --- |
+| EN + meta | `One accessory on hand. Inbox P03 to buy.` | `Listed accessory. Inbox P03 for color and photos — we order Taobao, then ship US.` |
+| VI | `Phụ kiện — một món đang có.` | `Phụ kiện — inbox để order Taobao, rồi ship US.` |
 
-> Bình giữ nhiệt đang Hold — kiểm tra ảnh, chưa có USD. Không phải đã giữ cho bạn khác.
+#### `/m/P04` — keep **$13**
 
-**Card under-price line** stays `Inbox for price` + `Message to buy`.  
-**Do not** publish `23`. **Do not** reuse Hold to mean Reserved until Official + Square + Slack agree ([LEARN 01](https://github.com/SkyLanter/Sassy-closet/pull/22) §3.4).
+| Field | Live | Replace with |
+| --- | --- | --- |
+| EN + meta | `One accessory on hand. Inbox P04 to buy.` | `Listed accessory. Inbox P04 for color and photos — we order Taobao, then ship US.` |
+| VI | `Phụ kiện — một món đang có.` | `Phụ kiện — inbox để order Taobao, rồi ship US.` |
 
-**Icebreaker / Message {code} prefill** for Hold tiles:
+#### `/m/K01` — keep **$37**
+
+| Field | Live | Replace with |
+| --- | --- | --- |
+| EN + meta | `One jacket on hand. Message K01 for size and photos.` | `Listed jacket. Message K01 for Asia size and photos — we order Taobao, then ship US.` |
+| VI | `Áo khoác — một chiếc đang có.` | `Áo khoác — inbox size Á châu. Shop order Taobao, rồi ship US.` |
+
+#### `/m/H01` — keep **$8**
+
+| Field | Live | Replace with |
+| --- | --- | --- |
+| EN + meta | `One hair piece on hand. Inbox H01 to buy.` | `Listed hair. Inbox H01 for photos — we order Taobao, then ship US.` |
+| VI | `Tóc / phụ kiện tóc — một món đang có.` | `Tóc / phụ kiện tóc — inbox để order Taobao, rồi ship US.` |
+
+**Home / `/c/*` cards:** they do **not** print “on hand” today (only mã · type · `$` · `Message to buy`). **Do not** add a warehouse line to cards. Keep `Message to buy`.
+
+**Optional** 9px crumb under the Available badge (do not add a section):
+
+> Spot / pre-sale in chat
+
+VI alt if you want bilingual under the badge (still tiny):
+
+> Sẵn / đặt trước — chốt khi inbox
+
+**Do not** add: shipping calculator, Shop now, US size chart, `e.tb.cn`, ¥, `{zelle}` name, `A03`.
+
+### 9.4 Hold CTAs — `/m/P02` and `/m/P05` (keep gold; do not price)
+
+Hold is already message-first. Improve = **do not let “Hold” read as reserved**, and **never** print P05 hub `23`.
+
+| Slot | Live (keep unless noted) | Action |
+| --- | --- | --- |
+| Badge | gold `Hold` | **Keep** |
+| Price slot (the CTA) | `Inbox for price` | **Keep** — this *is* the Hold CTA. Not `$0`. Not `23`. |
+| Card line | `Inbox for price` + `Message to buy` | **Keep** on home + `/c/phu-kien` |
+| PDP button | `Message to buy` (not `Message P02`) | **Keep** — no fake `$` in the button ([LEARN 01](https://github.com/SkyLanter/Sassy-closet/pull/22) §7.2) |
+| Rail (`text-gold-deep`) | `Hold · Inbox for price. Message to buy — photo-check, no USD yet.` | **Keep** — already the right verb |
+
+**Hold how-to** (same `space-y-2` + meta). Photo-check voice stays; add the reserve clarifier.
+
+#### `/m/P02` and `/m/P05` (same strings)
+
+| Field | Live | Replace with |
+| --- | --- | --- |
+| EN + meta | `Thermos on Hold (photo-check). No USD sell price yet — inbox for price.` | `Thermos on Hold (photo-check). No USD yet — inbox for price. Not reserved for another buyer.` |
+| VI | `Bình giữ nhiệt đang Hold — kiểm tra ảnh.` | `Bình giữ nhiệt đang Hold — kiểm tra ảnh, chưa có USD. Không phải đã giữ cho bạn khác.` |
+
+**Prefill** (Owner m.me `text=`, not a site restyle):
 
 > Hi Sassy — P02 inbox giá + ảnh thật.
 
-(Only `P02` / `P05` while those two are the Hold set.)
+Swap `P05` when that tile is the tap. Only while those two are the Hold set.
 
-### 9.4 Sticky / header CTA
+### 9.5 Footer + header (how-to crumb without a new page)
 
-Keep `Messenger` / `Message on Messenger` → Page `https://www.facebook.com/profile.php?id=61594312648057`.  
-Prefill may include the **printed** mã (`Message A01`) — [m.me `text=`](https://developers.facebook.com/docs/messenger-platform/discovery/m-me-links/) is Owner-side. Do not prefill a ship `$`.
+| Slot | Live | Replace? |
+| --- | --- | --- |
+| Footer left | `Sassy Closet · Zelle · Message on Messenger` | **Keep** the Kelly crumb. Optional **only if it still fits one line on a 390px phone:** `Sassy Closet · Zelle · ship quote in chat`. If it wraps under the button, **revert**. |
+| Footer button | `Message on Messenger →` (`cta-shine`) | **Keep** |
+| Header | `Messenger` | **Keep** |
+| Home `<meta name="description">` | `Sassy Closet — unique pieces. Facebook livestream. Zelle · Message on Messenger.` | **Keep** — already message-first, no `$` |
 
-### 9.5 Verify (Origin, after type lands)
+Do not put a ship dollar in the footer to “match Kelly.”
 
-1. Home announcement still `announce-fade`; no handle; no `$10`.
-2. `/m/A01` `/m/K01` have **no** “on hand” / “đang có”; **$25** / **$37** unchanged.
-3. `/m/P02` `/m/P05` still Hold + Inbox for price; no `23`.
-4. Footer still says **Zelle** the word; Message to buy; **no cart**.
-5. Allowlist still ten codes. No A03.
+### 9.6 Origin apply order (one PR on the shop repo)
+
+1. Look lock §9.0 — do not open CSS.
+2. Available PDP: rail `1 look · …` + eight EN/VI/meta rows in §9.3.
+3. Hold PDP: two EN/VI/meta rows in §9.4. Price slot stays `Inbox for price`.
+4. Announcement: keep A0; add A1 only if rotate already exists.
+5. Footer: try optional crumb; revert if wrap.
+6. Do not touch cards except if any card inherited “on hand” (none on 2026-09-09).
+
+### 9.7 Verify (Origin, after type lands)
+
+Customer path, then intern path:
+
+1. `/` — `announce-fade` still livestream (A0). Cards still `Message to buy`. P02/P05 still `Inbox for price`. Motion still fades.
+2. `/m/A01` — **no** “on hand” / “đang có”; **$25**; rail `1 look · Message to buy. No cart.`; button Message A01; View-source meta matches new EN.
+3. `/m/K01` `/m/S01` `/m/H01` — same family; **$37 / $28 / $8** unchanged.
+4. `/m/P02` `/m/P05` — gold Hold; `Inbox for price`; rail unchanged; body has “not reserved” / “không phải đã giữ”; **no** `23`.
+5. `/c/ao` — two tops, `$25` / `$22`, no new how-to block.
+6. Footer still says the word **Zelle**; no handle; **no cart**.
+7. Allowlist still ten. No A03. No `e.tb.cn` in client HTML.
 
 ---
 
@@ -1154,7 +1257,7 @@ Prefill may include the **printed** mã (`Message A01`) — [m.me `text=`](https
 
 | Source | Proves |
 | --- | --- |
-| Live sell-test 2026-09-09 `/` `/m/A01` `/m/P02` `/m/K01` | Ten tiles; announcement `Facebook livestream`; warehouse PDP; Hold P02/P05; footer Zelle |
+| Live sell-test 2026-09-09 `/` `/m/A01`–`/m/H01` `/c/ao` `/c/phu-kien` | Ten tiles; `AnnouncementBar` `Facebook livestream`; PDP `space-y-2` “on hand”; Hold gold + `Inbox for price`; footer Zelle; meta duplicates EN |
 | Slack `#shop-decisions` 2026-09-04 | Facebook = store; Hold >24h yes/no; Zelle name locked; flat ship $ unlocked; Track ON; no Save until yes |
 | [`README.md`](../../README.md) | Bots draft; Owner sends / Zelle / Square Save |
 | [`sassy-closet/lib/captions.ts`](../../sassy-closet/lib/captions.ts) | Inbox + cash/Zelle + Ship toàn US; no `$` |
@@ -1206,7 +1309,7 @@ Prefill may include the **printed** mã (`Message A01`) — [m.me `text=`](https
 > **Draft. Owner Sends.** Mini Boss không gửi hộ.  
 > Inquiry → R1 → quote or shop-Hold → 24h reserve (Slack if longer) → Zelle **in the bank** → address **if ship** → R2 → 下单 → carrier.  
 > Three 24hs: Meta API · shop reserve · CN 发货. Do not mix.  
-> VN first in-thread. Site stays Kelly (announcement / how-to / Hold CTAs — §9).  
+> VN first in-thread. Site stays Kelly — Origin pastes §9 (announce A0/A1, PDP how-to, Hold CTAs).  
 > Allowlist ten. No A03. No P05 `$23`. No ship `$` until Slack writes one. No duty-free.  
 > If you had to invent a mã, a dollar, a stock count, a street, or a porch date — stop; you are lying.
 
