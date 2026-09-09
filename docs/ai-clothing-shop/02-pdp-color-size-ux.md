@@ -169,7 +169,7 @@ Excel boutique books: deep rose / blush headers, yellow = type, no lock, freeze 
 Baymard’s product-page and size-selector work is consistent across 2017–2026 public write-ups:
 
 - Size (and color) **hidden in a `<select>`** makes people open the menu to learn their size is gone — disappointment after effort ([*Always Use “Buttons” for Size Selection*](https://baymard.com/blog/use-buttons-for-size-selection); [*Product Page UX Best Practices 2026*](https://baymard.com/blog/current-state-ecommerce-product-page-ux)).
-- Exposed **button-like** selectors let people see the set and the gaps at a glance. Baymard’s 2026 product-page article still lists “always use buttons for size” as a top miss (they report **57%** of benchmarked sites still don’t).
+- Exposed **button-like** selectors let people see the set and the gaps at a glance. Baymard’s 2026 product-page article still lists “always use buttons for size” as a top miss (they report **57%** of that benchmark still don’t). An earlier desktop-only cut of the same guideline said **28%** of desktop sites still used a dropdown ([2017–update post](https://baymard.com/blog/use-buttons-for-size-selection)). Treat the **direction** (expose sizes) as stable; do not overfit a single percentage.
 - The shop **already** uses exposed size pills on intake. Sell-test should **keep buttons**, not “upgrade” to a dropdown to look more like a theme.
 
 Craftshift / MECLABS (vendor-cited, treat as weaker than Baymard): visible options beat hidden menus; they quote a **14.6%** order-rate lift for visible vs dropdown in a MECLABS test ([Craftshift variant-image article](https://craftshift.com/shopify-variant-image-swatches-conversion-rates/)). Use as supporting color, not shop law.
@@ -210,7 +210,7 @@ Fashion-theme writeups that only add `aria-label` on a dot still fail **1.4.1 fo
 - Narrative review (2025): up to **8% / 0.5%** Northern-European men/women; lower in many Asian and African samples ([Hasrod, *Healthcare* 13(16):2031](https://www.mdpi.com/2227-9032/13/16/2031)).
 - A 2024–2025 meta-analysis summarized in *Review of Optometry* estimated **global** CVD ≈ **2.59%**, males **4.38%**, females **0.64%**, deutan > protan ([summary](https://www.reviewofoptometry.com/article/study-describes-epidemiology-of-congenital-color-vision-deficiency)).
 
-Sassy Closet’s US Facebook buyers + Asian-sourced clothes sit across those populations. A PDP that distinguishes **Đỏ / Hồng đậm / Đỏ đô / Nude** by hue alone will fail a non-trivial slice of buyers **and** fail WCAG. **Photos of the actual cloth** plus **the Vietnamese name** are the boutique-honest pair.
+Caption copy already assumes US fulfillment (`Ship toàn US` in `captions.ts`) while clothes and GF intake are Asia-sourced (`GF_CLOTHES_INTAKE.md`). Buyers therefore sit across those CVD populations. A PDP that distinguishes **Đỏ / Hồng đậm / Đỏ đô / Nude** by hue alone will fail a non-trivial slice of buyers **and** fail WCAG. **Photos of the actual cloth** plus **the Vietnamese name** are the boutique-honest pair.
 
 ### 5.5 Gallery must follow the selected color
 
