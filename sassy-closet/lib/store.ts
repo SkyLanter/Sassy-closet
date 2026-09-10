@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { isKindCode, kindLabel } from "./kinds";
+import { notifyIntakeDatasetSyncWebhook } from "./intakeDatasetSyncWebhook";
 import { formatMa, maExists, nextMa, normalizeMa, parseHubMa } from "./mint";
 import { normalizeSourceLink } from "./source-link";
 import { sanitizeOnHandRows } from "./on-hand";
@@ -164,6 +165,7 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
     store.submissions.push(base);
   }
   await persistStore(store);
+  await notifyIntakeDatasetSyncWebhook(existing ? "update" : "create", base);
   return base;
 }
 
