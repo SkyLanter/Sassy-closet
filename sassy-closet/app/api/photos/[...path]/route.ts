@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { INTAKE_PHOTO_CACHE_CONTROL } from "@/lib/store-backend";
 import { readPhoto } from "@/lib/store";
 
 export async function GET(
@@ -11,6 +12,9 @@ export async function GET(
     return NextResponse.json({ error: "Không thấy ảnh." }, { status: 404 });
   }
   return new NextResponse(new Uint8Array(photo.bytes), {
-    headers: { "content-type": photo.type },
+    headers: {
+      "content-type": photo.type,
+      "cache-control": INTAKE_PHOTO_CACHE_CONTROL,
+    },
   });
 }

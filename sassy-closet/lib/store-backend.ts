@@ -4,6 +4,7 @@ import { BlobNotFoundError, get, put } from "@vercel/blob";
 import { dataRoot, ensureDataDirs } from "./paths";
 import type { Submission } from "./types";
 
+/** GF intake brain. Not `catalog.v1`. Never ship this JSON as shop tiles. */
 export type StoreFile = {
   nextId: number;
   submissions: Submission[];
@@ -28,6 +29,41 @@ export type StoreBackend = {
 
 export const STORE_BLOB_PATH = "sassy-closet/store.json";
 export const PHOTO_BLOB_PREFIX = "sassy-closet/photos/";
+
+/** Vercel Blob SDK minimum. `0` is illegal and may coerce or throw. */
+export const BLOB_SDK_MIN_CACHE_CONTROL_MAX_AGE = 60;
+
+/** Intake photos are overwriteable staff bytes. Do not CDN-cache them in the browser. */
+export const INTAKE_PHOTO_CACHE_CONTROL = "private, no-store";
+
+export type BlobAccess = "private" | "public";
+
+export type BlobWriteOptions = {
+  access: BlobAccess;
+  addRandomSuffix: false;
+  allowOverwrite: true;
+  contentType: string;
+  cacheControlMaxAge: number;
+};
+
+export type BlobConsistentReadOptions = {
+  access: BlobAccess;
+  useCache: false;
+};
+
+export function blobWriteOptions(access: BlobAccess, contentType: string): BlobWriteOptions {
+  return {
+    access,
+    addRandomSuffix: false,
+    allowOverwrite: true,
+    contentType,
+    cacheControlMaxAge: BLOB_SDK_MIN_CACHE_CONTROL_MAX_AGE,
+  };
+}
+
+export function blobConsistentReadOptions(access: BlobAccess): BlobConsistentReadOptions {
+  return { access, useCache: false };
+}
 
 export function emptyStore(): StoreFile {
   return {
@@ -127,24 +163,25 @@ export function createBlobBackend(): StoreBackend {
   return {
     kind: "blob",
     async readStore() {
-      const result = await getBlobOrNull(STORE_BLOB_PATH, { access, useCache: false });
+      const result = await getBlobOrNull(STORE_BLOB_PATH, blobConsistentReadOptions(access));
       if (!result || result.statusCode !== 200 || !result.stream) return null;
       const raw = (await streamToBuffer(result.stream)).toString("utf8");
       if (!raw.trim()) return null;
       return parseStore(raw);
     },
     async writeStore(store) {
-      await put(STORE_BLOB_PATH, JSON.stringify(store, null, 2), {
-        access,
-        addRandomSuffix: false,
-        allowOverwrite: true,
-        contentType: "application/json",
-        cacheControlMaxAge: 0,
-      });
+      await put(
+        STORE_BLOB_PATH,
+        JSON.stringify(store, null, 2),
+        blobWriteOptions(access, "application/json"),
+      );
     },
     async readPhoto(rel) {
       const safe = sanitizePhotoRel(rel);
-      const result = await getBlobOrNull(`${PHOTO_BLOB_PREFIX}${safe}`, { access, useCache: true });
+      const result = await getBlobOrNull(
+        `${PHOTO_BLOB_PREFIX}${safe}`,
+        blobConsistentReadOptions(access),
+      );
       if (!result || result.statusCode !== 200 || !result.stream) return null;
       return {
         bytes: await streamToBuffer(result.stream),
@@ -153,12 +190,7 @@ export function createBlobBackend(): StoreBackend {
     },
     async writePhoto(rel, bytes, type) {
       const safe = sanitizePhotoRel(rel);
-      await put(`${PHOTO_BLOB_PREFIX}${safe}`, bytes, {
-        access,
-        addRandomSuffix: false,
-        allowOverwrite: true,
-        contentType: type,
-      });
+      await put(`${PHOTO_BLOB_PREFIX}${safe}`, bytes, blobWriteOptions(access, type));
     },
   };
 }
