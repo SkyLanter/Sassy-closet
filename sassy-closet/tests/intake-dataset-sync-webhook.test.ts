@@ -44,7 +44,7 @@ describe("intake dataset sync webhook helper", () => {
     originalFetch = globalThis.fetch;
     globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
       fetchCalls.push({ url: String(input), init: init ?? {} });
-      return new Response("ok", { status: 204 });
+      return new Response(null, { status: 204 });
     }) as typeof fetch;
     errors = [];
     originalError = console.error;
@@ -212,7 +212,7 @@ describe("saveSubmission fires dataset sync after persist", { concurrency: 1 }, 
     originalFetch = globalThis.fetch;
     globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
       fetchCalls.push({ url: String(input), init: init ?? {} });
-      return new Response("ok", { status: 204 });
+      return new Response(null, { status: 204 });
     }) as typeof fetch;
   });
 
