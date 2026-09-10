@@ -52,6 +52,11 @@ Ask relay:
 - `ASK_REPLY_SECRET`
 - optional `GROK_API_KEY` (unused unless you wire LLM later; rules draft is default)
 
+Intake → dataset sync (Grok Bot routine `intake-dataset-sync-webhook`). Boss pastes both from the desktop routine panel into **this intake project only**, then Redeploy intake. Both required or the helper no-ops (save still succeeds). Header: `Authorization: Bearer <key>` (optional `X-Automation-Key`). Never commit or log the key.
+
+- `INTAKE_DATASET_SYNC_WEBHOOK_URL`
+- `INTAKE_DATASET_SYNC_WEBHOOK_KEY`
+
 Local only:
 
 - optional `SASSY_DATA_DIR` — data root. Default local: `sassy-closet/data/` (gitignored). On Vercel *without* Blob: `/tmp/sassy-closet-data` (ephemeral).

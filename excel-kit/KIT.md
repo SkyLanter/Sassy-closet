@@ -9,6 +9,8 @@ Document **names only**. Never paste secret values into git, PRs, or chat logs.
 | `MINIBOSS_ASK_WEBHOOK_URL` | `POST /api/ask` relays `{id, question}` |
 | `MINIBOSS_ASK_WEBHOOK_KEY` | Bearer / `x-miniboss-ask-key` on that webhook POST |
 | `ASK_REPLY_SECRET` | Gates `POST /api/ask/reply` |
+| `INTAKE_DATASET_SYNC_WEBHOOK_URL` | Grok Bot routine `intake-dataset-sync-webhook` POST URL. Empty → no-op |
+| `INTAKE_DATASET_SYNC_WEBHOOK_KEY` | Sender key as `Authorization: Bearer <key>` (optional `X-Automation-Key`). Both vars required or no-op |
 | `SASSY_DATA_DIR` | Optional local data root |
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob (auto). Durable mã JSON + photo bytes |
 | `BLOB_STORE_ID` | Vercel Blob store id (auto when connected; OIDC on Vercel) |
