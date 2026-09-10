@@ -5,6 +5,10 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, test } from "node:test";
 import { BlobError, BlobNotFoundError } from "@vercel/blob";
 import {
+  BLOB_SDK_MIN_CACHE_CONTROL_MAX_AGE,
+  INTAKE_PHOTO_CACHE_CONTROL,
+  blobConsistentReadOptions,
+  blobWriteOptions,
   copyStoreAndPhotos,
   createLocalBackend,
   isMissingBlobError,
@@ -43,6 +47,25 @@ describe("durable / local store", { concurrency: 1 }, () => {
     }
     resetStoreBackendForTests();
     fs.rmSync(tmp, { recursive: true, force: true });
+  });
+
+  test("Blob put/get options stay overwrite-safe (SDK min 60s, consistent reads)", () => {
+    assert.equal(BLOB_SDK_MIN_CACHE_CONTROL_MAX_AGE, 60);
+    assert.ok(BLOB_SDK_MIN_CACHE_CONTROL_MAX_AGE >= 60);
+    assert.equal(INTAKE_PHOTO_CACHE_CONTROL, "private, no-store");
+
+    const jsonPut = blobWriteOptions("private", "application/json");
+    assert.equal(jsonPut.addRandomSuffix, false);
+    assert.equal(jsonPut.allowOverwrite, true);
+    assert.equal(jsonPut.cacheControlMaxAge, 60);
+    assert.equal(jsonPut.contentType, "application/json");
+
+    const photoPut = blobWriteOptions("private", "image/jpeg");
+    assert.equal(photoPut.cacheControlMaxAge, 60);
+    assert.equal(photoPut.addRandomSuffix, false);
+
+    const read = blobConsistentReadOptions("private");
+    assert.equal(read.useCache, false);
   });
 
   test("storageMode is local without Blob, ephemeral on Vercel, durable with Blob env", () => {

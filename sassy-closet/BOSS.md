@@ -7,3 +7,4 @@
 - Missing on-hand = **Staged only — not on Square On_Hand yet**. Never invent qty / $ / storage.
 - Square Free = on-hand SoT. Never invent mã. Never Square Save from the site.
 - Production persistence: Vercel → Storage → Create **Blob** → **Private** → connect Production. Without this, redeploy wipes mã + photos. Verify: Lưu → Redeploy → mã still in export. See `README.md` Durable store.
+- Intake `store.json` / CSV ≠ sell `catalog.v1`. Never publish intake P05 `$23`. Shop Hold stays Hold until Boss says otherwise.
