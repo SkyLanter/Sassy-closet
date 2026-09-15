@@ -202,7 +202,7 @@ Desktop wall (A01 id, same pattern for the others): https://item.taobao.com/item
 **Open (Boss — not invented here)**
 
 1. P03 `Photos/P03/` vs live Judy/Nick 主图 + 尼克500ml (photo≠link).
-2. P02/P05 letter: keep P, move to **O**, or new drinkware letter.
+2. P02/P03 (and prior-pass **P05**, not re-opened today) letter: keep P, move to **O**, or new drinkware letter.
 3. A03 / B01 / B02 / P02 / P03: which ask is the one GF paid or will pay — share `price=`, world ¥, or a logged-in coupon? **Do not pick.**
 4. B01 world **¥899** vs share **198** vs export **¥174.46** — confirm SKU + 主图 color vs Photos/B01/.
 5. Item-level 包邮 / 现货 / 销量 — need App or logged-in shot. Not on world today.
