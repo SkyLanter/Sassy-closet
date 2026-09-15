@@ -28,6 +28,8 @@ describe("durable / local store", { concurrency: 1 }, () => {
       "BLOB_READ_WRITE_TOKEN",
       "BLOB_STORE_ID",
       "BLOB_ACCESS",
+      "INTAKE_DATASET_SYNC_WEBHOOK_URL",
+      "INTAKE_DATASET_SYNC_WEBHOOK_KEY",
     ]) {
       prev[key] = process.env[key];
       delete process.env[key];
