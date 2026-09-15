@@ -10,7 +10,7 @@ The shop’s live working copy is **not** this repo. It is:
 
 1. Open this repo: [SkyLanter/Sassy-closet](https://github.com/SkyLanter/Sassy-closet).
 2. Start a **Cursor Cloud Agent** on `main` (Cursor → Agents, or the Cloud Agent composer pointed at this repo).
-3. Paste **one** task from [`excel-kit/PROMPTS.md`](excel-kit/PROMPTS.md) (Official row, Wishlist, Order, morning brief, clean demo, rebuild, Square draft, GF clothes intake).
+3. Paste **one** task from [`excel-kit/PROMPTS.md`](excel-kit/PROMPTS.md) (Official row, Wishlist, Order, morning brief, clean demo, rebuild, Square draft, GF clothes intake, Square.xlsx + Finance.xlsx).
 4. The agent works on a `cursor/…` branch and opens a PR. Mini Boss / Boss review. No Square Save from the agent.
 5. After merge, **Kit** syncs built or cleaned `.xlsx` to OneDrive `Documents/Sassy Closet/` (`Sassy_Closet_SoT.xlsx`, optional lean desktop books, `Photos/` stays links-only).
 6. Never commit live Official rows, customer names, Square tokens, or a filled import CSV.
@@ -34,6 +34,7 @@ See [`excel-kit/`](excel-kit/) — schema, SoT CLIs, Square headers, prompts.
 pip install -r requirements.txt
 python3 excel-kit/sot/build_sot_desktop.py --out-dir ./out
 python3 excel-kit/build_boutique_desktop.py --out-dir ./out
+python3 excel-kit/build_square_finance.py --out-dir ./out
 python3 excel-kit/sot/dashboard_brief.py -w ./out/Sassy_Closet_SoT.xlsx
 python3 excel-kit/tests/run_checks.py
 ```
@@ -44,6 +45,7 @@ python3 excel-kit/tests/run_checks.py
 | `excel-kit/sot/` | Append Official / Wishlist / Orders / Bot_Activity; GF intake; morning brief |
 | `excel-kit/clean_sot_demo.py` | Demo wipe + Square wording + no embeds |
 | `excel-kit/build_boutique_desktop.py` | Lean Official + Wishlist desktop books |
+| `excel-kit/build_square_finance.py` | Empty Square.xlsx + Finance.xlsx (bought tracker + tax-ready) |
 | `excel-kit/square/` | Headers-only import template (Track ON, mã = SKU) |
 | `excel-kit/PROMPTS.md` | Paste-ready Cloud Agent prompts |
 
