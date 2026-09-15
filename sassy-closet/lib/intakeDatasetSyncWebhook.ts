@@ -20,6 +20,8 @@ export type IntakeDatasetSyncPayload = {
 };
 
 /**
+ * Immediate dataset-sync path after a successful GF persist.
+ * Poll backup already exists on Grok Bot — Mini Boss does not need to be online.
  * Both URL and sender key are required. If either is missing the helper
  * no-ops so Authorization is never sent without a key (auth does not fail open).
  */

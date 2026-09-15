@@ -52,7 +52,16 @@ Ask relay:
 - `ASK_REPLY_SECRET`
 - optional `GROK_API_KEY` (unused unless you wire LLM later; rules draft is default)
 
-Intake → dataset sync (Grok Bot routine `intake-dataset-sync-webhook`). Boss pastes both from the desktop routine panel into **this intake project only**, then Redeploy intake. Both required or the helper no-ops (save still succeeds). Header: `Authorization: Bearer <key>` (optional `X-Automation-Key`). Never commit or log the key.
+Intake → dataset sync (Grok Bot routine `intake-dataset-sync-webhook`). This webhook is the **immediate** path after GF create/update persist. A **poll backup already exists on Grok Bot**, so Mini Boss does not need to be online for the dataset to catch up.
+
+Boss paste (intake project only — never sell-test):
+
+1. Desktop routine panel → copy Webhook URL + sender key (often `crsr_…`).
+2. Vercel → https://sassy-closet.vercel.app project (Root Directory `sassy-closet`) → Settings → Environment Variables (Production + Preview as needed).
+3. Paste `INTAKE_DATASET_SYNC_WEBHOOK_URL` and `INTAKE_DATASET_SYNC_WEBHOOK_KEY`.
+4. **Redeploy intake only.**
+
+Both required or the helper no-ops (save still succeeds). Header: `Authorization: Bearer <key>` (optional `X-Automation-Key`). Never commit or log the key. Webhook fail → log + save still OK.
 
 - `INTAKE_DATASET_SYNC_WEBHOOK_URL`
 - `INTAKE_DATASET_SYNC_WEBHOOK_KEY`
