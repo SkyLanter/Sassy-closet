@@ -15,6 +15,8 @@ import sys
 import tempfile
 from pathlib import Path
 
+from openpyxl import load_workbook
+
 REPO = Path(__file__).resolve().parents[2]
 KIT = REPO / "excel-kit"
 if str(KIT) not in sys.path:
@@ -24,6 +26,11 @@ from schema import (  # noqa: E402
     APPEND_OFFICIAL_ROW_EXPORTS,
     ASK_STOCK_MA,
     CANDIDATES,
+    INTAKE_CLOTHING_SIZES,
+    INTAKE_CSV_HEADERS,
+    INTAKE_KIND_CODES,
+    INTAKE_KIND_LABELS,
+    INTAKE_SHOE_SIZES,
     MA_LIST,
     OFFICIAL_TO_MA_LIST_STATUS,
     ONEDRIVE_FROM_GF,
@@ -35,6 +42,7 @@ from schema import (  # noqa: E402
     SQUARE_SOT_SHORT,
     STAY_OFF_SQUARE,
     MissingMaError,
+    intake_sizes_for_kind,
     looks_like_demo_row,
     official_status_or_raise,
     parse_ma,
@@ -182,6 +190,19 @@ def check_schema_contract() -> None:
         pass
     assert resolve_sheet_name(["Official", "Wishlist"], "official") == "Official"
     assert resolve_sheet_name(["Ma_List"], "official") == "Ma_List"
+    assert INTAKE_KIND_CODES == ("A", "Q", "V", "D", "K", "G", "B", "P", "H", "J", "S", "O")
+    assert INTAKE_KIND_LABELS["D"] == "Đầm / Dress"
+    assert INTAKE_KIND_LABELS["G"] == "Giày / Cao gót"
+    assert INTAKE_KIND_LABELS["H"] == "Phụ kiện tóc / Hair accessories"
+    assert INTAKE_KIND_LABELS["J"] == "Trang sức / Jewelry"
+    assert "Tóc" != INTAKE_KIND_LABELS["H"]
+    assert INTAKE_CLOTHING_SIZES == ("2XS", "XS", "S", "M", "L", "XL", "2XL")
+    assert INTAKE_SHOE_SIZES == ("35", "36", "37", "38", "39", "40", "41")
+    assert intake_sizes_for_kind("G") == INTAKE_SHOE_SIZES
+    assert intake_sizes_for_kind("A") == INTAKE_CLOTHING_SIZES
+    assert intake_sizes_for_kind("D") == INTAKE_CLOTHING_SIZES
+    assert INTAKE_CSV_HEADERS[:4] == ("ma", "kind", "kind_vi", "size")
+    assert INTAKE_CSV_HEADERS[-1] == "size_options"
     print("schema contract ok")
 
 
@@ -237,6 +258,37 @@ def check_builders_and_append() -> None:
         book = out / "Sassy_Closet_SoT.xlsx"
         if not book.is_file():
             raise AssertionError("SoT builder did not write Sassy_Closet_SoT.xlsx")
+        lists_wb = load_workbook(book)
+        try:
+            lists = lists_wb["Lists"]
+            list_headers = [lists.cell(1, col).value for col in range(1, lists.max_column + 1)]
+            for required in ("intake_kind", "intake_size_clothing", "intake_size_shoe"):
+                if required not in list_headers:
+                    raise AssertionError(f"Lists missing {required}: {list_headers}")
+            kind_col = list_headers.index("intake_kind") + 1
+            shoe_col = list_headers.index("intake_size_shoe") + 1
+            kind_values = [
+                lists.cell(row, kind_col).value
+                for row in range(2, lists.max_row + 1)
+                if lists.cell(row, kind_col).value
+            ]
+            shoe_values = [
+                str(lists.cell(row, shoe_col).value)
+                for row in range(2, lists.max_row + 1)
+                if lists.cell(row, shoe_col).value is not None
+            ]
+            if "G Giày / Cao gót" not in kind_values:
+                raise AssertionError(f"Lists intake_kind missing G: {kind_values}")
+            if "H Phụ kiện tóc / Hair accessories" not in kind_values:
+                raise AssertionError(f"Lists intake_kind missing H: {kind_values}")
+            if "J Trang sức / Jewelry" not in kind_values:
+                raise AssertionError(f"Lists intake_kind missing J: {kind_values}")
+            if "D Đầm / Dress" not in kind_values:
+                raise AssertionError(f"Lists intake_kind missing D: {kind_values}")
+            if shoe_values != list(INTAKE_SHOE_SIZES):
+                raise AssertionError(f"Lists intake_size_shoe drifted: {shoe_values}")
+        finally:
+            lists_wb.close()
 
         desk = _run([sys.executable, str(KIT / "build_boutique_desktop.py"), "--out-dir", str(out)])
         if desk.returncode != 0:

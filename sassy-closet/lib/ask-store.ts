@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { localAskAnswer } from "./ask-fallback";
+import { intakeCatalog } from "./kinds";
 import type { AskRecord } from "./types";
 
 const ASK_TIMEOUT_MS = 45_000;
@@ -115,7 +116,11 @@ export async function notifyWebhook(record: AskRecord): Promise<boolean> {
       authorization: `Bearer ${key}`,
       "x-miniboss-ask-key": key,
     },
-    body: JSON.stringify({ id: record.id, question: record.question }),
+    body: JSON.stringify({
+      id: record.id,
+      question: record.question,
+      catalog: intakeCatalog(),
+    }),
   });
   return response.ok;
 }

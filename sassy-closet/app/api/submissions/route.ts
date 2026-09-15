@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { saveFromForm } from "@/lib/form-save";
+import { intakeCatalog } from "@/lib/kinds";
 import { listSubmissions, storeHealth } from "@/lib/store";
 
 export async function GET() {
   return NextResponse.json({
     submissions: await listSubmissions(),
     storage: storeHealth(),
+    catalog: intakeCatalog(),
   });
 }
 
