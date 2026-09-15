@@ -24,29 +24,64 @@ from schema import (  # noqa: E402
     APPEND_OFFICIAL_ROW_EXPORTS,
     ASK_STOCK_MA,
     CANDIDATES,
+    EXPORT_HEADERS,
+    FINANCE_CHANNEL,
+    FINANCE_PAY_METHOD,
+    FINANCE_SALES,
+    FINANCE_SHEETS,
+    FINANCE_TAX_CATEGORY,
+    FINANCE_TAX_SUMMARY_ROWS,
+    FINANCE_XLSX_NAME,
+    HUB_ALL,
+    HUB_KIND_SHEETS,
+    HUB_LINK_COLS,
+    HUB_ORDERS,
+    HUB_REQUIRED_BACKUP_COLS,
+    HUB_SHEETS,
+    HUB_XLSX_NAME,
     MA_LIST,
     OFFICIAL_TO_MA_LIST_STATUS,
+    ONEDRIVE_FINANCE,
     ONEDRIVE_FROM_GF,
+    ONEDRIVE_HUB,
+    ONEDRIVE_HUB_DIR,
+    ONEDRIVE_HUB_PHOTOS,
+    ONEDRIVE_PHOTOS,
+    ONEDRIVE_SHOP_DIR,
+    ONEDRIVE_SQUARE,
     ORDER_STATUS,
     SOT_DASHBOARD_BRIEF_CELL,
     SOT_OFFICIAL_STATUS,
     SOT_WISHLIST,
     SQUARE_IMPORT_HEADERS,
+    SQUARE_ON_HAND,
+    SQUARE_ON_HAND_STATUS,
+    SQUARE_SHEETS,
     SQUARE_SOT_SHORT,
+    SQUARE_SOLD_LOG,
+    SQUARE_XLSX_NAME,
     STAY_OFF_SQUARE,
     MissingMaError,
+    assert_hub_backup_columns,
+    finance_net_usd_formula,
+    hub_photo_folder,
+    is_hub_ma,
     looks_like_demo_row,
     official_status_or_raise,
     parse_ma,
     photo_filename_for_ma,
     require_ma,
     resolve_sheet_name,
+    square_photo_folder,
+    square_photo_folder_formula,
 )
 
 SCRIPTS = [
     KIT / "schema.py",
     KIT / "clean_sot_demo.py",
     KIT / "build_boutique_desktop.py",
+    KIT / "build_sassycloset_hub.py",
+    KIT / "build_square_finance.py",
     KIT / "sot" / "workbook.py",
     KIT / "sot" / "append_official_row.py",
     KIT / "sot" / "append_wishlist_row.py",
@@ -63,6 +98,8 @@ SCRIPTS = [
 CLIS = [
     KIT / "clean_sot_demo.py",
     KIT / "build_boutique_desktop.py",
+    KIT / "build_sassycloset_hub.py",
+    KIT / "build_square_finance.py",
     KIT / "sot" / "append_official_row.py",
     KIT / "sot" / "append_wishlist_row.py",
     KIT / "sot" / "append_order_row.py",
@@ -171,10 +208,157 @@ def check_schema_contract() -> None:
         raise AssertionError("Ma_List status must not pass official_status_or_raise")
     except ValueError:
         pass
-    # Legacy AO001 parse_ma — do not treat A01 as valid in this PR.
+    # Legacy AO001 parse_ma — do not treat A01 as valid here (hub mã is separate).
     assert parse_ma("AO001") == ("AO", 1)
     assert parse_ma("ao015") == ("AO", 15)
+    assert parse_ma("A01") is None
+    assert parse_ma("P02") is None
     assert photo_filename_for_ma("AO001") == "AO001.jpg"
+    assert EXPORT_HEADERS[-1] == "photo_link"
+    assert HUB_ALL[0] == "ma"
+    assert HUB_ALL[1] == "source_link"
+    assert HUB_ALL == (
+        "ma",
+        "source_link",
+        "kind",
+        "colors",
+        "sell_usd",
+        "cost",
+        "currency",
+        "square",
+        "status",
+        "flag",
+        "next_desk",
+        "photo_folder",
+    )
+    for name in HUB_REQUIRED_BACKUP_COLS:
+        assert name in HUB_ALL
+    for name in HUB_LINK_COLS:
+        assert name in HUB_ALL
+    assert_hub_backup_columns(HUB_ALL, "HUB_ALL")
+    assert HUB_ORDERS == (
+        "date",
+        "ma",
+        "customer",
+        "pay",
+        "amount_usd",
+        "ship_or_meetup",
+        "status",
+        "notes",
+    )
+    assert HUB_SHEETS[0] == "All"
+    assert HUB_SHEETS[-2:] == ("Orders", "Readme")
+    assert len(HUB_SHEETS) == 14
+    assert [name for name, _letter in HUB_KIND_SHEETS] == [
+        "A_Ao",
+        "Q_Quan",
+        "V_Vay",
+        "K_Khoac",
+        "G_Giay",
+        "B_Tui",
+        "P_PhuKien",
+        "S_Set",
+        "O_Khac",
+        "H_Toc",
+        "J_TrangSuc",
+    ]
+    assert ONEDRIVE_HUB == f"{ONEDRIVE_HUB_DIR}/{HUB_XLSX_NAME}"
+    assert ONEDRIVE_HUB_DIR == ONEDRIVE_SHOP_DIR
+    assert ONEDRIVE_HUB_DIR == "Documents/Sassy Closet"
+    assert ONEDRIVE_HUB == "Documents/Sassy Closet/sassycloset.xlsx"
+    assert ONEDRIVE_HUB_PHOTOS == "Documents/Sassy Closet/Photos"
+    assert ONEDRIVE_HUB_DIR != "Documents/sassycloset"
+    assert is_hub_ma("A01")
+    assert is_hub_ma("P02")
+    assert is_hub_ma("P05")
+    assert is_hub_ma("A100")
+    assert is_hub_ma("D01")
+    assert is_hub_ma("A02") is True  # leftover shape; builder still refuses the row
+    assert is_hub_ma("AO001") is False
+    assert hub_photo_folder("P02") == f"{ONEDRIVE_HUB_PHOTOS}/P02/"
+    assert hub_photo_folder("P05") == f"{ONEDRIVE_HUB_PHOTOS}/P05/"
+    try:
+        hub_photo_folder("")
+        raise AssertionError("hub_photo_folder must refuse an empty mã")
+    except ValueError:
+        pass
+    try:
+        hub_photo_folder("SHIRT1")
+        raise AssertionError("hub_photo_folder must refuse an invented mã")
+    except ValueError:
+        pass
+    assert SQUARE_ON_HAND == (
+        "ma",
+        "kind",
+        "colors",
+        "size",
+        "qty_on_hand",
+        "cost_cny",
+        "cost_usd",
+        "cost_currency",
+        "buy_date",
+        "source_link",
+        "photo_folder",
+        "square_item_name",
+        "track_on",
+        "status",
+        "sold_date",
+        "notes",
+    )
+    assert SQUARE_ON_HAND_STATUS == ("on_hand", "reserved", "sold", "dead")
+    assert SQUARE_SOLD_LOG == (
+        "sold_date",
+        "ma",
+        "kind",
+        "colors",
+        "size",
+        "qty",
+        "square_item_name",
+        "notes",
+    )
+    assert SQUARE_SHEETS == ("On_Hand", "Sold_Log", "Readme")
+    assert FINANCE_SALES == (
+        "date",
+        "ma",
+        "description",
+        "qty",
+        "gross_usd",
+        "ship_usd",
+        "discount_usd",
+        "net_usd",
+        "pay_method",
+        "pay_ref",
+        "customer_note",
+        "channel",
+        "square_xlsx_ma",
+        "tax_category",
+        "notes",
+    )
+    assert FINANCE_CHANNEL == ("facebook", "meetup", "website", "other")
+    assert FINANCE_PAY_METHOD == ("zelle", "square", "square_online", "cash", "other")
+    assert FINANCE_TAX_CATEGORY == ("product_sale", "shipping", "other")
+    assert FINANCE_SHEETS == (
+        "Sales",
+        "Fees",
+        "Payouts_Transfers",
+        "Expenses",
+        "Tax_Summary",
+        "Readme",
+    )
+    assert ONEDRIVE_SQUARE == f"{ONEDRIVE_SHOP_DIR}/{SQUARE_XLSX_NAME}"
+    assert ONEDRIVE_FINANCE == f"{ONEDRIVE_SHOP_DIR}/{FINANCE_XLSX_NAME}"
+    assert ONEDRIVE_SQUARE == "Documents/Sassy Closet/Square.xlsx"
+    assert ONEDRIVE_FINANCE == "Documents/Sassy Closet/Finance.xlsx"
+    assert square_photo_folder("P02") == f"{ONEDRIVE_PHOTOS}/P02/"
+    assert square_photo_folder_formula(2) == f'=IF(A2="","","{ONEDRIVE_PHOTOS}/"&A2&"/")'
+    assert finance_net_usd_formula(2).startswith("=IF(COUNTA(E2:G2)=0")
+    try:
+        square_photo_folder("")
+        raise AssertionError("square_photo_folder must refuse an empty mã")
+    except ValueError:
+        pass
+    net_row = [formula for label, formula in FINANCE_TAX_SUMMARY_ROWS if label.startswith("Net after")]
+    assert net_row == ["=B6-B10-B11"]
     try:
         photo_filename_for_ma("not-a-ma")
         raise AssertionError("photo_filename_for_ma must refuse invented mã")
@@ -226,6 +410,298 @@ def check_square_template() -> None:
     if "headers-only" not in proc.stdout:
         raise AssertionError("validate_import should report headers-only")
     print("square template headers-only ok")
+
+
+def _write_harness_export(path: Path) -> None:
+    """Runtime-only CSV. Not committed. Uses live-shaped mã; never invents new ones."""
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(EXPORT_HEADERS))
+        writer.writeheader()
+        writer.writerow(
+            {
+                "ma": "A01",
+                "kind": "A",
+                "kind_vi": "Áo",
+                "size": "S M L",
+                "color": "Kem",
+                "color_note": "",
+                "color_pieces": "P1: Kem",
+                "blurb": "harness row",
+                "cost_cny": "10",
+                "cost_usd": "1.5",
+                "cost_currency": "USD",
+                "sell_cny": "",
+                "sell_usd": "20",
+                "sell_currency": "USD",
+                "source_link": "https://example.com/harness-a01",
+                "status": "staged",
+                "square": "not_square",
+                "created_at": "2026-09-07T00:00:00.000Z",
+                "updated_at": "2026-09-07T00:00:00.000Z",
+                "photo_link": "replace-me",
+            }
+        )
+        writer.writerow(
+            {
+                "ma": "P02",
+                "kind": "P",
+                "kind_vi": "Phụ kiện",
+                "size": "",
+                "color": "Đỏ",
+                "color_note": "",
+                "color_pieces": "P1: Đỏ",
+                "blurb": "",
+                "cost_cny": "63",
+                "cost_usd": "9.39",
+                "cost_currency": "CNY",
+                "sell_cny": "",
+                "sell_usd": "",
+                "sell_currency": "",
+                "source_link": "https://example.com/harness-p02",
+                "status": "staged",
+                "square": "not_square",
+                "created_at": "2026-09-08T00:00:00.000Z",
+                "updated_at": "2026-09-08T00:00:00.000Z",
+                "photo_link": "also-replace-me",
+            }
+        )
+        writer.writerow(
+            {
+                "ma": "P05",
+                "kind": "P",
+                "kind_vi": "Phụ kiện",
+                "size": "",
+                "color": "Hồng",
+                "color_note": "",
+                "color_pieces": "P1: Hồng",
+                "blurb": "",
+                "cost_cny": "75",
+                "cost_usd": "11.18",
+                "cost_currency": "CNY",
+                "sell_cny": "",
+                "sell_usd": "23",
+                "sell_currency": "USD",
+                "source_link": "https://example.com/harness-p05",
+                "status": "staged",
+                "square": "not_square",
+                "created_at": "2026-09-08T00:00:00.000Z",
+                "updated_at": "2026-09-08T00:00:00.000Z",
+                "photo_link": "p05-replace",
+            }
+        )
+        writer.writerow({"ma": "", "blurb": "empty mã must be skipped"})
+
+
+def check_sassycloset_hub() -> None:
+    prompt = KIT / "prompts" / "SASSYCLOSET_HUB_2026-09-07.md"
+    kit_md = KIT / "KIT.md"
+    photos_md = KIT / "PHOTOS.md"
+    kit_sh = KIT / "kit.sh"
+    root_kit = REPO / "kit.sh"
+    builder = KIT / "build_sassycloset_hub.py"
+    for path in (prompt, kit_md, photos_md, kit_sh, root_kit, builder):
+        if not path.is_file():
+            raise AssertionError(f"missing {path.relative_to(REPO)}")
+
+    prompt_text = prompt.read_text(encoding="utf-8")
+    for needle in (
+        "sassycloset.xlsx",
+        "api/export",
+        "photo_folder",
+        "A_Ao",
+        "P_PhuKien",
+        "J_TrangSuc",
+        "Documents/Sassy Closet",
+        "kit.sh save",
+        "kit.sh run",
+        "P02 and P05",
+    ):
+        if needle not in prompt_text:
+            raise AssertionError(f"SASSYCLOSET_HUB_2026-09-07.md should keep spec line {needle!r}")
+    if "offline backup" not in prompt_text.lower() or "source_link" not in prompt_text:
+        raise AssertionError("hub spec must say Excel is an offline backup and keep source_link")
+
+    kit_text = kit_md.read_text(encoding="utf-8")
+    photos_text = photos_md.read_text(encoding="utf-8")
+    if "sassycloset" not in kit_text.lower() or "teammates" not in kit_text.lower():
+        raise AssertionError("KIT.md must name the sassycloset hub for teammates")
+    if "kit.sh save" not in kit_text or "Documents/Sassy Closet" not in kit_text:
+        raise AssertionError("KIT.md must document kit.sh save and the OneDrive land path")
+    if "Documents/sassycloset" in kit_text:
+        raise AssertionError("KIT.md must not land on Documents/sassycloset/")
+    if "offline backup" not in kit_text.lower() or "source_link" not in kit_text:
+        raise AssertionError("KIT.md must say Excel is the offline backup and keep source_link")
+    if "Documents/Sassy Closet/Photos/{MA}/" not in photos_text:
+        raise AssertionError("PHOTOS.md must use Documents/Sassy Closet/Photos/{MA}/")
+
+    syntax = _run(["bash", "-n", str(kit_sh)])
+    if syntax.returncode != 0:
+        raise AssertionError(f"kit.sh bash -n failed:\n{syntax.stderr}")
+    root_syntax = _run(["bash", "-n", str(root_kit)])
+    if root_syntax.returncode != 0:
+        raise AssertionError(f"root kit.sh bash -n failed:\n{root_syntax.stderr}")
+    help_proc = _run(["bash", str(kit_sh), "--help"])
+    if help_proc.returncode != 0:
+        raise AssertionError(help_proc.stderr)
+    help_blob = help_proc.stdout + help_proc.stderr
+    if "save" not in help_blob or "run" not in help_blob:
+        raise AssertionError("kit.sh --help should mention save and run")
+    if "Documents/Sassy Closet" not in help_blob:
+        raise AssertionError("kit.sh --help should document the OneDrive land path")
+    if "Documents/sassycloset" in help_blob:
+        raise AssertionError("kit.sh --help must not land on Documents/sassycloset/")
+    cute = _run(["bash", str(kit_sh), "wishlist"])
+    if cute.returncode == 0:
+        raise AssertionError("kit.sh wishlist must be refused (cute pull retired)")
+    if "retired" not in (cute.stdout + cute.stderr).lower():
+        raise AssertionError("kit.sh wishlist refusal should say retired")
+
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp)
+        csv_path = out / "export.csv"
+        _write_harness_export(csv_path)
+        built = _run(
+            [
+                sys.executable,
+                str(builder),
+                "--from-csv",
+                str(csv_path),
+                "--skip-photos",
+                "--out-dir",
+                str(out),
+            ]
+        )
+        if built.returncode != 0:
+            raise AssertionError(built.stdout + built.stderr)
+        book = out / HUB_XLSX_NAME
+        if not book.is_file():
+            raise AssertionError("hub builder did not write sassycloset.xlsx")
+        blob = built.stdout + built.stderr
+        if "sha256" not in blob:
+            raise AssertionError("builder should print a checksum")
+        if "Documents/Sassy Closet" not in blob:
+            raise AssertionError("builder should print the OneDrive land path")
+        if "Documents/sassycloset" in blob:
+            raise AssertionError("builder must not land on Documents/sassycloset/")
+        readme_txt = out / "README.txt"
+        if not readme_txt.is_file():
+            raise AssertionError("hub builder must write README.txt")
+        readme_body = readme_txt.read_text(encoding="utf-8")
+        if "Documents/Sassy Closet" not in readme_body:
+            raise AssertionError("README.txt must document the OneDrive land path")
+        if "Documents/sassycloset" in readme_body:
+            raise AssertionError("README.txt must not land on Documents/sassycloset/")
+        for ma in ("A01", "P02", "P05"):
+            folder = out / "Photos" / ma
+            if not folder.is_dir():
+                raise AssertionError(f"skip-photos should still create Photos/{ma}/")
+        if (out / "Photos" / "A02").exists():
+            raise AssertionError("must not create an A02 photo folder")
+
+        from openpyxl import load_workbook
+
+        wb = load_workbook(book)
+        try:
+            if list(wb.sheetnames) != list(HUB_SHEETS):
+                raise AssertionError(f"unexpected sheets: {wb.sheetnames}")
+            if "Candidates" in wb.sheetnames or "Inventory" in wb.sheetnames or "Track" in wb.sheetnames:
+                raise AssertionError("Candidates / Inventory / Track must not be hub sheets")
+            all_sheet = wb["All"]
+            headers = [all_sheet.cell(1, c).value for c in range(1, len(HUB_ALL) + 1)]
+            if headers != list(HUB_ALL):
+                raise AssertionError(f"All headers drifted: {headers}")
+            if headers[0] != "ma" or headers[1] != "source_link":
+                raise AssertionError(f"All must lead with ma + source_link, got {headers[:2]}")
+            if "source_link" not in headers or "photo_folder" not in headers:
+                raise AssertionError("never drop link columns")
+            mas = []
+            for row in range(2, (all_sheet.max_row or 1) + 1):
+                value = all_sheet.cell(row, 1).value
+                if value is None or str(value).strip() == "":
+                    continue
+                mas.append(str(value).strip())
+            if mas != ["A01", "P02", "P05"]:
+                raise AssertionError(f"harness All mã should be A01,P02,P05 (no A02), got {mas}")
+            photo_col = list(HUB_ALL).index("photo_folder") + 1
+            link_col = list(HUB_ALL).index("source_link") + 1
+            cost_col = list(HUB_ALL).index("cost") + 1
+            curr_col = list(HUB_ALL).index("currency") + 1
+            flag_col = list(HUB_ALL).index("flag") + 1
+            desk_col = list(HUB_ALL).index("next_desk") + 1
+            colors_col = list(HUB_ALL).index("colors") + 1
+            if all_sheet.cell(2, link_col).value != "https://example.com/harness-a01":
+                raise AssertionError("source_link must copy the export Taobao/source URL")
+            if all_sheet.cell(3, link_col).value != "https://example.com/harness-p02":
+                raise AssertionError("P02 source_link must stay; never drop link columns")
+            for row_index, ma in enumerate(mas, start=2):
+                folder = str(all_sheet.cell(row_index, photo_col).value)
+                if folder != f"{ONEDRIVE_HUB_PHOTOS}/{ma}/":
+                    raise AssertionError(f"photo_folder for {ma} should be hub path, got {folder}")
+            if all_sheet.cell(2, colors_col).value != "Kem":
+                raise AssertionError("colors should come from export color, not invented")
+            if all_sheet.cell(2, cost_col).value != 1.5 or str(all_sheet.cell(2, curr_col).value) != "USD":
+                raise AssertionError("A01 cost should follow export cost_currency=USD")
+            if all_sheet.cell(3, cost_col).value != 63 or str(all_sheet.cell(3, curr_col).value) != "CNY":
+                raise AssertionError("P02 cost should follow export cost_currency=CNY")
+            if all_sheet.cell(2, flag_col).value not in (None, ""):
+                raise AssertionError("flag must stay empty unless export already has one")
+            if all_sheet.cell(2, desk_col).value not in (None, ""):
+                raise AssertionError("next_desk must stay empty by default")
+            if any(cell.value == "A02" for row in all_sheet.iter_rows() for cell in row):
+                raise AssertionError("no mã cell A02")
+            if getattr(all_sheet, "_images", None):
+                raise AssertionError("All embeds forbidden")
+            if all_sheet.freeze_panes != "A2" or wb["Orders"].freeze_panes != "A2":
+                raise AssertionError("All/Orders must freeze the header row")
+            if wb["Q_Quan"].freeze_panes != "A2":
+                raise AssertionError("empty category sheets still freeze the header")
+            ao = [
+                str(wb["A_Ao"].cell(row, 1).value).strip()
+                for row in range(2, (wb["A_Ao"].max_row or 1) + 1)
+                if wb["A_Ao"].cell(row, 1).value
+            ]
+            pk = [
+                str(wb["P_PhuKien"].cell(row, 1).value).strip()
+                for row in range(2, (wb["P_PhuKien"].max_row or 1) + 1)
+                if wb["P_PhuKien"].cell(row, 1).value
+            ]
+            quan = [
+                str(wb["Q_Quan"].cell(row, 1).value).strip()
+                for row in range(2, (wb["Q_Quan"].max_row or 1) + 1)
+                if wb["Q_Quan"].cell(row, 1).value
+            ]
+            if ao != ["A01"] or pk != ["P02", "P05"] or quan != []:
+                raise AssertionError(f"category filters wrong: A_Ao={ao} P_PhuKien={pk} Q_Quan={quan}")
+            readme_lines = [
+                str(wb["Readme"].cell(r, 1).value).strip()
+                for r in range(1, 8)
+                if wb["Readme"].cell(r, 1).value
+            ]
+            if not (4 <= len(readme_lines) <= 6):
+                raise AssertionError(f"Readme should be hub-rule lines, got {readme_lines}")
+        finally:
+            wb.close()
+
+        leftover = out / "leftover.csv"
+        with leftover.open("w", encoding="utf-8", newline="") as handle:
+            writer = csv.DictWriter(handle, fieldnames=list(EXPORT_HEADERS))
+            writer.writeheader()
+            writer.writerow({"ma": "A02", "kind": "A", "kind_vi": "Áo", "status": "staged"})
+        refuse = _run(
+            [
+                sys.executable,
+                str(builder),
+                "--from-csv",
+                str(leftover),
+                "--skip-photos",
+                "--out-dir",
+                str(out / "bad"),
+            ]
+        )
+        if refuse.returncode == 0:
+            raise AssertionError("builder must refuse leftover A02 (renamed to P02, not P05)")
+
+    print("sassycloset hub ok")
 
 
 def check_builders_and_append() -> None:
@@ -853,6 +1329,93 @@ def check_onedrive_from_gf_link() -> None:
     print("From GF OneDrive link helper ok")
 
 
+SQUARE_FINANCE_PROMPT = KIT / "prompts" / "SQUARE_AND_FINANCE_EXCEL_2026-09-07.md"
+SQUARE_FINANCE_BUILDER = KIT / "build_square_finance.py"
+KIT_MD = KIT / "KIT.md"
+KIT_SH = KIT / "kit.sh"
+ROOT_KIT_SH = REPO / "kit.sh"
+
+
+def check_square_finance() -> None:
+    for path in (SQUARE_FINANCE_PROMPT, SQUARE_FINANCE_BUILDER, KIT_MD, KIT_SH, ROOT_KIT_SH):
+        if not path.is_file():
+            raise AssertionError(f"missing {path.relative_to(REPO)}")
+
+    prompt = SQUARE_FINANCE_PROMPT.read_text(encoding="utf-8")
+    for needle in (
+        "On_Hand",
+        "Sold_Log",
+        "tax_category",
+        "square_xlsx_ma",
+        "Documents/Sassy Closet/Square.xlsx",
+        "Documents/Sassy Closet/Finance.xlsx",
+        "Staged site mãs are NOT bought",
+        "No Square Save",
+        "build_square_finance.py",
+        "on_hand",
+        "reserved",
+        "sold",
+        "dead",
+        "zelle",
+        "square_online",
+        "product_sale",
+    ):
+        if needle not in prompt:
+            raise AssertionError(f"SQUARE_AND_FINANCE_EXCEL_2026-09-07.md should keep spec line {needle!r}")
+
+    kit_md = KIT_MD.read_text(encoding="utf-8")
+    for needle in ("Square.xlsx", "Finance.xlsx", "kit.sh square", "Staged site"):
+        if needle not in kit_md:
+            raise AssertionError(f"KIT.md should mention {needle!r}")
+
+    help_proc = _run(["bash", str(KIT_SH), "--help"])
+    if help_proc.returncode != 0:
+        raise AssertionError(help_proc.stderr)
+    help_blob = help_proc.stdout + help_proc.stderr
+    for needle in ("square", "finance", "books", "Square.xlsx", "Finance.xlsx"):
+        if needle not in help_blob:
+            raise AssertionError(f"kit.sh --help should mention {needle!r}")
+
+    cute = _run(["bash", str(KIT_SH), "cute"])
+    if cute.returncode != 2:
+        raise AssertionError(f"kit.sh cute should exit 2, got {cute.returncode}")
+
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp)
+        built = _run(
+            [sys.executable, str(SQUARE_FINANCE_BUILDER), "--out-dir", str(out)]
+        )
+        if built.returncode != 0:
+            raise AssertionError(built.stdout + built.stderr)
+        square = out / SQUARE_XLSX_NAME
+        finance = out / FINANCE_XLSX_NAME
+        if not square.is_file() or not finance.is_file():
+            raise AssertionError("builder must write Square.xlsx and Finance.xlsx")
+        verify = _run(
+            [
+                sys.executable,
+                str(SQUARE_FINANCE_BUILDER),
+                "--verify-only",
+                str(square),
+                str(finance),
+            ]
+        )
+        if verify.returncode != 0:
+            raise AssertionError(verify.stdout + verify.stderr)
+
+        kit_out = out / "kit"
+        kit_out.mkdir()
+        kit = _run(["bash", str(KIT_SH), "square", str(kit_out)])
+        if kit.returncode != 0:
+            raise AssertionError(kit.stdout + kit.stderr)
+        if not (kit_out / SQUARE_XLSX_NAME).is_file():
+            raise AssertionError("kit.sh square must write Square.xlsx")
+        if not (kit_out / FINANCE_XLSX_NAME).is_file():
+            raise AssertionError("kit.sh square must write Finance.xlsx")
+
+    print("Square.xlsx + Finance.xlsx builder ok")
+
+
 def main() -> int:
     try:
         check_py_compile()
@@ -860,9 +1423,11 @@ def main() -> int:
         check_schema_contract()
         check_no_fake_inventory_in_git()
         check_square_template()
+        check_sassycloset_hub()
         check_builders_and_append()
         check_gf_intake()
         check_onedrive_from_gf_link()
+        check_square_finance()
     except Exception as exc:  # noqa: BLE001 — kit runner prints and exits
         print(f"FAIL: {exc}", file=sys.stderr)
         return 1
