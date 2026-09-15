@@ -52,3 +52,5 @@ Prompts also live in `excel-kit/prompts/` (`BOUTIQUE_DESKTOP_EFFICIENT.md`, `BOU
 ## Intake site
 
 Next.js app in [`sassy-closet/`](sassy-closet/). Vercel Root Directory: `sassy-closet`. Env **names** (no values): `MINIBOSS_ASK_WEBHOOK_URL`, `MINIBOSS_ASK_WEBHOOK_KEY`, `ASK_REPLY_SECRET`, plus Blob (`BLOB_READ_WRITE_TOKEN` / `BLOB_STORE_ID`) so Production redeploys do not wipe mãs — see `excel-kit/KIT.md` and `sassy-closet/README.md`.
+
+Website map for CloudAgents (intake routes, mã dialects, persist path, sell-test handoff): [`docs/CODEBASE_MAP.md`](docs/CODEBASE_MAP.md).

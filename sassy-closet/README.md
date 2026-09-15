@@ -2,6 +2,8 @@
 
 GF intake at https://sassy-closet.vercel.app. Existing tabs only: **Món mới**, **Sửa theo mã**, **Tìm mã**, **Hỏi Mini Boss · Ask**.
 
+Repo map (routes, mã, persist, env names, sell-test handoff): [`../docs/CODEBASE_MAP.md`](../docs/CODEBASE_MAP.md).
+
 This folder is the site source. The Excel kit stays at repo-root `excel-kit/`. Vercel Root Directory should be `sassy-closet`.
 
 ## Saved card
