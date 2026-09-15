@@ -1,11 +1,16 @@
 """Sassy Closet Excel kit — shared headers, mã rules, and workbook helpers.
 
-Desktop Official / Wishlist use MA_LIST, ORDERS, BOT_ACTIVITY, CANDIDATES.
-The OneDrive SoT workbook (Sassy_Closet_SoT.xlsx) is the ONE desktop working
-copy: Official / Wishlist / Orders / Dashboard (plus Bot_Activity when present).
-Square Free remains on-hand inventory SoT; Official Excel is a working copy /
-mã index / captions — not a second stock. Never embed images. photo_link last
-on Ma_List, Candidates, and SoT Wishlist.
+Boss 2026-09-07 ~10:33 PM PT: ONE hub is sassycloset
+(Documents/Sassy Closet/sassycloset.xlsx).
+sassycloset.xlsx holds All + category sheets + Orders + Readme. Cute / pink /
+embeds are retired. Square Free remains on-hand inventory SoT. Excel is not
+inventory. Never invent mã.
+
+Square.xlsx + Finance.xlsx (bought tracker + tax-ready books) share this
+module. Hub sync must not drop FINANCE_* / SQUARE_* book exports.
+
+Legacy desktop Official / Wishlist (MA_LIST, …) and Sassy_Closet_SoT.xlsx
+builders stay in this module for existing CLIs.
 """
 
 from __future__ import annotations
@@ -44,6 +49,24 @@ ONEDRIVE_PHOTOS = f"{ONEDRIVE_SHOP_DIR}/Photos"
 ONEDRIVE_FROM_GF = f"{ONEDRIVE_SHOP_DIR}/From GF"
 ONEDRIVE_OFFICIAL_DESKTOP = f"{ONEDRIVE_SHOP_DIR}/Sassy_Closet_Official_desktop.xlsx"
 ONEDRIVE_WISHLIST_DESKTOP = f"{ONEDRIVE_SHOP_DIR}/Sassy_Closet_Wishlist_desktop.xlsx"
+ONEDRIVE_SQUARE = f"{ONEDRIVE_SHOP_DIR}/Square.xlsx"
+ONEDRIVE_FINANCE = f"{ONEDRIVE_SHOP_DIR}/Finance.xlsx"
+SQUARE_XLSX_NAME = "Square.xlsx"
+FINANCE_XLSX_NAME = "Finance.xlsx"
+SQUARE_PHOTO_FOLDER_PREFIX = f"{ONEDRIVE_PHOTOS}/"
+
+# ONE hub (Boss 2026-09-07 ~10:33 PT). Lands in the existing shop folder.
+# Do not use Documents/sassycloset/ — that land path is dropped.
+HUB_NAME = "sassycloset"
+HUB_XLSX_NAME = "sassycloset.xlsx"
+SASSYCLOSET_HUB_XLSX_NAME = HUB_XLSX_NAME
+ONEDRIVE_HUB_DIR = ONEDRIVE_SHOP_DIR
+ONEDRIVE_HUB = f"{ONEDRIVE_HUB_DIR}/{HUB_XLSX_NAME}"
+ONEDRIVE_SASSYCLOSET_HUB = ONEDRIVE_HUB
+ONEDRIVE_HUB_PHOTOS = ONEDRIVE_PHOTOS
+ONEDRIVE_HUB_README = f"{ONEDRIVE_HUB_DIR}/README.txt"
+HUB_EXPORT_URL = "https://sassy-closet.vercel.app/api/export"
+HUB_PHOTO_API = "https://sassy-closet.vercel.app/api/photos"
 
 # ---------------------------------------------------------------------------
 # Mã
@@ -135,6 +158,300 @@ CANDIDATE_TYPES: tuple[str, ...] = (
     "Shoes",
     "Other",
     "SET",
+)
+
+# ---------------------------------------------------------------------------
+# sassycloset hub (Boss 2026-09-07 ~10:33 PT)
+# Live mã: letter + growing digits (A01…A99 then A100+). Never invent mã.
+# Category sheets live inside sassycloset.xlsx. Filter All by kind letter.
+# ---------------------------------------------------------------------------
+
+HUB_MA_LETTERS: dict[str, str] = {
+    "A": "áo",
+    "Q": "quần",
+    "V": "váy",
+    "D": "đầm",
+    "K": "áo khoác",
+    "G": "giày",
+    "B": "túi",
+    "P": "phụ kiện",
+    "S": "set",
+    "O": "khác",
+    "H": "tóc",
+    "J": "trang sức",
+}
+HUB_MA_RE = re.compile(
+    r"^(" + "|".join(HUB_MA_LETTERS) + r")(\d+)$",
+    re.IGNORECASE,
+)
+
+# Live /api/export CSV — used only to populate All / category sheets. Not a sheet.
+EXPORT_HEADERS: tuple[str, ...] = (
+    "ma",
+    "kind",
+    "kind_vi",
+    "size",
+    "color",
+    "color_note",
+    "color_pieces",
+    "blurb",
+    "cost_cny",
+    "cost_usd",
+    "cost_currency",
+    "sell_cny",
+    "sell_usd",
+    "sell_currency",
+    "source_link",
+    "status",
+    "square",
+    "created_at",
+    "updated_at",
+    "photo_link",
+)
+
+# Offline backup if the website dies. ma first, source_link col B (Taobao/e.tb.cn).
+# Never drop link columns. Keep colors, sell/cost, status, photo_folder.
+HUB_ALL: tuple[str, ...] = (
+    "ma",
+    "source_link",
+    "kind",
+    "colors",
+    "sell_usd",
+    "cost",
+    "currency",
+    "square",
+    "status",
+    "flag",
+    "next_desk",
+    "photo_folder",
+)
+HUB_REQUIRED_BACKUP_COLS: tuple[str, ...] = (
+    "ma",
+    "source_link",
+    "photo_folder",
+    "colors",
+    "sell_usd",
+    "cost",
+    "status",
+)
+HUB_LINK_COLS: tuple[str, ...] = ("source_link", "photo_folder")
+
+HUB_KIND_SHEETS: tuple[tuple[str, str], ...] = (
+    ("A_Ao", "A"),
+    ("Q_Quan", "Q"),
+    ("V_Vay", "V"),
+    ("K_Khoac", "K"),
+    ("G_Giay", "G"),
+    ("B_Tui", "B"),
+    ("P_PhuKien", "P"),
+    ("S_Set", "S"),
+    ("O_Khac", "O"),
+    ("H_Toc", "H"),
+    ("J_TrangSuc", "J"),
+)
+
+HUB_ORDERS: tuple[str, ...] = (
+    "date",
+    "ma",
+    "customer",
+    "pay",
+    "amount_usd",
+    "ship_or_meetup",
+    "status",
+    "notes",
+)
+
+HUB_ORDER_PAY: tuple[str, ...] = ("cash", "zelle", "other")
+HUB_ORDER_STATUS: tuple[str, ...] = ("hold", "paid", "shipped", "done", "cancel")
+HUB_TEMPLATE_ROWS = 20
+HUB_SHEETS: tuple[str, ...] = (
+    "All",
+    *(name for name, _letter in HUB_KIND_SHEETS),
+    "Orders",
+    "Readme",
+)
+# A02 was renamed to P02 (not P05). Bug-check leftover; do not invent replacement rows.
+HUB_RETIRED_MA: tuple[str, ...] = ("A02",)
+
+HUB_README_LINES: tuple[str, ...] = (
+    "sassycloset hub for teammates: OneDrive offline backup if the website dies. Category sheets in this one Excel file.",
+    "Boss opens Excel / OneDrive. kit.sh save pulls the live export so Documents/Sassy Closet/ stays current.",
+    "Website https://sassy-closet.vercel.app is GF intake. Square Free is on-hand SoT. Excel is not inventory.",
+    "Never invent mã. Never Square Save. Never Facebook Post. No passwords.",
+    "Keep ma + source_link (Taobao/e.tb.cn) plus photo_folder, colors, sell/cost, status. Never drop link columns. No cute/embeds.",
+)
+
+HUB_README_TXT = """sassycloset hub
+OneDrive offline backup if the website dies.
+Land path (Build lands later):
+
+Documents/Sassy Closet/
+  sassycloset.xlsx
+  Photos/{MA}/001.jpg
+  README.txt
+
+kit.sh save pulls the live export so this folder stays current.
+For teammates. Boss opens Excel / OneDrive.
+Website https://sassy-closet.vercel.app = GF intake.
+Square Free = on-hand SoT. Excel is not inventory.
+Always keep ma + source_link (Taobao/e.tb.cn) plus photo_folder, colors, sell/cost, status.
+Never drop link columns. Never invent mã. Never Square Save. Never Facebook Post.
+No passwords. No cute / pink / embeds.
+A02 was renamed to P02 (not P05). P02 and P05 are separate.
+"""
+
+# ---------------------------------------------------------------------------
+# Square.xlsx + Finance.xlsx (Boss 2026-09-07 ~11:30 PT)
+# Restored from schema.py.bak-pre-hub-sync after hub sync dropped FINANCE_*.
+# Bought / on-hand tracker + tax-ready books. Staged site mãs are NOT bought.
+# Square Free remains on-hand SoT. Empty data is correct. No cute.
+# ---------------------------------------------------------------------------
+
+SQUARE_TEMPLATE_ROWS = 20
+SQUARE_FORMULA_LAST_ROW = 1001
+
+SQUARE_ON_HAND: tuple[str, ...] = (
+    "ma",
+    "kind",
+    "colors",
+    "size",
+    "qty_on_hand",
+    "cost_cny",
+    "cost_usd",
+    "cost_currency",
+    "buy_date",
+    "source_link",
+    "photo_folder",
+    "square_item_name",
+    "track_on",
+    "status",
+    "sold_date",
+    "notes",
+)
+SQUARE_ON_HAND_STATUS: tuple[str, ...] = ("on_hand", "reserved", "sold", "dead")
+SQUARE_TRACK_ON: tuple[str, ...] = ("Y", "N")
+SQUARE_COST_CURRENCY: tuple[str, ...] = ("CNY", "USD")
+
+SQUARE_SOLD_LOG: tuple[str, ...] = (
+    "sold_date",
+    "ma",
+    "kind",
+    "colors",
+    "size",
+    "qty",
+    "square_item_name",
+    "notes",
+)
+SQUARE_SHEETS: tuple[str, ...] = ("On_Hand", "Sold_Log", "Readme")
+SQUARE_XLSX_SHEETS = SQUARE_SHEETS
+
+SQUARE_README_LINES: tuple[str, ...] = (
+    "Square.xlsx is the bought / on-hand tracker. On_Hand starts empty — staged site mãs are not bought.",
+    "Boss opens Excel / OneDrive. Kit lands Documents/Sassy Closet/Square.xlsx. Website is GF intake.",
+    "Square Free is on-hand SoT. This book is not a second warehouse. Track stock ON when a piece is in Square.",
+    "Sold: qty_on_hand 0, status sold, Sold_Log row, Finance Sales row (square_xlsx_ma). Dead = write-off, no Sales row.",
+    "photo_folder = Documents/Sassy Closet/Photos/{ma}/. Never invent mã or $. Never Square Save. No cute / embeds.",
+)
+SQUARE_XLSX_README_LINES = SQUARE_README_LINES
+
+FINANCE_SALES: tuple[str, ...] = (
+    "date",
+    "ma",
+    "description",
+    "qty",
+    "gross_usd",
+    "ship_usd",
+    "discount_usd",
+    "net_usd",
+    "pay_method",
+    "pay_ref",
+    "customer_note",
+    "channel",
+    "square_xlsx_ma",
+    "tax_category",
+    "notes",
+)
+FINANCE_PAY_METHOD: tuple[str, ...] = ("zelle", "square", "square_online", "cash", "other")
+FINANCE_CHANNEL: tuple[str, ...] = ("facebook", "meetup", "website", "other")
+FINANCE_SALES_CHANNEL = FINANCE_CHANNEL
+FINANCE_TAX_CATEGORY: tuple[str, ...] = ("product_sale", "shipping", "other")
+FINANCE_SALES_TAX_CATEGORY = FINANCE_TAX_CATEGORY
+
+FINANCE_FEES: tuple[str, ...] = (
+    "date",
+    "source",
+    "fee_type",
+    "amount_usd",
+    "pay_ref",
+    "related_ma",
+    "notes",
+)
+FINANCE_FEE_SOURCE: tuple[str, ...] = ("square", "square_online", "bank", "other")
+FINANCE_FEE_TYPE: tuple[str, ...] = ("processing", "payout", "chargeback", "other")
+
+FINANCE_PAYOUTS: tuple[str, ...] = (
+    "date",
+    "kind",
+    "from_account",
+    "to_account",
+    "amount_usd",
+    "pay_ref",
+    "notes",
+)
+FINANCE_PAYOUT_KIND: tuple[str, ...] = ("square_payout", "zelle", "bank", "other")
+
+FINANCE_EXPENSES: tuple[str, ...] = (
+    "date",
+    "vendor",
+    "category",
+    "amount_usd",
+    "pay_method",
+    "pay_ref",
+    "ma",
+    "notes",
+)
+FINANCE_EXPENSE_CATEGORY: tuple[str, ...] = (
+    "inventory",
+    "shipping_supply",
+    "ads",
+    "software",
+    "meetup",
+    "other",
+)
+FINANCE_EXPENSE_PAY: tuple[str, ...] = ("zelle", "square", "cash", "other")
+
+FINANCE_SHEETS: tuple[str, ...] = (
+    "Sales",
+    "Fees",
+    "Payouts_Transfers",
+    "Expenses",
+    "Tax_Summary",
+    "Readme",
+)
+
+# Tax_Summary B-column formulas. Empty books total 0 — that is correct.
+FINANCE_TAX_SUMMARY_ROWS: tuple[tuple[str, str], ...] = (
+    ("metric", "amount_usd"),
+    ("Period (type year)", ""),
+    ("Gross sales (USD)", "=SUM(Sales!E2:E1001)"),
+    ("Shipping collected (USD)", "=SUM(Sales!F2:F1001)"),
+    ("Discounts (USD)", "=SUM(Sales!G2:G1001)"),
+    ("Net sales (USD)", "=SUM(Sales!H2:H1001)"),
+    ("Product sale (tax_category)", '=SUMIF(Sales!N2:N1001,"product_sale",Sales!H2:H1001)'),
+    ("Shipping (tax_category)", '=SUMIF(Sales!N2:N1001,"shipping",Sales!H2:H1001)'),
+    ("Other (tax_category)", '=SUMIF(Sales!N2:N1001,"other",Sales!H2:H1001)'),
+    ("Fees (USD)", "=SUM(Fees!D2:D1001)"),
+    ("Expenses (USD)", "=SUM(Expenses!D2:D1001)"),
+    ("Payouts / transfers (USD, not income)", "=SUM(Payouts_Transfers!E2:E1001)"),
+    ("Net after fees and expenses (USD)", "=B6-B10-B11"),
+)
+
+FINANCE_README_LINES: tuple[str, ...] = (
+    "Finance.xlsx is tax-ready. Sales / Fees / Payouts_Transfers / Expenses start empty — no invented sales or $.",
+    "Sold in Square.xlsx → one Sales row. square_xlsx_ma is the On_Hand mã. Tax_Summary is formulas; open in Excel.",
+    "pay_method zelle|square|square_online|cash|other. channel facebook|meetup|website|other. tax_category product_sale|shipping|other.",
+    "Payouts / transfers are not income. Empty Tax_Summary totals of 0 are correct. Never invent $. Never Square Save.",
+    "Kit lands Documents/Sassy Closet/Finance.xlsx. No cute / embeds.",
 )
 
 # ---------------------------------------------------------------------------
@@ -648,6 +965,31 @@ def is_valid_ma(value: object) -> bool:
     return parse_ma(value) is not None
 
 
+def is_hub_ma(value: object) -> bool:
+    """True for live-site mã (A01, P02, A100). Does not invent one.
+
+    Legacy AO001 stays on parse_ma. A02 is a valid *shape* but is a leftover
+    code (renamed to P02, not P05) — callers must not mint it.
+    """
+    if value is None:
+        return False
+    text = str(value).strip()
+    match = HUB_MA_RE.fullmatch(text)
+    if not match:
+        return False
+    return int(match.group(2)) >= 1
+
+
+def hub_photo_folder(ma: object) -> str:
+    """OneDrive hub folder path for an export mã. Never invents a mã."""
+    text = "" if ma is None else str(ma).strip()
+    if not text:
+        raise ValueError("ma required for photo_folder — never invent")
+    if not is_hub_ma(text):
+        raise ValueError(f"not a live hub mã: {text!r} — never invent")
+    return f"{ONEDRIVE_HUB_PHOTOS}/{text}/"
+
+
 def format_ma(prefix: str, number: int) -> str:
     """Format a Boss/Stock-assigned prefix+number. Does not pick the next code."""
     key = prefix.strip().upper()
@@ -731,6 +1073,28 @@ def photo_filename_for_wish(number: int, extra: int | None = None) -> str:
         raise ValueError("wishlist photo numbers are #001–#999")
     stem = f"#{number:03d}"
     return f"{stem}_{extra}.jpg" if extra else f"{stem}.jpg"
+
+
+def square_photo_folder(ma: object) -> str:
+    """On_Hand photo_folder path. Requires a typed mã — never invent one."""
+    text = "" if ma is None else str(ma).strip()
+    if not text:
+        raise ValueError("ma required for photo_folder — never invent")
+    return f"{ONEDRIVE_PHOTOS}/{text}/"
+
+
+def square_photo_folder_formula(row: int) -> str:
+    """Fill photo_folder from On_Hand!A{row}. Blank while mã is blank."""
+    if row < 2:
+        raise ValueError(f"photo_folder formula row must be a data row, got {row}")
+    return f'=IF(A{row}="","","{ONEDRIVE_PHOTOS}/"&A{row}&"/")'
+
+
+def finance_net_usd_formula(row: int) -> str:
+    """net = gross + ship − discount. Blank when all three money cells are blank."""
+    if row < 2:
+        raise ValueError(f"net_usd formula row must be a data row, got {row}")
+    return f'=IF(COUNTA(E{row}:G{row})=0,"",N(E{row})+N(F{row})-N(G{row}))'
 
 
 def looks_like_demo_row(values: Iterable[object]) -> bool:
@@ -854,6 +1218,27 @@ def assert_photo_link_last(headers: Sequence[str], sheet_label: str) -> None:
 assert_photo_link_last(MA_LIST, "MA_LIST")
 assert_photo_link_last(CANDIDATES, "CANDIDATES")
 assert_photo_link_last(SOT_WISHLIST, "SOT_WISHLIST")
+
+
+def assert_hub_backup_columns(headers: Sequence[str], sheet_label: str) -> None:
+    """Excel is the offline backup. ma first, source_link near front, never drop links."""
+    if not headers or headers[0] != "ma":
+        raise AssertionError(f"{sheet_label}: ma must be first, got {headers!r}")
+    if "source_link" not in headers:
+        raise AssertionError(f"{sheet_label}: source_link is required (offline backup / Taobao)")
+    if headers[1] != "source_link":
+        raise AssertionError(
+            f"{sheet_label}: source_link must be near front (col B), got {headers!r}"
+        )
+    missing = [name for name in HUB_REQUIRED_BACKUP_COLS if name not in headers]
+    if missing:
+        raise AssertionError(f"{sheet_label}: missing required backup columns {missing}")
+    dropped = [name for name in HUB_LINK_COLS if name not in headers]
+    if dropped:
+        raise AssertionError(f"{sheet_label}: never drop link columns {dropped}")
+
+
+assert_hub_backup_columns(HUB_ALL, "HUB_ALL")
 
 
 def photo_link_col_index(headers: Sequence[str]) -> int | None:

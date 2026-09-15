@@ -1,21 +1,30 @@
 # excel-kit
 
-Builders, SoT CLIs, and prompts for Sassy Closet Excel books. **This GitHub repo is where Cursor Cloud Agents change the kit.** Kit syncs generated `.xlsx` files to OneDrive `Documents/Sassy Closet/`.
+Builders, SoT CLIs, and prompts for Sassy Closet Excel books. **This GitHub repo is where Cursor Cloud Agents change the kit.**
 
-Square Free is the on-hand inventory source of truth. Official Excel (`Sassy_Closet_SoT.xlsx`) is the ONE desktop working copy / mã index / captions — not a second inventory.
+**ONE hub:** `sassycloset`. `kit.sh save` (= `run`) fetches the live site export, rebuilds `out/sassycloset.xlsx`, and syncs `out/Photos/{ma}/`. OneDrive land path: `Documents/Sassy Closet/sassycloset.xlsx`. See `KIT.md` and `prompts/SASSYCLOSET_HUB_2026-09-07.md`.
+
+`kit.sh books` rebuilds empty `out/Square.xlsx` + `out/Finance.xlsx` (bought tracker + tax book). See `prompts/SQUARE_AND_FINANCE_EXCEL_2026-09-07.md`.
+
+Square Free is the on-hand inventory source of truth. Legacy Official Excel (`Sassy_Closet_SoT.xlsx`) remains a working copy / mã index / captions — not a second inventory.
 
 ## Layout
 
 ```
 excel-kit/
   README.md
+  KIT.md                     ← kit.sh books + kit.sh save
+  PHOTOS.md
+  kit.sh
   PROMPTS.md                 ← Boss / Mini Boss paste these into Cloud Agents
   EFFICIENCY.md
   DESIGN_NOTES.md
   schema.py
+  build_sassycloset_hub.py   ← ONE hub: sassycloset.xlsx
+  build_square_finance.py    ← Square.xlsx + Finance.xlsx
   clean_sot_demo.py
   build_boutique_desktop.py
-  sot/                       ← ONE workbook: Sassy_Closet_SoT.xlsx
+  sot/                       ← legacy SoT workbook: Sassy_Closet_SoT.xlsx
   square/                    ← headers-only Square import + Track ON rules
   prompts/BOUTIQUE_DESKTOP_EFFICIENT.md
   prompts/BOUTIQUE_PHONE_SAFE.md
@@ -41,6 +50,14 @@ excel-kit/
 Needs Python 3.10+ and `openpyxl` (`pip install -r requirements.txt` from the repo root).
 
 ```bash
+# Bought / tax books (empty — no invented mã or $)
+./kit.sh books
+# or: python3 excel-kit/build_square_finance.py --out-dir ./out
+
+# ONE hub (live export → sassycloset.xlsx + Photos/{ma}/)
+./kit.sh save
+# or: python3 excel-kit/build_sassycloset_hub.py --out-dir ./out
+
 # Empty SoT scaffold (Dashboard!B43 morning brief formula)
 python3 excel-kit/sot/build_sot_desktop.py --out-dir ./out
 
@@ -76,7 +93,11 @@ Do not commit live inventory, customer names, secrets, or a filled Square CSV. E
 
 | File | Role |
 | --- | --- |
-| `Documents/Sassy Closet/Sassy_Closet_SoT.xlsx` | ONE desktop book (Official / Wishlist / Orders / Dashboard) |
+| `Documents/Sassy Closet/sassycloset.xlsx` | ONE hub (All + category sheets + Orders + Readme) |
+| `Documents/Sassy Closet/Square.xlsx` | Bought / on-hand tracker (starts empty) |
+| `Documents/Sassy Closet/Finance.xlsx` | Tax-ready book (starts empty) |
+| `Documents/Sassy Closet/Photos/{MA}/` | `001.jpg`… — folder path in Excel, never embeds |
+| `Documents/Sassy Closet/Sassy_Closet_SoT.xlsx` | Legacy desktop book (Official / Wishlist / Orders / Dashboard) |
 | `Documents/Sassy Closet/Sassy_Closet_Official_desktop.xlsx` | Lean desktop Ma_List / Orders / Bot_Activity |
 | `Documents/Sassy Closet/Sassy_Closet_Wishlist_desktop.xlsx` | Lean desktop Candidates |
 | `Documents/Sassy Closet/Photos/` | `#001.jpg` / `AO001.jpg` — links only in Excel |
