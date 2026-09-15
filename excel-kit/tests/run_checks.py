@@ -288,7 +288,9 @@ def check_schema_contract() -> None:
     assert ONEDRIVE_SASSYCLOSET_HUB == "Documents/Sassy Closet/sassycloset.xlsx"
     assert FINANCE_ZELLE_DISPLAY_NAME == "Thang Tien Huynh"
     assert square_photo_folder("P02") == "Documents/Sassy Closet/Photos/P02/"
-    assert square_photo_folder_formula(2).startswith('=IF(A2="","")')
+    assert square_photo_folder_formula(2) == (
+        '=IF(A2="","","Documents/Sassy Closet/Photos/"&A2&"/")'
+    )
     assert finance_net_usd_formula(2).startswith("=IF(COUNTA(E2:G2)=0")
     assert "Square.xlsx" in finance_cogs_month_formula(FINANCE_TAX_YEAR, 1)
     try:

@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import re
 import subprocess
 import sys
 import zipfile
@@ -96,7 +97,7 @@ FORBIDDEN_SHEETS = frozenset(
         "All",
     }
 )
-PASSWORD_NEEDLES = ("password", "passwd", "pin", "otp", "routing", "ssn")
+SECRET_RE = re.compile(r"\b(password|passwd|pin|otp|routing number|ssn)\b", re.I)
 
 ON_HAND_WIDTHS = {
     "ma": 10,
@@ -458,9 +459,9 @@ def _fill_rgb(fill: object) -> str | None:
 def _assert_no_secrets(ws: Worksheet) -> None:
     for row in ws.iter_rows(min_row=1, max_row=ws.max_row or 1, max_col=ws.max_column or 1):
         for cell in row:
-            text = "" if cell.value is None else str(cell.value).lower()
-            if any(needle in text for needle in PASSWORD_NEEDLES):
-                if "never store bank passwords" in text or "never store" in text:
+            text = "" if cell.value is None else str(cell.value)
+            if SECRET_RE.search(text):
+                if "never store bank passwords" in text.lower() or "never store" in text.lower():
                     continue
                 raise AssertionError(f"{ws.title} {cell.coordinate} looks like a secret field: {cell.value!r}")
 
