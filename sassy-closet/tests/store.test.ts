@@ -95,6 +95,9 @@ describe("durable / local store", { concurrency: 1 }, () => {
     assert.match(csv, /^ma,/);
     assert.match(csv, /A01/);
     assert.match(csv, /https:\/\/e\.tb\.cn\/example/);
+    assert.match(csv, /kind_vi/);
+    assert.match(csv, /size_options/);
+    assert.match(csv, /2XS XS S M L XL 2XL/);
     assert.ok(!csv.includes("qty"));
 
     const disk = JSON.parse(fs.readFileSync(path.join(tmp, "submissions.json"), "utf8")) as {
@@ -102,6 +105,35 @@ describe("durable / local store", { concurrency: 1 }, () => {
     };
     assert.equal(disk.submissions.length, 1);
     assert.ok(fs.existsSync(path.join(tmp, "photos", "A01", "001.jpg")));
+  });
+
+  test("kind G mints G01 with shoe size and export size_options 35–41", async () => {
+    const saved = await saveSubmission({
+      kind: "G",
+      size: "37 38",
+      link: "",
+      color: "Đen",
+      color_note: "",
+      pieces: [],
+      cost_usd: "",
+      cost_cny: "",
+      cost_currency: "USD",
+      sell_usd: "",
+      sell_cny: "",
+      sell_currency: "USD",
+      keep_photos: [],
+      photos: [],
+    });
+    assert.equal(saved.ma, "G01");
+    assert.equal(saved.kind, "G");
+    assert.equal(saved.size, "37 38");
+    const csv = await exportCsv();
+    assert.match(csv, /G01/);
+    assert.match(csv, /Giày \/ Cao gót/);
+    assert.match(csv, /35 36 37 38 39 40 41/);
+    const listed = await listSubmissions();
+    assert.equal(listed.length, 1);
+    assert.equal(listed[0].ma, "G01");
   });
 
   test("kind D mints D01 and does not invent extra mãs", async () => {

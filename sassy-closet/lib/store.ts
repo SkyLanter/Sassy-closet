@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { isKindCode, kindLabel } from "./kinds";
+import { isKindCode, kindLabel, sizeOptionsLine } from "./kinds";
 import { formatMa, maExists, nextMa, normalizeMa, parseHubMa } from "./mint";
 import { normalizeSourceLink } from "./source-link";
 import { sanitizeOnHandRows } from "./on-hand";
@@ -203,6 +203,7 @@ export async function exportCsv(): Promise<string> {
     "created_at",
     "updated_at",
     "photo_link",
+    "size_options",
   ];
   const rows = (await loadStore()).submissions.map((row) =>
     [
@@ -229,6 +230,7 @@ export async function exportCsv(): Promise<string> {
       row.created_at,
       row.updated_at,
       row.photo_link,
+      sizeOptionsLine(row.kind),
     ]
       .map(csvCell)
       .join(","),

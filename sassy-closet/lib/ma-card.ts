@@ -1,4 +1,4 @@
-import { kindLabel } from "./kinds";
+import { kindLabel, sizeOptionsLine } from "./kinds";
 import { normalizeFindCode, photoFolder } from "./on-hand";
 import { getOnHandRows, getSubmission } from "./store";
 import type { MaLookup, MaStaged, OnHandRow, Submission } from "./types";
@@ -28,6 +28,7 @@ export function stagedFromSubmission(item: Submission): MaStaged {
     kind_label: kindLabel(item.kind),
     colors: item.color,
     sizes: item.size,
+    size_options: sizeOptionsLine(item.kind),
     cost_usd: item.cost_usd,
     cost_cny: item.cost_cny,
     sell_usd: item.sell_usd,
