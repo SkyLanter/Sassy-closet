@@ -42,12 +42,15 @@ from schema import (  # noqa: E402
     SQUARE_SOT_SHORT,
     STAY_OFF_SQUARE,
     MissingMaError,
+    header_row_for_sheet,
     intake_sizes_for_kind,
     looks_like_demo_row,
     official_status_or_raise,
     parse_ma,
     photo_filename_for_ma,
+    read_headers,
     require_ma,
+    resolve_header_key,
     resolve_sheet_name,
 )
 
@@ -441,8 +444,6 @@ def check_builders_and_append() -> None:
             raise AssertionError(bot_ok.stdout + bot_ok.stderr)
 
         # Lean Official desktop always has Bot_Activity; strip it to prove skip-note.
-        from openpyxl import load_workbook
-
         skip_book = out / "no_bot.xlsx"
         wb = load_workbook(book)
         if "Bot_Activity" in wb.sheetnames:
@@ -501,10 +502,6 @@ def _digest(path: Path) -> str:
 
 
 def _nonempty(book: Path, sheet: str, logical: str) -> tuple[list[str], list[str]]:
-    from openpyxl import load_workbook
-
-    from schema import header_row_for_sheet, read_headers, resolve_header_key
-
     wb = load_workbook(book)
     ws = wb[sheet]
     header_row = header_row_for_sheet(ws.title)
