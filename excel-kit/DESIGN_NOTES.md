@@ -55,6 +55,14 @@ SoT Official uses a different status set (`Available` → `Reserved` → `Sold`,
 
 Deep rose / blush headers, yellow meaning “type here” on the SoT book, no sheet protection. A locked-feeling preview is a failed build. Freeze the header row only so a phone can still reach size and price.
 
+## Square.xlsx + Finance.xlsx
+
+Separate from the pink SoT book. `build_square_finance.py` writes empty bought-tracker + tax-ready books.
+
+- **Square.xlsx** — On_Hand / Sold_Log / Readme. Square Free still wins on-hand. `finance_ref` on Sold_Log points at the Finance Sales row.
+- **Finance.xlsx** — Sales / Fees / Payouts_Transfers / Expenses / Tax_Summary / Readme. San Jose combined sales tax is **10.000%** (`SAN_JOSE_SALES_TAX_RATE`). Tax on taxable sell price; income tax on profit. Do not invent ship $ or live sales.
+- Headers live on `schema.py` as `FINANCE_*` / `SQUARE_ON_HAND`. Deleting those exports is a regression (`FINANCE_BOOK_EXPORTS` + pytest).
+
 ## What we refuse to ship
 
 - Fake live inventory rows (“~25 sample Official lines”)

@@ -17,3 +17,5 @@ jobs:
         run: pip install -r requirements.txt
       - name: Kit checks
         run: python3 excel-kit/tests/run_checks.py
+      - name: Finance pytest
+        run: python3 -m pytest excel-kit/tests/test_finance_schema_exports.py excel-kit/tests/test_square_finance_builder.py excel-kit/tests/test_finance_formulas.py -q --tb=short

@@ -11,8 +11,9 @@ on Ma_List, Candidates, and SoT Wishlist.
 from __future__ import annotations
 
 import re
+from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
-from typing import Iterable, Sequence
+from typing import Iterable, Literal, Never, Sequence
 
 # openpyxl is required to *write* Excel. Constant / mã helpers used by
 # append_official_row --help must import without it (local bugcheck).
@@ -44,6 +45,11 @@ ONEDRIVE_PHOTOS = f"{ONEDRIVE_SHOP_DIR}/Photos"
 ONEDRIVE_FROM_GF = f"{ONEDRIVE_SHOP_DIR}/From GF"
 ONEDRIVE_OFFICIAL_DESKTOP = f"{ONEDRIVE_SHOP_DIR}/Sassy_Closet_Official_desktop.xlsx"
 ONEDRIVE_WISHLIST_DESKTOP = f"{ONEDRIVE_SHOP_DIR}/Sassy_Closet_Wishlist_desktop.xlsx"
+ONEDRIVE_SQUARE = f"{ONEDRIVE_SHOP_DIR}/Square.xlsx"
+ONEDRIVE_FINANCE = f"{ONEDRIVE_SHOP_DIR}/Finance.xlsx"
+SQUARE_XLSX_NAME = "Square.xlsx"
+FINANCE_XLSX_NAME = "Finance.xlsx"
+SQUARE_PHOTO_FOLDER_PREFIX = f"{ONEDRIVE_PHOTOS}/"
 
 # ---------------------------------------------------------------------------
 # Mã
@@ -135,6 +141,307 @@ CANDIDATE_TYPES: tuple[str, ...] = (
     "Shoes",
     "Other",
     "SET",
+)
+
+# ---------------------------------------------------------------------------
+# Square.xlsx + Finance.xlsx (Boss 2026-09-07 ~11:30 PT; SJ tax 2026-09-18)
+# Bought / on-hand team tracker + tax-ready ledger. Staged site mãs are NOT
+# bought. Square Free remains on-hand SoT. Empty data is correct. No cute.
+# Hub / site sync must not drop these FINANCE_* / SQUARE_* book exports.
+# ---------------------------------------------------------------------------
+
+SQUARE_TEMPLATE_ROWS = 20
+SQUARE_FORMULA_LAST_ROW = 1001
+FINANCE_TAX_YEAR = 2026
+FINANCE_ZELLE_DISPLAY_NAME = "Thang Tien Huynh"
+
+# Combined district rate published for San Jose, CA (CDTFA), effective Apr 1, 2026.
+# Do not treat the older 9.375% figure as current.
+SAN_JOSE_JURISDICTION = "San Jose, California"
+SAN_JOSE_SALES_TAX_RATE = Decimal("0.10")
+SAN_JOSE_SALES_TAX_RATE_DISPLAY = "10.000%"
+SAN_JOSE_SALES_TAX_EFFECTIVE = "2026-04-01"
+SAN_JOSE_SALES_TAX_SOURCE = "CDTFA combined district rate"
+LEGACY_SAN_JOSE_SALES_TAX_RATE_NOT_CURRENT = Decimal("0.09375")
+
+SQUARE_ON_HAND: tuple[str, ...] = (
+    "ma",
+    "kind",
+    "colors",
+    "size",
+    "qty_on_hand",
+    "cost_cny",
+    "cost_usd",
+    "cost_currency",
+    "buy_date",
+    "source_link",
+    "photo_folder",
+    "square_item_name",
+    "track_on",
+    "status",
+    "sold_date",
+    "notes",
+)
+SQUARE_ON_HAND_STATUS: tuple[str, ...] = ("on_hand", "reserved", "sold", "dead")
+SQUARE_TRACK_ON: tuple[str, ...] = ("Y", "N")
+SQUARE_COST_CURRENCY: tuple[str, ...] = ("CNY", "USD")
+
+# Contract Sold_Log — finance_ref points at the Finance.xlsx Sales row / pay_ref.
+SQUARE_SOLD_LOG: tuple[str, ...] = (
+    "ma",
+    "sold_date",
+    "qty",
+    "finance_ref",
+    "notes",
+)
+SQUARE_SHEETS: tuple[str, ...] = ("On_Hand", "Sold_Log", "Readme")
+SQUARE_XLSX_SHEETS = SQUARE_SHEETS
+
+SQUARE_README_LINES: tuple[str, ...] = (
+    "Square.xlsx tracks bought / on-hand pieces for the team. On_Hand starts empty — staged site mãs are not bought.",
+    "Square Free Dashboard is on-hand source of truth. This Excel is the team tracker, not a second warehouse.",
+    "When a mã sells: qty_on_hand 0, status sold, sold_date; Sold_Log (ma, sold_date, qty, finance_ref); Finance.xlsx Sales row (required).",
+    "photo_folder = Documents/Sassy Closet/Photos/{ma}/. Never invent mã, stock, or $.",
+    "Never Square Save. No cute / embeds. Rebuild leaves On_Hand empty unless Cap seeds a confirmed buy.",
+)
+SQUARE_XLSX_README_LINES = SQUARE_README_LINES
+
+# Contract Sales columns stay in A–N. Tax / COGS helpers append before notes so
+# E/F/G/H remain gross / ship / discount / net (formula-stable).
+FINANCE_SALES: tuple[str, ...] = (
+    "date",
+    "ma",
+    "description",
+    "qty",
+    "gross_usd",
+    "ship_usd",
+    "discount_usd",
+    "net_usd",
+    "pay_method",
+    "pay_ref",
+    "customer_note",
+    "channel",
+    "square_xlsx_ma",
+    "tax_category",
+    "cogs_usd",
+    "taxable_base_usd",
+    "sales_tax_rate",
+    "sales_tax_usd",
+    "notes",
+)
+FINANCE_PAY_METHOD: tuple[str, ...] = ("zelle", "square", "square_online", "cash", "other")
+FINANCE_CHANNEL: tuple[str, ...] = ("facebook", "meetup", "website", "other")
+FINANCE_SALES_CHANNEL = FINANCE_CHANNEL
+FINANCE_TAX_CATEGORY: tuple[str, ...] = ("product_sale", "shipping", "other")
+FINANCE_SALES_TAX_CATEGORY = FINANCE_TAX_CATEGORY
+
+FINANCE_FEES: tuple[str, ...] = (
+    "date",
+    "source",
+    "amount_usd",
+    "fee_type",
+    "related_sale_ref",
+    "notes",
+)
+FINANCE_FEE_SOURCE: tuple[str, ...] = ("square", "square_online", "bank", "other")
+FINANCE_FEE_TYPE: tuple[str, ...] = ("square_processing", "shipping_label", "ads", "other")
+
+FINANCE_PAYOUTS: tuple[str, ...] = (
+    "date",
+    "from_method",
+    "to_account_note",
+    "amount_usd",
+    "confirmation",
+    "notes",
+)
+FINANCE_FROM_METHOD: tuple[str, ...] = (
+    "zelle",
+    "square",
+    "square_online",
+    "cash",
+    "bank",
+    "other",
+)
+FINANCE_PAYOUT_KIND: tuple[str, ...] = ("square_payout", "zelle", "bank", "other")
+
+FINANCE_EXPENSES: tuple[str, ...] = (
+    "date",
+    "vendor",
+    "category",
+    "amount_usd",
+    "payment_method",
+    "receipt_note",
+    "notes",
+)
+FINANCE_EXPENSE_CATEGORY: tuple[str, ...] = (
+    "inventory_cogs",
+    "shipping_supplies",
+    "packaging",
+    "software",
+    "ads",
+    "other",
+)
+FINANCE_EXPENSE_PAY: tuple[str, ...] = ("zelle", "square", "square_online", "cash", "other")
+
+FINANCE_SHEETS: tuple[str, ...] = (
+    "Sales",
+    "Fees",
+    "Payouts_Transfers",
+    "Expenses",
+    "Tax_Summary",
+    "Readme",
+)
+
+FinanceMetric = Literal[
+    "gross",
+    "shipping",
+    "discount",
+    "net",
+    "taxable_base",
+    "sales_tax",
+    "fees",
+    "cogs",
+    "expenses",
+    "profit",
+]
+
+FINANCE_TAX_SUMMARY_METRICS: tuple[tuple[str, FinanceMetric], ...] = (
+    ("Gross sales (USD)", "gross"),
+    ("Shipping income (USD)", "shipping"),
+    ("Discounts (USD)", "discount"),
+    ("Net receipts (gross + ship − discount, no sales tax)", "net"),
+    ("Taxable base (USD)", "taxable_base"),
+    ("Sales tax collected (USD, liability — not income)", "sales_tax"),
+    ("Fees (USD)", "fees"),
+    ("COGS (Sales cogs_usd — copy Square.xlsx cost_usd when sold)", "cogs"),
+    ("Expenses (USD)", "expenses"),
+    ("Net profit (income-tax base — not legal advice)", "profit"),
+)
+
+FINANCE_TAX_SUMMARY_HEADERS: tuple[str, ...] = (
+    "metric",
+    *(f"{FINANCE_TAX_YEAR}-{month:02d}" for month in range(1, 13)),
+    "YTD",
+    "accountant_note",
+)
+
+FINANCE_TAX_SUMMARY_NOTE_ROWS: tuple[tuple[str, str], ...] = (
+    ("Shop jurisdiction", SAN_JOSE_JURISDICTION),
+    (
+        "Combined sales tax rate",
+        f"{SAN_JOSE_SALES_TAX_RATE} ({SAN_JOSE_SALES_TAX_RATE_DISPLAY} {SAN_JOSE_SALES_TAX_SOURCE}, effective {SAN_JOSE_SALES_TAX_EFFECTIVE}). Do not use 9.375% as current.",
+    ),
+    (
+        "Money model",
+        "Sales tax is on the taxable sell price to the customer and is collected separately. Income tax applies to profit, not COGS. Columns are Schedule C-style summary only — not legal advice.",
+    ),
+    (
+        "Customer shipping",
+        "Customer flat ship $ is TBD. Never invent a ship rate into official numbers. Enter ship_usd only when the customer actually paid shipping.",
+    ),
+    (
+        "Zelle display name (customers see)",
+        f"{FINANCE_ZELLE_DISPLAY_NAME} — note only, never store bank passwords",
+    ),
+    (
+        "Sold path (finance_ref)",
+        "Square.xlsx On_Hand status=sold, qty_on_hand 0, sold_date → Sold_Log.finance_ref → Finance.xlsx Sales.square_xlsx_ma (required). Dead write-off = no Sales row.",
+    ),
+    (
+        "Empty book",
+        "Sales / Fees / Payouts_Transfers / Expenses start empty. Rebuild does not invent sales or $. Cap enters real rows only.",
+    ),
+    (
+        "Payouts / transfers / 1099-K",
+        "Payouts_Transfers are not income. Paste 1099-K / Square export notes on that sheet. Give Tax_Summary to an accountant.",
+    ),
+    (
+        "Open questions (Cap / accountant)",
+        "CDTFA seller permit, nexus, and tax-included vs +tax pricing are not decided in this book. Default formulas treat sales tax as extra (not stuffed into profit).",
+    ),
+)
+
+# YTD formulas. Letters must match FINANCE_* header order (tested).
+FINANCE_TAX_SUMMARY_ROWS: tuple[tuple[str, str], ...] = (
+    ("metric", "YTD"),
+    ("Gross sales (USD)", f"=SUM(Sales!E2:E{SQUARE_FORMULA_LAST_ROW})"),
+    ("Shipping income (USD)", f"=SUM(Sales!F2:F{SQUARE_FORMULA_LAST_ROW})"),
+    ("Discounts (USD)", f"=SUM(Sales!G2:G{SQUARE_FORMULA_LAST_ROW})"),
+    ("Net receipts (gross + ship − discount, no sales tax)", f"=SUM(Sales!H2:H{SQUARE_FORMULA_LAST_ROW})"),
+    ("Taxable base (USD)", f"=SUM(Sales!P2:P{SQUARE_FORMULA_LAST_ROW})"),
+    ("Sales tax collected (USD, liability — not income)", f"=SUM(Sales!R2:R{SQUARE_FORMULA_LAST_ROW})"),
+    ("Fees (USD)", f"=SUM(Fees!C2:C{SQUARE_FORMULA_LAST_ROW})"),
+    ("COGS (Sales cogs_usd — copy Square.xlsx cost_usd when sold)", f"=SUM(Sales!O2:O{SQUARE_FORMULA_LAST_ROW})"),
+    ("Expenses (USD)", f"=SUM(Expenses!D2:D{SQUARE_FORMULA_LAST_ROW})"),
+    (
+        "Net profit (income-tax base — not legal advice)",
+        (
+            f"=SUM(Sales!H2:H{SQUARE_FORMULA_LAST_ROW})"
+            f"-SUM(Fees!C2:C{SQUARE_FORMULA_LAST_ROW})"
+            f"-SUM(Sales!O2:O{SQUARE_FORMULA_LAST_ROW})"
+            f"-SUM(Expenses!D2:D{SQUARE_FORMULA_LAST_ROW})"
+        ),
+    ),
+)
+
+FINANCE_README_LINES: tuple[str, ...] = (
+    "Finance.xlsx is tax-ready for San Jose, California. Sales / Fees / Payouts_Transfers / Expenses start empty — no invented sales or $.",
+    "Sold in Square.xlsx → one Sales row (square_xlsx_ma + Sold_Log.finance_ref). Copy Square cost_usd into cogs_usd. Never invent sell prices; formulas compute from entered rows.",
+    "San Jose combined sales tax is 10.000% (CDTFA, effective Apr 1, 2026). Tax is on taxable sell price to the customer (sales_tax_usd), collected separately — do not stuff tax into profit. Income tax is on profit, not COGS. Do not use 9.375% as current.",
+    "Example shape only (Cap types real $): cost 100 + profit 20 → sell 120 before tax; SJ sales tax ≈ 12 on 120; income-tax base ≈ 20. Customer flat ship $ is TBD — never invent a ship rate. 35% GM is a Cap playbook floor, not a formula in this book.",
+    "pay_method zelle|square|square_online|cash|other. channel facebook|meetup|website|other. tax_category product_sale|shipping|other. fee_type square_processing|shipping_label|ads|other. expense category inventory_cogs|shipping_supplies|packaging|software|ads|other.",
+    "Zelle display customers see: Thang Tien Huynh (note only — never store bank passwords). Payouts / transfers are not income. Tax_Summary is monthly + YTD Schedule C-style — not legal advice. Never Square Save. No cute / embeds.",
+    "Land path: Documents/Sassy Closet/Finance.xlsx beside Square.xlsx + sassycloset.xlsx. Open Tax_Summary in Excel so formulas calculate. Empty totals of 0 are correct until real sales.",
+)
+
+# Symbols build_square_finance.py imports. Deleting any of these is a regression.
+FINANCE_BOOK_EXPORTS: tuple[str, ...] = (
+    "FINANCE_CHANNEL",
+    "FINANCE_EXPENSE_CATEGORY",
+    "FINANCE_EXPENSE_PAY",
+    "FINANCE_EXPENSES",
+    "FINANCE_FEE_SOURCE",
+    "FINANCE_FEE_TYPE",
+    "FINANCE_FEES",
+    "FINANCE_FROM_METHOD",
+    "FINANCE_PAY_METHOD",
+    "FINANCE_PAYOUT_KIND",
+    "FINANCE_PAYOUTS",
+    "FINANCE_README_LINES",
+    "FINANCE_SALES",
+    "FINANCE_SALES_CHANNEL",
+    "FINANCE_SALES_TAX_CATEGORY",
+    "FINANCE_SHEETS",
+    "FINANCE_TAX_CATEGORY",
+    "FINANCE_TAX_SUMMARY_HEADERS",
+    "FINANCE_TAX_SUMMARY_METRICS",
+    "FINANCE_TAX_SUMMARY_NOTE_ROWS",
+    "FINANCE_TAX_SUMMARY_ROWS",
+    "FINANCE_TAX_YEAR",
+    "FINANCE_XLSX_NAME",
+    "FINANCE_ZELLE_DISPLAY_NAME",
+    "ONEDRIVE_FINANCE",
+    "ONEDRIVE_PHOTOS",
+    "ONEDRIVE_SQUARE",
+    "SAN_JOSE_JURISDICTION",
+    "SAN_JOSE_SALES_TAX_RATE",
+    "SAN_JOSE_SALES_TAX_RATE_DISPLAY",
+    "SQUARE_COST_CURRENCY",
+    "SQUARE_FORMULA_LAST_ROW",
+    "SQUARE_ON_HAND",
+    "SQUARE_ON_HAND_STATUS",
+    "SQUARE_README_LINES",
+    "SQUARE_SHEETS",
+    "SQUARE_SOLD_LOG",
+    "SQUARE_TEMPLATE_ROWS",
+    "SQUARE_TRACK_ON",
+    "SQUARE_XLSX_NAME",
+    "add_list_dropdown",
+    "finance_net_usd_formula",
+    "header_index",
+    "san_jose_sales_tax_usd",
+    "square_photo_folder_formula",
+    "strip_workbook_images",
 )
 
 # ---------------------------------------------------------------------------
@@ -733,6 +1040,69 @@ def photo_filename_for_wish(number: int, extra: int | None = None) -> str:
     return f"{stem}_{extra}.jpg" if extra else f"{stem}.jpg"
 
 
+def square_photo_folder(ma: object) -> str:
+    """On_Hand photo_folder path. Requires a typed mã — never invent one."""
+    text = "" if ma is None else str(ma).strip()
+    if not text:
+        raise ValueError("ma required for photo_folder — never invent")
+    return f"{ONEDRIVE_PHOTOS}/{text}/"
+
+
+def square_photo_folder_formula(row: int) -> str:
+    """Fill photo_folder from On_Hand!A{row}. Blank while mã is blank."""
+    if row < 2:
+        raise ValueError(f"photo_folder formula row must be a data row, got {row}")
+    return f'=IF(A{row}="","","{ONEDRIVE_PHOTOS}/"&A{row}&"/")'
+
+
+def money_usd(value: object) -> Decimal:
+    """Parse a USD amount. Blank / None → 0.00."""
+    if value is None or str(value).strip() == "":
+        return Decimal("0.00")
+    return Decimal(str(value)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+
+def san_jose_sales_tax_usd(taxable_base: object) -> Decimal:
+    """San Jose 10.000% on taxable sell price. Never uses 9.375%."""
+    base = money_usd(taxable_base)
+    return (base * SAN_JOSE_SALES_TAX_RATE).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+
+def finance_net_usd_amount(
+    gross_usd: object,
+    ship_usd: object = 0,
+    discount_usd: object = 0,
+) -> Decimal:
+    """net = gross + ship − discount. Sales tax is collected separately."""
+    return (
+        money_usd(gross_usd) + money_usd(ship_usd) - money_usd(discount_usd)
+    ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+
+def finance_taxable_base_amount(gross_usd: object, discount_usd: object = 0) -> Decimal:
+    """Default taxable base = max(gross − discount, 0). Shipping taxability is TBD."""
+    base = money_usd(gross_usd) - money_usd(discount_usd)
+    if base < 0:
+        base = Decimal("0.00")
+    return base.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+
+def finance_profit_usd(
+    *,
+    gross_usd: object = 0,
+    ship_usd: object = 0,
+    discount_usd: object = 0,
+    fees_usd: object = 0,
+    cogs_usd: object = 0,
+    expenses_usd: object = 0,
+) -> Decimal:
+    """Income-tax style profit: net receipts − fees − COGS − expenses. Not legal advice."""
+    receipts = finance_net_usd_amount(gross_usd, ship_usd, discount_usd)
+    return (
+        receipts - money_usd(fees_usd) - money_usd(cogs_usd) - money_usd(expenses_usd)
+    ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+
 def looks_like_demo_row(values: Iterable[object]) -> bool:
     """True when a data row is kit-seeded demo, not a real piece or buyer."""
     blob = " ".join("" if v is None else str(v) for v in values).strip().lower()
@@ -844,6 +1214,180 @@ def header_index(headers: Sequence[str], name: str) -> int:
         if header.strip().lower() == needle:
             return i
     raise KeyError(name)
+
+
+def excel_column_letter(index_1based: int) -> str:
+    """1-based index → Excel column letter. Works without openpyxl."""
+    if index_1based < 1:
+        raise ValueError(f"column index must be >= 1, got {index_1based}")
+    n = index_1based
+    letters: list[str] = []
+    while n:
+        n, rem = divmod(n - 1, 26)
+        letters.append(chr(65 + rem))
+    return "".join(reversed(letters))
+
+
+def finance_header_letter(headers: Sequence[str], name: str) -> str:
+    return excel_column_letter(header_index(headers, name) + 1)
+
+
+def finance_net_usd_formula(row: int) -> str:
+    """net = gross + ship − discount. Blank when those three cells are blank.
+
+    Sales tax is not part of net — it is collected separately in sales_tax_usd.
+    """
+    if row < 2:
+        raise ValueError(f"net_usd formula row must be a data row, got {row}")
+    gross = finance_header_letter(FINANCE_SALES, "gross_usd")
+    ship = finance_header_letter(FINANCE_SALES, "ship_usd")
+    discount = finance_header_letter(FINANCE_SALES, "discount_usd")
+    return (
+        f'=IF(COUNTA({gross}{row},{ship}{row},{discount}{row})=0,"",'
+        f"N({gross}{row})+N({ship}{row})-N({discount}{row}))"
+    )
+
+
+def finance_taxable_base_formula(row: int) -> str:
+    """Default taxable base = max(gross − discount, 0). Blank until a sale is typed."""
+    if row < 2:
+        raise ValueError(f"taxable_base formula row must be a data row, got {row}")
+    gross = finance_header_letter(FINANCE_SALES, "gross_usd")
+    discount = finance_header_letter(FINANCE_SALES, "discount_usd")
+    return (
+        f'=IF(COUNTA({gross}{row},{discount}{row})=0,"",'
+        f"MAX(N({gross}{row})-N({discount}{row}),0))"
+    )
+
+
+def finance_sales_tax_rate_formula(row: int) -> str:
+    """San Jose 10.000% once a taxable base exists. Cap may override the cell."""
+    if row < 2:
+        raise ValueError(f"sales_tax_rate formula row must be a data row, got {row}")
+    taxable = finance_header_letter(FINANCE_SALES, "taxable_base_usd")
+    rate = f"{SAN_JOSE_SALES_TAX_RATE:.2f}"
+    return f'=IF({taxable}{row}="","",{rate})'
+
+
+def finance_sales_tax_usd_formula(row: int) -> str:
+    """ROUND(taxable_base * rate, 2). Blank when no sale."""
+    if row < 2:
+        raise ValueError(f"sales_tax_usd formula row must be a data row, got {row}")
+    taxable = finance_header_letter(FINANCE_SALES, "taxable_base_usd")
+    rate = finance_header_letter(FINANCE_SALES, "sales_tax_rate")
+    return (
+        f'=IF(OR({taxable}{row}="",{rate}{row}=""),"",'
+        f"ROUND(N({taxable}{row})*N({rate}{row}),2))"
+    )
+
+
+def finance_tax_month_col_letter(month: int) -> str:
+    """January=1 → column B. December=12 → column M."""
+    if month < 1 or month > 12:
+        raise ValueError(f"month out of range: {month}")
+    return excel_column_letter(month + 1)
+
+
+def finance_month_bounds(year: int, month: int) -> tuple[int, int, int, int]:
+    """Return (start_year, start_month, end_year, end_month) exclusive end."""
+    if month < 1 or month > 12:
+        raise ValueError(f"month out of range: {month}")
+    if month == 12:
+        return year, 12, year + 1, 1
+    return year, month, year, month + 1
+
+
+def finance_month_sumifs(
+    sheet: str,
+    amount_col: str,
+    date_col: str,
+    year: int,
+    month: int,
+    last_row: int = SQUARE_FORMULA_LAST_ROW,
+) -> str:
+    start_year, start_month, end_year, end_month = finance_month_bounds(year, month)
+    return (
+        f"=SUMIFS({sheet}!${amount_col}$2:${amount_col}${last_row},"
+        f"{sheet}!${date_col}$2:${date_col}${last_row},"
+        f'">="&DATE({start_year},{start_month},1),'
+        f"{sheet}!${date_col}$2:${date_col}${last_row},"
+        f'"<"&DATE({end_year},{end_month},1))'
+    )
+
+
+def finance_sheet_amount_col(sheet: str, header: str) -> str:
+    if sheet == "Sales":
+        headers = FINANCE_SALES
+    elif sheet == "Fees":
+        headers = FINANCE_FEES
+    elif sheet == "Expenses":
+        headers = FINANCE_EXPENSES
+    elif sheet == "Payouts_Transfers":
+        headers = FINANCE_PAYOUTS
+    else:
+        raise KeyError(f"unknown finance sheet {sheet!r}")
+    return finance_header_letter(headers, header)
+
+
+def finance_metric_month_formula(
+    kind: FinanceMetric,
+    year: int,
+    month: int,
+    last_row: int = SQUARE_FORMULA_LAST_ROW,
+) -> str:
+    date_col = "A"
+    if kind == "gross":
+        return finance_month_sumifs("Sales", finance_sheet_amount_col("Sales", "gross_usd"), date_col, year, month, last_row)
+    if kind == "shipping":
+        return finance_month_sumifs("Sales", finance_sheet_amount_col("Sales", "ship_usd"), date_col, year, month, last_row)
+    if kind == "discount":
+        return finance_month_sumifs("Sales", finance_sheet_amount_col("Sales", "discount_usd"), date_col, year, month, last_row)
+    if kind == "net":
+        return finance_month_sumifs("Sales", finance_sheet_amount_col("Sales", "net_usd"), date_col, year, month, last_row)
+    if kind == "taxable_base":
+        return finance_month_sumifs(
+            "Sales", finance_sheet_amount_col("Sales", "taxable_base_usd"), date_col, year, month, last_row
+        )
+    if kind == "sales_tax":
+        return finance_month_sumifs(
+            "Sales", finance_sheet_amount_col("Sales", "sales_tax_usd"), date_col, year, month, last_row
+        )
+    if kind == "fees":
+        return finance_month_sumifs("Fees", finance_sheet_amount_col("Fees", "amount_usd"), date_col, year, month, last_row)
+    if kind == "cogs":
+        return finance_month_sumifs("Sales", finance_sheet_amount_col("Sales", "cogs_usd"), date_col, year, month, last_row)
+    if kind == "expenses":
+        return finance_month_sumifs(
+            "Expenses", finance_sheet_amount_col("Expenses", "amount_usd"), date_col, year, month, last_row
+        )
+    if kind == "profit":
+        letter = finance_tax_month_col_letter(month)
+        return finance_net_month_formula(letter)
+    unused: Never = kind
+    raise AssertionError(f"unhandled finance metric: {unused!r}")
+
+
+def finance_net_month_formula(col_letter: str) -> str:
+    """Profit = net receipts − fees − COGS − expenses. Sales tax is not income."""
+    # Metric rows start at Excel row 2 in the same order as FINANCE_TAX_SUMMARY_METRICS.
+    row = {kind: index + 2 for index, (_label, kind) in enumerate(FINANCE_TAX_SUMMARY_METRICS)}
+    return (
+        f"=N({col_letter}{row['net']})"
+        f"-N({col_letter}{row['fees']})"
+        f"-N({col_letter}{row['cogs']})"
+        f"-N({col_letter}{row['expenses']})"
+    )
+
+
+def finance_ytd_formula(row: int) -> str:
+    return f"=SUM(B{row}:M{row})"
+
+
+def finance_ytd_label_formula(label: str) -> str:
+    for row_label, formula in FINANCE_TAX_SUMMARY_ROWS:
+        if row_label == label:
+            return formula
+    raise KeyError(label)
 
 
 def assert_photo_link_last(headers: Sequence[str], sheet_label: str) -> None:
