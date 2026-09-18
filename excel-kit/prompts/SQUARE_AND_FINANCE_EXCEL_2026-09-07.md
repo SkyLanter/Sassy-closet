@@ -12,7 +12,7 @@ Plain English headers. No cute/pink. Freeze + autofilter. No embeds.
 - **sassycloset.xlsx** = website staged mirror (all intake mãs + source_link) — already exists
 - **Square.xlsx** = only **bought / on-hand** pieces (Boss bought/received). Square Free Dashboard remains legal on-hand SoT; this Excel tracks for the team. Never invent on-hand.
 - When an item **sells**: update Square.xlsx (on-hand → 0 / status Sold) AND append a Finance.xlsx sale row (required). Sold_Log.finance_ref points at that Sales row / pay_ref.
-- Hard stops: no Square Save click, no invent mã/stock/$, bots draft only.
+- Hard stops: No Square Save, no invent mã/stock/$, bots draft only.
 
 ## Square.xlsx sheets
 
@@ -65,7 +65,7 @@ San Jose, California helper: combined sales tax rate **10.000%** (CDTFA, effecti
 Rules: every sold on-hand item must create a Sales row; never invent $; Boss confirms money moves. Tax on sell price / income tax on profit. Empty until real sales.
 
 ## Seed
-Do NOT invent sales. On_Hand starts empty OR only rows Boss has confirmed bought (currently staged A01/P01/S01/P02… are NOT bought — leave On_Hand empty with headers).
+Do NOT invent sales. Staged site mãs are NOT bought. On_Hand starts empty OR only rows Boss has confirmed bought (currently staged A01/P01/S01/P02… are NOT bought — leave On_Hand empty with headers).
 
 ## Kit
 `excel-kit/build_square_finance.py` + short KIT.md note. Artifacts: `out/Square.xlsx`, `out/Finance.xlsx`.

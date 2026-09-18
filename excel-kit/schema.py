@@ -387,7 +387,7 @@ FINANCE_TAX_SUMMARY_ROWS: tuple[tuple[str, str], ...] = (
 FINANCE_README_LINES: tuple[str, ...] = (
     "Finance.xlsx is tax-ready for San Jose, California. Sales / Fees / Payouts_Transfers / Expenses start empty — no invented sales or $.",
     "Sold in Square.xlsx → one Sales row (square_xlsx_ma + Sold_Log.finance_ref). Copy Square cost_usd into cogs_usd. Never invent sell prices; formulas compute from entered rows.",
-    "San Jose combined sales tax is 10.000% (CDTFA, effective Apr 1, 2026). Tax is on taxable sell price to the customer (sales_tax_usd), collected separately — do not stuff tax into profit. Income tax is on profit, not COGS. Do not use 9.375% as current.",
+    "San Jose combined sales tax is 10.000% (CDTFA, effective Apr 1, 2026). Tax on sell price / income tax on profit: sales_tax_usd is collected separately — do not stuff tax into profit. Income tax is on profit, not COGS. Do not use 9.375% as current.",
     "Example shape only (Cap types real $): cost 100 + profit 20 → sell 120 before tax; SJ sales tax ≈ 12 on 120; income-tax base ≈ 20. Customer flat ship $ is TBD — never invent a ship rate. 35% GM is a Cap playbook floor, not a formula in this book.",
     "pay_method zelle|square|square_online|cash|other. channel facebook|meetup|website|other. tax_category product_sale|shipping|other. fee_type square_processing|shipping_label|ads|other. expense category inventory_cogs|shipping_supplies|packaging|software|ads|other.",
     "Zelle display customers see: Thang Tien Huynh (note only — never store bank passwords). Payouts / transfers are not income. Tax_Summary is monthly + YTD Schedule C-style — not legal advice. Never Square Save. No cute / embeds.",
