@@ -24,4 +24,16 @@ jobs:
           cache: npm
           cache-dependency-path: sassy-closet-shop/package-lock.json
       - run: npm ci
-      - run: npm run build
+      - name: Build
+        run: |
+          # next/font + Turbopack can fail once with
+          # "next/font/google queries have exactly one entry" on a cold runner.
+          # Same commit already built clean locally and on the push run.
+          attempt=1
+          until npm run build; do
+            if [ "$attempt" -ge 3 ]; then
+              exit 1
+            fi
+            attempt=$((attempt + 1))
+            echo "Build attempt $attempt after next/font Turbopack flake"
+          done
