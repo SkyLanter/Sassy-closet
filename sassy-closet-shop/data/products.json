@@ -1,0 +1,2066 @@
+{
+  "schema": "catalog.v1",
+  "version": 1,
+  "siteId": "sassy-closet-shop",
+  "allowlist": [
+    "A01",
+    "S01",
+    "P01",
+    "P02",
+    "P03",
+    "P04",
+    "P05",
+    "K01",
+    "H01",
+    "A02"
+  ],
+  "products": [
+    {
+      "ma": "A01",
+      "type": "A",
+      "titleVn": "Áo len puppy",
+      "titleEn": "Puppy cardigan",
+      "priceUsd": 29,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "ca0100",
+          "hex": "#F5D76E",
+          "name": "Yellow",
+          "note": ""
+        },
+        {
+          "id": "ca0101",
+          "hex": "#7B5EA7",
+          "name": "Purple",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/A01/cover.jpg",
+          "colorId": "ca0101",
+          "order": 1
+        },
+        {
+          "src": "/products/A01/photo-2.jpg",
+          "colorId": "ca0100",
+          "order": 2
+        }
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Áo len puppy nút kẹo.",
+      "descriptionEn": "Puppy knit cardigan with candy-colored buttons.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8KCQeaHH3dz1iSl?tk=WeuOTTBXHOu"
+    },
+    {
+      "ma": "S01",
+      "type": "S",
+      "titleVn": "Đầm polo",
+      "titleEn": "Polo wrap dress",
+      "priceUsd": 44,
+      "qty": 1,
+      "status": "available",
+      "colors": [],
+      "images": [
+        {
+          "src": "/products/S01/cover.jpg",
+          "colorId": null,
+          "order": 1
+        }
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Đầm polo kem gân, cột eo, lai bèo.",
+      "descriptionEn": "Ivory ribbed polo dress with a wrap waist and ruffle hem.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8KBBS0G8a3NQqtg?tk=YcEnTTALzCr"
+    },
+    {
+      "ma": "P01",
+      "type": "P",
+      "titleVn": "Băng đô hoa",
+      "titleEn": "Floral headbands",
+      "priceUsd": 8,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "cp0100",
+          "hex": "#E8A0BF",
+          "name": "Pink",
+          "note": ""
+        },
+        {
+          "id": "cp0101",
+          "hex": "#C4A484",
+          "name": "Pink + Off-white",
+          "note": ""
+        },
+        {
+          "id": "cp0102",
+          "hex": "#F4F0E8",
+          "name": "Off-white",
+          "note": ""
+        },
+        {
+          "id": "cp0103",
+          "hex": "#5C4033",
+          "name": "Brown",
+          "note": ""
+        },
+        {
+          "id": "cp0104",
+          "hex": "#C4A484",
+          "name": "Pink + Brown",
+          "note": ""
+        },
+        {
+          "id": "cp0105",
+          "hex": "#C4A484",
+          "name": "Off-white + Brown",
+          "note": ""
+        },
+        {
+          "id": "cp0106",
+          "hex": "#C4A484",
+          "name": "3-pack",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/P01/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/P01/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        }
+      ],
+      "sizes": [],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Băng đô vải hoa, nút vàng.",
+      "descriptionEn": "Floral fabric headbands with gold studs.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8LUkbrVGhE4Yurr?tk=RYgXTTzkt8b"
+    },
+    {
+      "ma": "P02",
+      "type": "P",
+      "titleVn": "Bình Judy Hopps",
+      "titleEn": "Judy Hopps tumbler",
+      "priceUsd": 28,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "cp0200",
+          "hex": "#C4A484",
+          "name": "Judy",
+          "note": ""
+        },
+        {
+          "id": "cp0201",
+          "hex": "#C4A484",
+          "name": "Nick",
+          "note": ""
+        },
+        {
+          "id": "cp0202",
+          "hex": "#C4A484",
+          "name": "Stitch",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/P02/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/P02/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        }
+      ],
+      "sizes": [],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Bình Judy Hopps vườn cà rốt.",
+      "descriptionEn": "Judy Hopps garden tumbler with a character lid.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8KU3zzXBR4OB9me?tk=kcDJT6G7z4p"
+    },
+    {
+      "ma": "P03",
+      "type": "P",
+      "titleVn": "Bình nhân vật",
+      "titleEn": "Character thermos",
+      "priceUsd": 15,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "cp0300",
+          "hex": "#C4A484",
+          "name": "Judy",
+          "note": ""
+        },
+        {
+          "id": "cp0301",
+          "hex": "#C4A484",
+          "name": "Nick",
+          "note": ""
+        },
+        {
+          "id": "cp0302",
+          "hex": "#C4A484",
+          "name": "Lotso",
+          "note": ""
+        },
+        {
+          "id": "cp0303",
+          "hex": "#C4A484",
+          "name": "Stitch",
+          "note": ""
+        },
+        {
+          "id": "cp0304",
+          "hex": "#C4A484",
+          "name": "Shin-chan",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/P03/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/P03/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        },
+        {
+          "src": "/products/P03/photo-3.jpg",
+          "colorId": null,
+          "order": 3
+        }
+      ],
+      "sizes": [],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Bình giữ nhiệt Stitch và Judy Hopps.",
+      "descriptionEn": "Character thermos bottles — Stitch and Judy Hopps.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8KKzBinMRDOZhNO?tk=nf9vThVDZ31"
+    },
+    {
+      "ma": "P04",
+      "type": "P",
+      "titleVn": "Mũ dâu",
+      "titleEn": "Strawberry cap",
+      "priceUsd": 11,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "cp0400",
+          "hex": "#F4F0E8",
+          "name": "Off-white",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/P04/cover.jpg",
+          "colorId": "cp0400",
+          "order": 1
+        },
+        {
+          "src": "/products/P04/photo-2.jpg",
+          "colorId": "cp0400",
+          "order": 2
+        }
+      ],
+      "sizes": [],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Mũ baker boy kem thêu dâu.",
+      "descriptionEn": "Cream baker boy cap with strawberry patches.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8LYfu0T52xNPoOD?tk=sfeoT6uLsAa"
+    },
+    {
+      "ma": "P05",
+      "type": "P",
+      "titleVn": "Bình Sanrio",
+      "titleEn": "Sanrio tumbler",
+      "priceUsd": 28,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "cp0500",
+          "hex": "#C4A484",
+          "name": "Peanuts",
+          "note": ""
+        },
+        {
+          "id": "cp0501",
+          "hex": "#C4A484",
+          "name": "Hello Kitty",
+          "note": ""
+        },
+        {
+          "id": "cp0502",
+          "hex": "#C4A484",
+          "name": "My Melody",
+          "note": ""
+        },
+        {
+          "id": "cp0503",
+          "hex": "#C4A484",
+          "name": "Cinnamoroll",
+          "note": ""
+        },
+        {
+          "id": "cp0504",
+          "hex": "#C4A484",
+          "name": "Kuromi",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/P05/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/P05/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        },
+        {
+          "src": "/products/P05/photo-3.jpg",
+          "colorId": null,
+          "order": 3
+        }
+      ],
+      "sizes": [],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Bình My Sweet Piano và Kuromi.",
+      "descriptionEn": "Sanrio tumblers — My Sweet Piano and Kuromi.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8pbIxrTW0mbK1Wk?tk=oDgIT6GKXrw"
+    },
+    {
+      "ma": "K01",
+      "type": "K",
+      "titleVn": "Áo khoác puppy",
+      "titleEn": "Puppy zip jacket",
+      "priceUsd": 39,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "ck0100",
+          "hex": "#F5D76E",
+          "name": "Yellow",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/K01/cover.jpg",
+          "colorId": "ck0100",
+          "order": 1
+        }
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Áo khoác zip vàng đính puppy.",
+      "descriptionEn": "Yellow zip jacket with puppy appliqués.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8LLjHT2R8bUOvIz?tk=cgigThRIuvf"
+    },
+    {
+      "ma": "H01",
+      "type": "H",
+      "titleVn": "Nơ tóc thỏ",
+      "titleEn": "Rabbit hair bows",
+      "priceUsd": 10,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "ch0100",
+          "hex": "#E8A0BF",
+          "name": "Pink",
+          "note": ""
+        },
+        {
+          "id": "ch0101",
+          "hex": "#4A6FA5",
+          "name": "Blue",
+          "note": ""
+        },
+        {
+          "id": "ch0102",
+          "hex": "#8B3A3A",
+          "name": "Wine",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/H01/cover.jpg",
+          "colorId": "ch0102",
+          "order": 1
+        },
+        {
+          "src": "/products/H01/photo-2.jpg",
+          "colorId": "ch0101",
+          "order": 2
+        },
+        {
+          "src": "/products/H01/photo-3.jpg",
+          "colorId": "ch0100",
+          "order": 3
+        }
+      ],
+      "sizes": [],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Nơ tóc thêu thỏ Peter Rabbit.",
+      "descriptionEn": "Satin hair bows with embroidered rabbits.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8KE7trcDe92yo2O?tk=fkqzThRw8Yn"
+    },
+    {
+      "ma": "A02",
+      "type": "A",
+      "titleVn": "Áo chấm bi",
+      "titleEn": "Polka-dot dress",
+      "priceUsd": 25,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "ca0200",
+          "hex": "#F4F0E8",
+          "name": "Off-white",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/A02/cover.jpg",
+          "colorId": "ca0200",
+          "order": 1
+        },
+        {
+          "src": "/products/A02/photo-2.jpg",
+          "colorId": "ca0200",
+          "order": 2
+        }
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Áo cổ chấm bi tay phồng, thân dạ.",
+      "descriptionEn": "Polka-dot collar puff-sleeve dress with a grey wool body.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8JSyU68ajHWyf52?tk=rSynThj54Ks"
+    },
+    {
+      "ma": "A03",
+      "type": "A",
+      "titleVn": "Áo bèo kem",
+      "titleEn": "Ivory ruffle blouse",
+      "priceUsd": 25,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "ca0300",
+          "hex": "#FFFFFF",
+          "name": "White",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/A03/cover.jpg",
+          "colorId": "ca0300",
+          "order": 1
+        },
+        {
+          "src": "/products/A03/photo-2.jpg",
+          "colorId": "ca0300",
+          "order": 2
+        },
+        {
+          "src": "/products/A03/photo-3.jpg",
+          "colorId": "ca0300",
+          "order": 3
+        }
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Form mềm · nữ tính.",
+      "descriptionEn": "Soft form · light ruffle.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8p9N3n8BxBY4aEN?tk=OurQTSg7ai8"
+    },
+    {
+      "ma": "A04",
+      "type": "A",
+      "titleVn": "Áo hai dây ren",
+      "titleEn": "Lace panel tank",
+      "priceUsd": 23,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "ca0400",
+          "hex": "#7A8B6F",
+          "name": "Green",
+          "note": ""
+        },
+        {
+          "id": "ca0401",
+          "hex": "#FFFFFF",
+          "name": "White",
+          "note": ""
+        },
+        {
+          "id": "ca0402",
+          "hex": "#111111",
+          "name": "Black",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/A04/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/A04/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        },
+        {
+          "src": "/products/A04/photo-3.jpg",
+          "colorId": null,
+          "order": 3
+        }
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Áo hai dây ren, panel mềm.",
+      "descriptionEn": "Lace panel tank, soft straps.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8pMgHxYEOig5Xdo?tk=jEbnTS8lCK7"
+    },
+    {
+      "ma": "A05",
+      "type": "A",
+      "titleVn": "Áo lệch vai ren",
+      "titleEn": "Off-shoulder lace top",
+      "priceUsd": 28,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "ca0500",
+          "hex": "#E8C4A0",
+          "name": "Apricot",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/A05/cover.jpg",
+          "colorId": "ca0500",
+          "order": 1
+        },
+        {
+          "src": "/products/A05/photo-2.jpg",
+          "colorId": "ca0500",
+          "order": 2
+        },
+        {
+          "src": "/products/A05/photo-3.jpg",
+          "colorId": "ca0500",
+          "order": 3
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "2XL"
+      ],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Áo lệch vai ren, form nữ tính.",
+      "descriptionEn": "Off-shoulder lace top, soft drape.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8JXt41uotVLo8QE?tk=TH75TSI5UeF"
+    },
+    {
+      "ma": "A06",
+      "type": "A",
+      "titleVn": "Áo yếm ren",
+      "titleEn": "Halter lace top",
+      "priceUsd": 26,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "ca0600",
+          "hex": "#FFFFFF",
+          "name": "White",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/A06/cover.jpg",
+          "colorId": "ca0600",
+          "order": 1
+        },
+        {
+          "src": "/products/A06/photo-2.jpg",
+          "colorId": "ca0600",
+          "order": 2
+        },
+        {
+          "src": "/products/A06/photo-3.jpg",
+          "colorId": "ca0600",
+          "order": 3
+        },
+        {
+          "src": "/products/A06/photo-4.jpg",
+          "colorId": "ca0600",
+          "order": 4
+        }
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Áo yếm ren, cổ yếm xinh.",
+      "descriptionEn": "Halter lace top, open neckline.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8pDrLlO8XQcAbFi?tk=xJw9TSIv3GK"
+    },
+    {
+      "ma": "A07",
+      "type": "A",
+      "titleVn": "Áo lace Frequency",
+      "titleEn": "Frequency lace top",
+      "priceUsd": 28,
+      "qty": 1,
+      "status": "available",
+      "colors": [],
+      "images": [
+        {
+          "src": "/products/A07/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/A07/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        }
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Áo lace Frequency, form ôm nhẹ.",
+      "descriptionEn": "Frequency lace top, close soft fit.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8JV8U1dMsYoj38U?tk=4Y4JTSFY9yE"
+    },
+    {
+      "ma": "A08",
+      "type": "A",
+      "titleVn": "Áo satin ren",
+      "titleEn": "Satin lace blouse",
+      "priceUsd": 32,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "ca0800",
+          "hex": "#F4F0E8",
+          "name": "Off-white",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/A08/cover.jpg",
+          "colorId": "ca0800",
+          "order": 1
+        }
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Áo satin ren, form mềm.",
+      "descriptionEn": "Satin lace blouse, soft sheen.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8qA0Ix8x9kQ7yz2?tk=B96LT7EXFAn"
+    },
+    {
+      "ma": "A09",
+      "type": "A",
+      "titleVn": "Áo cổ V ren",
+      "titleEn": "V-neck lace top",
+      "priceUsd": 28,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "ca0900",
+          "hex": "#FFFFFF",
+          "name": "White",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/A09/cover.jpg",
+          "colorId": "ca0900",
+          "order": 1
+        },
+        {
+          "src": "/products/A09/photo-2.jpg",
+          "colorId": "ca0900",
+          "order": 2
+        },
+        {
+          "src": "/products/A09/photo-3.jpg",
+          "colorId": "ca0900",
+          "order": 3
+        },
+        {
+          "src": "/products/A09/photo-4.jpg",
+          "colorId": "ca0900",
+          "order": 4
+        }
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Áo cổ V ren, form nhẹ.",
+      "descriptionEn": "V-neck lace top, easy drape.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8qANGt2F2USMG7z?tk=3CgqT7EpBk4"
+    },
+    {
+      "ma": "A10",
+      "type": "A",
+      "titleVn": "Áo cổ vuông kem",
+      "titleEn": "Square-neck apricot lace tee",
+      "priceUsd": 31,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "ca1000",
+          "hex": "#E8C4A0",
+          "name": "Apricot",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/A10/cover.jpg",
+          "colorId": "ca1000",
+          "order": 1
+        },
+        {
+          "src": "/products/A10/photo-2.jpg",
+          "colorId": "ca1000",
+          "order": 2
+        },
+        {
+          "src": "/products/A10/photo-3.jpg",
+          "colorId": "ca1000",
+          "order": 3
+        },
+        {
+          "src": "/products/A10/photo-4.jpg",
+          "colorId": "ca1000",
+          "order": 4
+        },
+        {
+          "src": "/products/A10/photo-5.jpg",
+          "colorId": "ca1000",
+          "order": 5
+        }
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Áo cổ vuông kem, form baby.",
+      "descriptionEn": "Square-neck apricot lace tee, soft cream.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8rlnYG67PkBUJy2?tk=A3e2TRQPEGG"
+    },
+    {
+      "ma": "A11",
+      "type": "A",
+      "titleVn": "Áo len cún vàng",
+      "titleEn": "Butter puppy cardigan",
+      "priceUsd": 29,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "ca1100",
+          "hex": "#F5D76E",
+          "name": "Yellow",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/A11/cover.jpg",
+          "colorId": "ca1100",
+          "order": 1
+        }
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Áo len cún vàng, form cardigan.",
+      "descriptionEn": "Butter puppy cardigan, cozy knit.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8H5CQoPgwjl36Nw?tk=YgB1TRkrlfk"
+    },
+    {
+      "ma": "A12",
+      "type": "A",
+      "titleVn": "Áo bèo chấm bi",
+      "titleEn": "White polka ruffle top",
+      "priceUsd": 32,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "ca1200",
+          "hex": "#FFFFFF",
+          "name": "White",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/A12/cover.jpg",
+          "colorId": "ca1200",
+          "order": 1
+        },
+        {
+          "src": "/products/A12/photo-2.jpg",
+          "colorId": "ca1200",
+          "order": 2
+        },
+        {
+          "src": "/products/A12/photo-3.jpg",
+          "colorId": "ca1200",
+          "order": 3
+        },
+        {
+          "src": "/products/A12/photo-4.jpg",
+          "colorId": "ca1200",
+          "order": 4
+        }
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Áo bèo chấm bi, tay phồng.",
+      "descriptionEn": "White polka ruffle top, puff sleeve.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8s7QqCSbdBca1Ss?tk=2rsaT8cFgzO"
+    },
+    {
+      "ma": "A13",
+      "type": "A",
+      "titleVn": "Áo len mèo hoa",
+      "titleEn": "Pink floral kitten knit",
+      "priceUsd": 27,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "ca1300",
+          "hex": "#C4A484",
+          "name": "Floral cat",
+          "note": ""
+        },
+        {
+          "id": "ca1301",
+          "hex": "#C4A484",
+          "name": "White set",
+          "note": ""
+        },
+        {
+          "id": "ca1302",
+          "hex": "#C4A484",
+          "name": "Pink set",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/A13/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/A13/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        },
+        {
+          "src": "/products/A13/photo-3.jpg",
+          "colorId": null,
+          "order": 3
+        }
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Áo len mèo hoa, form cute.",
+      "descriptionEn": "Pink floral kitten knit, soft print.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8IdUQLLRMS18xaT?tk=Xz02T8Xca81"
+    },
+    {
+      "ma": "A14",
+      "type": "A",
+      "titleVn": "Áo len mèo mềm",
+      "titleEn": "Soft kitten knit",
+      "priceUsd": 26,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "ca1400",
+          "hex": "#FFFFFF",
+          "name": "White",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/A14/cover.jpg",
+          "colorId": "ca1400",
+          "order": 1
+        }
+      ],
+      "sizes": [],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Áo len mèo mềm, form ôm nhẹ.",
+      "descriptionEn": "Soft kitten knit, easy layer.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8IIeiOrbQOwejcm?tk=S8JWT8rrJhy"
+    },
+    {
+      "ma": "A15",
+      "type": "A",
+      "titleVn": "Áo len hoa xám",
+      "titleEn": "Heather knit top",
+      "priceUsd": 27,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "ca1500",
+          "hex": "#6B6B6B",
+          "name": "Gray",
+          "note": ""
+        },
+        {
+          "id": "ca1501",
+          "hex": "#D4C4B0",
+          "name": "Beige",
+          "note": ""
+        },
+        {
+          "id": "ca1502",
+          "hex": "#4A6FA5",
+          "name": "Blue",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/A15/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/A15/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        }
+      ],
+      "sizes": [],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Áo len hoa xám, form mềm.",
+      "descriptionEn": "Heather knit top, grey floral.",
+      "fulfillment": "dropship",
+      "sourceLink": null
+    },
+    {
+      "ma": "B01",
+      "type": "B",
+      "titleVn": "Túi Carit Koty",
+      "titleEn": "Carit Koty bag",
+      "priceUsd": 45,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "cb0100",
+          "hex": "#E8A0BF",
+          "name": "Pink",
+          "note": ""
+        },
+        {
+          "id": "cb0101",
+          "hex": "#4A6FA5",
+          "name": "Blue",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/B01/cover.jpg",
+          "colorId": "cb0101",
+          "order": 1
+        },
+        {
+          "src": "/products/B01/photo-2.jpg",
+          "colorId": "cb0100",
+          "order": 2
+        },
+        {
+          "src": "/products/B01/photo-3.jpg",
+          "colorId": "cb0100",
+          "order": 3
+        },
+        {
+          "src": "/products/B01/photo-4.jpg",
+          "colorId": "cb0100",
+          "order": 4
+        },
+        {
+          "src": "/products/B01/photo-5.jpg",
+          "colorId": "cb0100",
+          "order": 5
+        }
+      ],
+      "sizes": [],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Túi Carit Koty, form nhỏ xinh.",
+      "descriptionEn": "Carit Koty bag, compact cute.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8r5CGrlgQBNFyPl?tk=GwTkTSie0IM"
+    },
+    {
+      "ma": "B02",
+      "type": "B",
+      "titleVn": "Túi chấm bi",
+      "titleEn": "Caidre polka bag",
+      "priceUsd": 25,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "cb0200",
+          "hex": "#4A6FA5",
+          "name": "Blue",
+          "note": ""
+        },
+        {
+          "id": "cb0201",
+          "hex": "#F5D76E",
+          "name": "Yellow",
+          "note": ""
+        },
+        {
+          "id": "cb0202",
+          "hex": "#7B5EA7",
+          "name": "Purple",
+          "note": ""
+        },
+        {
+          "id": "cb0203",
+          "hex": "#111111",
+          "name": "Black",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/B02/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/B02/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        },
+        {
+          "src": "/products/B02/photo-3.jpg",
+          "colorId": null,
+          "order": 3
+        }
+      ],
+      "sizes": [],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Túi chấm bi, form mềm.",
+      "descriptionEn": "Caidre polka bag, soft pouch.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8quCap2qAP6bcyt?tk=SoaeTSRQbkc"
+    },
+    {
+      "ma": "B03",
+      "type": "B",
+      "titleVn": "Túi Disney",
+      "titleEn": "Disney gift bag",
+      "priceUsd": 67,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "cb0300",
+          "hex": "#E8A0BF",
+          "name": "Blush pink",
+          "note": ""
+        },
+        {
+          "id": "cb0301",
+          "hex": "#F2D5DE",
+          "name": "White pink",
+          "note": ""
+        },
+        {
+          "id": "cb0302",
+          "hex": "#E8C4A0",
+          "name": "Apricot pink",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/B03/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/B03/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        },
+        {
+          "src": "/products/B03/photo-3.jpg",
+          "colorId": null,
+          "order": 3
+        },
+        {
+          "src": "/products/B03/photo-4.jpg",
+          "colorId": null,
+          "order": 4
+        }
+      ],
+      "sizes": [],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Túi Disney, form gift bag.",
+      "descriptionEn": "Disney gift bag, character print.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8rTGQO7OItONbkA?tk=c2oET7zWqBJ"
+    },
+    {
+      "ma": "D01",
+      "type": "D",
+      "titleVn": "Đầm hồng WITHMIN",
+      "titleEn": "Pink WITHMIN dress",
+      "priceUsd": 46,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "cd0100",
+          "hex": "#E8A0BF",
+          "name": "Pink",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/D01/cover.jpg",
+          "colorId": "cd0100",
+          "order": 1
+        },
+        {
+          "src": "/products/D01/photo-2.jpg",
+          "colorId": "cd0100",
+          "order": 2
+        },
+        {
+          "src": "/products/D01/photo-3.jpg",
+          "colorId": "cd0100",
+          "order": 3
+        },
+        {
+          "src": "/products/D01/photo-4.jpg",
+          "colorId": "cd0100",
+          "order": 4
+        },
+        {
+          "src": "/products/D01/photo-5.jpg",
+          "colorId": "cd0100",
+          "order": 5
+        }
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Đầm hồng WITHMIN, form xòe nhẹ.",
+      "descriptionEn": "Pink WITHMIN dress, easy flare.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8IuehN5oDQq0mKu?tk=TSJWT7BlgWI"
+    },
+    {
+      "ma": "D02",
+      "type": "D",
+      "titleVn": "Đầm trắng WITHMIN",
+      "titleEn": "White WITHMIN dress",
+      "priceUsd": 46,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "cd0200",
+          "hex": "#FFFFFF",
+          "name": "White",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/D02/cover.jpg",
+          "colorId": "cd0200",
+          "order": 1
+        },
+        {
+          "src": "/products/D02/photo-2.jpg",
+          "colorId": "cd0200",
+          "order": 2
+        },
+        {
+          "src": "/products/D02/photo-3.jpg",
+          "colorId": "cd0200",
+          "order": 3
+        },
+        {
+          "src": "/products/D02/photo-4.jpg",
+          "colorId": "cd0200",
+          "order": 4
+        },
+        {
+          "src": "/products/D02/photo-5.jpg",
+          "colorId": "cd0200",
+          "order": 5
+        }
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Đầm trắng WITHMIN, form sạch.",
+      "descriptionEn": "White WITHMIN dress, clean flare.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8J19U7AXarFp5si?tk=laULT7BwQ6T"
+    },
+    {
+      "ma": "D03",
+      "type": "D",
+      "titleVn": "Đầm ren dáng rộng",
+      "titleEn": "Curve lace dress",
+      "priceUsd": 34,
+      "qty": 1,
+      "status": "available",
+      "colors": [],
+      "images": [
+        {
+          "src": "/products/D03/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/D03/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        },
+        {
+          "src": "/products/D03/photo-3.jpg",
+          "colorId": null,
+          "order": 3
+        }
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Đầm ren dáng rộng, form rộng dễ.",
+      "descriptionEn": "Curve lace dress, easy roomy.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8HDJ57ubctdLHOr?tk=3bMrT8XswiP"
+    },
+    {
+      "ma": "J01",
+      "type": "J",
+      "titleVn": "Bạc Moonlight Belle",
+      "titleEn": "Moonlight Belle silver",
+      "priceUsd": 32,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "cj0100",
+          "hex": "#C0C0C0",
+          "name": "Silver",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/J01/cover.jpg",
+          "colorId": "cj0100",
+          "order": 1
+        },
+        {
+          "src": "/products/J01/photo-2.jpg",
+          "colorId": "cj0100",
+          "order": 2
+        },
+        {
+          "src": "/products/J01/photo-3.jpg",
+          "colorId": "cj0100",
+          "order": 3
+        },
+        {
+          "src": "/products/J01/photo-4.jpg",
+          "colorId": "cj0100",
+          "order": 4
+        }
+      ],
+      "sizes": [],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Bạc Moonlight Belle, form nhỏ.",
+      "descriptionEn": "Moonlight Belle silver, dainty.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8qF251J3MmOaNhJ?tk=tkdtTSRpBU6"
+    },
+    {
+      "ma": "J02",
+      "type": "J",
+      "titleVn": "Bạc ánh trăng",
+      "titleEn": "White-moon silver",
+      "priceUsd": 46,
+      "qty": 1,
+      "status": "available",
+      "colors": [],
+      "images": [
+        {
+          "src": "/products/J02/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/J02/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        },
+        {
+          "src": "/products/J02/photo-3.jpg",
+          "colorId": null,
+          "order": 3
+        }
+      ],
+      "sizes": [],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Bạc ánh trăng, form nhỏ.",
+      "descriptionEn": "White-moon silver, dainty.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8qFnJs3yfEE6ff8?tk=mzU2TS82aJh"
+    },
+    {
+      "ma": "O01",
+      "type": "O",
+      "titleVn": "Guốc nơ chấm bi",
+      "titleEn": "Polka bow heels",
+      "priceUsd": 21,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "co0100",
+          "hex": "#6B6B6B",
+          "name": "Polka dot",
+          "note": ""
+        },
+        {
+          "id": "co0101",
+          "hex": "#D46A8A",
+          "name": "Dark pink",
+          "note": ""
+        },
+        {
+          "id": "co0102",
+          "hex": "#F2C4D0",
+          "name": "Light pink",
+          "note": ""
+        },
+        {
+          "id": "co0103",
+          "hex": "#E8A0BF",
+          "name": "Pink",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/O01/cover.jpg",
+          "colorId": null,
+          "order": 1
+        }
+      ],
+      "sizes": [],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Guốc nơ chấm bi, gót xinh.",
+      "descriptionEn": "Polka bow heels, cute heel.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8IGMPH4b1AOyk5s?tk=IBGbT7ywLKI"
+    },
+    {
+      "ma": "O02",
+      "type": "O",
+      "titleVn": "Guốc nơ hoa",
+      "titleEn": "Floral bow heels",
+      "priceUsd": 21,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "co0200",
+          "hex": "#FFFFFF",
+          "name": "White",
+          "note": ""
+        },
+        {
+          "id": "co0201",
+          "hex": "#111111",
+          "name": "Black",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/O02/cover.jpg",
+          "colorId": null,
+          "order": 1
+        }
+      ],
+      "sizes": [],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Guốc nơ hoa, gót xinh.",
+      "descriptionEn": "Floral bow heels, cute heel.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8JYtG1MFPlnSWdR?tk=BifhT7B2DyU"
+    },
+    {
+      "ma": "O03",
+      "type": "O",
+      "titleVn": "Sticker mèo",
+      "titleEn": "Kitty sticker pack",
+      "priceUsd": 6,
+      "qty": 1,
+      "status": "available",
+      "colors": [],
+      "images": [
+        {
+          "src": "/products/O03/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/O03/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        },
+        {
+          "src": "/products/O03/photo-3.jpg",
+          "colorId": null,
+          "order": 3
+        }
+      ],
+      "sizes": [],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Sticker mèo, pack nhỏ.",
+      "descriptionEn": "Kitty sticker pack, small set.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8s4JLqv5j0g8Z7e?tk=ApjRTiiwi69"
+    },
+    {
+      "ma": "O04",
+      "type": "O",
+      "titleVn": "Dép lông thỏ",
+      "titleEn": "Bunny fluff slippers",
+      "priceUsd": 12,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "co0400",
+          "hex": "#FFFFFF",
+          "name": "White",
+          "note": ""
+        },
+        {
+          "id": "co0401",
+          "hex": "#D4C4B0",
+          "name": "Beige",
+          "note": ""
+        },
+        {
+          "id": "co0402",
+          "hex": "#6B6B6B",
+          "name": "Gray",
+          "note": ""
+        },
+        {
+          "id": "co0403",
+          "hex": "#C3B091",
+          "name": "Khaki",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/O04/cover.jpg",
+          "colorId": "co0400",
+          "order": 1
+        },
+        {
+          "src": "/products/O04/photo-2.jpg",
+          "colorId": "co0401",
+          "order": 2
+        },
+        {
+          "src": "/products/O04/photo-3.jpg",
+          "colorId": "co0402",
+          "order": 3
+        },
+        {
+          "src": "/products/O04/photo-4.jpg",
+          "colorId": "co0403",
+          "order": 4
+        }
+      ],
+      "sizes": [],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Dép lông thỏ, form êm.",
+      "descriptionEn": "Bunny fluff slippers, cozy.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8IHGsvkidFuxFpK?tk=S4tATR9JWnV"
+    },
+    {
+      "ma": "O05",
+      "type": "O",
+      "titleVn": "Dép lông cừu",
+      "titleEn": "Lamb bow slippers",
+      "priceUsd": 14,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "co0500",
+          "hex": "#FFFFFF",
+          "name": "White",
+          "note": ""
+        },
+        {
+          "id": "co0501",
+          "hex": "#E8A0BF",
+          "name": "Pink",
+          "note": ""
+        },
+        {
+          "id": "co0502",
+          "hex": "#6B6B6B",
+          "name": "Gray",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/O05/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/O05/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        },
+        {
+          "src": "/products/O05/photo-3.jpg",
+          "colorId": null,
+          "order": 3
+        },
+        {
+          "src": "/products/O05/photo-4.jpg",
+          "colorId": null,
+          "order": 4
+        }
+      ],
+      "sizes": [],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Dép lông cừu, form êm.",
+      "descriptionEn": "Lamb bow slippers, cozy.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8rOfGnCaJlwRSVZ?tk=yxteTR9f1yt"
+    },
+    {
+      "ma": "Q01",
+      "type": "Q",
+      "titleVn": "Quần capri",
+      "titleEn": "Capri pants",
+      "priceUsd": 30,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "cq0100",
+          "hex": "#FFFFFF",
+          "name": "White",
+          "note": ""
+        },
+        {
+          "id": "cq0101",
+          "hex": "#111111",
+          "name": "Black",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/Q01/cover.jpg",
+          "colorId": "cq0101",
+          "order": 1
+        },
+        {
+          "src": "/products/Q01/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        },
+        {
+          "src": "/products/Q01/photo-3.jpg",
+          "colorId": null,
+          "order": 3
+        }
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Quần capri, form lửng.",
+      "descriptionEn": "Capri pants, cropped easy.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8rhr0aiQK5LTZp6?tk=Z8qYTiacYLD"
+    },
+    {
+      "ma": "S02",
+      "type": "S",
+      "titleVn": "Đồ ngủ mèo",
+      "titleEn": "Kitty pajama set",
+      "priceUsd": 28,
+      "qty": 1,
+      "status": "available",
+      "colors": [],
+      "images": [
+        {
+          "src": "/products/S02/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/S02/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        },
+        {
+          "src": "/products/S02/photo-3.jpg",
+          "colorId": null,
+          "order": 3
+        }
+      ],
+      "sizes": [
+        "M",
+        "L",
+        "XL",
+        "2XL"
+      ],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Đồ ngủ mèo, set mềm.",
+      "descriptionEn": "Kitty pajama set, soft set.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8pA8S04XNP5rz4Z?tk=g9gdTSFBZA5"
+    },
+    {
+      "ma": "S03",
+      "type": "S",
+      "titleVn": "Đồ ngủ thú cưng",
+      "titleEn": "Pet-park pajama set",
+      "priceUsd": 29,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "cs0300",
+          "hex": "#C4A484",
+          "name": "Pet park",
+          "note": ""
+        },
+        {
+          "id": "cs0301",
+          "hex": "#C4A484",
+          "name": "Pet bear",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/S03/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/S03/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        },
+        {
+          "src": "/products/S03/photo-3.jpg",
+          "colorId": null,
+          "order": 3
+        }
+      ],
+      "sizes": [
+        "M",
+        "L",
+        "XL"
+      ],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Đồ ngủ thú cưng, set cute.",
+      "descriptionEn": "Pet-park pajama set, cute set.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8rIIIbpFLPkqdC1?tk=UeV1TSvJnCl"
+    },
+    {
+      "ma": "S04",
+      "type": "S",
+      "titleVn": "Set cúp ngực ren",
+      "titleEn": "Lace bustier set",
+      "priceUsd": 48,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "cs0400",
+          "hex": "#8B3A3A",
+          "name": "Red",
+          "note": ""
+        },
+        {
+          "id": "cs0401",
+          "hex": "#FFFFFF",
+          "name": "White",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/S04/cover.jpg",
+          "colorId": "cs0400",
+          "order": 1
+        },
+        {
+          "src": "/products/S04/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L"
+      ],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Set cúp ngực ren, form ôm.",
+      "descriptionEn": "Lace bustier set, close fit.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8s4B4htXZ4FDIHD?tk=UYNRTiR2TUD"
+    }
+  ],
+  "settings": {
+    "announcementLines": [
+      "Sassy Closet"
+    ],
+    "facebookPageUrl": "https://www.facebook.com/profile.php?id=61594312648057"
+  },
+  "updatedAt": "2026-09-20T16:42:39.000Z"
+}
