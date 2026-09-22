@@ -36,6 +36,10 @@ python3 excel-kit/sot/build_sot_desktop.py --out-dir ./out
 python3 excel-kit/build_boutique_desktop.py --out-dir ./out
 python3 excel-kit/sot/dashboard_brief.py -w ./out/Sassy_Closet_SoT.xlsx
 python3 excel-kit/tests/run_checks.py
+python3 excel-kit/build_square_finance.py --out-dir ./out
+python3 -m pytest excel-kit/tests/test_finance_schema_exports.py \
+  excel-kit/tests/test_square_finance_builder.py \
+  excel-kit/tests/test_finance_formulas.py -q
 ```
 
 | Path | Job |
@@ -45,6 +49,7 @@ python3 excel-kit/tests/run_checks.py
 | `excel-kit/clean_sot_demo.py` | Demo wipe + Square wording + no embeds |
 | `excel-kit/build_boutique_desktop.py` | Lean Official + Wishlist desktop books |
 | `excel-kit/square/` | Headers-only import template (Track ON, mã = SKU) |
+| `excel-kit/build_square_finance.py` | Empty `Square.xlsx` + `Finance.xlsx` (San Jose 10% tax-ready) |
 | `excel-kit/PROMPTS.md` | Paste-ready Cloud Agent prompts |
 
 Prompts also live in `excel-kit/prompts/` (`BOUTIQUE_DESKTOP_EFFICIENT.md`, `BOUTIQUE_PHONE_SAFE.md`, `GF_CLOTHES_INTAKE.md`, `SAVED_CARD_AND_REAL_MINIBOSS_ASK_2026-09-07.md`).

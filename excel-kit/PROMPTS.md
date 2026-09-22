@@ -292,3 +292,28 @@ CONTRACT
 
 Vercel Root Directory: sassy-closet. Do not change sassy-closet.vercel.app Production.
 ```
+
+---
+
+## 15) Square.xlsx + Finance.xlsx (tax-ready books)
+
+Contract: `prompts/SQUARE_AND_FINANCE_EXCEL_2026-09-07.md`.
+
+```
+Sassy Closet — rebuild empty Square.xlsx + Finance.xlsx. San Jose, CA 10.000% sales tax.
+
+RUN
+  python3 excel-kit/build_square_finance.py --out-dir ./out
+  ./excel-kit/kit.sh square
+  python3 -m pytest excel-kit/tests/test_finance_schema_exports.py \
+    excel-kit/tests/test_square_finance_builder.py \
+    excel-kit/tests/test_finance_formulas.py -q
+
+CONTRACT
+- schema.py must export FINANCE_* / SQUARE book symbols (FINANCE_CHANNEL, FINANCE_SALES, …).
+- On_Hand empty. Finance empty. Never invent mã or $.
+- Sales tax on taxable sell price (San Jose 10.000% CDTFA, effective Apr 1, 2026). Income tax on profit.
+- Land path Documents/Sassy Closet/Square.xlsx + Finance.xlsx (copy only if folder exists).
+- No Square Save. No OneDrive overwrite unless the shop folder is already mounted.
+```
+

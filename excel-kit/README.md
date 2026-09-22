@@ -25,6 +25,8 @@ excel-kit/
   templates/from_gf/             ← HOW_TO + INTAKE_TEMPLATE + example packets
   inbox/gf_intake_reply_templates.md
   tests/run_checks.py
+  build_square_finance.py        ← Square.xlsx + Finance.xlsx
+  kit.sh                         ← kit.sh square | finance | books
 ```
 
 ## Shop rules
@@ -66,8 +68,15 @@ python3 excel-kit/clean_sot_demo.py path/to/Sassy_Closet_SoT.xlsx -o ./out/Sassy
 # Square headers-only check
 python3 excel-kit/square/validate_import.py excel-kit/square/square_import_template.csv
 
+# Empty Square.xlsx + Finance.xlsx (bought tracker + San Jose tax-ready ledger)
+python3 excel-kit/build_square_finance.py --out-dir ./out
+./excel-kit/kit.sh square
+
 # Kit CI
 python3 excel-kit/tests/run_checks.py
+python3 -m pytest excel-kit/tests/test_finance_schema_exports.py \
+  excel-kit/tests/test_square_finance_builder.py \
+  excel-kit/tests/test_finance_formulas.py -q
 ```
 
 Do not commit live inventory, customer names, secrets, or a filled Square CSV. Empty data sheets are intentional.
@@ -81,3 +90,5 @@ Do not commit live inventory, customer names, secrets, or a filled Square CSV. E
 | `Documents/Sassy Closet/Sassy_Closet_Wishlist_desktop.xlsx` | Lean desktop Candidates |
 | `Documents/Sassy Closet/Photos/` | `#001.jpg` / `AO001.jpg` — links only in Excel |
 | `Documents/Sassy Closet/From GF/` | PRIMARY GF self-upload inbox (Kit copies HOW_TO + template) |
+| `Documents/Sassy Closet/Square.xlsx` | Bought / on-hand team tracker (empty until a confirmed buy) |
+| `Documents/Sassy Closet/Finance.xlsx` | Tax-ready ledger (San Jose 10.000% CDTFA; empty until real sales) |
