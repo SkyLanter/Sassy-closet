@@ -51,6 +51,15 @@ Excel cells hold the OneDrive **share URL** in `photo_link`. Captions live in `n
 
 SoT Official uses a different status set (`Available` → `Reserved` → `Sold`, plus Hold / Damaged / Donated). Do not mix the two in one sheet.
 
+## Square.xlsx + Finance.xlsx (plain, not pink)
+
+Separate from the pink SoT / desktop books. `build_square_finance.py` writes empty team trackers:
+
+- **Square.xlsx** — On_Hand / Sold_Log / Readme. Bought stock only. Staged website mãs stay off On_Hand.
+- **Finance.xlsx** — Sales / Fees / Payouts_Transfers / Expenses / Tax_Summary / Readme. Tax_Summary is monthly + YTD Schedule C-style formulas (not legal advice).
+
+English headers, freeze + AutoFilter, no embeds, no blush fills. Do not overwrite `sassycloset.xlsx`. Sold piece → On_Hand qty 0 + one Sales row (`square_xlsx_ma`). Zelle display note is a name only.
+
 ## Pink, not locked
 
 Deep rose / blush headers, yellow meaning “type here” on the SoT book, no sheet protection. A locked-feeling preview is a failed build. Freeze the header row only so a phone can still reach size and price.

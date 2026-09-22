@@ -44,6 +44,12 @@ ONEDRIVE_PHOTOS = f"{ONEDRIVE_SHOP_DIR}/Photos"
 ONEDRIVE_FROM_GF = f"{ONEDRIVE_SHOP_DIR}/From GF"
 ONEDRIVE_OFFICIAL_DESKTOP = f"{ONEDRIVE_SHOP_DIR}/Sassy_Closet_Official_desktop.xlsx"
 ONEDRIVE_WISHLIST_DESKTOP = f"{ONEDRIVE_SHOP_DIR}/Sassy_Closet_Wishlist_desktop.xlsx"
+ONEDRIVE_SQUARE = f"{ONEDRIVE_SHOP_DIR}/Square.xlsx"
+ONEDRIVE_FINANCE = f"{ONEDRIVE_SHOP_DIR}/Finance.xlsx"
+ONEDRIVE_SASSYCLOSET_HUB = f"{ONEDRIVE_SHOP_DIR}/sassycloset.xlsx"
+SQUARE_XLSX_NAME = "Square.xlsx"
+FINANCE_XLSX_NAME = "Finance.xlsx"
+SASSYCLOSET_HUB_XLSX_NAME = "sassycloset.xlsx"
 
 # ---------------------------------------------------------------------------
 # Mã
@@ -135,6 +141,171 @@ CANDIDATE_TYPES: tuple[str, ...] = (
     "Shoes",
     "Other",
     "SET",
+)
+
+# ---------------------------------------------------------------------------
+# Square.xlsx + Finance.xlsx (Boss 2026-09-07 / 2026-09-15)
+# Bought / on-hand team tracker + tax-ready ledger. Staged site mãs are NOT
+# bought. Square Free remains on-hand SoT. Empty data is correct. No cute.
+# Do not overwrite sassycloset.xlsx (website staged hub).
+# ---------------------------------------------------------------------------
+
+SQUARE_TEMPLATE_ROWS = 20
+SQUARE_FORMULA_LAST_ROW = 1001
+FINANCE_TAX_YEAR = 2026
+FINANCE_ZELLE_DISPLAY_NAME = "Thang Tien Huynh"
+
+SQUARE_ON_HAND: tuple[str, ...] = (
+    "ma",
+    "kind",
+    "colors",
+    "size",
+    "qty_on_hand",
+    "cost_cny",
+    "cost_usd",
+    "cost_currency",
+    "buy_date",
+    "source_link",
+    "photo_folder",
+    "square_item_name",
+    "track_on",
+    "status",
+    "sold_date",
+    "notes",
+)
+SQUARE_ON_HAND_STATUS: tuple[str, ...] = ("on_hand", "reserved", "sold", "dead")
+SQUARE_TRACK_ON: tuple[str, ...] = ("Y", "N")
+SQUARE_COST_CURRENCY: tuple[str, ...] = ("CNY", "USD")
+
+SQUARE_SOLD_LOG: tuple[str, ...] = (
+    "ma",
+    "sold_date",
+    "qty",
+    "finance_ref",
+    "notes",
+)
+SQUARE_XLSX_SHEETS: tuple[str, ...] = ("On_Hand", "Sold_Log", "Readme")
+
+SQUARE_XLSX_README_LINES: tuple[str, ...] = (
+    "Square.xlsx tracks bought / on-hand pieces for the team. On_Hand starts empty — staged site mãs are not bought.",
+    "Square Free Dashboard is on-hand source of truth. This Excel is the team tracker, not a second warehouse.",
+    "When Boss buys: add one On_Hand row from cost on sassycloset/intake. photo_folder = Documents/Sassy Closet/Photos/{ma}/.",
+    "When a mã sells: qty_on_hand 0, status sold, Sold_Log row, and a Finance.xlsx Sales row (required).",
+    "Never invent mã, stock, or $. Never Square Save. No cute / embeds.",
+)
+
+FINANCE_SALES: tuple[str, ...] = (
+    "date",
+    "ma",
+    "description",
+    "qty",
+    "gross_usd",
+    "ship_usd",
+    "discount_usd",
+    "net_usd",
+    "pay_method",
+    "pay_ref",
+    "customer_note",
+    "channel",
+    "square_xlsx_ma",
+    "tax_category",
+    "notes",
+)
+FINANCE_PAY_METHOD: tuple[str, ...] = ("zelle", "square", "square_online", "cash", "other")
+FINANCE_SALES_CHANNEL: tuple[str, ...] = ("facebook", "meetup", "website", "other")
+FINANCE_SALES_TAX_CATEGORY: tuple[str, ...] = ("product_sale", "shipping", "other")
+
+FINANCE_FEES: tuple[str, ...] = (
+    "date",
+    "source",
+    "amount_usd",
+    "fee_type",
+    "related_sale_ref",
+    "notes",
+)
+FINANCE_FEE_SOURCE: tuple[str, ...] = ("square", "square_online", "bank", "other")
+FINANCE_FEE_TYPE: tuple[str, ...] = ("square_processing", "shipping_label", "ads", "other")
+
+FINANCE_PAYOUTS: tuple[str, ...] = (
+    "date",
+    "from_method",
+    "to_account_note",
+    "amount_usd",
+    "confirmation",
+    "notes",
+)
+FINANCE_FROM_METHOD: tuple[str, ...] = (
+    "zelle",
+    "square",
+    "square_online",
+    "cash",
+    "bank",
+    "other",
+)
+
+FINANCE_EXPENSES: tuple[str, ...] = (
+    "date",
+    "vendor",
+    "category",
+    "amount_usd",
+    "payment_method",
+    "receipt_note",
+    "notes",
+)
+FINANCE_EXPENSE_CATEGORY: tuple[str, ...] = (
+    "inventory_cogs",
+    "shipping_supplies",
+    "packaging",
+    "software",
+    "ads",
+    "other",
+)
+FINANCE_EXPENSE_PAY: tuple[str, ...] = ("zelle", "square", "square_online", "cash", "other")
+
+FINANCE_SHEETS: tuple[str, ...] = (
+    "Sales",
+    "Fees",
+    "Payouts_Transfers",
+    "Expenses",
+    "Tax_Summary",
+    "Readme",
+)
+
+FINANCE_TAX_SUMMARY_HEADERS: tuple[str, ...] = (
+    "metric",
+    *(f"{FINANCE_TAX_YEAR}-{month:02d}" for month in range(1, 13)),
+    "YTD",
+    "accountant_note",
+)
+FINANCE_TAX_SUMMARY_METRICS: tuple[str, ...] = (
+    "Gross receipts (Schedule C-style — not legal advice)",
+    "Shipping income",
+    "Fees (merchant / labels / ads)",
+    "COGS (Square.xlsx cost_usd when status=sold)",
+    "Ordinary expenses",
+    "Net (gross + shipping − fees − COGS − expenses)",
+)
+FINANCE_TAX_SUMMARY_NOTE_ROWS: tuple[tuple[str, str], ...] = (
+    (
+        "1099-K / Square notes (not income)",
+        "Paste 1099-K or Square export notes here. Not income.",
+    ),
+    (
+        "Payouts / transfers are not income — see Payouts_Transfers",
+        "Money moving between methods is not a sale.",
+    ),
+    (
+        "Zelle display name (customers see) — never store bank passwords",
+        FINANCE_ZELLE_DISPLAY_NAME,
+    ),
+)
+
+FINANCE_README_LINES: tuple[str, ...] = (
+    "Finance.xlsx is the tax-ready money book. Sales / Fees / Payouts_Transfers / Expenses start empty — no invented sales or $.",
+    "Cap logs a sale: after Boss confirms money, add one Sales row (date, ma, description, qty, gross_usd, ship_usd, discount_usd, pay_method, pay_ref, channel, square_xlsx_ma). net_usd is a formula.",
+    "Same sale: Square.xlsx On_Hand qty_on_hand 0, status sold, sold_date; Sold_Log (ma, sold_date, qty, finance_ref). Never invent mã or $.",
+    "Boss filing: open Tax_Summary in Excel so formulas calculate. Monthly + YTD Schedule C-style labels — gross, shipping income, fees, COGS, expenses, net. Give the sheet to an accountant. Not legal advice.",
+    "Buy later: Boss buy → Square On_Hand from sassycloset/intake cost. Do not copy staged mãs until bought. Zelle display customers see: Thang Tien Huynh (note only — never store bank passwords). Never Square Save. No cute / embeds.",
 )
 
 # ---------------------------------------------------------------------------
@@ -731,6 +902,93 @@ def photo_filename_for_wish(number: int, extra: int | None = None) -> str:
         raise ValueError("wishlist photo numbers are #001–#999")
     stem = f"#{number:03d}"
     return f"{stem}_{extra}.jpg" if extra else f"{stem}.jpg"
+
+
+def square_photo_folder(ma: object) -> str:
+    """On_Hand photo_folder path. Requires a typed mã — never invent one."""
+    text = "" if ma is None else str(ma).strip()
+    if not text:
+        raise ValueError("ma required for photo_folder — never invent")
+    return f"{ONEDRIVE_PHOTOS}/{text}/"
+
+
+def square_photo_folder_formula(row: int) -> str:
+    """Fill photo_folder from On_Hand!A{row}. Blank while mã is blank."""
+    if row < 2:
+        raise ValueError(f"photo_folder formula row must be a data row, got {row}")
+    return f'=IF(A{row}="","","{ONEDRIVE_PHOTOS}/"&A{row}&"/")'
+
+
+def finance_net_usd_formula(row: int) -> str:
+    """net = gross + ship − discount. Blank when all three money cells are blank."""
+    if row < 2:
+        raise ValueError(f"net_usd formula row must be a data row, got {row}")
+    return f'=IF(COUNTA(E{row}:G{row})=0,"",N(E{row})+N(F{row})-N(G{row}))'
+
+
+def finance_tax_month_col_letter(month: int) -> str:
+    """January=1 → column B. December=12 → column M."""
+    if month < 1 or month > 12:
+        raise ValueError(f"month out of range: {month}")
+    return chr(ord("A") + month)
+
+
+def finance_month_bounds(year: int, month: int) -> tuple[int, int, int, int]:
+    """Return (start_year, start_month, end_year, end_month) exclusive end."""
+    if month < 1 or month > 12:
+        raise ValueError(f"month out of range: {month}")
+    if month == 12:
+        return year, 12, year + 1, 1
+    return year, month, year, month + 1
+
+
+def finance_month_sumifs(
+    sheet: str,
+    amount_col: str,
+    date_col: str,
+    year: int,
+    month: int,
+    last_row: int = SQUARE_FORMULA_LAST_ROW,
+) -> str:
+    start_year, start_month, end_year, end_month = finance_month_bounds(year, month)
+    return (
+        f"=SUMIFS({sheet}!${amount_col}$2:${amount_col}${last_row},"
+        f"{sheet}!${date_col}$2:${date_col}${last_row},"
+        f'">="&DATE({start_year},{start_month},1),'
+        f"{sheet}!${date_col}$2:${date_col}${last_row},"
+        f'"<"&DATE({end_year},{end_month},1))'
+    )
+
+
+def finance_cogs_month_formula(
+    year: int,
+    month: int,
+    last_row: int = SQUARE_FORMULA_LAST_ROW,
+) -> str:
+    """COGS from Square.xlsx On_Hand cost_usd when status=sold in that month.
+
+    On_Hand G=cost_usd, N=status, O=sold_date. Both books live in the same folder.
+    """
+    start_year, start_month, end_year, end_month = finance_month_bounds(year, month)
+    return (
+        f"=SUMIFS('[Square.xlsx]On_Hand'!$G$2:$G${last_row},"
+        f"'[Square.xlsx]On_Hand'!$N$2:$N${last_row},\"sold\","
+        f"'[Square.xlsx]On_Hand'!$O$2:$O${last_row},"
+        f'">="&DATE({start_year},{start_month},1),'
+        f"'[Square.xlsx]On_Hand'!$O$2:$O${last_row},"
+        f'"<"&DATE({end_year},{end_month},1))'
+    )
+
+
+def finance_net_month_formula(col_letter: str) -> str:
+    return (
+        f"=N({col_letter}2)+N({col_letter}3)"
+        f"-N({col_letter}4)-N({col_letter}5)-N({col_letter}6)"
+    )
+
+
+def finance_ytd_formula(row: int) -> str:
+    return f"=SUM(B{row}:M{row})"
 
 
 def looks_like_demo_row(values: Iterable[object]) -> bool:

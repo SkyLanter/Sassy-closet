@@ -292,3 +292,32 @@ CONTRACT
 
 Vercel Root Directory: sassy-closet. Do not change sassy-closet.vercel.app Production.
 ```
+
+---
+
+## 15) Square.xlsx + Finance.xlsx (bought tracker + tax)
+
+Contract: `excel-kit/prompts/SQUARE_AND_FINANCE_EXCEL_2026-09-07.md` (Boss 2026-09-07 / 2026-09-15).
+
+```
+Sassy Closet — create Square.xlsx + Finance.xlsx for Documents/Sassy Closet/.
+On_Hand starts EMPTY (staged site mãs are NOT bought). Finance empty — no invented sales.
+
+RUN
+  python3 excel-kit/build_square_finance.py --out-dir ./out
+  unzip -t out/Square.xlsx
+  unzip -t out/Finance.xlsx
+  python3 excel-kit/tests/run_checks.py
+
+CONTRACT
+- Square.xlsx = bought / on-hand team tracker. NOT the website staged list. On_Hand starts EMPTY.
+- Sheets: On_Hand, Sold_Log, Readme. status on_hand|reserved|sold|dead. photo_folder Documents/Sassy Closet/Photos/{ma}/
+- Finance.xlsx = tax-ready empty templates. Sheets: Sales, Fees, Payouts_Transfers, Expenses, Tax_Summary (monthly + YTD Schedule C-style formulas), Readme
+- pay_method zelle|square|square_online|cash|other. Sold item → Square qty_on_hand 0 + Finance Sales row (square_xlsx_ma)
+- Cap logs a sale on Sales after Boss confirms money. Boss uses Tax_Summary for filing (not legal advice).
+- Zelle display note only: Thang Tien Huynh. Never store bank passwords.
+- Square Free Dashboard remains inventory SoT. Excel is the team tracker.
+- Do not overwrite sassycloset.xlsx. Plain, freeze, autofilter, no cute. No invent mã/$. No Square Save.
+
+STOP if you would copy staged website mãs onto On_Hand or invent a sale.
+```
