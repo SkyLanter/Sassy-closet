@@ -49,6 +49,18 @@ python3 excel-kit/tests/run_checks.py
 
 Prompts also live in `excel-kit/prompts/` (`BOUTIQUE_DESKTOP_EFFICIENT.md`, `BOUTIQUE_PHONE_SAFE.md`, `GF_CLOTHES_INTAKE.md`, `SAVED_CARD_AND_REAL_MINIBOSS_ASK_2026-09-07.md`).
 
+## Sell shop
+
+Next.js sell shop in [`sassy-closet-shop/`](sassy-closet-shop/). Live URL stays [https://sassy-closet-shop.vercel.app](https://sassy-closet-shop.vercel.app).
+
+GitHub is the source of truth for this app (Boss 2026-09-21). Origin temp `tiensidequests/tmp-87ea3acf7683fefe` is deprecated for new commits. **Do not delete Origin** until Mini Boss / Boss reconnects Vercel:
+
+1. Connect the Vercel project `sassy-closet-shop` to this GitHub repo.
+2. Set **Root Directory** to `sassy-closet-shop`.
+3. Leave the live URL as https://sassy-closet-shop.vercel.app.
+
+Product photos stay on Vercel Blob / CDN (`/products/...`). They are not in git. A pull request does not deploy production.
+
 ## Intake site
 
 Next.js app in [`sassy-closet/`](sassy-closet/). Vercel Root Directory: `sassy-closet`. Env **names** (no values): `MINIBOSS_ASK_WEBHOOK_URL`, `MINIBOSS_ASK_WEBHOOK_KEY`, `ASK_REPLY_SECRET`, plus Blob (`BLOB_READ_WRITE_TOKEN` / `BLOB_STORE_ID`) so Production redeploys do not wipe mãs — see `excel-kit/KIT.md` and `sassy-closet/README.md`.
