@@ -58,6 +58,8 @@ Local only:
 
 Code treats the store as **durable** when `BLOB_READ_WRITE_TOKEN` or `BLOB_STORE_ID` is set. Check `GET /api/submissions` → `storage.durable` or `/admin` “Kho”.
 
+Blob writes use the SDK minimum `cacheControlMaxAge` of **60s** (0 is illegal). Store JSON and overwriteable photos are read with `useCache: false`. `/api/photos/…` sends `Cache-Control: private, no-store`. This store is **not** `catalog.v1` — do not import intake CSV / `store.json` onto the sell shop (P05 can carry staff `$23` here; the shop must stay Hold / no USD). See `docs/ai-clothing-shop/04-next-blob-catalog-arch.md`.
+
 ### Verify after Blob is connected
 
 1. Món mới → real photos + fields → **Lưu & lấy mã**. Note the mã.
