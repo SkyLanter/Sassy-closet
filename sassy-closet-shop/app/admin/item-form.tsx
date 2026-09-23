@@ -82,6 +82,7 @@ export function ItemForm({
   onToast,
   onCatalog,
   onCancel,
+  onSaveAndNext,
 }: {
   mode: "add" | "edit";
   product?: Product;
@@ -95,6 +96,7 @@ export function ItemForm({
     options?: { nextMa?: string; renamedTo?: string; removed?: boolean },
   ) => void;
   onCancel: () => void;
+  onSaveAndNext?: (nextMa: string) => void;
 }) {
   const [saving, setSaving] = useState(false);
   // Intake prefill: consumed once from sessionStorage (written by the Intake
@@ -116,6 +118,7 @@ export function ItemForm({
   const [formError, setFormError] = useState<string | null>(null);
   const [formOk, setFormOk] = useState<string | null>(notice ?? null);
   const bannerRef = useRef<HTMLDivElement>(null);
+  const pendingNextRef = useRef(false);
   const baselineRef = useRef(
     snapshotDraft(product ? draftFromProduct(product) : emptyDraft(), product?.ma ?? ""),
   );
@@ -272,8 +275,18 @@ export function ItemForm({
       if (result.products && result.settings) {
         onCatalog(result.products, result.settings);
       }
-      showOk(`Saved ${result.ma || currentMa} · ${saveReceiptLine(result)}.`);
-      markPipelineSaved(result.ma || currentMa);
+      const savedMa = result.ma || currentMa;
+      showOk(`Saved ${savedMa} · ${saveReceiptLine(result)}.`);
+      markPipelineSaved(savedMa);
+      if (pendingNextRef.current) {
+        pendingNextRef.current = false;
+        const list =
+          result.products && result.products.length > 0 ? result.products : products;
+        const index = list.findIndex((item) => item.ma === savedMa);
+        if (index >= 0 && onSaveAndNext) {
+          onSaveAndNext(list[(index + 1) % list.length].ma);
+        }
+      }
     } catch (error) {
       if (mode === "add") {
         const recovered = await recoverAddedMa(previousMas, addLetter);
@@ -816,6 +829,20 @@ export function ItemForm({
               </>
             ) : null}
           </button>
+          {mode === "edit" && onSaveAndNext ? (
+            <button
+              type="button"
+              data-testid="admin-save-next-item"
+              onClick={() => {
+                pendingNextRef.current = true;
+                void submit();
+              }}
+              disabled={busy || uploading}
+              className="min-h-11 shrink-0 touch-manipulation rounded-full border border-line px-6 py-2.5 text-sm text-ink hover:border-gold disabled:opacity-40"
+            >
+              Save &amp; next →
+            </button>
+          ) : null}
           {!storage.canWrite ? (
             <p className="text-sm text-gold-deep">Saves are blocked until Blob or KV is set on Vercel.</p>
           ) : null}

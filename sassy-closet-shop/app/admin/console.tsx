@@ -232,6 +232,7 @@ export function AdminConsole({
               notice={notice}
               onToast={pushToast}
               onCancel={() => router.push("/admin")}
+              onSaveAndNext={(nextMa) => router.push(`/admin/edit/${nextMa}`)}
               onCatalog={(nextProducts, nextSettings, options) => {
                 setProducts(nextProducts);
                 setSettings(nextSettings);

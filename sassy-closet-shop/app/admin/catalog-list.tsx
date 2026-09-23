@@ -17,6 +17,22 @@ import { coverSrc } from "@/lib/product-media";
 import type { Product, ProductStatus, SiteSettings } from "@/lib/types";
 
 type StatusFilter = "all" | ProductStatus;
+type AttentionFilter = "all" | "missing_price" | "no_photos" | "needs_vn";
+type SortKey = "ma" | "price_asc" | "price_desc";
+
+function productIssues(product: Product): string[] {
+  const issues: string[] = [];
+  if (product.status === "available" && product.priceUsd === null) {
+    issues.push("No price");
+  }
+  if (product.images.filter((image) => image.src.trim()).length === 0) {
+    issues.push("No photos");
+  }
+  if (!product.titleVn.trim() || !product.descriptionVn.trim()) {
+    issues.push("No VN copy");
+  }
+  return issues;
+}
 
 function PriceCell({ product }: { product: Product }) {
   switch (product.status) {
@@ -54,6 +70,8 @@ export function CatalogList({
   const [typeFilter, setTypeFilter] = useState<MaLetter | "all">("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [fulfillmentFilter, setFulfillmentFilter] = useState<"all" | "dropship" | "on_hand">("all");
+  const [attention, setAttention] = useState<AttentionFilter>("all");
+  const [sort, setSort] = useState<SortKey>("ma");
   const [selected, setSelected] = useState<string[]>([]);
   const letters = letterPickerOptions();
   const integrity = useMemo(() => inspectCatalogIntegrity(products), [products]);
@@ -61,6 +79,26 @@ export function CatalogList({
     () => new Map<string, PipelineRow>(pipeline.rows.map((row) => [row.ma, row])),
     [pipeline],
   );
+
+  const attentionCounts = useMemo(() => {
+    const counts: Record<Exclude<AttentionFilter, "all">, number> = {
+      missing_price: 0,
+      no_photos: 0,
+      needs_vn: 0,
+    };
+    for (const product of products) {
+      if (productIssues(product).includes("No price")) {
+        counts.missing_price += 1;
+      }
+      if (productIssues(product).includes("No photos")) {
+        counts.no_photos += 1;
+      }
+      if (productIssues(product).includes("No VN copy")) {
+        counts.needs_vn += 1;
+      }
+    }
+    return counts;
+  }, [products]);
 
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -74,6 +112,21 @@ export function CatalogList({
       if (fulfillmentFilter !== "all" && product.fulfillment !== fulfillmentFilter) {
         return false;
       }
+      if (attention === "missing_price") {
+        if (!(product.status === "available" && product.priceUsd === null)) {
+          return false;
+        }
+      }
+      if (attention === "no_photos") {
+        if (product.images.filter((image) => image.src.trim()).length !== 0) {
+          return false;
+        }
+      }
+      if (attention === "needs_vn") {
+        if (product.titleVn.trim() && product.descriptionVn.trim()) {
+          return false;
+        }
+      }
       if (!needle) {
         return true;
       }
@@ -82,7 +135,19 @@ export function CatalogList({
         .join(" ")}`.toLowerCase();
       return hay.includes(needle);
     });
-  }, [fulfillmentFilter, products, query, statusFilter, typeFilter]);
+  }, [attention, fulfillmentFilter, products, query, statusFilter, typeFilter]);
+
+  const sorted = useMemo(() => {
+    const list = visible.slice();
+    if (sort === "ma") {
+      list.sort((a, b) => a.ma.localeCompare(b.ma, undefined, { numeric: true }));
+    } else if (sort === "price_asc") {
+      list.sort((a, b) => (a.priceUsd ?? Number.POSITIVE_INFINITY) - (b.priceUsd ?? Number.POSITIVE_INFINITY));
+    } else if (sort === "price_desc") {
+      list.sort((a, b) => (b.priceUsd ?? -1) - (a.priceUsd ?? -1));
+    }
+    return list;
+  }, [sort, visible]);
 
   return (
     <div className="space-y-6">
@@ -161,79 +226,122 @@ export function CatalogList({
           Duplicate mãs: {integrity.duplicates.join(", ")}. Do not gộp.
         </p>
       ) : null}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <label className="block text-xs uppercase tracking-[0.14em] text-muted">
-          Search
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="A01, thermos…"
-            className="mt-1 w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm normal-case tracking-normal text-ink outline-none focus:border-gold"
-          />
-        </label>
-        <label className="block text-xs uppercase tracking-[0.14em] text-muted">
-          Type
-          <select
-            value={typeFilter}
-            onChange={(event) => {
-              const value = event.target.value;
-              if (value === "all") {
-                setTypeFilter("all");
-                return;
-              }
-              const match = letters.find((option) => option.letter === value);
-              if (match) {
-                setTypeFilter(match.letter);
-              }
-            }}
-            className="mt-1 w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm normal-case tracking-normal text-ink outline-none focus:border-gold"
-          >
-            <option value="all">All types</option>
-            {letters.map((option) => (
-              <option key={option.letter} value={option.letter}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="block text-xs uppercase tracking-[0.14em] text-muted">
-          Status
-          <select
-            value={statusFilter}
-            onChange={(event) => {
-              const value = event.target.value;
-              if (value === "all" || value === "available" || value === "hold" || value === "sold") {
-                setStatusFilter(value);
-              }
-            }}
-            className="mt-1 w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm normal-case tracking-normal text-ink outline-none focus:border-gold"
-          >
-            <option value="all">All statuses</option>
-            <option value="hold">Hold · Inbox for price</option>
-            <option value="available">Available</option>
-            <option value="sold">Sold / Gone</option>
-          </select>
-        </label>
-        <label className="block text-xs uppercase tracking-[0.14em] text-muted">
-          Fulfillment
-          <select
-            value={fulfillmentFilter}
-            onChange={(event) => {
-              const value = event.target.value;
-              if (value === "all" || value === "dropship" || value === "on_hand") {
-                setFulfillmentFilter(value);
-              }
-            }}
-            className="mt-1 w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm normal-case tracking-normal text-ink outline-none focus:border-gold"
-          >
-            <option value="all">All fulfillment</option>
-            <option value="dropship">Dropship · Taobao</option>
-            <option value="on_hand">On hand · received</option>
-          </select>
-        </label>
+      <div className="sticky top-0 z-10 -mx-1 space-y-3 bg-paper/95 px-1 py-3 backdrop-blur">
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Needs attention">
+          {(
+            [
+              { key: "all", label: "Everything" },
+              { key: "missing_price", label: `Missing price (${attentionCounts.missing_price})` },
+              { key: "no_photos", label: `No photos (${attentionCounts.no_photos})` },
+              { key: "needs_vn", label: `Needs VN (${attentionCounts.needs_vn})` },
+            ] as { key: AttentionFilter; label: string }[]
+          ).map((chip) => (
+            <button
+              key={chip.key}
+              type="button"
+              onClick={() => setAttention(chip.key)}
+              aria-pressed={attention === chip.key}
+              className={`min-h-9 rounded-full border px-3.5 py-1.5 text-xs uppercase tracking-[0.1em] ${
+                attention === chip.key
+                  ? "border-ink bg-ink text-paper"
+                  : "border-line text-muted hover:text-ink"
+              }`}
+            >
+              {chip.label}
+            </button>
+          ))}
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          <label className="block text-xs uppercase tracking-[0.14em] text-muted">
+            Search
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="A01, thermos…"
+              className="mt-1 w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm normal-case tracking-normal text-ink outline-none focus:border-gold"
+            />
+          </label>
+          <label className="block text-xs uppercase tracking-[0.14em] text-muted">
+            Type
+            <select
+              value={typeFilter}
+              onChange={(event) => {
+                const value = event.target.value;
+                if (value === "all") {
+                  setTypeFilter("all");
+                  return;
+                }
+                const match = letters.find((option) => option.letter === value);
+                if (match) {
+                  setTypeFilter(match.letter);
+                }
+              }}
+              className="mt-1 w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm normal-case tracking-normal text-ink outline-none focus:border-gold"
+            >
+              <option value="all">All types</option>
+              {letters.map((option) => (
+                <option key={option.letter} value={option.letter}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block text-xs uppercase tracking-[0.14em] text-muted">
+            Status
+            <select
+              value={statusFilter}
+              onChange={(event) => {
+                const value = event.target.value;
+                if (value === "all" || value === "available" || value === "hold" || value === "sold") {
+                  setStatusFilter(value);
+                }
+              }}
+              className="mt-1 w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm normal-case tracking-normal text-ink outline-none focus:border-gold"
+            >
+              <option value="all">All statuses</option>
+              <option value="hold">Hold · Inbox for price</option>
+              <option value="available">Available</option>
+              <option value="sold">Sold / Gone</option>
+            </select>
+          </label>
+          <label className="block text-xs uppercase tracking-[0.14em] text-muted">
+            Fulfillment
+            <select
+              value={fulfillmentFilter}
+              onChange={(event) => {
+                const value = event.target.value;
+                if (value === "all" || value === "dropship" || value === "on_hand") {
+                  setFulfillmentFilter(value);
+                }
+              }}
+              className="mt-1 w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm normal-case tracking-normal text-ink outline-none focus:border-gold"
+            >
+              <option value="all">All fulfillment</option>
+              <option value="dropship">Dropship · Taobao</option>
+              <option value="on_hand">On hand · received</option>
+            </select>
+          </label>
+          <label className="block text-xs uppercase tracking-[0.14em] text-muted">
+            Sort
+            <select
+              value={sort}
+              onChange={(event) => {
+                const value = event.target.value;
+                if (value === "ma" || value === "price_asc" || value === "price_desc") {
+                  setSort(value);
+                }
+              }}
+              className="mt-1 w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm normal-case tracking-normal text-ink outline-none focus:border-gold"
+            >
+              <option value="ma">Mã · A→Z</option>
+              <option value="price_asc">Price · low to high</option>
+              <option value="price_desc">Price · high to low</option>
+            </select>
+          </label>
+        </div>
       </div>
 
-      {visible.length === 0 ? (
+      {sorted.length === 0 ? (
         <p
           role="status"
           className="rounded-2xl border border-dashed border-line px-4 py-10 text-center text-sm text-muted"
@@ -272,9 +380,10 @@ export function CatalogList({
               </tr>
             </thead>
             <tbody>
-              {visible.map((product) => {
+              {sorted.map((product) => {
                 const thumb = coverSrc(product);
                 const imageCount = product.images.filter((image) => image.src.trim()).length;
+                const issues = productIssues(product);
                 return (
                 <tr
                   key={product.ma}
@@ -315,6 +424,18 @@ export function CatalogList({
                     {product.titleVn && product.titleVn !== product.titleEn ? (
                       <p className="text-[12px] text-muted">{product.titleVn}</p>
                     ) : null}
+                    {issues.length > 0 ? (
+                      <p className="mt-1 flex flex-wrap gap-1">
+                        {issues.map((issue) => (
+                          <span
+                            key={issue}
+                            className="rounded-full bg-gold-deep/10 px-2 py-0.5 text-[10px] uppercase tracking-[0.08em] text-gold-deep"
+                          >
+                            {issue}
+                          </span>
+                        ))}
+                      </p>
+                    ) : null}
                     <p className="mt-0.5 text-[11px] text-muted sm:hidden">
                       {TYPE_LABELS[product.type].nav}
                     </p>
@@ -347,7 +468,7 @@ export function CatalogList({
                     {product.colors.length === 0 ? (
                       <span className="text-muted">—</span>
                     ) : (
-                      <span className="flex flex-wrap items-center gap-2">
+                      <span className="flex flex-wrap items-center gap-1.5">
                         {product.colors.map((color) => (
                           <span key={color.id} className="inline-flex items-center gap-1.5">
                             <span
