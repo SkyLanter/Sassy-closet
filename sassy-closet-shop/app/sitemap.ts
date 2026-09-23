@@ -21,8 +21,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const lastModified = document.updatedAt ? new Date(document.updatedAt) : new Date();
   return [
     { url: origin, lastModified },
-    { url: `${origin}/how-to-buy`, lastModified },
-    { url: `${origin}/meetup-ship`, lastModified },
     ...types.map((type) => ({
       url: `${origin}${categoryHref(type)}`,
       lastModified,
