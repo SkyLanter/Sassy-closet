@@ -11,6 +11,9 @@ import { convertCnyToUsd, convertUsdToCny } from "@/lib/fx";
 import { COLORS, KINDS, SIZES, assertNever } from "@/lib/kinds";
 import { nextMa, parseHubMa } from "@/lib/mint";
 import { normalizeFindCode } from "@/lib/on-hand";
+import { computeAutoPrice, DEBOX_LOCKED } from "@/lib/pricing";
+import type { PriceBreakdown } from "@/lib/pricing";
+import type { TaobaoItem } from "@/lib/taobao";
 import type { KindCode } from "@/lib/kinds";
 import type { MaLookup, Submission, TabId } from "@/lib/types";
 
@@ -48,6 +51,17 @@ export function IntakeApp({
   const [knownMas, setKnownMas] = useState<string[]>([]);
   const [fxRate] = useState(initialFxRate);
   const [fxLabel] = useState(initialFxLabel);
+  // --- Taobao lookup (server-side prefill) ---
+  const [tbState, setTbState] = useState<"idle" | "loading" | "ok" | "blocked">("idle");
+  const [tbItem, setTbItem] = useState<TaobaoItem | null>(null);
+  const [tbReason, setTbReason] = useState("");
+  const [sellerColors, setSellerColors] = useState<string[]>([]);
+  const [needsResearch, setNeedsResearch] = useState(false);
+  // --- Auto-price calculator ---
+  const [calcCny, setCalcCny] = useState("");
+  const [calcFx, setCalcFx] = useState(String(initialFxRate));
+  const [calcDebox, setCalcDebox] = useState("");
+  const [autoPrice, setAutoPrice] = useState<PriceBreakdown | null>(null);
   const [findPreview, setFindPreview] = useState<string | null>(null);
   const [findMatches, setFindMatches] = useState<{ ma: string; kind: string; color: string }[]>([]);
   const [findCopied, setFindCopied] = useState<string | null>(null);
@@ -63,12 +77,95 @@ export function IntakeApp({
     void loadMa(ma);
   }, []);
 
-  const colorLine = useMemo(() => colors.join(", "), [colors]);
+  const colorLine = useMemo(() => [...colors, ...sellerColors].join(", "), [colors, sellerColors]);
+
+  const deboxLocked = useMemo(() => kind.toUpperCase() in DEBOX_LOCKED, [kind]);
+
+  const priceBreakdown = useMemo<PriceBreakdown | null>(() => {
+    const deboxNum = Number(calcDebox);
+    return computeAutoPrice({
+      costCny: Number(calcCny),
+      fxRate: Number(calcFx),
+      kind,
+      deboxOverrides:
+        !deboxLocked && Number.isFinite(deboxNum) && deboxNum >= 0 && calcDebox.trim() !== ""
+          ? { [kind]: deboxNum }
+          : undefined,
+    });
+  }, [calcCny, calcFx, calcDebox, kind, deboxLocked]);
+
+  // Keep the calculator's CNY in sync with the cost field until it computes.
+  useEffect(() => {
+    setCalcCny((current) => (current === "" ? costCny : current));
+  }, [costCny]);
+
+  async function onTaobaoLookup() {
+    if (!link.trim()) {
+      setError("Dán link Taobao trước nha iu ơi.");
+      return;
+    }
+    setTbState("loading");
+    setTbReason("");
+    setError(null);
+    try {
+      const response = await fetch("/api/taobao-lookup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ link }),
+      });
+      const data = (await response.json()) as {
+        ok?: boolean;
+        blocked?: boolean;
+        reason?: string;
+        item?: TaobaoItem;
+      };
+      if (data.ok && data.item) {
+        const item = data.item;
+        setTbItem(item);
+        setTbState("ok");
+        setNeedsResearch(false);
+        // Seller SKU colors are seller truth — keep them marked, never translated.
+        setSellerColors((current) => {
+          const merged = [...current];
+          for (const color of item.colors) {
+            if (!colors.includes(color) && !merged.includes(color)) merged.push(color);
+          }
+          return merged;
+        });
+        // Prefill cost from the seller's list ¥ (promo noted in the panel).
+        if (item.listCny) {
+          setCostCny(item.listCny);
+          const usd = convertCnyToUsd(item.listCny, fxRate);
+          if (usd !== null) setCostUsd(usd);
+          setCalcCny(item.listCny);
+        }
+      } else {
+        setTbState("blocked");
+        setTbReason(data.reason || "Taobao chặn fetch tự động.");
+        // Graceful degrade: keep what the user typed, flag for manual research.
+        setNeedsResearch(true);
+      }
+    } catch {
+      setTbState("blocked");
+      setTbReason("Không gọi được server, thử lại nha.");
+      setNeedsResearch(true);
+    }
+  }
+
+  function onUseAutoPrice() {
+    if (!priceBreakdown) return;
+    const sell = String(priceBreakdown.sellUsd);
+    setSellUsd(sell);
+    const cny = convertUsdToCny(sell, fxRate);
+    if (cny !== null) setSellCny(cny);
+    setAutoPrice(priceBreakdown);
+  }
 
   function resetForm() {
     setKind("A");
     setSizes([]);
     setColors([]);
+    setSellerColors([]);
     setColorNote("");
     setLink("");
     setCostUsd("");
@@ -79,6 +176,14 @@ export function IntakeApp({
     setLoadedMa(null);
     setRenameTo("");
     setError(null);
+    setTbState("idle");
+    setTbItem(null);
+    setTbReason("");
+    setNeedsResearch(false);
+    setCalcCny("");
+    setCalcFx(String(initialFxRate));
+    setCalcDebox("");
+    setAutoPrice(null);
   }
 
   function switchTab(next: TabId) {
@@ -140,18 +245,24 @@ export function IntakeApp({
     setLookupMa(item.ma);
     setKind(item.kind);
     setSizes(item.size.split(/[\s,]+/).filter(Boolean));
-    setColors(
-      item.color
-        .split(",")
-        .map((part) => part.trim())
-        .filter(Boolean),
-    );
+    const snapshotColors = item.taobao_snapshot?.colors ?? [];
+    const allColors = item.color
+      .split(",")
+      .map((part) => part.trim())
+      .filter(Boolean);
+    setSellerColors(allColors.filter((color) => snapshotColors.includes(color)));
+    setColors(allColors.filter((color) => !snapshotColors.includes(color)));
     setColorNote(item.color_note);
     setLink(item.link);
     setCostUsd(item.cost_usd);
     setCostCny(item.cost_cny);
     setSellUsd(item.sell_usd);
     setSellCny(item.sell_cny);
+    setNeedsResearch(Boolean(item.needs_research));
+    setTbItem(item.taobao_snapshot ?? null);
+    setTbState(item.taobao_snapshot ? "ok" : "idle");
+    setAutoPrice(item.auto_price ?? null);
+    setCalcCny(item.cost_cny);
     setPhotos(
       (item.photo_paths ?? []).map((rel) => ({
         id: `keep:${rel}`,
@@ -179,6 +290,9 @@ export function IntakeApp({
       form.set("color", colorLine);
       form.set("color_note", colorNote);
       form.set("pieces", JSON.stringify([]));
+      form.set("needs_research", needsResearch ? "1" : "");
+      form.set("taobao_snapshot", tbItem ? JSON.stringify(tbItem) : "");
+      form.set("auto_price", autoPrice ? JSON.stringify(autoPrice) : "");
       form.set("keep_photos", JSON.stringify(photos.filter((p) => p.id.startsWith("keep:")).map((p) => p.id.slice(5))));
       form.set("save", "1");
       if (renameMa) form.set("new_ma", renameMa);
@@ -221,8 +335,13 @@ export function IntakeApp({
     await save(null, current);
   }
 
-  function onKind(next: KindCode) {
-    setKind(next);
+  function toggleSize(value: string) {
+    setSizes((current) =>
+      current.includes(value) ? current.filter((s) => s !== value) : [...current, value],
+    );
+  }
+
+  function onKind(next: KindCode) {    setKind(next);
     if (tab === "edit" && loadedMa) {
       const current = parseHubMa(loadedMa)?.kind;
       if (current && current !== next) {
@@ -347,6 +466,24 @@ export function IntakeApp({
           busy,
           fxRate,
           fxLabel,
+          tbState,
+          tbItem,
+          tbReason,
+          onTaobaoLookup,
+          sellerColors,
+          setSellerColors,
+          needsResearch,
+          setNeedsResearch,
+          toggleSize,
+          calcCny,
+          setCalcCny,
+          calcFx,
+          setCalcFx,
+          calcDebox,
+          setCalcDebox,
+          deboxLocked,
+          priceBreakdown,
+          onUseAutoPrice,
           findPreview,
           findMatches,
           findCopied,
@@ -409,6 +546,24 @@ function renderTab(props: {
   busy: boolean;
   fxRate: number;
   fxLabel: string;
+  tbState: "idle" | "loading" | "ok" | "blocked";
+  tbItem: TaobaoItem | null;
+  tbReason: string;
+  onTaobaoLookup: () => void;
+  sellerColors: string[];
+  setSellerColors: (value: string[]) => void;
+  needsResearch: boolean;
+  setNeedsResearch: (value: boolean) => void;
+  toggleSize: (value: string) => void;
+  calcCny: string;
+  setCalcCny: (value: string) => void;
+  calcFx: string;
+  setCalcFx: (value: string) => void;
+  calcDebox: string;
+  setCalcDebox: (value: string) => void;
+  deboxLocked: boolean;
+  priceBreakdown: PriceBreakdown | null;
+  onUseAutoPrice: () => void;
   findPreview: string | null;
   findMatches: { ma: string; kind: string; color: string }[];
   findCopied: string | null;
@@ -513,6 +668,24 @@ function ItemForm(props: {
   busy: boolean;
   fxRate: number;
   fxLabel: string;
+  tbState: "idle" | "loading" | "ok" | "blocked";
+  tbItem: TaobaoItem | null;
+  tbReason: string;
+  onTaobaoLookup: () => void;
+  sellerColors: string[];
+  setSellerColors: (value: string[]) => void;
+  needsResearch: boolean;
+  setNeedsResearch: (value: boolean) => void;
+  toggleSize: (value: string) => void;
+  calcCny: string;
+  setCalcCny: (value: string) => void;
+  calcFx: string;
+  setCalcFx: (value: string) => void;
+  calcDebox: string;
+  setCalcDebox: (value: string) => void;
+  deboxLocked: boolean;
+  priceBreakdown: PriceBreakdown | null;
+  onUseAutoPrice: () => void;
 }) {
   return (
     <div data-testid="intake-grid" className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-x-10">
@@ -736,6 +909,18 @@ function ItemForm(props: {
           </div>
         </fieldset>
         <p className="mb-4 text-center text-[11px] text-rose-700/70">{props.fxLabel}</p>
+        <PricePanel
+          calcCny={props.calcCny}
+          setCalcCny={props.setCalcCny}
+          calcFx={props.calcFx}
+          setCalcFx={props.setCalcFx}
+          calcDebox={props.calcDebox}
+          setCalcDebox={props.setCalcDebox}
+          deboxLocked={props.deboxLocked}
+          kind={props.kind}
+          breakdown={props.priceBreakdown}
+          onUse={props.onUseAutoPrice}
+        />
         <fieldset className="mb-5">
           <label className="mb-2 block text-sm font-medium" htmlFor="link">
             Link shop / Taobao <span className="font-normal text-rose-700/60">(tuỳ chọn)</span>
@@ -749,6 +934,30 @@ function ItemForm(props: {
             className="h-11 w-full rounded-xl bg-white px-3 ring-1 ring-rose-100"
           />
         </fieldset>
+        <TaobaoPanel
+          state={props.tbState}
+          item={props.tbItem}
+          reason={props.tbReason}
+          onLookup={props.onTaobaoLookup}
+          sellerColors={props.sellerColors}
+          onRemoveSellerColor={(color) =>
+            props.setSellerColors(props.sellerColors.filter((c) => c !== color))
+          }
+          sizes={props.sizes}
+          toggleSize={props.toggleSize}
+        />
+        {props.needsResearch ? (
+          <p data-testid="needs-research-banner" className="mb-5 rounded-2xl bg-amber-50 p-3 text-xs text-amber-800 ring-1 ring-amber-200">
+            ⚠ Submission này gắn “cần nghiên cứu tay” (Taobao chặn fetch).
+            <button
+              type="button"
+              className="ml-2 font-semibold underline"
+              onClick={() => props.setNeedsResearch(false)}
+            >
+              Bỏ đánh dấu
+            </button>
+          </p>
+        ) : null}
         <button
           type="button"
           data-testid="save-mint"
@@ -763,6 +972,229 @@ function ItemForm(props: {
               : "Lưu & lấy mã · Mint code"}
         </button>
       </div>
+    </div>
+  );
+}
+
+function TaobaoPanel({
+  state,
+  item,
+  reason,
+  onLookup,
+  sellerColors,
+  onRemoveSellerColor,
+  sizes,
+  toggleSize,
+}: {
+  state: "idle" | "loading" | "ok" | "blocked";
+  item: TaobaoItem | null;
+  reason: string;
+  onLookup: () => void;
+  sellerColors: string[];
+  onRemoveSellerColor: (color: string) => void;
+  sizes: string[];
+  toggleSize: (value: string) => void;
+}) {
+  return (
+    <div data-testid="taobao-panel" className="mb-5 rounded-2xl bg-white p-3 ring-1 ring-rose-100">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm font-medium">🔍 Tra link Taobao</p>
+        <button
+          type="button"
+          data-testid="taobao-lookup"
+          onClick={onLookup}
+          disabled={state === "loading"}
+          className="h-10 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+        >
+          {state === "loading" ? "Đang tra…" : "Tra link"}
+        </button>
+      </div>
+      <p className="mt-1 text-[11px] text-rose-700/70">
+        Server tự đọc listing: màu seller, size, giá ¥, ảnh. Taobao hay chặn — khi chặn thì nhập tay nha.
+      </p>
+      {state === "blocked" ? (
+        <p data-testid="taobao-blocked" className="mt-2 rounded-xl bg-amber-50 p-2 text-xs text-amber-800 ring-1 ring-amber-200">
+          ⚠ {reason} Giữ nguyên những gì đã nhập — submission được gắn “cần nghiên cứu tay”.
+        </p>
+      ) : null}
+      {state === "ok" && item ? (
+        <div data-testid="taobao-result" className="mt-2 space-y-2">
+          {item.title ? <p className="text-xs font-medium text-rose-900">{item.title}</p> : null}
+          <p className="text-xs text-rose-800">
+            Giá list: {item.listCny ? <span className="font-bold">¥{item.listCny}</span> : "không thấy"}
+            {item.promoCny ? (
+              <span className="ml-2">· 优惠价 <span className="font-bold">¥{item.promoCny}</span></span>
+            ) : null}
+            {item.promoNote === "pre_promo" ? (
+              <span className="ml-2 text-amber-700">(giá 优惠前 — chưa trừ khuyến mãi)</span>
+            ) : null}
+          </p>
+          {sellerColors.length ? (
+            <div>
+              <p className="text-[11px] font-medium text-rose-700">
+                🏷 Màu của seller <span className="font-normal">(seller truth — không dịch)</span>
+              </p>
+              <div className="mt-1 flex flex-wrap gap-1.5">
+                {sellerColors.map((color) => (
+                  <span
+                    key={color}
+                    className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2.5 py-1 text-xs font-semibold text-rose-900 ring-1 ring-rose-200"
+                  >
+                    🏷 {color}
+                    <button
+                      type="button"
+                      aria-label={`Bỏ màu ${color}`}
+                      className="text-rose-500"
+                      onClick={() => onRemoveSellerColor(color)}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs text-rose-700/70">Không đọc được màu seller từ link này.</p>
+          )}
+          {item.sizeAxes.map((axis) => (
+            <div key={axis.name}>
+              <p className="text-[11px] font-medium text-rose-700">
+                📐 {axis.name} <span className="font-normal">(seller)</span>
+              </p>
+              <div className="mt-1 flex flex-wrap gap-1.5">
+                {axis.values.map((value) => {
+                  const on = sizes.includes(value);
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => toggleSize(value)}
+                      aria-pressed={on}
+                      className={`rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${
+                        on ? "bg-primary text-primary-foreground ring-primary" : "bg-white text-rose-800 ring-rose-100"
+                      }`}
+                    >
+                      {value}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+          {item.gallery.length ? (
+            <div>
+              <p className="text-[11px] font-medium text-rose-700">🖼 Ảnh từ Taobao ({item.gallery.length})</p>
+              <div className="mt-1 flex gap-1.5 overflow-x-auto">
+                {item.gallery.slice(0, 8).map((src) => (
+                  <img key={src} src={src} alt="" loading="lazy" className="h-16 w-16 rounded-lg object-cover ring-1 ring-rose-100" />
+                ))}
+              </div>
+              <p className="mt-1 text-[11px] text-rose-700/70">
+                Link ảnh đã lưu kèm submission để bước sau kéo về.
+              </p>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function PricePanel({
+  calcCny,
+  setCalcCny,
+  calcFx,
+  setCalcFx,
+  calcDebox,
+  setCalcDebox,
+  deboxLocked,
+  kind,
+  breakdown,
+  onUse,
+}: {
+  calcCny: string;
+  setCalcCny: (value: string) => void;
+  calcFx: string;
+  setCalcFx: (value: string) => void;
+  calcDebox: string;
+  setCalcDebox: (value: string) => void;
+  deboxLocked: boolean;
+  kind: string;
+  breakdown: PriceBreakdown | null;
+  onUse: () => void;
+}) {
+  return (
+    <div data-testid="price-panel" className="mb-5 rounded-2xl bg-white p-3 ring-1 ring-rose-100">
+      <p className="text-sm font-medium">💰 Tính giá tự động <span className="font-normal text-rose-700/60">(margin 30%)</span></p>
+      <div className="mt-2 grid grid-cols-3 gap-2">
+        <label className="block">
+          <span className="mb-1 block text-[11px] text-rose-700">Giá vốn ¥</span>
+          <input
+            data-testid="calc-cny"
+            value={calcCny}
+            onChange={(event) => setCalcCny(event.target.value)}
+            placeholder="¥"
+            inputMode="decimal"
+            className="h-10 w-full rounded-xl bg-[oklch(0.995_0.01_50)] px-2 text-sm ring-1 ring-rose-100"
+          />
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-[11px] text-rose-700">Tỷ giá</span>
+          <input
+            data-testid="calc-fx"
+            value={calcFx}
+            onChange={(event) => setCalcFx(event.target.value)}
+            placeholder="6.723"
+            inputMode="decimal"
+            className="h-10 w-full rounded-xl bg-[oklch(0.995_0.01_50)] px-2 text-sm ring-1 ring-rose-100"
+          />
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-[11px] text-rose-700">
+            Debox $ {deboxLocked ? "🔒" : ""}
+          </span>
+          <input
+            data-testid="calc-debox"
+            value={deboxLocked ? "7.50" : calcDebox}
+            onChange={(event) => setCalcDebox(event.target.value)}
+            disabled={deboxLocked}
+            placeholder="$0"
+            inputMode="decimal"
+            className="h-10 w-full rounded-xl bg-[oklch(0.995_0.01_50)] px-2 text-sm ring-1 ring-rose-100 disabled:opacity-60"
+          />
+        </label>
+      </div>
+      <p className="mt-1 text-[11px] text-rose-700/70">
+        {deboxLocked
+          ? `Debox ${kind} cố định $7.50 (bảng khoá V/Q/D).`
+          : "Debox các loại khác mặc định $0 — sửa được."}{" "}
+        Giá bán = ceil(giá vốn $ ÷ 0.7).
+      </p>
+      {breakdown ? (
+        <div data-testid="price-breakdown" className="mt-2 rounded-xl bg-rose-50 p-2 text-xs text-rose-900 ring-1 ring-rose-100">
+          <p>Giá vốn (landed): <span className="font-bold">${breakdown.landedUsd.toFixed(2)}</span>
+            <span className="text-rose-700/70"> = ¥{calcCny} ÷ {calcFx} + debox ${breakdown.deboxUsd.toFixed(2)}</span>
+          </p>
+          <p className="mt-1">Giá bán gợi ý: <span className="text-sm font-bold">${breakdown.sellUsd}</span>
+            <span className="text-rose-700/70"> · lãi ${breakdown.marginUsd.toFixed(2)} ({(breakdown.marginPct * 100).toFixed(1)}%)</span>
+          </p>
+          {breakdown.captionEligible ? (
+            <p className="mt-1 font-semibold text-emerald-700">✓ Đủ 35% — caption sẽ hiện giá.</p>
+          ) : (
+            <p className="mt-1 font-semibold text-amber-700">⚠ Dưới 35% — caption sẽ là “Inbox giá”.</p>
+          )}
+          <button
+            type="button"
+            data-testid="price-use"
+            onClick={onUse}
+            className="mt-2 h-10 w-full rounded-full bg-primary text-sm font-bold text-primary-foreground"
+          >
+            Dùng giá ${breakdown.sellUsd}
+          </button>
+        </div>
+      ) : (
+        <p className="mt-2 text-xs text-rose-700/70">Nhập giá vốn ¥ và tỷ giá để tính nha.</p>
+      )}
     </div>
   );
 }

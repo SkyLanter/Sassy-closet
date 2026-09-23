@@ -15,6 +15,8 @@ import {
 import type { StoreFile } from "./store-backend";
 import type { KindCode } from "./kinds";
 import type { OnHandRow, Piece, Submission } from "./types";
+import type { PriceBreakdown } from "./pricing";
+import type { TaobaoItem } from "./taobao";
 
 export type { StoreFile, StorageMode } from "./store-backend";
 export { storageMode, storageStatus, blobConfigured } from "./store-backend";
@@ -36,6 +38,9 @@ export type SaveInput = {
   photos: { bytes: Buffer; hash: string; ext: string }[];
   existingMa?: string;
   newMa?: string;
+  needs_research: boolean;
+  taobao_snapshot: TaobaoItem | null;
+  auto_price: PriceBreakdown | null;
 };
 
 async function loadStore(): Promise<StoreFile> {
@@ -148,6 +153,9 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
     photo_hashes: photoHashes,
     status: "staged",
     square: "not_square",
+    needs_research: input.needs_research,
+    taobao_snapshot: input.taobao_snapshot,
+    auto_price: input.auto_price,
     created_at: existing?.created_at ?? now,
     updated_at: now,
     caption_vi: "",
@@ -155,7 +163,7 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
     blurb_suggested: "",
     photo_link: `Documents/Sassy Closet/Photos/${ma}/`,
   };
-  base.caption_vi = buildCaptionVi(base);
+  base.caption_vi = buildCaptionVi(base, store.fx.usd_cny);
 
   if (existing) {
     store.submissions = store.submissions.map((row) => (row.id === existing.id ? base : row));
