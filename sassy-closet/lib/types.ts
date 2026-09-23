@@ -1,4 +1,6 @@
 import type { KindCode } from "./kinds";
+import type { PriceBreakdown } from "./pricing";
+import type { TaobaoItem } from "./taobao";
 
 export type Piece = {
   id: string;
@@ -29,6 +31,12 @@ export type Submission = {
   photo_hashes: string[];
   status: "staged";
   square: "not_square";
+  /** True when the Taobao fetch was blocked — GF/Boss must research by hand. */
+  needs_research: boolean;
+  /** Last successful Taobao lookup snapshot (seller truth), null when none. */
+  taobao_snapshot: TaobaoItem | null;
+  /** Auto-price breakdown shown at intake, null when the calculator wasn't used. */
+  auto_price: PriceBreakdown | null;
   created_at: string;
   updated_at: string;
   caption_vi: string;
