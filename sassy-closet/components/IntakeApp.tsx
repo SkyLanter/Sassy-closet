@@ -335,7 +335,7 @@ export function IntakeApp({
     await save(null, current);
   }
 
-  function onKind(next: KindCode) {
+  function toggleSize(value: string) { setSizes((current) => current.includes(value) ? current.filter((s) => s !== value) : [...current, value]); } function onKind(next: KindCode) {
     setKind(next);
     setSizes((current) => keepSizesForKind(current, next));
     if (tab === "edit" && loadedMa) {
