@@ -63,4 +63,4 @@ Product photos stay on Vercel Blob / CDN (`/products/...`). They are not in git.
 
 ## Intake site
 
-Next.js app in [`sassy-closet/`](sassy-closet/). Vercel Root Directory: `sassy-closet`. Env **names** (no values): `MINIBOSS_ASK_WEBHOOK_URL`, `MINIBOSS_ASK_WEBHOOK_KEY`, `ASK_REPLY_SECRET`, plus Blob (`BLOB_READ_WRITE_TOKEN` / `BLOB_STORE_ID`) so Production redeploys do not wipe mãs — see `excel-kit/KIT.md` and `sassy-closet/README.md`.
+Next.js app in [`sassy-closet/`](sassy-closet/). Vercel Root Directory: `sassy-closet`. Env **names** (no values): `MINIBOSS_ASK_WEBHOOK_URL`, `MINIBOSS_ASK_WEBHOOK_KEY`, `ASK_REPLY_SECRET`, `INTAKE_DATASET_SYNC_WEBHOOK_URL`, `INTAKE_DATASET_SYNC_WEBHOOK_KEY` (webhook is the immediate dataset sync; poll backup already exists on Grok Bot so Mini Boss does not need to be online), plus Blob (`BLOB_READ_WRITE_TOKEN` / `BLOB_STORE_ID`) so Production redeploys do not wipe mãs — see `excel-kit/KIT.md` and `sassy-closet/README.md`.

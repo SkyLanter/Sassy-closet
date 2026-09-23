@@ -69,7 +69,15 @@ describe("source_link extract-on-save", { concurrency: 1 }, () => {
 
   beforeEach(() => {
     tmp = fs.mkdtempSync(path.join(os.tmpdir(), "sassy-link-"));
-    for (const key of ["SASSY_DATA_DIR", "VERCEL", "BLOB_READ_WRITE_TOKEN", "BLOB_STORE_ID", "BLOB_ACCESS"]) {
+    for (const key of [
+      "SASSY_DATA_DIR",
+      "VERCEL",
+      "BLOB_READ_WRITE_TOKEN",
+      "BLOB_STORE_ID",
+      "BLOB_ACCESS",
+      "INTAKE_DATASET_SYNC_WEBHOOK_URL",
+      "INTAKE_DATASET_SYNC_WEBHOOK_KEY",
+    ]) {
       prev[key] = process.env[key];
       delete process.env[key];
     }
