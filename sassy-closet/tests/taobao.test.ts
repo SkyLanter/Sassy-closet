@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   extractItemId,
+  fetchTaobaoItem,
+  hasUsableListingData,
   isTaobaoItem,
   looksBlocked,
   parseTaobaoHtml,
@@ -84,4 +86,63 @@ test("parseTaobaoHtml never invents: empty page gives empty fields", () => {
   assert.equal(item.listCny, null);
   assert.equal(item.promoCny, null);
   assert.equal(item.promoNote, null);
+});
+
+// Taobao's generic overseas landing page: long enough to pass looksBlocked,
+// but carries no price / SKU / gallery data. The lookup must treat it as a
+// soft block so the submission gets flagged needs_research.
+const OVERSEAS_PAGE = `
+<html><head><title>天貓淘寶海外，花更少，買到寶！</title></head><body>
+<div>welcome to taobao overseas</div>
+<div style="display:none">${"x".repeat(2400)}</div>
+</body></html>
+`;
+
+test("hasUsableListingData: empty/overseas page is not usable, real data is", () => {
+  const empty = parseTaobaoHtml(OVERSEAS_PAGE, "1");
+  assert.equal(hasUsableListingData(empty), false);
+  const real = parseTaobaoHtml(FIXTURE, "1");
+  assert.equal(hasUsableListingData(real), true);
+  const priceOnly = parseTaobaoHtml(
+    `<html><head><title>t</title></head><body><script>var x = {"price":"42.50"};</script>${"x".repeat(2400)}</body></html>`,
+    "1",
+  );
+  assert.equal(hasUsableListingData(priceOnly), true);
+});
+
+function stubFetch(html: string) {
+  const original = globalThis.fetch;
+  globalThis.fetch = (async () =>
+    new Response(html, { status: 200, headers: { "content-type": "text/html" } })) as typeof fetch;
+  return () => {
+    globalThis.fetch = original;
+  };
+}
+
+test("fetchTaobaoItem treats a no-data page as blocked (needs_research), not ok", async () => {
+  const restore = stubFetch(OVERSEAS_PAGE);
+  try {
+    const result = await fetchTaobaoItem("https://item.taobao.com/item.htm?id=123456789012");
+    assert.equal(result.ok, false);
+    if (!result.ok) {
+      assert.equal(result.blocked, true);
+      assert.ok(typeof result.reason === "string" && result.reason.length > 0);
+    }
+  } finally {
+    restore();
+  }
+});
+
+test("fetchTaobaoItem still returns ok for a page with real listing data", async () => {
+  const restore = stubFetch(FIXTURE);
+  try {
+    const result = await fetchTaobaoItem("https://item.taobao.com/item.htm?id=987654321098");
+    assert.equal(result.ok, true);
+    if (result.ok) {
+      assert.equal(result.item.itemId, "987654321098");
+      assert.deepEqual(result.item.colors, ["杏色", "黑色", "米白色"]);
+    }
+  } finally {
+    restore();
+  }
 });

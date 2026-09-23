@@ -51,6 +51,8 @@ export type IntakeSubmission = {
   caption_en: string;
   blurb_suggested: string;
   photo_link: string;
+  /** #53 flag: Taobao lookup was blocked — research is still needed. */
+  needsResearch: boolean;
 };
 
 function asString(value: unknown): string {
@@ -113,6 +115,8 @@ export function sanitizeIntakeSubmission(raw: unknown): IntakeSubmission | null 
     caption_en: asString(row.caption_en),
     blurb_suggested: asString(row.blurb_suggested),
     photo_link: asString(row.photo_link),
+    // Older rows predate #53 — missing flag means "not flagged".
+    needsResearch: row.needs_research === true,
   };
 }
 
@@ -191,6 +195,8 @@ export type IntakePrefill = {
   photoPaths: string[];
   photoLink: string;
   createdAt: string;
+  /** Carried from the intake submission's needs_research flag (#53). */
+  needsResearch: boolean;
   warnings: string[];
 };
 
@@ -299,6 +305,12 @@ export function intakeToPrefill(submission: IntakeSubmission): IntakePrefill {
     warnings.push("No intake photos — save photos to OneDrive Photos/<MÃ>/, then upload here.");
   }
 
+  if (submission.needsResearch) {
+    warnings.push(
+      "Needs research — the intake Taobao lookup was blocked, so seller SKU truth was never captured. Research manually before the Researched stage can be checked off.",
+    );
+  }
+
   return {
     intakeMa: submission.ma,
     letter: submission.kind.trim().toUpperCase(),
@@ -318,6 +330,7 @@ export function intakeToPrefill(submission: IntakeSubmission): IntakePrefill {
     photoPaths: submission.photo_paths,
     photoLink: submission.photo_link.trim(),
     createdAt: submission.created_at,
+    needsResearch: submission.needsResearch,
     warnings,
   };
 }

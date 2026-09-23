@@ -192,6 +192,22 @@ function extractGallery(html: string, limit = 12): string[] {
 
 const COLOR_AXIS_RE = /颜色|色号|colour|color/i;
 
+/**
+ * A fetch that "succeeds" but yields no usable listing data (no price, no
+ * SKU colors/sizes, no gallery) is a soft block — e.g. Taobao's generic
+ * overseas landing page. The submission must be flagged needs_research
+ * instead of silently carrying an empty snapshot.
+ */
+export function hasUsableListingData(item: TaobaoItem): boolean {
+  return Boolean(
+    item.listCny ||
+      item.promoCny ||
+      item.colors.length > 0 ||
+      item.sizeAxes.length > 0 ||
+      item.gallery.length > 0,
+  );
+}
+
 /** Parse already-fetched HTML into a TaobaoItem. Never invents values. */
 export function parseTaobaoHtml(html: string, itemId: string): TaobaoItem {
   const skuProps = extractSkuProps(html);
@@ -259,9 +275,14 @@ export async function fetchTaobaoItem(rawLink: string): Promise<TaobaoResult> {
         errors.push(`${url} -> blocked/login-wall`);
         continue;
       }
+      const item = parseTaobaoHtml(html, finalId);
+      if (!hasUsableListingData(item)) {
+        errors.push(`${url} -> empty page (no price/colors/sizes/gallery)`);
+        continue;
+      }
       return {
         ok: true,
-        item: parseTaobaoHtml(html, finalId),
+        item,
         fetchedAt: new Date().toISOString(),
       };
     } catch (error) {
