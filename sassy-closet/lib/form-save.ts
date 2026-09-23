@@ -1,5 +1,7 @@
 import { hashBytes, saveSubmission } from "./store";
 import { normalizeSourceLink } from "./source-link";
+import { isPriceBreakdown } from "./pricing";
+import { isTaobaoItem } from "./taobao";
 import type { Piece } from "./types";
 
 export async function saveFromForm(form: FormData, existingMa?: string) {
@@ -48,7 +50,21 @@ export async function saveFromForm(form: FormData, existingMa?: string) {
     photos,
     existingMa,
     newMa: String(form.get("new_ma") ?? ""),
+    needs_research: String(form.get("needs_research") ?? "") === "1",
+    taobao_snapshot: parseJson(form.get("taobao_snapshot"), isTaobaoItem),
+    auto_price: parseJson(form.get("auto_price"), isPriceBreakdown),
   });
+}
+
+function parseJson<T>(raw: FormDataEntryValue | null, guard: (value: unknown) => value is T): T | null {
+  const text = String(raw ?? "").trim();
+  if (!text) return null;
+  try {
+    const parsed: unknown = JSON.parse(text);
+    return guard(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
 }
 
 function extFromName(name: string): string {

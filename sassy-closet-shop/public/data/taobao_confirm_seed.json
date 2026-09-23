@@ -1,0 +1,5725 @@
+{
+  "generated_at": "2026-09-18T17:03:39-07:00",
+  "seed_kind": "full",
+  "items": [
+    {
+      "ma": "A01",
+      "title_cn": "日系奶呼呼小狗針織衫...",
+      "shop": "MOGi",
+      "source_link": "https://e.tb.cn/h.8KCQeaHH3dz1iSl?tk=WeuOTTBXHOu",
+      "world_url": "https://world.taobao.com/item/770708953593.htm",
+      "item_id": "770708953593",
+      "hub_colors": "",
+      "sku_colors_cn": [
+        "黄色",
+        "紫色"
+      ],
+      "colors_all": [
+        "黄色",
+        "紫色"
+      ],
+      "colors_incomplete": false,
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "sizes_raw": [
+        "S",
+        "M",
+        "L"
+      ],
+      "sizes_source": "seller_taobao_accuracy",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "A01_den_02.jpg",
+          "path": "photos/A01/A01_den_02.jpg",
+          "stage_path": "stage-photos/A01/A01_den_02.jpg",
+          "color_vi": "Đen",
+          "color_cn": "紫色",
+          "confidence": 0.508,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "A01_den_03.jpg",
+          "path": "photos/A01/A01_den_03.jpg",
+          "stage_path": "stage-photos/A01/A01_den_03.jpg",
+          "color_vi": "Đen",
+          "color_cn": "紫色",
+          "confidence": 0.498,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "A01_hoa-print_01.png",
+          "path": "photos/A01/A01_hoa-print_01.png",
+          "stage_path": "stage-photos/A01/A01_hoa-print_01.png",
+          "color_vi": "Hoa/print",
+          "color_cn": "紫色",
+          "confidence": 0.208,
+          "rgb": [
+            192,
+            160,
+            224
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "A01_hoa-print_04.jpg",
+          "path": "photos/A01/A01_hoa-print_04.jpg",
+          "stage_path": "stage-photos/A01/A01_hoa-print_04.jpg",
+          "color_vi": "Hoa/print",
+          "color_cn": "紫色",
+          "confidence": 0.243,
+          "rgb": [
+            192,
+            192,
+            160
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "A01_hoa-print_05.jpg",
+          "path": "photos/A01/A01_hoa-print_05.jpg",
+          "stage_path": "stage-photos/A01/A01_hoa-print_05.jpg",
+          "color_vi": "Hoa/print",
+          "color_cn": "紫色",
+          "confidence": 0.17,
+          "rgb": [
+            192,
+            160,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "live_shows_single_sku_within_hub",
+        "no_chart_flag_from_audit",
+        "hub_multi_live_review_chip_only",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "109",
+      "price_world_cny": "109.00",
+      "hub_size": "S M L",
+      "public_default_why": "A clothing/set + size + photos",
+      "photo_count": 5,
+      "photo_pull": {
+        "urls_found": 1,
+        "downloaded_new": 0,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:31-07:00"
+      },
+      "colors_en": [
+        "Yellow",
+        "Purple"
+      ],
+      "color_mismatch": {
+        "status": "GF_CONFLICT",
+        "hub_colors_before": "Kem, Xanh",
+        "sku_colors_cn_before": [
+          "紫色"
+        ],
+        "colors_all_before": [
+          "紫色"
+        ],
+        "gf_intake_color": "Kem, Xanh",
+        "gf_intake_color_note": "Tím, vàng chanh",
+        "gf_intake_color_pieces": "P1: Xanh | P2: Kem",
+        "issues": [
+          "GF/hub vs seller: GF 'bluegreen' not in seller concepts ['purple', 'yellow'] (GF_tokens=['Kem', 'Xanh']; hub='Kem, Xanh'; via=color/hub)",
+          "GF/hub vs seller: GF 'cream' not in seller concepts ['purple', 'yellow'] (GF_tokens=['Kem', 'Xanh']; hub='Kem, Xanh'; via=color/hub)",
+          "color_note concepts ['purple', 'yellow'] align with seller; primary color/hub do not"
+        ],
+        "note": "GF/hub kept in color_mismatch only; seller SKU set is preselected truth."
+      }
+    },
+    {
+      "ma": "A02",
+      "title_cn": "高級感復古波點撞色娃...",
+      "shop": "醬爆家",
+      "source_link": "https://e.tb.cn/h.8JSyU68ajHWyf52?tk=rSynThj54Ks",
+      "world_url": "https://world.taobao.com/item/1048030091519.htm",
+      "item_id": "1048030091519",
+      "hub_colors": "",
+      "sku_colors_cn": [
+        "米白色"
+      ],
+      "colors_all": [
+        "米白色"
+      ],
+      "colors_incomplete": false,
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "sizes_raw": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "sizes_source": "seller_taobao_accuracy",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "A02_den_01.jpg",
+          "path": "photos/A02/A02_den_01.jpg",
+          "stage_path": "stage-photos/A02/A02_den_01.jpg",
+          "color_vi": "Đen",
+          "color_cn": "米白色",
+          "confidence": 0.338,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "A02_do_03.jpg",
+          "path": "photos/A02/A02_do_03.jpg",
+          "stage_path": "stage-photos/A02/A02_do_03.jpg",
+          "color_vi": "Đỏ",
+          "color_cn": "米白色",
+          "confidence": 0.151,
+          "rgb": [
+            160,
+            128,
+            128
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "A02_do_04.jpg",
+          "path": "photos/A02/A02_do_04.jpg",
+          "stage_path": "stage-photos/A02/A02_do_04.jpg",
+          "color_vi": "Đỏ",
+          "color_cn": "米白色",
+          "confidence": 0.185,
+          "rgb": [
+            160,
+            128,
+            128
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "A02_vang_01.jpg",
+          "path": "photos/A02/A02_vang_01.jpg",
+          "stage_path": "stage-photos/A02/A02_vang_01.jpg",
+          "color_vi": "Vàng",
+          "color_cn": "米白色",
+          "confidence": 0.15,
+          "rgb": [
+            160,
+            160,
+            128
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "A02_vang_02.jpg",
+          "path": "photos/A02/A02_vang_02.jpg",
+          "stage_path": "stage-photos/A02/A02_vang_02.jpg",
+          "color_vi": "Vàng",
+          "color_cn": "米白色",
+          "confidence": 0.158,
+          "rgb": [
+            160,
+            160,
+            128
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "live_shows_single_sku_within_hub",
+        "hub_multi_live_review_chip_only",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "85.9",
+      "price_world_cny": "85.90",
+      "hub_size": "S M L XL",
+      "public_default_why": "A clothing/set + size + photos",
+      "photo_count": 5,
+      "photo_pull": {
+        "urls_found": 2,
+        "downloaded_new": 1,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:31-07:00"
+      },
+      "colors_en": [
+        "Off-white"
+      ],
+      "color_mismatch": {
+        "status": "GF_CONFLICT",
+        "hub_colors_before": "",
+        "sku_colors_cn_before": [
+          "米白色"
+        ],
+        "colors_all_before": [
+          "米白色"
+        ],
+        "gf_intake_color": null,
+        "gf_intake_color_note": "Chấm bi",
+        "gf_intake_color_pieces": null,
+        "issues": [
+          "GF/hub vs seller: GF 'polkadot' not in seller concepts ['offwhite', 'white'] (GF_tokens=['Chấm bi']; hub=''; via=color_note)"
+        ],
+        "note": "GF/hub kept in color_mismatch only; seller SKU set is preselected truth."
+      }
+    },
+    {
+      "ma": "A03",
+      "title_cn": "專櫃撤回洋派超好看白...",
+      "shop": "pakchoi品牌設計女裝",
+      "source_link": "https://e.tb.cn/h.8p9N3n8BxBY4aEN?tk=OurQTSg7ai8",
+      "world_url": "https://world.taobao.com/item/1055474873165.htm",
+      "item_id": "1055474873165",
+      "hub_colors": "Trắng ngà",
+      "sku_colors_cn": [
+        "白色"
+      ],
+      "colors_all": [
+        "白色"
+      ],
+      "colors_incomplete": false,
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "sizes_raw": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "sizes_source": "seller_taobao_accuracy",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "A03_xam_01.jpg",
+          "path": "photos/A03/A03_xam_01.jpg",
+          "stage_path": "stage-photos/A03/A03_xam_01.jpg",
+          "color_vi": "Xám",
+          "color_cn": "白色",
+          "confidence": 0.358,
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "A03_xam_02.jpg",
+          "path": "photos/A03/A03_xam_02.jpg",
+          "stage_path": "stage-photos/A03/A03_xam_02.jpg",
+          "color_vi": "Xám",
+          "color_cn": "白色",
+          "confidence": 0.355,
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "A03_xam_03.jpg",
+          "path": "photos/A03/A03_xam_03.jpg",
+          "stage_path": "stage-photos/A03/A03_xam_03.jpg",
+          "color_vi": "Xám",
+          "color_cn": "白色",
+          "confidence": 0.374,
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "A03_xam_04.jpg",
+          "path": "photos/A03/A03_xam_04.jpg",
+          "stage_path": "stage-photos/A03/A03_xam_04.jpg",
+          "color_vi": "Xám",
+          "color_cn": "白色",
+          "confidence": 0.517,
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "live_shows_single_sku_within_hub",
+        "hub_multi_live_review_chip_only",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "72",
+      "price_world_cny": "100.00",
+      "hub_size": "L S M XL",
+      "public_default_why": "A clothing/set + size + photos",
+      "photo_count": 4,
+      "photo_pull": {
+        "urls_found": 1,
+        "downloaded_new": 0,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:31-07:00"
+      },
+      "colors_en": [
+        "White"
+      ],
+      "color_mismatch": {
+        "status": "MATCH",
+        "sku_colors_cn_before": [
+          "白色"
+        ],
+        "colors_all_before": [
+          "白色"
+        ],
+        "hub_colors_preserved": "Trắng ngà"
+      }
+    },
+    {
+      "ma": "A04",
+      "title_cn": "法式蕾絲拼接鏤空高級...",
+      "shop": "黑色薔薇 Costume",
+      "source_link": "https://e.tb.cn/h.8pMgHxYEOig5Xdo?tk=jEbnTS8lCK7",
+      "world_url": "https://world.taobao.com/item/1043650520057.htm",
+      "item_id": "1043650520057",
+      "hub_colors": "Xanh mint",
+      "sku_colors_cn": [
+        "绿色",
+        "白色",
+        "黑色"
+      ],
+      "colors_all": [
+        "绿色",
+        "白色",
+        "黑色"
+      ],
+      "colors_incomplete": false,
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "sizes_raw": [
+        "S",
+        "M",
+        "L"
+      ],
+      "sizes_source": "seller_taobao_accuracy",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "A04_kem_01.jpg",
+          "path": "photos/A04/A04_kem_01.jpg",
+          "stage_path": "stage-photos/A04/A04_kem_01.jpg",
+          "color_vi": "Kem",
+          "color_cn": "綠色",
+          "confidence": 0.158,
+          "rgb": [
+            160,
+            128,
+            96
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "A04_kem_01.png",
+          "path": "photos/A04/A04_kem_01.png",
+          "stage_path": "stage-photos/A04/A04_kem_01.png",
+          "color_vi": "Kem",
+          "color_cn": "綠色",
+          "confidence": 0.161,
+          "rgb": [
+            160,
+            128,
+            96
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "A04_kem_02.png",
+          "path": "photos/A04/A04_kem_02.png",
+          "stage_path": "stage-photos/A04/A04_kem_02.png",
+          "color_vi": "Kem",
+          "color_cn": "綠色",
+          "confidence": 0.157,
+          "rgb": [
+            160,
+            128,
+            96
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "A04_xam_02.jpg",
+          "path": "photos/A04/A04_xam_02.jpg",
+          "stage_path": "stage-photos/A04/A04_xam_02.jpg",
+          "color_vi": "Xám",
+          "color_cn": "綠色",
+          "confidence": 0.324,
+          "rgb": [
+            64,
+            64,
+            64
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": true
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "live_shows_single_sku_within_hub",
+        "hub_multi_live_review_chip_only",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "76",
+      "price_world_cny": "76.00",
+      "hub_size": "S M L",
+      "public_default_why": "A clothing/set + size + photos",
+      "photo_count": 4,
+      "photo_pull": {
+        "urls_found": 1,
+        "downloaded_new": 1,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:31-07:00"
+      },
+      "colors_en": [
+        "Green",
+        "White",
+        "Black"
+      ],
+      "color_mismatch": {
+        "status": "MISMATCH",
+        "sku_colors_cn_before": [
+          "綠色"
+        ],
+        "colors_all_before": [
+          "綠色"
+        ],
+        "hub_colors_preserved": "Xanh mint"
+      }
+    },
+    {
+      "ma": "A05",
+      "title_cn": "辣妹風絕美蕾絲一字肩...",
+      "shop": "UNCUSTOMARY旗艦店",
+      "source_link": "https://e.tb.cn/h.8JXt41uotVLo8QE?tk=TH75TSI5UeF",
+      "world_url": "https://world.taobao.com/item/1054893415097.htm",
+      "item_id": "1054893415097",
+      "hub_colors": "",
+      "sku_colors_cn": [
+        "杏色 带胸垫"
+      ],
+      "colors_all": [
+        "杏色 带胸垫"
+      ],
+      "colors_incomplete": false,
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "2XL"
+      ],
+      "sizes_raw": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "2XL"
+      ],
+      "sizes_source": "seller_taobao_accuracy",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "A05_do_02.jpg",
+          "path": "photos/A05/A05_do_02.jpg",
+          "stage_path": "stage-photos/A05/A05_do_02.jpg",
+          "color_vi": "Đỏ",
+          "color_cn": "杏色[帶胸墊]",
+          "confidence": 0.183,
+          "rgb": [
+            64,
+            32,
+            32
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "A05_do_03.jpg",
+          "path": "photos/A05/A05_do_03.jpg",
+          "stage_path": "stage-photos/A05/A05_do_03.jpg",
+          "color_vi": "Đỏ",
+          "color_cn": "杏色[帶胸墊]",
+          "confidence": 0.192,
+          "rgb": [
+            64,
+            32,
+            32
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "A05_vang_01.jpg",
+          "path": "photos/A05/A05_vang_01.jpg",
+          "stage_path": "stage-photos/A05/A05_vang_01.jpg",
+          "color_vi": "Vàng",
+          "color_cn": "杏色[帶胸墊]",
+          "confidence": 0.198,
+          "rgb": [
+            192,
+            192,
+            160
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "A05_vang_01.png",
+          "path": "photos/A05/A05_vang_01.png",
+          "stage_path": "stage-photos/A05/A05_vang_01.png",
+          "color_vi": "Vàng",
+          "color_cn": "杏色[帶胸墊]",
+          "confidence": 0.198,
+          "rgb": [
+            192,
+            192,
+            160
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "live_shows_single_sku_within_hub",
+        "hub_multi_live_review_chip_only",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "99.98",
+      "price_world_cny": "99.98",
+      "hub_size": "S M L",
+      "public_default_why": "A clothing/set + size + photos",
+      "photo_count": 4,
+      "photo_pull": {
+        "urls_found": 2,
+        "downloaded_new": 1,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:31-07:00"
+      },
+      "colors_en": [
+        "Apricot (杏色 带胸垫)"
+      ],
+      "color_mismatch": {
+        "status": "MATCH",
+        "sku_colors_cn_before": [
+          "杏色[帶胸墊]"
+        ],
+        "colors_all_before": [
+          "杏色[帶胸墊]"
+        ],
+        "hub_colors_preserved": ""
+      }
+    },
+    {
+      "ma": "A06",
+      "title_cn": "法式純欲掛頸蕾絲上衣...",
+      "shop": "陳佳真CHENJIAZHEN",
+      "source_link": "https://e.tb.cn/h.8pDrLlO8XQcAbFi?tk=xJw9TSIv3GK",
+      "world_url": "https://world.taobao.com/item/1032055577336.htm",
+      "item_id": "1032055577336",
+      "hub_colors": "",
+      "sku_colors_cn": [
+        "白色"
+      ],
+      "colors_all": [
+        "白色"
+      ],
+      "colors_incomplete": false,
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "sizes_raw": [
+        "S",
+        "M",
+        "L"
+      ],
+      "sizes_source": "seller_taobao_accuracy",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "A06_den_02.jpg",
+          "path": "photos/A06/A06_den_02.jpg",
+          "stage_path": "stage-photos/A06/A06_den_02.jpg",
+          "color_vi": "Đen",
+          "color_cn": "白色",
+          "confidence": 0.396,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "A06_den_04.jpg",
+          "path": "photos/A06/A06_den_04.jpg",
+          "stage_path": "stage-photos/A06/A06_den_04.jpg",
+          "color_vi": "Đen",
+          "color_cn": "白色",
+          "confidence": 0.398,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "A06_xam_01.jpg",
+          "path": "photos/A06/A06_xam_01.jpg",
+          "stage_path": "stage-photos/A06/A06_xam_01.jpg",
+          "color_vi": "Xám",
+          "color_cn": "白色",
+          "confidence": 0.206,
+          "rgb": [
+            128,
+            128,
+            128
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": true
+        },
+        {
+          "file": "A06_xam_03.jpg",
+          "path": "photos/A06/A06_xam_03.jpg",
+          "stage_path": "stage-photos/A06/A06_xam_03.jpg",
+          "color_vi": "Xám",
+          "color_cn": "白色",
+          "confidence": 0.201,
+          "rgb": [
+            128,
+            128,
+            128
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": true
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "live_shows_single_sku_within_hub",
+        "hub_multi_live_review_chip_only",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "89",
+      "price_world_cny": "139.00",
+      "hub_size": "L S M",
+      "public_default_why": "A clothing/set + size + photos",
+      "photo_count": 4,
+      "photo_pull": {
+        "urls_found": 2,
+        "downloaded_new": 0,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:31-07:00"
+      },
+      "colors_en": [
+        "White"
+      ],
+      "color_mismatch": {
+        "status": "MATCH",
+        "sku_colors_cn_before": [
+          "白色"
+        ],
+        "colors_all_before": [
+          "白色"
+        ],
+        "hub_colors_preserved": ""
+      }
+    },
+    {
+      "ma": "A07",
+      "title_cn": "Frequency山...",
+      "shop": "Frequency山雞",
+      "source_link": "https://e.tb.cn/h.8JV8U1dMsYoj38U?tk=4Y4JTSFY9yE",
+      "world_url": "https://world.taobao.com/item/1040724590755.htm",
+      "item_id": "1040724590755",
+      "hub_colors": "",
+      "sku_colors_cn": [
+        "图片色【常规版】",
+        "图片色【优质版】",
+        "收藏加购优先发货"
+      ],
+      "colors_all": [
+        "图片色【常规版】",
+        "图片色【优质版】",
+        "收藏加购优先发货"
+      ],
+      "colors_incomplete": false,
+      "sizes": [
+        "XXS",
+        "S",
+        "M",
+        "L"
+      ],
+      "sizes_raw": [
+        "XXS",
+        "S",
+        "M",
+        "L"
+      ],
+      "sizes_source": "seller_taobao_accuracy",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "A07_den_01.jpg",
+          "path": "photos/A07/A07_den_01.jpg",
+          "stage_path": "stage-photos/A07/A07_den_01.jpg",
+          "color_vi": "Đen",
+          "color_cn": "圖片色【常規版】",
+          "confidence": 0.262,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "A07_den_02.jpg",
+          "path": "photos/A07/A07_den_02.jpg",
+          "stage_path": "stage-photos/A07/A07_den_02.jpg",
+          "color_vi": "Đen",
+          "color_cn": "圖片色【常規版】",
+          "confidence": 0.248,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "live_shows_single_sku_within_hub",
+        "hub_multi_live_review_chip_only",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "49.99",
+      "price_world_cny": "49.99",
+      "hub_size": "S M L",
+      "public_default_why": "A clothing/set + size + photos",
+      "photo_count": 2,
+      "photo_pull": {
+        "urls_found": 1,
+        "downloaded_new": 0,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:31-07:00"
+      },
+      "colors_en": [
+        "As pictured (图片色【常规版】)",
+        "As pictured (图片色【优质版】)",
+        "[CN] 收藏加购优先发货"
+      ],
+      "color_mismatch": {
+        "status": "MISMATCH",
+        "sku_colors_cn_before": [
+          "圖片色【常規版】"
+        ],
+        "colors_all_before": [
+          "圖片色【常規版】"
+        ],
+        "hub_colors_preserved": ""
+      }
+    },
+    {
+      "ma": "A08",
+      "title_cn": "浪漫柔系蕾絲拼接緞面...",
+      "shop": "法芭菲旗艦店",
+      "source_link": "https://e.tb.cn/h.8qA0Ix8x9kQ7yz2?tk=B96LT7EXFAn",
+      "world_url": "https://world.taobao.com/item/1067602875649.htm",
+      "item_id": "1067602875649",
+      "hub_colors": "",
+      "sku_colors_cn": [
+        "米白色上衣"
+      ],
+      "colors_all": [
+        "米白色上衣"
+      ],
+      "colors_incomplete": false,
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "sizes_raw": [
+        "S",
+        "M",
+        "L"
+      ],
+      "sizes_source": "seller_taobao_accuracy",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "A08_den_01.jpg",
+          "path": "photos/A08/A08_den_01.jpg",
+          "stage_path": "stage-photos/A08/A08_den_01.jpg",
+          "color_vi": "Đen",
+          "color_cn": "米白色上衣",
+          "confidence": 0.292,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "A08_den_01.png",
+          "path": "photos/A08/A08_den_01.png",
+          "stage_path": "stage-photos/A08/A08_den_01.png",
+          "color_vi": "Đen",
+          "color_cn": "米白色上衣",
+          "confidence": 0.293,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "live_shows_single_sku_within_hub",
+        "hub_multi_live_review_chip_only",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "119.8",
+      "price_world_cny": "184.31",
+      "hub_size": "S M L",
+      "public_default_why": "A clothing/set + size + photos",
+      "photo_count": 2,
+      "photo_pull": {
+        "urls_found": 1,
+        "downloaded_new": 1,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:31-07:00"
+      },
+      "colors_en": [
+        "Off-white (米白色上衣)"
+      ],
+      "color_mismatch": {
+        "status": "MATCH",
+        "sku_colors_cn_before": [
+          "米白色上衣"
+        ],
+        "colors_all_before": [
+          "米白色上衣"
+        ],
+        "hub_colors_preserved": ""
+      }
+    },
+    {
+      "ma": "A09",
+      "title_cn": "歐美辣妹風V領蕾絲花...",
+      "shop": "PinkSiren",
+      "source_link": "https://e.tb.cn/h.8qANGt2F2USMG7z?tk=3CgqT7EpBk4",
+      "world_url": "https://world.taobao.com/item/1039283288293.htm",
+      "item_id": "1039283288293",
+      "hub_colors": "",
+      "sku_colors_cn": [
+        "白色"
+      ],
+      "colors_all": [
+        "白色"
+      ],
+      "colors_incomplete": false,
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "sizes_raw": [
+        "S",
+        "M",
+        "L"
+      ],
+      "sizes_source": "seller_taobao_accuracy",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "A09_cam_01.jpg",
+          "path": "photos/A09/A09_cam_01.jpg",
+          "stage_path": "stage-photos/A09/A09_cam_01.jpg",
+          "color_vi": "Cam",
+          "color_cn": "白色",
+          "confidence": 0.15,
+          "rgb": [
+            128,
+            96,
+            64
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "A09_hoa-print_01.jpg",
+          "path": "photos/A09/A09_hoa-print_01.jpg",
+          "stage_path": "stage-photos/A09/A09_hoa-print_01.jpg",
+          "color_vi": "Hoa/print",
+          "color_cn": "白色",
+          "confidence": 0.15,
+          "rgb": [
+            128,
+            96,
+            64
+          ],
+          "included_default": true,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "A09_hong_02.jpg",
+          "path": "photos/A09/A09_hong_02.jpg",
+          "stage_path": "stage-photos/A09/A09_hong_02.jpg",
+          "color_vi": "Hồng",
+          "color_cn": "白色",
+          "confidence": 0.326,
+          "rgb": [
+            224,
+            160,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "A09_hong_03.jpg",
+          "path": "photos/A09/A09_hong_03.jpg",
+          "stage_path": "stage-photos/A09/A09_hong_03.jpg",
+          "color_vi": "Hồng",
+          "color_cn": "白色",
+          "confidence": 0.32,
+          "rgb": [
+            224,
+            160,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "live_shows_single_sku_within_hub",
+        "hub_multi_live_review_chip_only",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "98",
+      "price_world_cny": "98.00",
+      "hub_size": "S M L",
+      "public_default_why": "A clothing/set + size + photos",
+      "photo_count": 4,
+      "photo_pull": {
+        "urls_found": 2,
+        "downloaded_new": 0,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:32-07:00"
+      },
+      "colors_en": [
+        "White"
+      ],
+      "color_mismatch": {
+        "status": "MATCH",
+        "sku_colors_cn_before": [
+          "白色"
+        ],
+        "colors_all_before": [
+          "白色"
+        ],
+        "hub_colors_preserved": ""
+      }
+    },
+    {
+      "ma": "A10",
+      "title_cn": "Lukira 奧黛小...",
+      "shop": "Lukira",
+      "source_link": "https://e.tb.cn/h.8rlnYG67PkBUJy2?tk=A3e2TRQPEGG",
+      "world_url": "https://world.taobao.com/item/989709595663.htm",
+      "item_id": "989709595663",
+      "hub_colors": "",
+      "sku_colors_cn": [
+        "糯米杏 第一批 现货",
+        "糯米杏 第二批 默认时间内"
+      ],
+      "colors_all": [
+        "糯米杏 第一批 现货",
+        "糯米杏 第二批 默认时间内"
+      ],
+      "colors_incomplete": false,
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "sizes_raw": [
+        "S",
+        "M",
+        "L"
+      ],
+      "sizes_source": "seller_taobao_accuracy",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "A10_hoa-print_01.jpg",
+          "path": "photos/A10/A10_hoa-print_01.jpg",
+          "stage_path": "stage-photos/A10/A10_hoa-print_01.jpg",
+          "color_vi": "Hoa/print",
+          "color_cn": "糯米杏（第一批）現貨",
+          "confidence": 0.15,
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "A10_hoa-print_04.jpg",
+          "path": "photos/A10/A10_hoa-print_04.jpg",
+          "stage_path": "stage-photos/A10/A10_hoa-print_04.jpg",
+          "color_vi": "Hoa/print",
+          "color_cn": "糯米杏（第一批）現貨",
+          "confidence": 0.15,
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "A10_vang_03.jpg",
+          "path": "photos/A10/A10_vang_03.jpg",
+          "stage_path": "stage-photos/A10/A10_vang_03.jpg",
+          "color_vi": "Vàng",
+          "color_cn": "糯米杏（第一批）現貨",
+          "confidence": 0.226,
+          "rgb": [
+            192,
+            192,
+            160
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "A10_vang_06.jpg",
+          "path": "photos/A10/A10_vang_06.jpg",
+          "stage_path": "stage-photos/A10/A10_vang_06.jpg",
+          "color_vi": "Vàng",
+          "color_cn": "糯米杏（第一批）現貨",
+          "confidence": 0.235,
+          "rgb": [
+            192,
+            192,
+            160
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "A10_xanhdng_02.jpg",
+          "path": "photos/A10/A10_xanhdng_02.jpg",
+          "stage_path": "stage-photos/A10/A10_xanhdng_02.jpg",
+          "color_vi": "Xanh dương",
+          "color_cn": "糯米杏（第一批）現貨",
+          "confidence": 0.892,
+          "rgb": [
+            192,
+            192,
+            224
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "A10_xanhdng_05.jpg",
+          "path": "photos/A10/A10_xanhdng_05.jpg",
+          "stage_path": "stage-photos/A10/A10_xanhdng_05.jpg",
+          "color_vi": "Xanh dương",
+          "color_cn": "糯米杏（第一批）現貨",
+          "confidence": 0.89,
+          "rgb": [
+            192,
+            192,
+            224
+          ],
+          "included_default": true,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "live_shows_single_sku_within_hub",
+        "hub_multi_live_review_chip_only",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "119",
+      "price_world_cny": "119.00",
+      "hub_size": "S M L",
+      "public_default_why": "A clothing/set + size + photos",
+      "photo_count": 6,
+      "photo_pull": {
+        "urls_found": 4,
+        "downloaded_new": 0,
+        "gaps": [
+          "login_gated_sku"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:32-07:00"
+      },
+      "colors_en": [
+        "Nuo-mi apricot / Apricot (batch 1 in-stock)",
+        "Nuo-mi apricot / Apricot (batch 2 default timing)"
+      ],
+      "color_mismatch": {
+        "status": "MISMATCH",
+        "sku_colors_cn_before": [
+          "糯米杏（第一批）現貨"
+        ],
+        "colors_all_before": [
+          "糯米杏（第一批）現貨"
+        ],
+        "hub_colors_preserved": ""
+      }
+    },
+    {
+      "ma": "A11",
+      "title_cn": "奶黃色趣味小狗毛衣外...",
+      "shop": "表演時刻旗艦店",
+      "source_link": "https://e.tb.cn/h.8H5CQoPgwjl36Nw?tk=YgB1TRkrlfk",
+      "world_url": "https://world.taobao.com/item/841848039676.htm",
+      "item_id": "841848039676",
+      "hub_colors": "",
+      "sku_colors_cn": [
+        "黄色"
+      ],
+      "colors_all": [
+        "黄色"
+      ],
+      "colors_incomplete": false,
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "sizes_raw": [
+        "S",
+        "M",
+        "L"
+      ],
+      "sizes_source": "seller_taobao_accuracy",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "A11_hoa-print_01.jpg",
+          "path": "photos/A11/A11_hoa-print_01.jpg",
+          "stage_path": "stage-photos/A11/A11_hoa-print_01.jpg",
+          "color_vi": "Hoa/print",
+          "color_cn": "黃色",
+          "confidence": 0.15,
+          "rgb": [
+            160,
+            160,
+            128
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "A11_hoa-print_01.png",
+          "path": "photos/A11/A11_hoa-print_01.png",
+          "stage_path": "stage-photos/A11/A11_hoa-print_01.png",
+          "color_vi": "Hoa/print",
+          "color_cn": "黃色",
+          "confidence": 0.15,
+          "rgb": [
+            160,
+            160,
+            128
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "live_shows_single_sku_within_hub",
+        "hub_multi_live_review_chip_only",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "109",
+      "price_world_cny": "129.00",
+      "hub_size": "S M L",
+      "public_default_why": "A clothing/set + size + photos",
+      "photo_count": 2,
+      "photo_pull": {
+        "urls_found": 2,
+        "downloaded_new": 1,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:32-07:00"
+      },
+      "colors_en": [
+        "Yellow"
+      ],
+      "color_mismatch": {
+        "status": "MATCH",
+        "sku_colors_cn_before": [
+          "黃色"
+        ],
+        "colors_all_before": [
+          "黃色"
+        ],
+        "hub_colors_preserved": ""
+      }
+    },
+    {
+      "ma": "A12",
+      "title_cn": "半芝桃 原創白色波點...",
+      "shop": "半芝桃",
+      "source_link": "https://e.tb.cn/h.8s7QqCSbdBca1Ss?tk=2rsaT8cFgzO",
+      "world_url": "https://world.taobao.com/item/1019149471031.htm",
+      "item_id": "1019149471031",
+      "hub_colors": "",
+      "sku_colors_cn": [
+        "白色"
+      ],
+      "colors_all": [
+        "白色"
+      ],
+      "colors_incomplete": false,
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "sizes_raw": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "sizes_source": "seller_taobao_accuracy",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "A12_den_01.jpg",
+          "path": "photos/A12/A12_den_01.jpg",
+          "stage_path": "stage-photos/A12/A12_den_01.jpg",
+          "color_vi": "Đen",
+          "color_cn": "白色",
+          "confidence": 0.231,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "A12_den_02.jpg",
+          "path": "photos/A12/A12_den_02.jpg",
+          "stage_path": "stage-photos/A12/A12_den_02.jpg",
+          "color_vi": "Đen",
+          "color_cn": "白色",
+          "confidence": 0.26,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "A12_xam_02.jpg",
+          "path": "photos/A12/A12_xam_02.jpg",
+          "stage_path": "stage-photos/A12/A12_xam_02.jpg",
+          "color_vi": "Xám",
+          "color_cn": "白色",
+          "confidence": 0.155,
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": true
+        },
+        {
+          "file": "A12_xam_03.jpg",
+          "path": "photos/A12/A12_xam_03.jpg",
+          "stage_path": "stage-photos/A12/A12_xam_03.jpg",
+          "color_vi": "Xám",
+          "color_cn": "白色",
+          "confidence": 0.157,
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": true
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "live_shows_single_sku_within_hub",
+        "hub_multi_live_review_chip_only",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "128",
+      "price_world_cny": "128.00",
+      "hub_size": "S M L XL",
+      "public_default_why": "A clothing/set + size + photos",
+      "photo_count": 4,
+      "photo_pull": {
+        "urls_found": 2,
+        "downloaded_new": 0,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:32-07:00"
+      },
+      "colors_en": [
+        "White"
+      ],
+      "color_mismatch": {
+        "status": "MATCH",
+        "sku_colors_cn_before": [
+          "白色"
+        ],
+        "colors_all_before": [
+          "白色"
+        ],
+        "hub_colors_preserved": ""
+      }
+    },
+    {
+      "ma": "A13",
+      "title_cn": "春夏粉色碎花貓咪針織...",
+      "shop": "Dreamyland",
+      "source_link": "https://e.tb.cn/h.8IdUQLLRMS18xaT?tk=Xz02T8Xca81",
+      "world_url": "https://world.taobao.com/item/988176960813.htm",
+      "item_id": "988176960813",
+      "hub_colors": "",
+      "sku_colors_cn": [
+        "碎花猫咪T恤",
+        "T恤+白色毛衣两件套 毛衣是均码",
+        "T恤+粉色毛衣两件套 毛衣是均码"
+      ],
+      "colors_all": [
+        "碎花猫咪T恤",
+        "T恤+白色毛衣两件套 毛衣是均码",
+        "T恤+粉色毛衣两件套 毛衣是均码"
+      ],
+      "colors_incomplete": false,
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "sizes_raw": [
+        "S",
+        "M",
+        "L"
+      ],
+      "sizes_source": "seller_taobao_accuracy",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "A13_hong_02.jpg",
+          "path": "photos/A13/A13_hong_02.jpg",
+          "stage_path": "stage-photos/A13/A13_hong_02.jpg",
+          "color_vi": "Hồng",
+          "color_cn": "碎花貓咪T恤",
+          "confidence": 0.324,
+          "rgb": [
+            192,
+            128,
+            160
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "A13_hong_03.jpg",
+          "path": "photos/A13/A13_hong_03.jpg",
+          "stage_path": "stage-photos/A13/A13_hong_03.jpg",
+          "color_vi": "Hồng",
+          "color_cn": "碎花貓咪T恤",
+          "confidence": 0.325,
+          "rgb": [
+            192,
+            160,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "A13_xam_01.jpg",
+          "path": "photos/A13/A13_xam_01.jpg",
+          "stage_path": "stage-photos/A13/A13_xam_01.jpg",
+          "color_vi": "Xám",
+          "color_cn": "碎花貓咪T恤",
+          "confidence": 0.329,
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "live_shows_single_sku_within_hub",
+        "hub_multi_live_review_chip_only",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "99",
+      "price_world_cny": "99.00",
+      "hub_size": "S M L",
+      "public_default_why": "A clothing/set + size + photos",
+      "photo_count": 3,
+      "photo_pull": {
+        "urls_found": 1,
+        "downloaded_new": 0,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:32-07:00"
+      },
+      "colors_en": [
+        "[CN] 碎花猫咪T恤",
+        "White (T恤+白色毛衣两件套 毛衣是均码)",
+        "Pink (T恤+粉色毛衣两件套 毛衣是均码)"
+      ],
+      "color_mismatch": {
+        "status": "MISMATCH",
+        "sku_colors_cn_before": [
+          "碎花貓咪T恤"
+        ],
+        "colors_all_before": [
+          "碎花貓咪T恤"
+        ],
+        "hub_colors_preserved": ""
+      }
+    },
+    {
+      "ma": "A14",
+      "title_cn": "奶呼呼軟糯溫柔風貓咪...",
+      "shop": "柏妮恩旗艦店",
+      "source_link": "https://e.tb.cn/h.8IIeiOrbQOwejcm?tk=S8JWT8rrJhy",
+      "world_url": "https://world.taobao.com/item/985698060284.htm",
+      "item_id": "985698060284",
+      "hub_colors": "",
+      "sku_colors_cn": [
+        "白色"
+      ],
+      "colors_all": [
+        "白色"
+      ],
+      "colors_incomplete": false,
+      "sizes": [
+        "均码"
+      ],
+      "sizes_raw": [
+        "均码"
+      ],
+      "sizes_source": "seller_taobao_accuracy",
+      "size_chart": "NO_CHART",
+      "size_note": "onesize/均码",
+      "photos": [
+        {
+          "file": "A14_vang_01.jpg",
+          "path": "photos/A14/A14_vang_01.jpg",
+          "stage_path": "stage-photos/A14/A14_vang_01.jpg",
+          "color_vi": "Vàng",
+          "color_cn": "白色",
+          "confidence": 0.354,
+          "rgb": [
+            192,
+            192,
+            160
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "A14_vang_01.png",
+          "path": "photos/A14/A14_vang_01.png",
+          "stage_path": "stage-photos/A14/A14_vang_01.png",
+          "color_vi": "Vàng",
+          "color_cn": "白色",
+          "confidence": 0.352,
+          "rgb": [
+            192,
+            192,
+            160
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "hub_blank_live_onesize",
+        "hub_blank_live_onesize_均碼",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "109.9",
+      "price_world_cny": "119.00",
+      "hub_size": "",
+      "public_default_why": "A clothing/set + size + photos",
+      "photo_count": 2,
+      "photo_pull": {
+        "urls_found": 2,
+        "downloaded_new": 1,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:32-07:00"
+      },
+      "colors_en": [
+        "White"
+      ],
+      "color_mismatch": {
+        "status": "MATCH",
+        "sku_colors_cn_before": [
+          "白色"
+        ],
+        "colors_all_before": [
+          "白色"
+        ],
+        "hub_colors_preserved": ""
+      }
+    },
+    {
+      "ma": "A15",
+      "title_cn": "秋季2026新款韓版...",
+      "shop": "MiGood 韓版女裝",
+      "source_link": "https://e.tb.cn/h.8rFMxNM4ahNDRDJ?tk=fiwJT8vAnbX",
+      "world_url": "https://world.taobao.com/item/1079866857904.htm",
+      "item_id": "1079866857904",
+      "hub_colors": "",
+      "sku_colors_cn": [
+        "花灰色",
+        "米色",
+        "浅蓝色"
+      ],
+      "colors_all": [
+        "花灰色",
+        "米色",
+        "浅蓝色"
+      ],
+      "colors_incomplete": false,
+      "sizes": [
+        "均码(建议95-150斤)"
+      ],
+      "sizes_raw": [
+        "均码(建议95-150斤)"
+      ],
+      "sizes_source": "seller_taobao_accuracy",
+      "size_chart": "NO_CHART",
+      "size_note": "onesize/均码",
+      "photos": [
+        {
+          "file": "A15_xam_01.jpg",
+          "path": "photos/A15/A15_xam_01.jpg",
+          "stage_path": "stage-photos/A15/A15_xam_01.jpg",
+          "color_vi": "Xám",
+          "color_cn": "花灰色",
+          "confidence": 0.518,
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "A15_xam_02.jpg",
+          "path": "photos/A15/A15_xam_02.jpg",
+          "stage_path": "stage-photos/A15/A15_xam_02.jpg",
+          "color_vi": "Xám",
+          "color_cn": "花灰色",
+          "confidence": 0.516,
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "hub_blank_live_onesize",
+        "no_chart_flag_from_audit",
+        "hub_blank_live_onesize_均碼",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "93",
+      "price_world_cny": "93.00",
+      "hub_size": "",
+      "public_default_why": "A clothing/set + size + photos",
+      "photo_count": 2,
+      "photo_pull": {
+        "urls_found": 1,
+        "downloaded_new": 0,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:32-07:00"
+      },
+      "colors_en": [
+        "Gray (花灰色)",
+        "Beige",
+        "Blue (浅蓝色)"
+      ],
+      "color_mismatch": {
+        "status": "GF_CONFLICT",
+        "hub_colors_before": "Trắng, Xám",
+        "sku_colors_cn_before": [
+          "花灰色"
+        ],
+        "colors_all_before": [
+          "花灰色"
+        ],
+        "gf_intake_color": "Trắng, Xám",
+        "gf_intake_color_note": "Freesize",
+        "gf_intake_color_pieces": null,
+        "issues": [
+          "GF/hub vs seller: GF 'white' not in seller concepts ['bluegreen', 'cream', 'gray'] (GF_tokens=['Trắng', 'Xám']; hub='Trắng, Xám'; via=color/hub)"
+        ],
+        "note": "GF/hub kept in color_mismatch only; seller SKU set is preselected truth."
+      }
+    },
+    {
+      "ma": "B01",
+      "title_cn": "Carit Koty...",
+      "shop": "CARIT KOTY 專櫃正品女包",
+      "source_link": "https://e.tb.cn/h.8r5CGrlgQBNFyPl?tk=GwTkTSie0IM",
+      "world_url": "https://world.taobao.com/item/911830646247.htm",
+      "item_id": "911830646247",
+      "hub_colors": "Hồng, Xanh",
+      "sku_colors_cn": [
+        "粉色 加购赠礼袋",
+        "蓝色 加购赠礼袋"
+      ],
+      "colors_all": [
+        "粉色 加购赠礼袋",
+        "蓝色 加购赠礼袋"
+      ],
+      "colors_incomplete": false,
+      "sizes": [],
+      "sizes_raw": [],
+      "sizes_source": "none_public",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "B01_do_01.jpg",
+          "path": "photos/B01/B01_do_01.jpg",
+          "stage_path": "stage-photos/B01/B01_do_01.jpg",
+          "color_vi": "Đỏ",
+          "color_cn": "",
+          "confidence": 0.15,
+          "rgb": [
+            160,
+            96,
+            96
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "B01_do_02.jpg",
+          "path": "photos/B01/B01_do_02.jpg",
+          "stage_path": "stage-photos/B01/B01_do_02.jpg",
+          "color_vi": "Đỏ",
+          "color_cn": "",
+          "confidence": 0.15,
+          "rgb": [
+            160,
+            96,
+            96
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "B01_do_05.jpg",
+          "path": "photos/B01/B01_do_05.jpg",
+          "stage_path": "stage-photos/B01/B01_do_05.jpg",
+          "color_vi": "Đỏ",
+          "color_cn": "",
+          "confidence": 0.179,
+          "rgb": [
+            160,
+            96,
+            96
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "B01_hoa-print_03.jpg",
+          "path": "photos/B01/B01_hoa-print_03.jpg",
+          "stage_path": "stage-photos/B01/B01_hoa-print_03.jpg",
+          "color_vi": "Hoa/print",
+          "color_cn": "",
+          "confidence": 0.15,
+          "rgb": [
+            96,
+            96,
+            96
+          ],
+          "included_default": true,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "B01_kem_04.jpg",
+          "path": "photos/B01/B01_kem_04.jpg",
+          "stage_path": "stage-photos/B01/B01_kem_04.jpg",
+          "color_vi": "Kem",
+          "color_cn": "",
+          "confidence": 0.232,
+          "rgb": [
+            224,
+            192,
+            192
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "no_public_size",
+        "no_chart_flag_from_audit",
+        "bag_typically_one_size_NO_CHART",
+        "no_public_size_prop",
+        "NO_CHART",
+        "colors_unknown_public",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "198",
+      "price_world_cny": "899.00",
+      "hub_size": "",
+      "public_default_why": "bag + photos ok",
+      "photo_count": 5,
+      "photo_pull": {
+        "urls_found": 1,
+        "downloaded_new": 0,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:32-07:00"
+      },
+      "colors_en": [
+        "Pink (粉色 加购赠礼袋)",
+        "Blue (蓝色 加购赠礼袋)"
+      ],
+      "color_mismatch": {
+        "status": "MISMATCH",
+        "sku_colors_cn_before": [],
+        "colors_all_before": [],
+        "hub_colors_preserved": "Hồng, Xanh"
+      }
+    },
+    {
+      "ma": "B02",
+      "title_cn": "Caidre韓系波點...",
+      "shop": "CAIDRE箱包",
+      "source_link": "https://e.tb.cn/h.8quCap2qAP6bcyt?tk=SoaeTSRQbkc",
+      "world_url": "https://world.taobao.com/item/1058381538227.htm",
+      "item_id": "1058381538227",
+      "hub_colors": "Xanh, Đen, Tím, Vàng chanh",
+      "sku_colors_cn": [
+        "蓝色带挂件",
+        "黄色带挂件",
+        "紫色带挂件",
+        "黑色带挂件"
+      ],
+      "colors_all": [
+        "蓝色带挂件",
+        "黄色带挂件",
+        "紫色带挂件",
+        "黑色带挂件"
+      ],
+      "colors_incomplete": false,
+      "sizes": [],
+      "sizes_raw": [],
+      "sizes_source": "none_public",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "B02_trang_01.jpg",
+          "path": "photos/B02/B02_trang_01.jpg",
+          "stage_path": "stage-photos/B02/B02_trang_01.jpg",
+          "color_vi": "Trắng",
+          "color_cn": "藍色帶掛件",
+          "confidence": 0.343,
+          "rgb": [
+            224,
+            224,
+            224
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "B02_trang_02.jpg",
+          "path": "photos/B02/B02_trang_02.jpg",
+          "stage_path": "stage-photos/B02/B02_trang_02.jpg",
+          "color_vi": "Trắng",
+          "color_cn": "藍色帶掛件",
+          "confidence": 0.697,
+          "rgb": [
+            224,
+            224,
+            224
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "B02_trang_03.jpg",
+          "path": "photos/B02/B02_trang_03.jpg",
+          "stage_path": "stage-photos/B02/B02_trang_03.jpg",
+          "color_vi": "Trắng",
+          "color_cn": "藍色帶掛件",
+          "confidence": 0.346,
+          "rgb": [
+            224,
+            224,
+            224
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "B02_trang_04.jpg",
+          "path": "photos/B02/B02_trang_04.jpg",
+          "stage_path": "stage-photos/B02/B02_trang_04.jpg",
+          "color_vi": "Trắng",
+          "color_cn": "藍色帶掛件",
+          "confidence": 0.697,
+          "rgb": [
+            224,
+            224,
+            224
+          ],
+          "included_default": true,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "no_public_size",
+        "no_chart_flag_from_audit",
+        "bag_typically_one_size_NO_CHART",
+        "no_public_size_prop",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "79.9",
+      "price_world_cny": "179.90",
+      "hub_size": "",
+      "public_default_why": "bag + photos ok",
+      "photo_count": 4,
+      "photo_pull": {
+        "urls_found": 2,
+        "downloaded_new": 0,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:32-07:00"
+      },
+      "colors_en": [
+        "Blue (蓝色带挂件)",
+        "Yellow (黄色带挂件)",
+        "Purple (紫色带挂件)",
+        "Black (黑色带挂件)"
+      ],
+      "color_mismatch": {
+        "status": "MISMATCH",
+        "sku_colors_cn_before": [
+          "藍色帶掛件"
+        ],
+        "colors_all_before": [
+          "藍色帶掛件"
+        ],
+        "hub_colors_preserved": "Xanh, Đen, Tím, Vàng chanh"
+      }
+    },
+    {
+      "ma": "B03",
+      "title_cn": "迪士尼包包生日禮物女...",
+      "shop": "迪士尼品牌正品專櫃店",
+      "source_link": "https://e.tb.cn/h.8rTGQO7OItONbkA?tk=c2oET7zWqBJ",
+      "world_url": "https://world.taobao.com/item/1007708184718.htm",
+      "item_id": "1007708184718",
+      "hub_colors": "",
+      "sku_colors_cn": [
+        "【24小时内极速发货丨官方正品丨代写贺卡】.",
+        "迪士尼联名-樱花粉【限定礼袋】.",
+        "迪士尼联名-樱花粉【雪莉玫+限定礼袋】.",
+        "疯狂动物城联名-白粉【雪莉玫+草莓熊礼袋】.",
+        "疯狂动物城联名-杏粉【雪莉玫+草莓熊礼袋】."
+      ],
+      "colors_all": [
+        "【24小时内极速发货丨官方正品丨代写贺卡】.",
+        "迪士尼联名-樱花粉【限定礼袋】.",
+        "迪士尼联名-樱花粉【雪莉玫+限定礼袋】.",
+        "疯狂动物城联名-白粉【雪莉玫+草莓熊礼袋】.",
+        "疯狂动物城联名-杏粉【雪莉玫+草莓熊礼袋】."
+      ],
+      "colors_incomplete": false,
+      "sizes": [],
+      "sizes_raw": [],
+      "sizes_source": "none_public",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "B03_den_01.jpg",
+          "path": "photos/B03/B03_den_01.jpg",
+          "stage_path": "stage-photos/B03/B03_den_01.jpg",
+          "color_vi": "Đen",
+          "color_cn": "迪士尼聯名-櫻花粉【雪莉玫+限定禮袋】",
+          "confidence": 0.282,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": true
+        },
+        {
+          "file": "B03_den_03.jpg",
+          "path": "photos/B03/B03_den_03.jpg",
+          "stage_path": "stage-photos/B03/B03_den_03.jpg",
+          "color_vi": "Đen",
+          "color_cn": "迪士尼聯名-櫻花粉【雪莉玫+限定禮袋】",
+          "confidence": 0.34,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": true
+        },
+        {
+          "file": "B03_hoa-print_01.jpg",
+          "path": "photos/B03/B03_hoa-print_01.jpg",
+          "stage_path": "stage-photos/B03/B03_hoa-print_01.jpg",
+          "color_vi": "Hoa/print",
+          "color_cn": "迪士尼聯名-櫻花粉【雪莉玫+限定禮袋】",
+          "confidence": 0.218,
+          "rgb": [
+            224,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "B03_hoa-print_02.jpg",
+          "path": "photos/B03/B03_hoa-print_02.jpg",
+          "stage_path": "stage-photos/B03/B03_hoa-print_02.jpg",
+          "color_vi": "Hoa/print",
+          "color_cn": "迪士尼聯名-櫻花粉【雪莉玫+限定禮袋】",
+          "confidence": 0.221,
+          "rgb": [
+            224,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "no_public_size",
+        "bag_typically_one_size_NO_CHART",
+        "no_public_size_prop",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "279",
+      "price_world_cny": "279.00",
+      "hub_size": "",
+      "public_default_why": "bag + photos ok",
+      "photo_count": 4,
+      "photo_pull": {
+        "urls_found": 2,
+        "downloaded_new": 1,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:32-07:00"
+      },
+      "colors_en": [
+        "[CN] 【24小时内极速发货丨官方正品丨代写贺卡】.",
+        "[CN] 迪士尼联名-樱花粉【限定礼袋】.",
+        "[CN] 迪士尼联名-樱花粉【雪莉玫+限定礼袋】.",
+        "[CN] 疯狂动物城联名-白粉【雪莉玫+草莓熊礼袋】.",
+        "[CN] 疯狂动物城联名-杏粉【雪莉玫+草莓熊礼袋】."
+      ],
+      "color_mismatch": {
+        "status": "MISMATCH",
+        "sku_colors_cn_before": [
+          "迪士尼聯名-櫻花粉【雪莉玫+限定禮袋】"
+        ],
+        "colors_all_before": [
+          "迪士尼聯名-櫻花粉【雪莉玫+限定禮袋】"
+        ],
+        "hub_colors_preserved": ""
+      }
+    },
+    {
+      "ma": "D01",
+      "title_cn": "WITHMIN 粉色...",
+      "shop": "withmin涼皮",
+      "source_link": "https://e.tb.cn/h.8IuehN5oDQq0mKu?tk=TSJWT7BlgWI",
+      "world_url": "https://world.taobao.com/item/1046519667783.htm",
+      "item_id": "1046519667783",
+      "hub_colors": "Hồng",
+      "sku_colors_cn": [
+        "粉色"
+      ],
+      "colors_all": [
+        "粉色"
+      ],
+      "colors_incomplete": false,
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "sizes_raw": [
+        "S",
+        "M",
+        "L"
+      ],
+      "sizes_source": "seller_taobao_accuracy",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "D01_den_01.jpg",
+          "path": "photos/D01/D01_den_01.jpg",
+          "stage_path": "stage-photos/D01/D01_den_01.jpg",
+          "color_vi": "Đen",
+          "color_cn": "粉色",
+          "confidence": 0.494,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "D01_den_03.jpg",
+          "path": "photos/D01/D01_den_03.jpg",
+          "stage_path": "stage-photos/D01/D01_den_03.jpg",
+          "color_vi": "Đen",
+          "color_cn": "粉色",
+          "confidence": 0.497,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "D01_kem_01.jpg",
+          "path": "photos/D01/D01_kem_01.jpg",
+          "stage_path": "stage-photos/D01/D01_kem_01.jpg",
+          "color_vi": "Kem",
+          "color_cn": "粉色",
+          "confidence": 0.257,
+          "rgb": [
+            224,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "D01_kem_02.jpg",
+          "path": "photos/D01/D01_kem_02.jpg",
+          "stage_path": "stage-photos/D01/D01_kem_02.jpg",
+          "color_vi": "Kem",
+          "color_cn": "粉色",
+          "confidence": 0.238,
+          "rgb": [
+            224,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "D01_kem_03.jpg",
+          "path": "photos/D01/D01_kem_03.jpg",
+          "stage_path": "stage-photos/D01/D01_kem_03.jpg",
+          "color_vi": "Kem",
+          "color_cn": "粉色",
+          "confidence": 0.258,
+          "rgb": [
+            224,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "live_shows_single_sku_within_hub",
+        "hub_multi_live_review_chip_only",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "166",
+      "price_world_cny": "166.00",
+      "hub_size": "S M L",
+      "public_default_why": "D clothing/set + size + photos",
+      "photo_count": 5,
+      "photo_pull": {
+        "urls_found": 3,
+        "downloaded_new": 1,
+        "gaps": [
+          "login_gated_sku"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:32-07:00"
+      },
+      "colors_en": [
+        "Pink"
+      ],
+      "color_mismatch": {
+        "status": "MATCH",
+        "sku_colors_cn_before": [
+          "粉色"
+        ],
+        "colors_all_before": [
+          "粉色"
+        ],
+        "hub_colors_preserved": "Hồng"
+      }
+    },
+    {
+      "ma": "D02",
+      "title_cn": "WITHMIN 白色...",
+      "shop": "withmin涼皮",
+      "source_link": "https://e.tb.cn/h.8J19U7AXarFp5si?tk=laULT7BwQ6T",
+      "world_url": "https://world.taobao.com/item/1046521459484.htm",
+      "item_id": "1046521459484",
+      "hub_colors": "Trắng",
+      "sku_colors_cn": [
+        "白色"
+      ],
+      "colors_all": [
+        "白色"
+      ],
+      "colors_incomplete": false,
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "sizes_raw": [
+        "S",
+        "M",
+        "L"
+      ],
+      "sizes_source": "seller_taobao_accuracy",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "D02_den_01.jpg",
+          "path": "photos/D02/D02_den_01.jpg",
+          "stage_path": "stage-photos/D02/D02_den_01.jpg",
+          "color_vi": "Đen",
+          "color_cn": "白色",
+          "confidence": 0.494,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "D02_den_03.jpg",
+          "path": "photos/D02/D02_den_03.jpg",
+          "stage_path": "stage-photos/D02/D02_den_03.jpg",
+          "color_vi": "Đen",
+          "color_cn": "白色",
+          "confidence": 0.497,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "D02_xam_01.jpg",
+          "path": "photos/D02/D02_xam_01.jpg",
+          "stage_path": "stage-photos/D02/D02_xam_01.jpg",
+          "color_vi": "Xám",
+          "color_cn": "白色",
+          "confidence": 0.341,
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "D02_xam_02.jpg",
+          "path": "photos/D02/D02_xam_02.jpg",
+          "stage_path": "stage-photos/D02/D02_xam_02.jpg",
+          "color_vi": "Xám",
+          "color_cn": "白色",
+          "confidence": 0.346,
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "D02_xam_03.jpg",
+          "path": "photos/D02/D02_xam_03.jpg",
+          "stage_path": "stage-photos/D02/D02_xam_03.jpg",
+          "color_vi": "Xám",
+          "color_cn": "白色",
+          "confidence": 0.343,
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "live_shows_single_sku_within_hub",
+        "hub_multi_live_review_chip_only",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "166",
+      "price_world_cny": "166.00",
+      "hub_size": "S M L",
+      "public_default_why": "D clothing/set + size + photos",
+      "photo_count": 5,
+      "photo_pull": {
+        "urls_found": 3,
+        "downloaded_new": 1,
+        "gaps": [
+          "login_gated_sku"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:33-07:00"
+      },
+      "colors_en": [
+        "White"
+      ],
+      "color_mismatch": {
+        "status": "MATCH",
+        "sku_colors_cn_before": [
+          "白色"
+        ],
+        "colors_all_before": [
+          "白色"
+        ],
+        "hub_colors_preserved": "Trắng"
+      }
+    },
+    {
+      "ma": "D03",
+      "title_cn": "微胖mm法式甜辣風蕾...",
+      "shop": "大霓Dani",
+      "source_link": "https://e.tb.cn/h.8HDJ57ubctdLHOr?tk=3bMrT8XswiP",
+      "world_url": "https://world.taobao.com/item/1060137201822.htm",
+      "item_id": "1060137201822",
+      "hub_colors": "",
+      "sku_colors_cn": [
+        "连衣裙",
+        "连衣裙【优质版】"
+      ],
+      "colors_all": [
+        "连衣裙",
+        "连衣裙【优质版】"
+      ],
+      "colors_incomplete": false,
+      "sizes": [
+        "S 建议80-90斤",
+        "M 建议90-100斤",
+        "L 建议100-115斤",
+        "XL 建议115-130斤"
+      ],
+      "sizes_raw": [
+        "S 建议80-90斤",
+        "M 建议90-100斤",
+        "L 建议100-115斤",
+        "XL 建议115-130斤"
+      ],
+      "sizes_source": "seller_taobao_accuracy",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "D03_den_02.jpg",
+          "path": "photos/D03/D03_den_02.jpg",
+          "stage_path": "stage-photos/D03/D03_den_02.jpg",
+          "color_vi": "Đen",
+          "color_cn": "新品試銷",
+          "confidence": 0.338,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": true
+        },
+        {
+          "file": "D03_kem_01.jpg",
+          "path": "photos/D03/D03_kem_01.jpg",
+          "stage_path": "stage-photos/D03/D03_kem_01.jpg",
+          "color_vi": "Kem",
+          "color_cn": "新品試銷",
+          "confidence": 0.322,
+          "rgb": [
+            192,
+            160,
+            160
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "D03_kem_02.jpg",
+          "path": "photos/D03/D03_kem_02.jpg",
+          "stage_path": "stage-photos/D03/D03_kem_02.jpg",
+          "color_vi": "Kem",
+          "color_cn": "新品試銷",
+          "confidence": 0.33,
+          "rgb": [
+            192,
+            160,
+            160
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "live_shows_single_sku_within_hub",
+        "hub_multi_live_review_chip_only",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "108",
+      "price_world_cny": "108.00",
+      "hub_size": "S M L XL",
+      "public_default_why": "D clothing/set + size + photos",
+      "photo_count": 3,
+      "photo_pull": {
+        "urls_found": 1,
+        "downloaded_new": 0,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:33-07:00"
+      },
+      "colors_en": [
+        "[CN] 连衣裙",
+        "[CN] 连衣裙【优质版】"
+      ],
+      "color_mismatch": {
+        "status": "MISMATCH",
+        "sku_colors_cn_before": [
+          "新品試銷"
+        ],
+        "colors_all_before": [
+          "新品試銷"
+        ],
+        "hub_colors_preserved": ""
+      }
+    },
+    {
+      "ma": "H01",
+      "title_cn": "韓國兒童布藝雙色蝴蝶...",
+      "shop": "芭拉小屋",
+      "source_link": "https://e.tb.cn/h.8KE7trcDe92yo2O?tk=fkqzThRw8Yn",
+      "world_url": "https://world.taobao.com/item/682702361411.htm",
+      "item_id": "682702361411",
+      "hub_colors": "",
+      "sku_colors_cn": [
+        "粉色 蝴蝶结发夹",
+        "蓝色 蝴蝶结发夹",
+        "酒红色 蝴蝶结发夹"
+      ],
+      "colors_all": [
+        "粉色 蝴蝶结发夹",
+        "蓝色 蝴蝶结发夹",
+        "酒红色 蝴蝶结发夹"
+      ],
+      "colors_incomplete": false,
+      "sizes": [],
+      "sizes_raw": [],
+      "sizes_source": "none_public",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "H01_hoa-print_03.jpg",
+          "path": "photos/H01/H01_hoa-print_03.jpg",
+          "stage_path": "stage-photos/H01/H01_hoa-print_03.jpg",
+          "color_vi": "Hoa/print",
+          "color_cn": "粉色[蝴蝶結髮夾]",
+          "confidence": 0.15,
+          "rgb": [
+            128,
+            96,
+            96
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "H01_hoa-print_05.jpg",
+          "path": "photos/H01/H01_hoa-print_05.jpg",
+          "stage_path": "stage-photos/H01/H01_hoa-print_05.jpg",
+          "color_vi": "Hoa/print",
+          "color_cn": "粉色[蝴蝶結髮夾]",
+          "confidence": 0.15,
+          "rgb": [
+            64,
+            0,
+            0
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "H01_kem_01.jpg",
+          "path": "photos/H01/H01_kem_01.jpg",
+          "stage_path": "stage-photos/H01/H01_kem_01.jpg",
+          "color_vi": "Kem",
+          "color_cn": "粉色[蝴蝶結髮夾]",
+          "confidence": 0.15,
+          "rgb": [
+            192,
+            160,
+            128
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "H01_kem_02.jpg",
+          "path": "photos/H01/H01_kem_02.jpg",
+          "stage_path": "stage-photos/H01/H01_kem_02.jpg",
+          "color_vi": "Kem",
+          "color_cn": "粉色[蝴蝶結髮夾]",
+          "confidence": 0.15,
+          "rgb": [
+            192,
+            160,
+            128
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "H01_kem_04.jpg",
+          "path": "photos/H01/H01_kem_04.jpg",
+          "stage_path": "stage-photos/H01/H01_kem_04.jpg",
+          "color_vi": "Kem",
+          "color_cn": "粉色[蝴蝶結髮夾]",
+          "confidence": 0.15,
+          "rgb": [
+            192,
+            160,
+            128
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "no_public_size",
+        "jewelry_or_hair_often_均碼_or_NO_CHART",
+        "no_public_size_prop",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "17.9",
+      "price_world_cny": "17.90",
+      "hub_size": "",
+      "public_default_why": "jewelry/hair onesize + photos",
+      "photo_count": 5,
+      "photo_pull": {
+        "urls_found": 2,
+        "downloaded_new": 0,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:33-07:00"
+      },
+      "colors_en": [
+        "Pink (粉色 蝴蝶结发夹)",
+        "Blue (蓝色 蝴蝶结发夹)",
+        "Red (酒红色 蝴蝶结发夹)"
+      ],
+      "color_mismatch": {
+        "status": "MISMATCH",
+        "sku_colors_cn_before": [
+          "粉色[蝴蝶結髮夾]"
+        ],
+        "colors_all_before": [
+          "粉色[蝴蝶結髮夾]"
+        ],
+        "hub_colors_preserved": ""
+      }
+    },
+    {
+      "ma": "J01",
+      "title_cn": "「月光貝爾」S925...",
+      "shop": "ABAO輕珠寶",
+      "source_link": "https://e.tb.cn/h.8qF251J3MmOaNhJ?tk=tkdtTSRpBU6",
+      "world_url": "https://world.taobao.com/item/1019720838228.htm",
+      "item_id": "1019720838228",
+      "hub_colors": "",
+      "sku_colors_cn": [
+        "S925银 「月光贝尔」一物一证   一年售后质保"
+      ],
+      "colors_all": [
+        "S925银 「月光贝尔」一物一证   一年售后质保"
+      ],
+      "colors_incomplete": false,
+      "sizes": [],
+      "sizes_raw": [],
+      "sizes_source": "none_public",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "J01_kem_02.jpg",
+          "path": "photos/J01/J01_kem_02.jpg",
+          "stage_path": "stage-photos/J01/J01_kem_02.jpg",
+          "color_vi": "Kem",
+          "color_cn": "S925銀 「月光貝爾」一物一證 一年售後質保",
+          "confidence": 0.361,
+          "rgb": [
+            224,
+            192,
+            192
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "J01_kem_04.jpg",
+          "path": "photos/J01/J01_kem_04.jpg",
+          "stage_path": "stage-photos/J01/J01_kem_04.jpg",
+          "color_vi": "Kem",
+          "color_cn": "S925銀 「月光貝爾」一物一證 一年售後質保",
+          "confidence": 0.359,
+          "rgb": [
+            224,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "J01_xam_01.jpg",
+          "path": "photos/J01/J01_xam_01.jpg",
+          "stage_path": "stage-photos/J01/J01_xam_01.jpg",
+          "color_vi": "Xám",
+          "color_cn": "S925銀 「月光貝爾」一物一證 一年售後質保",
+          "confidence": 0.37,
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "J01_xam_03.jpg",
+          "path": "photos/J01/J01_xam_03.jpg",
+          "stage_path": "stage-photos/J01/J01_xam_03.jpg",
+          "color_vi": "Xám",
+          "color_cn": "S925銀 「月光貝爾」一物一證 一年售後質保",
+          "confidence": 0.4,
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "no_public_size",
+        "jewelry_or_hair_often_均碼_or_NO_CHART",
+        "no_public_size_prop",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "150",
+      "price_world_cny": "150.00",
+      "hub_size": "",
+      "public_default_why": "jewelry/hair onesize + photos",
+      "photo_count": 4,
+      "photo_pull": {
+        "urls_found": 2,
+        "downloaded_new": 0,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:33-07:00"
+      },
+      "colors_en": [
+        "[CN] S925银 「月光贝尔」一物一证   一年售后质保"
+      ],
+      "color_mismatch": {
+        "status": "MATCH",
+        "sku_colors_cn_before": [
+          "S925銀 「月光貝爾」一物一證 一年售後質保"
+        ],
+        "colors_all_before": [
+          "S925銀 「月光貝爾」一物一證 一年售後質保"
+        ],
+        "hub_colors_preserved": ""
+      }
+    },
+    {
+      "ma": "J02",
+      "title_cn": "一貝子白月光 純銀貝...",
+      "shop": "Mi Manchi 輕珠寶",
+      "source_link": "https://e.tb.cn/h.8qFnJs3yfEE6ff8?tk=mzU2TS82aJh",
+      "world_url": "https://world.taobao.com/item/1051234002002.htm",
+      "item_id": "1051234002002",
+      "hub_colors": "",
+      "sku_colors_cn": [],
+      "colors_all": [],
+      "colors_incomplete": true,
+      "sizes": [],
+      "sizes_raw": [],
+      "sizes_source": "none_public",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "J02_den_01.jpg",
+          "path": "photos/J02/J02_den_01.jpg",
+          "stage_path": "stage-photos/J02/J02_den_01.jpg",
+          "color_vi": "Đen",
+          "color_cn": "",
+          "confidence": 0.746,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "J02_den_02.jpg",
+          "path": "photos/J02/J02_den_02.jpg",
+          "stage_path": "stage-photos/J02/J02_den_02.jpg",
+          "color_vi": "Đen",
+          "color_cn": "",
+          "confidence": 0.705,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": true,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "J02_do_02.jpg",
+          "path": "photos/J02/J02_do_02.jpg",
+          "stage_path": "stage-photos/J02/J02_do_02.jpg",
+          "color_vi": "Đỏ",
+          "color_cn": "",
+          "confidence": 0.159,
+          "rgb": [
+            160,
+            96,
+            96
+          ],
+          "included_default": true,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "no_public_size",
+        "no_chart_flag_from_audit",
+        "jewelry_or_hair_often_均碼_or_NO_CHART",
+        "no_public_size_prop",
+        "NO_CHART",
+        "colors_unknown_public",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "188",
+      "price_world_cny": "188.00",
+      "hub_size": "",
+      "public_default_why": "jewelry/hair onesize + photos",
+      "photo_count": 3,
+      "photo_pull": {
+        "urls_found": 1,
+        "downloaded_new": 0,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:33-07:00"
+      },
+      "colors_en": [],
+      "color_mismatch": {
+        "status": "NO_SELLER_DATA",
+        "note": "No seller SKU colors in accuracy pull; not invented.",
+        "hub_colors_preserved": null,
+        "gf_intake_color": null
+      }
+    },
+    {
+      "ma": "K01",
+      "title_cn": "黃色小狗刺繡卡通毛衣...",
+      "shop": "Urcoly 饅饅家",
+      "source_link": "https://e.tb.cn/h.8LLjHT2R8bUOvIz?tk=cgigThRIuvf",
+      "world_url": "https://world.taobao.com/item/1072275004755.htm",
+      "item_id": "1072275004755",
+      "hub_colors": "",
+      "sku_colors_cn": [
+        "黄色"
+      ],
+      "colors_all": [
+        "黄色"
+      ],
+      "colors_incomplete": false,
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "sizes_raw": [
+        "S",
+        "M",
+        "L"
+      ],
+      "sizes_source": "seller_taobao_accuracy",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "K01_vang_01.jpg",
+          "path": "photos/K01/K01_vang_01.jpg",
+          "stage_path": "stage-photos/K01/K01_vang_01.jpg",
+          "color_vi": "Vàng",
+          "color_cn": "黃色",
+          "confidence": 0.15,
+          "rgb": [
+            224,
+            192,
+            128
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "K01_vang_02.jpg",
+          "path": "photos/K01/K01_vang_02.jpg",
+          "stage_path": "stage-photos/K01/K01_vang_02.jpg",
+          "color_vi": "Vàng",
+          "color_cn": "黃色",
+          "confidence": 0.15,
+          "rgb": [
+            224,
+            192,
+            128
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "K01_vang_03.jpg",
+          "path": "photos/K01/K01_vang_03.jpg",
+          "stage_path": "stage-photos/K01/K01_vang_03.jpg",
+          "color_vi": "Vàng",
+          "color_cn": "黃色",
+          "confidence": 0.163,
+          "rgb": [
+            192,
+            160,
+            96
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "live_shows_single_sku_within_hub",
+        "hub_multi_live_review_chip_only",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "125",
+      "price_world_cny": "125.00",
+      "hub_size": "S M L",
+      "public_default_why": "K clothing/set + size + photos",
+      "photo_count": 3,
+      "photo_pull": {
+        "urls_found": 2,
+        "downloaded_new": 0,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:33-07:00"
+      },
+      "colors_en": [
+        "Yellow"
+      ],
+      "color_mismatch": {
+        "status": "MATCH",
+        "sku_colors_cn_before": [
+          "黃色"
+        ],
+        "colors_all_before": [
+          "黃色"
+        ],
+        "hub_colors_preserved": ""
+      }
+    },
+    {
+      "ma": "O01",
+      "title_cn": "法式仙女風蝴蝶結波點...",
+      "shop": "港蘊旗艦店",
+      "source_link": "https://e.tb.cn/h.8IGMPH4b1AOyk5s?tk=IBGbT7ywLKI",
+      "world_url": "https://world.taobao.com/item/1050846794665.htm",
+      "item_id": "1050846794665",
+      "hub_colors": "",
+      "sku_colors_cn": [
+        "波点【精品版】精细做工√质保延长",
+        "深粉色【精品版】精细做工√质保延长",
+        "浅粉色【精品版】精细做工√质保延长",
+        "波点【升级版】更软√更舒适",
+        "粉色【升级版】更软√更舒适",
+        "浅粉色【升级版】更软√更舒适",
+        "波点",
+        "深粉色",
+        "浅粉色"
+      ],
+      "colors_all": [
+        "波点【精品版】精细做工√质保延长",
+        "深粉色【精品版】精细做工√质保延长",
+        "浅粉色【精品版】精细做工√质保延长",
+        "波点【升级版】更软√更舒适",
+        "粉色【升级版】更软√更舒适",
+        "浅粉色【升级版】更软√更舒适",
+        "波点",
+        "深粉色",
+        "浅粉色"
+      ],
+      "colors_incomplete": false,
+      "sizes": [
+        "35",
+        "36",
+        "37",
+        "38",
+        "39"
+      ],
+      "sizes_raw": [
+        "35",
+        "36",
+        "37",
+        "38",
+        "39"
+      ],
+      "sizes_source": "seller_taobao_accuracy",
+      "size_chart": "NO_CHART",
+      "size_note": "shoe_numeric_in_sizes_raw",
+      "photos": [
+        {
+          "file": "O01_kem_01.jpg",
+          "path": "photos/O01/O01_kem_01.jpg",
+          "stage_path": "stage-photos/O01/O01_kem_01.jpg",
+          "color_vi": "Kem",
+          "color_cn": "波點",
+          "confidence": 0.217,
+          "rgb": [
+            192,
+            160,
+            160
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "O01_kem_01.png",
+          "path": "photos/O01/O01_kem_01.png",
+          "stage_path": "stage-photos/O01/O01_kem_01.png",
+          "color_vi": "Kem",
+          "color_cn": "波點",
+          "confidence": 0.213,
+          "rgb": [
+            192,
+            160,
+            160
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "no_chart_flag_from_audit",
+        "hub_blank_live_numeric_shoe",
+        "hub_color_note_has_size_range_not_copied_as_sku",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "73.8",
+      "price_world_cny": "105.00",
+      "hub_size": "",
+      "public_default_why": "shoes numeric sizes + photos",
+      "photo_count": 2,
+      "photo_pull": {
+        "urls_found": 1,
+        "downloaded_new": 1,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:33-07:00"
+      },
+      "colors_en": [
+        "[CN] 波点【精品版】精细做工√质保延长",
+        "Pink (深粉色【精品版】精细做工√质保延长)",
+        "Pink (浅粉色【精品版】精细做工√质保延长)",
+        "[CN] 波点【升级版】更软√更舒适",
+        "Pink (粉色【升级版】更软√更舒适)",
+        "Pink (浅粉色【升级版】更软√更舒适)",
+        "[CN] 波点",
+        "Pink (深粉色)",
+        "Pink (浅粉色)"
+      ],
+      "color_mismatch": {
+        "status": "GF_CONFLICT",
+        "hub_colors_before": "Trắng, Hồng",
+        "sku_colors_cn_before": [
+          "波點"
+        ],
+        "colors_all_before": [
+          "波點"
+        ],
+        "gf_intake_color": "Trắng, Hồng",
+        "gf_intake_color_note": "Bi trắng và hòng Size 36-39",
+        "gf_intake_color_pieces": null,
+        "issues": [
+          "GF/hub vs seller: GF 'white' not in seller concepts ['pink', 'polkadot'] (GF_tokens=['Trắng', 'Hồng']; hub='Trắng, Hồng'; via=color/hub)"
+        ],
+        "note": "GF/hub kept in color_mismatch only; seller SKU set is preselected truth."
+      }
+    },
+    {
+      "ma": "O02",
+      "title_cn": "少女風碎花蝴蝶結一字...",
+      "shop": "港蘊旗艦店",
+      "source_link": "https://e.tb.cn/h.8JYtG1MFPlnSWdR?tk=BifhT7B2DyU",
+      "world_url": "https://world.taobao.com/item/1036949523897.htm",
+      "item_id": "1036949523897",
+      "hub_colors": "Đen, Trắng",
+      "sku_colors_cn": [
+        "白色【精品版】精细做工√质保延长",
+        "黑色【精品版】精细做工√质保延长",
+        "白色【升级版】更软√更舒适",
+        "黑色【升级版】更软√更舒适",
+        "白色",
+        "黑色"
+      ],
+      "colors_all": [
+        "白色【精品版】精细做工√质保延长",
+        "黑色【精品版】精细做工√质保延长",
+        "白色【升级版】更软√更舒适",
+        "黑色【升级版】更软√更舒适",
+        "白色",
+        "黑色"
+      ],
+      "colors_incomplete": false,
+      "sizes": [
+        "35",
+        "36",
+        "37",
+        "38",
+        "39",
+        "40"
+      ],
+      "sizes_raw": [
+        "35",
+        "36",
+        "37",
+        "38",
+        "39",
+        "40"
+      ],
+      "sizes_source": "seller_taobao_accuracy",
+      "size_chart": "NO_CHART",
+      "size_note": "shoe_numeric_in_sizes_raw",
+      "photos": [
+        {
+          "file": "O02_kem_01.jpg",
+          "path": "photos/O02/O02_kem_01.jpg",
+          "stage_path": "stage-photos/O02/O02_kem_01.jpg",
+          "color_vi": "Kem",
+          "color_cn": "白色",
+          "confidence": 0.197,
+          "rgb": [
+            224,
+            192,
+            192
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "O02_kem_01.png",
+          "path": "photos/O02/O02_kem_01.png",
+          "stage_path": "stage-photos/O02/O02_kem_01.png",
+          "color_vi": "Kem",
+          "color_cn": "白色",
+          "confidence": 0.2,
+          "rgb": [
+            224,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "no_chart_flag_from_audit",
+        "hub_blank_live_numeric_shoe",
+        "hub_color_note_has_size_range_not_copied_as_sku",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "69.8",
+      "price_world_cny": "99.00",
+      "hub_size": "",
+      "public_default_why": "shoes numeric sizes + photos",
+      "photo_count": 2,
+      "photo_pull": {
+        "urls_found": 1,
+        "downloaded_new": 1,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:33-07:00"
+      },
+      "colors_en": [
+        "White (白色【精品版】精细做工√质保延长)",
+        "Black (黑色【精品版】精细做工√质保延长)",
+        "White (白色【升级版】更软√更舒适)",
+        "Black (黑色【升级版】更软√更舒适)",
+        "White",
+        "Black"
+      ],
+      "color_mismatch": {
+        "status": "MISMATCH",
+        "sku_colors_cn_before": [
+          "白色"
+        ],
+        "colors_all_before": [
+          "白色"
+        ],
+        "hub_colors_preserved": "Đen, Trắng"
+      }
+    },
+    {
+      "ma": "O03",
+      "title_cn": "五枚裝~可愛小貓貓拇...",
+      "shop": "淼淼淼小哥",
+      "source_link": "https://e.tb.cn/h.8s4JLqv5j0g8Z7e?tk=ApjRTiiwi69",
+      "world_url": "https://world.taobao.com/item/1028539989739.htm",
+      "item_id": "1028539989739",
+      "hub_colors": "",
+      "sku_colors_cn": [
+        "1枚装#普通拇指粉扑随机",
+        "5枚装#猫咪礼盒装",
+        "2盒装#猫咪礼盒装"
+      ],
+      "colors_all": [
+        "1枚装#普通拇指粉扑随机",
+        "5枚装#猫咪礼盒装",
+        "2盒装#猫咪礼盒装"
+      ],
+      "colors_incomplete": false,
+      "sizes": [],
+      "sizes_raw": [],
+      "sizes_source": "none_public",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "O03_den_02.jpg",
+          "path": "photos/O03/O03_den_02.jpg",
+          "stage_path": "stage-photos/O03/O03_den_02.jpg",
+          "color_vi": "Đen",
+          "color_cn": "5枚裝#貓咪禮盒裝",
+          "confidence": 0.15,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "O03_den_04.jpg",
+          "path": "photos/O03/O03_den_04.jpg",
+          "stage_path": "stage-photos/O03/O03_den_04.jpg",
+          "color_vi": "Đen",
+          "color_cn": "5枚裝#貓咪禮盒裝",
+          "confidence": 0.15,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "O03_kem_01.jpg",
+          "path": "photos/O03/O03_kem_01.jpg",
+          "stage_path": "stage-photos/O03/O03_kem_01.jpg",
+          "color_vi": "Kem",
+          "color_cn": "5枚裝#貓咪禮盒裝",
+          "confidence": 0.183,
+          "rgb": [
+            192,
+            160,
+            160
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "O03_kem_03.jpg",
+          "path": "photos/O03/O03_kem_03.jpg",
+          "stage_path": "stage-photos/O03/O03_kem_03.jpg",
+          "color_vi": "Kem",
+          "color_cn": "5枚裝#貓咪禮盒裝",
+          "confidence": 0.178,
+          "rgb": [
+            192,
+            160,
+            160
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": false,
+      "status_default": "hold",
+      "flags": [
+        "no_public_size",
+        "O03_pack_not_shoe_size",
+        "pack_spec_not_shoe_size",
+        "no_public_size_prop",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only",
+        "public_default_hold"
+      ],
+      "price_share_cny": "1.6",
+      "price_world_cny": "1.60",
+      "hub_size": "",
+      "public_default_why": "nail pack accessory low sell priority",
+      "photo_count": 4,
+      "photo_pull": {
+        "urls_found": 2,
+        "downloaded_new": 0,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:33-07:00"
+      },
+      "colors_en": [
+        "[CN] 1枚装#普通拇指粉扑随机",
+        "[CN] 5枚装#猫咪礼盒装",
+        "[CN] 2盒装#猫咪礼盒装"
+      ],
+      "color_mismatch": {
+        "status": "MISMATCH",
+        "sku_colors_cn_before": [
+          "5枚裝#貓咪禮盒裝"
+        ],
+        "colors_all_before": [
+          "5枚裝#貓咪禮盒裝"
+        ],
+        "hub_colors_preserved": ""
+      }
+    },
+    {
+      "ma": "O04",
+      "title_cn": "卡通可愛兔子毛毛鞋女...",
+      "shop": "俏繪旗艦店",
+      "source_link": "https://e.tb.cn/h.8IHGsvkidFuxFpK?tk=S4tATR9JWnV",
+      "world_url": "https://world.taobao.com/item/1077516969221.htm",
+      "item_id": "1077516969221",
+      "hub_colors": "",
+      "sku_colors_cn": [
+        "白色6623兔子棉拖鞋",
+        "米色6623兔子棉拖鞋",
+        "灰色6623兔子棉拖鞋",
+        "卡其6623兔子棉拖鞋",
+        "棕色男士考拉棉拖鞋",
+        "白色简约棉拖鞋"
+      ],
+      "colors_all": [
+        "白色6623兔子棉拖鞋",
+        "米色6623兔子棉拖鞋",
+        "灰色6623兔子棉拖鞋",
+        "卡其6623兔子棉拖鞋",
+        "棕色男士考拉棉拖鞋",
+        "白色简约棉拖鞋"
+      ],
+      "colors_incomplete": false,
+      "sizes": [
+        "36 -37(适合平时35-36码)",
+        "38 -39(适合平时37-38码)",
+        "40 -41(适合平时39-40码)",
+        "42 -43(适合平时41-42码)",
+        "44 -45(适合平时43-44码)"
+      ],
+      "sizes_raw": [
+        "36 -37(适合平时35-36码)",
+        "38 -39(适合平时37-38码)",
+        "40 -41(适合平时39-40码)",
+        "42 -43(适合平时41-42码)",
+        "44 -45(适合平时43-44码)"
+      ],
+      "sizes_source": "seller_taobao_accuracy",
+      "size_chart": "NO_CHART",
+      "size_note": "shoe_numeric_in_sizes_raw",
+      "photos": [
+        {
+          "file": "O04_kem-rate_01.jpg",
+          "path": "photos/O04/O04_kem-rate_01.jpg",
+          "stage_path": "stage-photos/O04/O04_kem-rate_01.jpg",
+          "color_vi": "Kem",
+          "color_cn": "白色6623兔子棉拖鞋",
+          "confidence": 0.15,
+          "rgb": [
+            192,
+            160,
+            128
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "O04_kem_01.jpg",
+          "path": "photos/O04/O04_kem_01.jpg",
+          "stage_path": "stage-photos/O04/O04_kem_01.jpg",
+          "color_vi": "Kem",
+          "color_cn": "白色6623兔子棉拖鞋",
+          "confidence": 0.256,
+          "rgb": [
+            192,
+            160,
+            128
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "O04_kem_07.jpg",
+          "path": "photos/O04/O04_kem_07.jpg",
+          "stage_path": "stage-photos/O04/O04_kem_07.jpg",
+          "color_vi": "Kem",
+          "color_cn": "白色6623兔子棉拖鞋",
+          "confidence": 0.235,
+          "rgb": [
+            192,
+            160,
+            128
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "O04_xam_02.jpg",
+          "path": "photos/O04/O04_xam_02.jpg",
+          "stage_path": "stage-photos/O04/O04_xam_02.jpg",
+          "color_vi": "Xám",
+          "color_cn": "白色6623兔子棉拖鞋",
+          "confidence": 0.202,
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "O04_xam_03.jpg",
+          "path": "photos/O04/O04_xam_03.jpg",
+          "stage_path": "stage-photos/O04/O04_xam_03.jpg",
+          "color_vi": "Xám",
+          "color_cn": "白色6623兔子棉拖鞋",
+          "confidence": 0.348,
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "O04_xam_04.jpg",
+          "path": "photos/O04/O04_xam_04.jpg",
+          "stage_path": "stage-photos/O04/O04_xam_04.jpg",
+          "color_vi": "Xám",
+          "color_cn": "白色6623兔子棉拖鞋",
+          "confidence": 0.181,
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "O04_xam_05.jpg",
+          "path": "photos/O04/O04_xam_05.jpg",
+          "stage_path": "stage-photos/O04/O04_xam_05.jpg",
+          "color_vi": "Xám",
+          "color_cn": "白色6623兔子棉拖鞋",
+          "confidence": 0.19,
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "O04_xam_06.jpg",
+          "path": "photos/O04/O04_xam_06.jpg",
+          "stage_path": "stage-photos/O04/O04_xam_06.jpg",
+          "color_vi": "Xám",
+          "color_cn": "白色6623兔子棉拖鞋",
+          "confidence": 0.151,
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "O04_xam_08.jpg",
+          "path": "photos/O04/O04_xam_08.jpg",
+          "stage_path": "stage-photos/O04/O04_xam_08.jpg",
+          "color_vi": "Xám",
+          "color_cn": "白色6623兔子棉拖鞋",
+          "confidence": 0.2,
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "hub_blank_live_numeric_shoe",
+        "hub_color_note_has_size_range_not_copied_as_sku",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "29.9",
+      "price_world_cny": "99.00",
+      "hub_size": "",
+      "public_default_why": "shoes numeric sizes + photos",
+      "photo_count": 9,
+      "photo_pull": {
+        "urls_found": 12,
+        "downloaded_new": 0,
+        "gaps": [
+          "login_gated_sku"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:35-07:00"
+      },
+      "colors_en": [
+        "White (白色6623兔子棉拖鞋)",
+        "Beige (米色6623兔子棉拖鞋)",
+        "Gray (灰色6623兔子棉拖鞋)",
+        "[CN] 卡其6623兔子棉拖鞋",
+        "Brown (棕色男士考拉棉拖鞋)",
+        "White (白色简约棉拖鞋)"
+      ],
+      "color_mismatch": {
+        "status": "MISMATCH",
+        "sku_colors_cn_before": [
+          "白色6623兔子棉拖鞋"
+        ],
+        "colors_all_before": [
+          "白色6623兔子棉拖鞋"
+        ],
+        "hub_colors_preserved": ""
+      }
+    },
+    {
+      "ma": "O05",
+      "title_cn": "可愛蝴蝶結小羊棉拖鞋...",
+      "shop": "俏繪旗艦店",
+      "source_link": "https://e.tb.cn/h.8rOfGnCaJlwRSVZ?tk=yxteTR9f1yt",
+      "world_url": "https://world.taobao.com/item/1078272019049.htm",
+      "item_id": "1078272019049",
+      "hub_colors": "",
+      "sku_colors_cn": [
+        "白色7333小羊棉拖鞋",
+        "粉色7333小羊棉拖鞋",
+        "灰色7333小羊棉拖鞋",
+        "灰色LDN5220简约大码棉拖鞋",
+        "白色简约棉拖鞋"
+      ],
+      "colors_all": [
+        "白色7333小羊棉拖鞋",
+        "粉色7333小羊棉拖鞋",
+        "灰色7333小羊棉拖鞋",
+        "灰色LDN5220简约大码棉拖鞋",
+        "白色简约棉拖鞋"
+      ],
+      "colors_incomplete": false,
+      "sizes": [
+        "36 -37(偏小一码)",
+        "38 -39(偏小一码)",
+        "40 -41(偏小一码)",
+        "42 -43(偏小一码)",
+        "44 -45(偏小一码)",
+        "46 -47(偏小一码)"
+      ],
+      "sizes_raw": [
+        "36 -37(偏小一码)",
+        "38 -39(偏小一码)",
+        "40 -41(偏小一码)",
+        "42 -43(偏小一码)",
+        "44 -45(偏小一码)",
+        "46 -47(偏小一码)"
+      ],
+      "sizes_source": "seller_taobao_accuracy",
+      "size_chart": "NO_CHART",
+      "size_note": "shoe_numeric_in_sizes_raw",
+      "photos": [
+        {
+          "file": "O05_kem_01.jpg",
+          "path": "photos/O05/O05_kem_01.jpg",
+          "stage_path": "stage-photos/O05/O05_kem_01.jpg",
+          "color_vi": "Kem",
+          "color_cn": "白色7333小羊棉拖鞋",
+          "confidence": 0.193,
+          "rgb": [
+            160,
+            128,
+            96
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "O05_kem_02.jpg",
+          "path": "photos/O05/O05_kem_02.jpg",
+          "stage_path": "stage-photos/O05/O05_kem_02.jpg",
+          "color_vi": "Kem",
+          "color_cn": "白色7333小羊棉拖鞋",
+          "confidence": 0.15,
+          "rgb": [
+            224,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "O05_kem_03.jpg",
+          "path": "photos/O05/O05_kem_03.jpg",
+          "stage_path": "stage-photos/O05/O05_kem_03.jpg",
+          "color_vi": "Kem",
+          "color_cn": "白色7333小羊棉拖鞋",
+          "confidence": 0.15,
+          "rgb": [
+            160,
+            128,
+            96
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "O05_kem_04.jpg",
+          "path": "photos/O05/O05_kem_04.jpg",
+          "stage_path": "stage-photos/O05/O05_kem_04.jpg",
+          "color_vi": "Kem",
+          "color_cn": "白色7333小羊棉拖鞋",
+          "confidence": 0.203,
+          "rgb": [
+            224,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "O05_kem_07.jpg",
+          "path": "photos/O05/O05_kem_07.jpg",
+          "stage_path": "stage-photos/O05/O05_kem_07.jpg",
+          "color_vi": "Kem",
+          "color_cn": "白色7333小羊棉拖鞋",
+          "confidence": 0.194,
+          "rgb": [
+            160,
+            128,
+            96
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "O05_kem_08.jpg",
+          "path": "photos/O05/O05_kem_08.jpg",
+          "stage_path": "stage-photos/O05/O05_kem_08.jpg",
+          "color_vi": "Kem",
+          "color_cn": "白色7333小羊棉拖鞋",
+          "confidence": 0.15,
+          "rgb": [
+            224,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "O05_trang-rate_01.jpg",
+          "path": "photos/O05/O05_trang-rate_01.jpg",
+          "stage_path": "stage-photos/O05/O05_trang-rate_01.jpg",
+          "color_vi": "Trắng",
+          "color_cn": "白色7333小羊棉拖鞋",
+          "confidence": 0.152,
+          "rgb": [
+            224,
+            224,
+            224
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "O05_xam_05.jpg",
+          "path": "photos/O05/O05_xam_05.jpg",
+          "stage_path": "stage-photos/O05/O05_xam_05.jpg",
+          "color_vi": "Xám",
+          "color_cn": "白色7333小羊棉拖鞋",
+          "confidence": 0.253,
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "O05_xam_06.jpg",
+          "path": "photos/O05/O05_xam_06.jpg",
+          "stage_path": "stage-photos/O05/O05_xam_06.jpg",
+          "color_vi": "Xám",
+          "color_cn": "白色7333小羊棉拖鞋",
+          "confidence": 0.388,
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "hub_blank_live_numeric_shoe",
+        "hub_color_note_has_size_range_not_copied_as_sku",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "39.9",
+      "price_world_cny": "118.00",
+      "hub_size": "",
+      "public_default_why": "shoes numeric sizes + photos",
+      "photo_count": 9,
+      "photo_pull": {
+        "urls_found": 12,
+        "downloaded_new": 1,
+        "gaps": [
+          "login_gated_sku"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:36-07:00"
+      },
+      "colors_en": [
+        "White (白色7333小羊棉拖鞋)",
+        "Pink (粉色7333小羊棉拖鞋)",
+        "Gray (灰色7333小羊棉拖鞋)",
+        "Gray (灰色LDN5220简约大码棉拖鞋)",
+        "White (白色简约棉拖鞋)"
+      ],
+      "color_mismatch": {
+        "status": "MISMATCH",
+        "sku_colors_cn_before": [
+          "白色7333小羊棉拖鞋"
+        ],
+        "colors_all_before": [
+          "白色7333小羊棉拖鞋"
+        ],
+        "hub_colors_preserved": ""
+      }
+    },
+    {
+      "ma": "P01",
+      "title_cn": "法式復古碎花髮箍女高...",
+      "shop": "MichuGo飾品",
+      "source_link": "https://e.tb.cn/h.8LUkbrVGhE4Yurr?tk=RYgXTTzkt8b",
+      "world_url": "https://world.taobao.com/item/777722622771.htm",
+      "item_id": "777722622771",
+      "hub_colors": "",
+      "sku_colors_cn": [
+        "粉色发箍",
+        "粉色+米白",
+        "米白发箍",
+        "咖色发箍",
+        "粉色+咖色",
+        "米白+咖色",
+        "百搭3件"
+      ],
+      "colors_all": [
+        "粉色发箍",
+        "粉色+米白",
+        "米白发箍",
+        "咖色发箍",
+        "粉色+咖色",
+        "米白+咖色",
+        "百搭3件"
+      ],
+      "colors_incomplete": false,
+      "sizes": [],
+      "sizes_raw": [],
+      "sizes_source": "none_public",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "P01_do_02.jpg",
+          "path": "photos/P01/P01_do_02.jpg",
+          "stage_path": "stage-photos/P01/P01_do_02.jpg",
+          "color_vi": "Đỏ",
+          "color_cn": "咖色髮箍",
+          "confidence": 0.849,
+          "rgb": [
+            192,
+            64,
+            64
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "P01_kem_01.jpg",
+          "path": "photos/P01/P01_kem_01.jpg",
+          "stage_path": "stage-photos/P01/P01_kem_01.jpg",
+          "color_vi": "Kem",
+          "color_cn": "咖色髮箍",
+          "confidence": 0.15,
+          "rgb": [
+            192,
+            160,
+            128
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "P01_kem_06.jpg",
+          "path": "photos/P01/P01_kem_06.jpg",
+          "stage_path": "stage-photos/P01/P01_kem_06.jpg",
+          "color_vi": "Kem",
+          "color_cn": "咖色髮箍",
+          "confidence": 0.15,
+          "rgb": [
+            192,
+            160,
+            128
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "P01_vang_07.jpg",
+          "path": "photos/P01/P01_vang_07.jpg",
+          "stage_path": "stage-photos/P01/P01_vang_07.jpg",
+          "color_vi": "Vàng",
+          "color_cn": "咖色髮箍",
+          "confidence": 0.15,
+          "rgb": [
+            192,
+            192,
+            160
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "P01_vang_08.jpg",
+          "path": "photos/P01/P01_vang_08.jpg",
+          "stage_path": "stage-photos/P01/P01_vang_08.jpg",
+          "color_vi": "Vàng",
+          "color_cn": "咖色髮箍",
+          "confidence": 0.15,
+          "rgb": [
+            192,
+            192,
+            160
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "P01_xam_03.jpg",
+          "path": "photos/P01/P01_xam_03.jpg",
+          "stage_path": "stage-photos/P01/P01_xam_03.jpg",
+          "color_vi": "Xám",
+          "color_cn": "咖色髮箍",
+          "confidence": 0.664,
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "included_default": true,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "P01_xam_04.jpg",
+          "path": "photos/P01/P01_xam_04.jpg",
+          "stage_path": "stage-photos/P01/P01_xam_04.jpg",
+          "color_vi": "Xám",
+          "color_cn": "咖色髮箍",
+          "confidence": 0.648,
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "included_default": true,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "P01_xam_05.jpg",
+          "path": "photos/P01/P01_xam_05.jpg",
+          "stage_path": "stage-photos/P01/P01_xam_05.jpg",
+          "color_vi": "Xám",
+          "color_cn": "咖色髮箍",
+          "confidence": 0.458,
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "no_public_size",
+        "no_public_size_prop",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "5.8",
+      "price_world_cny": "6.00",
+      "hub_size": "",
+      "public_default_why": "hair accessory sellable + photos",
+      "photo_count": 8,
+      "photo_pull": {
+        "urls_found": 8,
+        "downloaded_new": 0,
+        "gaps": [
+          "login_gated_sku"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:36-07:00"
+      },
+      "colors_en": [
+        "Pink (粉色发箍)",
+        "Pink (粉色+米白)",
+        "[CN] 米白发箍",
+        "[CN] 咖色发箍",
+        "Pink (粉色+咖色)",
+        "[CN] 米白+咖色",
+        "[CN] 百搭3件"
+      ],
+      "color_mismatch": {
+        "status": "GF_CONFLICT",
+        "hub_colors_before": "Hoa",
+        "sku_colors_cn_before": [
+          "咖色髮箍"
+        ],
+        "colors_all_before": [
+          "咖色髮箍"
+        ],
+        "gf_intake_color": "Hoa",
+        "gf_intake_color_note": null,
+        "gf_intake_color_pieces": "P1: Đỏ",
+        "issues": [
+          "GF/hub vs seller: GF 'floral' not in seller concepts ['offwhite', 'pink'] (GF_tokens=['Hoa']; hub='Hoa'; via=color/hub)"
+        ],
+        "note": "GF/hub kept in color_mismatch only; seller SKU set is preselected truth."
+      }
+    },
+    {
+      "ma": "P02",
+      "title_cn": "瘋狂動物城保溫杯朱迪...",
+      "shop": "杯比無奈",
+      "source_link": "https://e.tb.cn/h.8KU3zzXBR4OB9me?tk=kcDJT6G7z4p",
+      "world_url": "https://world.taobao.com/item/971820172739.htm",
+      "item_id": "971820172739",
+      "hub_colors": "",
+      "sku_colors_cn": [
+        "朱迪800ml-冰霸杯-茶仓 【正版授权】",
+        "尼克800ml-冰霸杯-茶仓 【正版授权】",
+        "史迪仔800ml-冰霸杯-茶仓 【正版授权】",
+        "朱迪800ml-冰霸杯-茶仓+随机3d贴+清洁杯刷 【正版授权】",
+        "尼克800ml-冰霸杯-茶仓+随机3d贴+清洁杯刷 【正版授权】",
+        "史迪仔800ml-冰霸杯-茶仓+随机3d贴+清洁杯刷 【正版授权】",
+        "【闺蜜情侣优惠套餐】朱迪800ml+尼克800ml 【正版授权】"
+      ],
+      "colors_all": [
+        "朱迪800ml-冰霸杯-茶仓 【正版授权】",
+        "尼克800ml-冰霸杯-茶仓 【正版授权】",
+        "史迪仔800ml-冰霸杯-茶仓 【正版授权】",
+        "朱迪800ml-冰霸杯-茶仓+随机3d贴+清洁杯刷 【正版授权】",
+        "尼克800ml-冰霸杯-茶仓+随机3d贴+清洁杯刷 【正版授权】",
+        "史迪仔800ml-冰霸杯-茶仓+随机3d贴+清洁杯刷 【正版授权】",
+        "【闺蜜情侣优惠套餐】朱迪800ml+尼克800ml 【正版授权】"
+      ],
+      "colors_incomplete": false,
+      "sizes": [],
+      "sizes_raw": [
+        "800ml"
+      ],
+      "sizes_source": "capacity_sku",
+      "size_chart": "NO_CHART",
+      "size_note": "capacity:800ml",
+      "photos": [
+        {
+          "file": "P02_den_02.jpg",
+          "path": "photos/P02/P02_den_02.jpg",
+          "stage_path": "stage-photos/P02/P02_den_02.jpg",
+          "color_vi": "Đen",
+          "color_cn": "尼克800ml-冰霸杯-茶倉+隨機3d貼+清潔杯刷[【正版授權】]",
+          "confidence": 0.271,
+          "rgb": [
+            32,
+            32,
+            32
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "P02_den_04.jpg",
+          "path": "photos/P02/P02_den_04.jpg",
+          "stage_path": "stage-photos/P02/P02_den_04.jpg",
+          "color_vi": "Đen",
+          "color_cn": "尼克800ml-冰霸杯-茶倉+隨機3d貼+清潔杯刷[【正版授權】]",
+          "confidence": 0.268,
+          "rgb": [
+            32,
+            32,
+            32
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "P02_kem_01.jpg",
+          "path": "photos/P02/P02_kem_01.jpg",
+          "stage_path": "stage-photos/P02/P02_kem_01.jpg",
+          "color_vi": "Kem",
+          "color_cn": "尼克800ml-冰霸杯-茶倉+隨機3d貼+清潔杯刷[【正版授權】]",
+          "confidence": 0.15,
+          "rgb": [
+            224,
+            192,
+            160
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "P02_kem_03.jpg",
+          "path": "photos/P02/P02_kem_03.jpg",
+          "stage_path": "stage-photos/P02/P02_kem_03.jpg",
+          "color_vi": "Kem",
+          "color_cn": "尼克800ml-冰霸杯-茶倉+隨機3d貼+清潔杯刷[【正版授權】]",
+          "confidence": 0.15,
+          "rgb": [
+            224,
+            192,
+            160
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "P02_kem_05.jpg",
+          "path": "photos/P02/P02_kem_05.jpg",
+          "stage_path": "stage-photos/P02/P02_kem_05.jpg",
+          "color_vi": "Kem",
+          "color_cn": "尼克800ml-冰霸杯-茶倉+隨機3d貼+清潔杯刷[【正版授權】]",
+          "confidence": 0.235,
+          "rgb": [
+            224,
+            192,
+            160
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "P02_kem_06.jpg",
+          "path": "photos/P02/P02_kem_06.jpg",
+          "stage_path": "stage-photos/P02/P02_kem_06.jpg",
+          "color_vi": "Kem",
+          "color_cn": "尼克800ml-冰霸杯-茶倉+隨機3d貼+清潔杯刷[【正版授權】]",
+          "confidence": 0.15,
+          "rgb": [
+            224,
+            192,
+            160
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": false,
+      "status_default": "hold",
+      "flags": [
+        "thermos_capacity:800ml",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only",
+        "public_default_hold"
+      ],
+      "price_share_cny": "101.2",
+      "price_world_cny": "112.50",
+      "hub_size": "",
+      "public_default_why": "thermos P02/P03/P05 hold",
+      "photo_count": 6,
+      "photo_pull": {
+        "urls_found": 2,
+        "downloaded_new": 0,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:37-07:00"
+      },
+      "colors_en": [
+        "[CN] 朱迪800ml-冰霸杯-茶仓 【正版授权】",
+        "[CN] 尼克800ml-冰霸杯-茶仓 【正版授权】",
+        "[CN] 史迪仔800ml-冰霸杯-茶仓 【正版授权】",
+        "[CN] 朱迪800ml-冰霸杯-茶仓+随机3d贴+清洁杯刷 【正版授权】",
+        "[CN] 尼克800ml-冰霸杯-茶仓+随机3d贴+清洁杯刷 【正版授权】",
+        "[CN] 史迪仔800ml-冰霸杯-茶仓+随机3d贴+清洁杯刷 【正版授权】",
+        "[CN] 【闺蜜情侣优惠套餐】朱迪800ml+尼克800ml 【正版授权】"
+      ],
+      "color_mismatch": {
+        "status": "GF_CONFLICT",
+        "hub_colors_before": "Đỏ",
+        "sku_colors_cn_before": [
+          "尼克800ml-冰霸杯-茶倉+隨機3d貼+清潔杯刷[【正版授權】]"
+        ],
+        "colors_all_before": [
+          "尼克800ml-冰霸杯-茶倉+隨機3d貼+清潔杯刷[【正版授權】]"
+        ],
+        "gf_intake_color": "Đỏ",
+        "gf_intake_color_note": null,
+        "gf_intake_color_pieces": "P1: Đỏ",
+        "issues": [
+          "GF/hub vs seller: GF hue labels ['red'] but seller SKU strings have no clear hue to verify against (GF_tokens=['Đỏ']; hub='Đỏ'; via=color/hub)"
+        ],
+        "note": "GF/hub kept in color_mismatch only; seller SKU set is preselected truth."
+      }
+    },
+    {
+      "ma": "P03",
+      "title_cn": "迪士尼聯名保溫杯高顏...",
+      "shop": "杯比無奈",
+      "source_link": "https://e.tb.cn/h.8KKzBinMRDOZhNO?tk=nf9vThVDZ31",
+      "world_url": "https://world.taobao.com/item/979636368813.htm",
+      "item_id": "979636368813",
+      "hub_colors": "",
+      "sku_colors_cn": [
+        "朱迪500ml-双饮+赠3d贴+清洁杯刷",
+        "尼克500ml-双饮+赠3d贴+清洁杯刷",
+        "草莓熊500ml-双饮+赠3d贴+清洁杯刷",
+        "史迪奇500ml-双饮+赠3d贴+清洁杯刷",
+        "蜡笔小新500ml-双饮+赠3d贴+清洁杯刷",
+        "【礼物款】蜡笔小新500ml-双饮+赠3d贴+清洁杯刷+精美礼袋",
+        "【礼物款】朱迪500ml-双饮+赠3d贴+清洁杯刷+精美礼袋",
+        "【礼物款】尼克500ml-双饮+赠3d贴+清洁杯刷+精美礼袋",
+        "【礼物款】草莓熊500ml-双饮+赠3d贴+清洁杯刷+精美礼袋",
+        "【礼物款】史迪奇500ml-双饮+赠3d贴+清洁杯刷+精美礼袋"
+      ],
+      "colors_all": [
+        "朱迪500ml-双饮+赠3d贴+清洁杯刷",
+        "尼克500ml-双饮+赠3d贴+清洁杯刷",
+        "草莓熊500ml-双饮+赠3d贴+清洁杯刷",
+        "史迪奇500ml-双饮+赠3d贴+清洁杯刷",
+        "蜡笔小新500ml-双饮+赠3d贴+清洁杯刷",
+        "【礼物款】蜡笔小新500ml-双饮+赠3d贴+清洁杯刷+精美礼袋",
+        "【礼物款】朱迪500ml-双饮+赠3d贴+清洁杯刷+精美礼袋",
+        "【礼物款】尼克500ml-双饮+赠3d贴+清洁杯刷+精美礼袋",
+        "【礼物款】草莓熊500ml-双饮+赠3d贴+清洁杯刷+精美礼袋",
+        "【礼物款】史迪奇500ml-双饮+赠3d贴+清洁杯刷+精美礼袋"
+      ],
+      "colors_incomplete": false,
+      "sizes": [],
+      "sizes_raw": [
+        "500ml"
+      ],
+      "sizes_source": "capacity_sku",
+      "size_chart": "NO_CHART",
+      "size_note": "capacity:500ml",
+      "photos": [
+        {
+          "file": "P03_den_02.jpg",
+          "path": "photos/P03/P03_den_02.jpg",
+          "stage_path": "stage-photos/P03/P03_den_02.jpg",
+          "color_vi": "Đen",
+          "color_cn": "Đen",
+          "confidence": 0.271,
+          "rgb": [
+            32,
+            32,
+            32
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "P03_den_04.jpg",
+          "path": "photos/P03/P03_den_04.jpg",
+          "stage_path": "stage-photos/P03/P03_den_04.jpg",
+          "color_vi": "Đen",
+          "color_cn": "Đen",
+          "confidence": 0.268,
+          "rgb": [
+            32,
+            32,
+            32
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "P03_den_05.jpg",
+          "path": "photos/P03/P03_den_05.jpg",
+          "stage_path": "stage-photos/P03/P03_den_05.jpg",
+          "color_vi": "Đen",
+          "color_cn": "Đen",
+          "confidence": 0.186,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "P03_den_07.jpg",
+          "path": "photos/P03/P03_den_07.jpg",
+          "stage_path": "stage-photos/P03/P03_den_07.jpg",
+          "color_vi": "Đen",
+          "color_cn": "Đen",
+          "confidence": 0.171,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "P03_kem_01.jpg",
+          "path": "photos/P03/P03_kem_01.jpg",
+          "stage_path": "stage-photos/P03/P03_kem_01.jpg",
+          "color_vi": "Kem",
+          "color_cn": "尼克500ml-雙飲+贈3d貼+清潔杯刷",
+          "confidence": 0.15,
+          "rgb": [
+            224,
+            192,
+            160
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "P03_kem_03.jpg",
+          "path": "photos/P03/P03_kem_03.jpg",
+          "stage_path": "stage-photos/P03/P03_kem_03.jpg",
+          "color_vi": "Kem",
+          "color_cn": "尼克500ml-雙飲+贈3d貼+清潔杯刷",
+          "confidence": 0.15,
+          "rgb": [
+            224,
+            192,
+            160
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "P03_kem_06.jpg",
+          "path": "photos/P03/P03_kem_06.jpg",
+          "stage_path": "stage-photos/P03/P03_kem_06.jpg",
+          "color_vi": "Kem",
+          "color_cn": "尼克500ml-雙飲+贈3d貼+清潔杯刷",
+          "confidence": 0.211,
+          "rgb": [
+            224,
+            192,
+            160
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": false,
+      "status_default": "hold",
+      "flags": [
+        "thermos_capacity:500ml",
+        "no_chart_flag_from_audit",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only",
+        "photo≠link",
+        "public_default_hold"
+      ],
+      "price_share_cny": "39.9",
+      "price_world_cny": "49.90",
+      "hub_size": "",
+      "public_default_why": "thermos P02/P03/P05 hold",
+      "photo_count": 7,
+      "photo_pull": {
+        "urls_found": 2,
+        "downloaded_new": 0,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:37-07:00"
+      },
+      "colors_en": [
+        "[CN] 朱迪500ml-双饮+赠3d贴+清洁杯刷",
+        "[CN] 尼克500ml-双饮+赠3d贴+清洁杯刷",
+        "[CN] 草莓熊500ml-双饮+赠3d贴+清洁杯刷",
+        "[CN] 史迪奇500ml-双饮+赠3d贴+清洁杯刷",
+        "[CN] 蜡笔小新500ml-双饮+赠3d贴+清洁杯刷",
+        "[CN] 【礼物款】蜡笔小新500ml-双饮+赠3d贴+清洁杯刷+精美礼袋",
+        "[CN] 【礼物款】朱迪500ml-双饮+赠3d贴+清洁杯刷+精美礼袋",
+        "[CN] 【礼物款】尼克500ml-双饮+赠3d贴+清洁杯刷+精美礼袋",
+        "[CN] 【礼物款】草莓熊500ml-双饮+赠3d贴+清洁杯刷+精美礼袋",
+        "[CN] 【礼物款】史迪奇500ml-双饮+赠3d贴+清洁杯刷+精美礼袋"
+      ],
+      "color_mismatch": {
+        "status": "GF_CONFLICT",
+        "hub_colors_before": "Đen, Đỏ",
+        "sku_colors_cn_before": [
+          "尼克500ml-雙飲+贈3d貼+清潔杯刷"
+        ],
+        "colors_all_before": [
+          "尼克500ml-雙飲+贈3d貼+清潔杯刷"
+        ],
+        "gf_intake_color": "Đen, Đỏ",
+        "gf_intake_color_note": null,
+        "gf_intake_color_pieces": null,
+        "issues": [
+          "GF/hub vs seller: GF hue labels ['black', 'red'] but seller SKU strings have no clear hue to verify against (GF_tokens=['Đen', 'Đỏ']; hub='Đen, Đỏ'; via=color/hub)"
+        ],
+        "note": "GF/hub kept in color_mismatch only; seller SKU set is preselected truth."
+      }
+    },
+    {
+      "ma": "P04",
+      "title_cn": "甜美蝴蝶結草莓八角貝...",
+      "shop": "問香坊",
+      "source_link": "https://e.tb.cn/h.8LYfu0T52xNPoOD?tk=sfeoT6uLsAa",
+      "world_url": "https://world.taobao.com/item/806694443822.htm",
+      "item_id": "806694443822",
+      "hub_colors": "Kem",
+      "sku_colors_cn": [
+        "米白色"
+      ],
+      "colors_all": [
+        "米白色"
+      ],
+      "colors_incomplete": false,
+      "sizes": [
+        "M（56-58cm）"
+      ],
+      "sizes_raw": [
+        "M（56-58cm）"
+      ],
+      "sizes_source": "seller_taobao_accuracy",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "P04_kem_01.jpg",
+          "path": "photos/P04/P04_kem_01.jpg",
+          "stage_path": "stage-photos/P04/P04_kem_01.jpg",
+          "color_vi": "Kem",
+          "color_cn": "米白色",
+          "confidence": 0.18,
+          "rgb": [
+            192,
+            160,
+            160
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "P04_kem_02.jpg",
+          "path": "photos/P04/P04_kem_02.jpg",
+          "stage_path": "stage-photos/P04/P04_kem_02.jpg",
+          "color_vi": "Kem",
+          "color_cn": "米白色",
+          "confidence": 0.18,
+          "rgb": [
+            160,
+            128,
+            96
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "P04_kem_03.jpg",
+          "path": "photos/P04/P04_kem_03.jpg",
+          "stage_path": "stage-photos/P04/P04_kem_03.jpg",
+          "color_vi": "Kem",
+          "color_cn": "米白色",
+          "confidence": 0.181,
+          "rgb": [
+            192,
+            160,
+            160
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "P04_kem_04.jpg",
+          "path": "photos/P04/P04_kem_04.jpg",
+          "stage_path": "stage-photos/P04/P04_kem_04.jpg",
+          "color_vi": "Kem",
+          "color_cn": "米白色",
+          "confidence": 0.234,
+          "rgb": [
+            192,
+            160,
+            128
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "headwear_cm_in_size",
+        "hub_blank_live_has_size",
+        "headwear_cm_in_size_sku_label",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "23.8",
+      "price_world_cny": "50.00",
+      "hub_size": "",
+      "public_default_why": "beret sellable + photos + size",
+      "photo_count": 4,
+      "photo_pull": {
+        "urls_found": 2,
+        "downloaded_new": 0,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:37-07:00"
+      },
+      "colors_en": [
+        "Off-white"
+      ],
+      "color_mismatch": {
+        "status": "MATCH",
+        "sku_colors_cn_before": [
+          "米白色"
+        ],
+        "colors_all_before": [
+          "米白色"
+        ],
+        "hub_colors_preserved": "Kem"
+      }
+    },
+    {
+      "ma": "P05",
+      "title_cn": "必AINUO保溫杯可愛大容...",
+      "shop": "杯比無奈",
+      "source_link": "https://e.tb.cn/h.8pbIxrTW0mbK1Wk?tk=oDgIT6GKXrw",
+      "world_url": "https://world.taobao.com/item/979479898479.htm",
+      "item_id": "979479898479",
+      "hub_colors": "",
+      "sku_colors_cn": [
+        "必爱诺700ml-316保温保冷 正版保障",
+        "必爱诺700ml-赠3d贴+清洁杯刷 正版保障",
+        "【送礼推荐】必爱诺700ml-赠3d贴+清洁杯刷+精美礼袋 正版保障",
+        "凯蒂猫700ml-316保温保冷-赠3d贴+清洁杯刷 正版保障",
+        "美乐蒂700ml-316保温保冷-赠3d贴+清洁杯刷 正版保障",
+        "玉桂狗700ml-316保温保冷-赠3d贴+清洁杯刷 正版保障",
+        "库洛米700ml-316保温保冷-赠3d贴+清洁杯刷 正版保障"
+      ],
+      "colors_all": [
+        "必爱诺700ml-316保温保冷 正版保障",
+        "必爱诺700ml-赠3d贴+清洁杯刷 正版保障",
+        "【送礼推荐】必爱诺700ml-赠3d贴+清洁杯刷+精美礼袋 正版保障",
+        "凯蒂猫700ml-316保温保冷-赠3d贴+清洁杯刷 正版保障",
+        "美乐蒂700ml-316保温保冷-赠3d贴+清洁杯刷 正版保障",
+        "玉桂狗700ml-316保温保冷-赠3d贴+清洁杯刷 正版保障",
+        "库洛米700ml-316保温保冷-赠3d贴+清洁杯刷 正版保障"
+      ],
+      "colors_incomplete": false,
+      "sizes": [],
+      "sizes_raw": [],
+      "sizes_source": "none_public",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "P05_den_01.jpg",
+          "path": "photos/P05/P05_den_01.jpg",
+          "stage_path": "stage-photos/P05/P05_den_01.jpg",
+          "color_vi": "Đen",
+          "color_cn": "",
+          "confidence": 0.15,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "P05_den_02.jpg",
+          "path": "photos/P05/P05_den_02.jpg",
+          "stage_path": "stage-photos/P05/P05_den_02.jpg",
+          "color_vi": "Đen",
+          "color_cn": "",
+          "confidence": 0.271,
+          "rgb": [
+            32,
+            32,
+            32
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "P05_den_03.jpg",
+          "path": "photos/P05/P05_den_03.jpg",
+          "stage_path": "stage-photos/P05/P05_den_03.jpg",
+          "color_vi": "Đen",
+          "color_cn": "",
+          "confidence": 0.15,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "P05_den_04.jpg",
+          "path": "photos/P05/P05_den_04.jpg",
+          "stage_path": "stage-photos/P05/P05_den_04.jpg",
+          "color_vi": "Đen",
+          "color_cn": "",
+          "confidence": 0.268,
+          "rgb": [
+            32,
+            32,
+            32
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "P05_hong_07.jpg",
+          "path": "photos/P05/P05_hong_07.jpg",
+          "stage_path": "stage-photos/P05/P05_hong_07.jpg",
+          "color_vi": "Hồng",
+          "color_cn": "Hồng",
+          "confidence": 0.322,
+          "rgb": [
+            224,
+            160,
+            192
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "P05_kem_05.jpg",
+          "path": "photos/P05/P05_kem_05.jpg",
+          "stage_path": "stage-photos/P05/P05_kem_05.jpg",
+          "color_vi": "Kem",
+          "color_cn": "",
+          "confidence": 0.266,
+          "rgb": [
+            224,
+            192,
+            192
+          ],
+          "included_default": true,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "P05_xanhdng_06.jpg",
+          "path": "photos/P05/P05_xanhdng_06.jpg",
+          "stage_path": "stage-photos/P05/P05_xanhdng_06.jpg",
+          "color_vi": "Xanh dương",
+          "color_cn": "Xanh",
+          "confidence": 0.244,
+          "rgb": [
+            160,
+            160,
+            224
+          ],
+          "included_default": true,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": false,
+      "status_default": "hold",
+      "flags": [
+        "no_public_size",
+        "thermos_capacity_from_color_sku_only",
+        "no_chart_flag_from_audit",
+        "thermos_title_but_ml_not_on_public_page",
+        "no_public_size_prop",
+        "NO_CHART",
+        "colors_unknown_public",
+        "colors_incomplete_login_or_chip_only",
+        "public_default_hold"
+      ],
+      "price_share_cny": "98.9",
+      "price_world_cny": "109.90",
+      "hub_size": "",
+      "public_default_why": "thermos P02/P03/P05 hold",
+      "photo_count": 7,
+      "photo_pull": {
+        "urls_found": 2,
+        "downloaded_new": 0,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:37-07:00"
+      },
+      "colors_en": [
+        "[CN] 必爱诺700ml-316保温保冷 正版保障",
+        "[CN] 必爱诺700ml-赠3d贴+清洁杯刷 正版保障",
+        "[CN] 【送礼推荐】必爱诺700ml-赠3d贴+清洁杯刷+精美礼袋 正版保障",
+        "[CN] 凯蒂猫700ml-316保温保冷-赠3d贴+清洁杯刷 正版保障",
+        "[CN] 美乐蒂700ml-316保温保冷-赠3d贴+清洁杯刷 正版保障",
+        "[CN] 玉桂狗700ml-316保温保冷-赠3d贴+清洁杯刷 正版保障",
+        "[CN] 库洛米700ml-316保温保冷-赠3d贴+清洁杯刷 正版保障"
+      ],
+      "color_mismatch": {
+        "status": "GF_CONFLICT",
+        "hub_colors_before": "Hồng, Đỏ, Xanh",
+        "sku_colors_cn_before": [],
+        "colors_all_before": [],
+        "gf_intake_color": "Hồng, Đỏ, Xanh",
+        "gf_intake_color_note": null,
+        "gf_intake_color_pieces": "P1: Hồng | P2: Đỏ | P3: Xanh",
+        "issues": [
+          "GF/hub vs seller: GF hue labels ['bluegreen', 'pink', 'red'] but seller SKU strings have no clear hue to verify against (GF_tokens=['Hồng', 'Đỏ', 'Xanh']; hub='Hồng, Đỏ, Xanh'; via=color/hub)"
+        ],
+        "note": "GF/hub kept in color_mismatch only; seller SKU set is preselected truth."
+      }
+    },
+    {
+      "ma": "Q01",
+      "title_cn": "吳太甜 百搭capr...",
+      "shop": "Wuu2Sweet吳太甜",
+      "source_link": "https://e.tb.cn/h.8rhr0aiQK5LTZp6?tk=Z8qYTiacYLD",
+      "world_url": "https://world.taobao.com/item/1042320874853.htm",
+      "item_id": "1042320874853",
+      "hub_colors": "Trắng, Đen",
+      "sku_colors_cn": [
+        "白色中裤",
+        "黑色中裤"
+      ],
+      "colors_all": [
+        "白色中裤",
+        "黑色中裤"
+      ],
+      "colors_incomplete": false,
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "sizes_raw": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "sizes_source": "seller_taobao_accuracy",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "Q01_den_01.jpg",
+          "path": "photos/Q01/Q01_den_01.jpg",
+          "stage_path": "stage-photos/Q01/Q01_den_01.jpg",
+          "color_vi": "Đen",
+          "color_cn": "黑色五分褲",
+          "confidence": 0.15,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "Q01_den_01.png",
+          "path": "photos/Q01/Q01_den_01.png",
+          "stage_path": "stage-photos/Q01/Q01_den_01.png",
+          "color_vi": "Đen",
+          "color_cn": "黑色五分褲",
+          "confidence": 0.895,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "Q01_den_02.jpg",
+          "path": "photos/Q01/Q01_den_02.jpg",
+          "stage_path": "stage-photos/Q01/Q01_den_02.jpg",
+          "color_vi": "Đen",
+          "color_cn": "黑色五分褲",
+          "confidence": 0.15,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "Q01_den_03.jpg",
+          "path": "photos/Q01/Q01_den_03.jpg",
+          "stage_path": "stage-photos/Q01/Q01_den_03.jpg",
+          "color_vi": "Đen",
+          "color_cn": "黑色五分褲",
+          "confidence": 0.15,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "live_shows_single_sku_within_hub",
+        "no_chart_flag_from_audit",
+        "hub_multi_live_review_chip_only",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "105",
+      "price_world_cny": "105.00",
+      "hub_size": "L S M XL",
+      "public_default_why": "Q clothing/set + size + photos",
+      "photo_count": 4,
+      "photo_pull": {
+        "urls_found": 3,
+        "downloaded_new": 0,
+        "gaps": [
+          "login_gated_sku"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:37-07:00"
+      },
+      "colors_en": [
+        "White (白色中裤)",
+        "Black (黑色中裤)"
+      ],
+      "color_mismatch": {
+        "status": "MISMATCH",
+        "sku_colors_cn_before": [
+          "黑色五分褲"
+        ],
+        "colors_all_before": [
+          "黑色五分褲"
+        ],
+        "hub_colors_preserved": "Trắng, Đen"
+      }
+    },
+    {
+      "ma": "S01",
+      "title_cn": "韓系時尚設計感針織拼...",
+      "shop": "LUNAVIBE",
+      "source_link": "https://e.tb.cn/h.8KBBS0G8a3NQqtg?tk=YcEnTTALzCr",
+      "world_url": "https://world.taobao.com/item/1064756450416.htm",
+      "item_id": "1064756450416",
+      "hub_colors": "",
+      "sku_colors_cn": [
+        "连衣裙"
+      ],
+      "colors_all": [
+        "连衣裙"
+      ],
+      "colors_incomplete": false,
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "sizes_raw": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "sizes_source": "seller_taobao_accuracy",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "S01_den_02.jpg",
+          "path": "photos/S01/S01_den_02.jpg",
+          "stage_path": "stage-photos/S01/S01_den_02.jpg",
+          "color_vi": "Đen",
+          "color_cn": "洋裝",
+          "confidence": 0.899,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": true,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "S01_den_04.jpg",
+          "path": "photos/S01/S01_den_04.jpg",
+          "stage_path": "stage-photos/S01/S01_den_04.jpg",
+          "color_vi": "Đen",
+          "color_cn": "洋裝",
+          "confidence": 0.9,
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "S01_vang_01.jpg",
+          "path": "photos/S01/S01_vang_01.jpg",
+          "stage_path": "stage-photos/S01/S01_vang_01.jpg",
+          "color_vi": "Vàng",
+          "color_cn": "洋裝",
+          "confidence": 0.15,
+          "rgb": [
+            224,
+            224,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "S01_vang_03.jpg",
+          "path": "photos/S01/S01_vang_03.jpg",
+          "stage_path": "stage-photos/S01/S01_vang_03.jpg",
+          "color_vi": "Vàng",
+          "color_cn": "洋裝",
+          "confidence": 0.15,
+          "rgb": [
+            224,
+            224,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "S01_xam_05.jpg",
+          "path": "photos/S01/S01_xam_05.jpg",
+          "stage_path": "stage-photos/S01/S01_xam_05.jpg",
+          "color_vi": "Xám",
+          "color_cn": "洋裝",
+          "confidence": 0.181,
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "included_default": true,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "live_shows_single_sku_within_hub",
+        "hub_multi_live_review_chip_only",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "148",
+      "price_world_cny": "399.00",
+      "hub_size": "S M L XL",
+      "public_default_why": "S clothing/set + size + photos",
+      "photo_count": 5,
+      "photo_pull": {
+        "urls_found": 2,
+        "downloaded_new": 0,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:37-07:00"
+      },
+      "colors_en": [
+        "[CN] 连衣裙"
+      ],
+      "color_mismatch": {
+        "status": "GF_CONFLICT",
+        "hub_colors_before": "Kem",
+        "sku_colors_cn_before": [
+          "洋裝"
+        ],
+        "colors_all_before": [
+          "洋裝"
+        ],
+        "gf_intake_color": "Kem",
+        "gf_intake_color_note": null,
+        "gf_intake_color_pieces": "P1: Kem",
+        "issues": [
+          "GF/hub vs seller: GF hue labels ['cream'] but seller SKU strings have no clear hue to verify against (GF_tokens=['Kem']; hub='Kem'; via=color/hub)"
+        ],
+        "note": "GF/hub kept in color_mismatch only; seller SKU set is preselected truth."
+      }
+    },
+    {
+      "ma": "S02",
+      "title_cn": "卡通貓咪印花長袖睡衣...",
+      "shop": "蘿拉仙女生活館",
+      "source_link": "https://e.tb.cn/h.8pA8S04XNP5rz4Z?tk=g9gdTSFBZA5",
+      "world_url": "https://world.taobao.com/item/1073269081509.htm",
+      "item_id": "1073269081509",
+      "hub_colors": "",
+      "sku_colors_cn": [
+        "QKM-T0061-1# 带胸垫",
+        "QKM-T0059-3# 带胸垫",
+        "QKM-T0060-5# 带胸垫",
+        "QKM-T0060-6# 带胸垫",
+        "QKM-T0061-2# 带胸垫"
+      ],
+      "colors_all": [
+        "QKM-T0061-1# 带胸垫",
+        "QKM-T0059-3# 带胸垫",
+        "QKM-T0060-5# 带胸垫",
+        "QKM-T0060-6# 带胸垫",
+        "QKM-T0061-2# 带胸垫"
+      ],
+      "colors_incomplete": false,
+      "sizes": [
+        "M【建议80-100斤】",
+        "L【建议100-120斤】",
+        "XL【建议120-140斤】",
+        "XXL【建议140-160斤】"
+      ],
+      "sizes_raw": [
+        "M【建议80-100斤】",
+        "L【建议100-120斤】",
+        "XL【建议120-140斤】",
+        "XXL【建议140-160斤】"
+      ],
+      "sizes_source": "seller_taobao_accuracy",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "S02_kem_01.jpg",
+          "path": "photos/S02/S02_kem_01.jpg",
+          "stage_path": "stage-photos/S02/S02_kem_01.jpg",
+          "color_vi": "Kem",
+          "color_cn": "QKM-T0061-1#[帶胸墊]",
+          "confidence": 0.216,
+          "rgb": [
+            192,
+            160,
+            160
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "S02_kem_02.jpg",
+          "path": "photos/S02/S02_kem_02.jpg",
+          "stage_path": "stage-photos/S02/S02_kem_02.jpg",
+          "color_vi": "Kem",
+          "color_cn": "QKM-T0061-1#[帶胸墊]",
+          "confidence": 0.214,
+          "rgb": [
+            192,
+            160,
+            160
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "S02_kem_03.jpg",
+          "path": "photos/S02/S02_kem_03.jpg",
+          "stage_path": "stage-photos/S02/S02_kem_03.jpg",
+          "color_vi": "Kem",
+          "color_cn": "QKM-T0061-1#[帶胸墊]",
+          "confidence": 0.247,
+          "rgb": [
+            192,
+            160,
+            160
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "live_shows_single_sku_within_hub",
+        "hub_multi_live_review_chip_only",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "69.8",
+      "price_world_cny": "69.80",
+      "hub_size": "M L XL 2XL",
+      "public_default_why": "S clothing/set + size + photos",
+      "photo_count": 3,
+      "photo_pull": {
+        "urls_found": 1,
+        "downloaded_new": 0,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:38-07:00"
+      },
+      "colors_en": [
+        "[CN] QKM-T0061-1# 带胸垫",
+        "[CN] QKM-T0059-3# 带胸垫",
+        "[CN] QKM-T0060-5# 带胸垫",
+        "[CN] QKM-T0060-6# 带胸垫",
+        "[CN] QKM-T0061-2# 带胸垫"
+      ],
+      "color_mismatch": {
+        "status": "MISMATCH",
+        "sku_colors_cn_before": [
+          "QKM-T0061-1#[帶胸墊]"
+        ],
+        "colors_all_before": [
+          "QKM-T0061-1#[帶胸墊]"
+        ],
+        "hub_colors_preserved": ""
+      }
+    },
+    {
+      "ma": "S03",
+      "title_cn": "【萌寵樂園】可愛卡通...",
+      "shop": "覓思妍睡衣店",
+      "source_link": "https://e.tb.cn/h.8rIIIbpFLPkqdC1?tk=UeV1TSvJnCl",
+      "world_url": "https://world.taobao.com/item/965483321452.htm",
+      "item_id": "965483321452",
+      "hub_colors": "",
+      "sku_colors_cn": [
+        "萌宠乐园【带胸垫】",
+        "萌宠小熊【带胸垫】"
+      ],
+      "colors_all": [
+        "萌宠乐园【带胸垫】",
+        "萌宠小熊【带胸垫】"
+      ],
+      "colors_incomplete": false,
+      "sizes": [
+        "M女【推荐80-100斤】",
+        "L女【推荐100-120斤】",
+        "XL女【推荐120-140斤】"
+      ],
+      "sizes_raw": [
+        "M女【推荐80-100斤】",
+        "L女【推荐100-120斤】",
+        "XL女【推荐120-140斤】"
+      ],
+      "sizes_source": "seller_taobao_accuracy",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "S03_hoa-print_02.jpg",
+          "path": "photos/S03/S03_hoa-print_02.jpg",
+          "stage_path": "stage-photos/S03/S03_hoa-print_02.jpg",
+          "color_vi": "Hoa/print",
+          "color_cn": "萌寵樂園【帶胸墊】",
+          "confidence": 0.269,
+          "rgb": [
+            160,
+            160,
+            160
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "S03_hoa-print_03.jpg",
+          "path": "photos/S03/S03_hoa-print_03.jpg",
+          "stage_path": "stage-photos/S03/S03_hoa-print_03.jpg",
+          "color_vi": "Hoa/print",
+          "color_cn": "萌寵樂園【帶胸墊】",
+          "confidence": 0.187,
+          "rgb": [
+            128,
+            128,
+            128
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "S03_hoa-print_05.jpg",
+          "path": "photos/S03/S03_hoa-print_05.jpg",
+          "stage_path": "stage-photos/S03/S03_hoa-print_05.jpg",
+          "color_vi": "Hoa/print",
+          "color_cn": "萌寵樂園【帶胸墊】",
+          "confidence": 0.274,
+          "rgb": [
+            160,
+            160,
+            160
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "S03_hoa-print_06.jpg",
+          "path": "photos/S03/S03_hoa-print_06.jpg",
+          "stage_path": "stage-photos/S03/S03_hoa-print_06.jpg",
+          "color_vi": "Hoa/print",
+          "color_cn": "萌寵樂園【帶胸墊】",
+          "confidence": 0.19,
+          "rgb": [
+            128,
+            128,
+            128
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "S03_xam_01.jpg",
+          "path": "photos/S03/S03_xam_01.jpg",
+          "stage_path": "stage-photos/S03/S03_xam_01.jpg",
+          "color_vi": "Xám",
+          "color_cn": "萌寵樂園【帶胸墊】",
+          "confidence": 0.383,
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        },
+        {
+          "file": "S03_xam_04.jpg",
+          "path": "photos/S03/S03_xam_04.jpg",
+          "stage_path": "stage-photos/S03/S03_xam_04.jpg",
+          "color_vi": "Xám",
+          "color_cn": "萌寵樂園【帶胸墊】",
+          "confidence": 0.385,
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "live_shows_single_sku_within_hub",
+        "hub_multi_live_review_chip_only",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "78",
+      "price_world_cny": "608.00",
+      "hub_size": "M L XL",
+      "public_default_why": "S clothing/set + size + photos",
+      "photo_count": 6,
+      "photo_pull": {
+        "urls_found": 5,
+        "downloaded_new": 0,
+        "gaps": [
+          "login_gated_sku"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:39-07:00"
+      },
+      "colors_en": [
+        "[CN] 萌宠乐园【带胸垫】",
+        "[CN] 萌宠小熊【带胸垫】"
+      ],
+      "color_mismatch": {
+        "status": "MISMATCH",
+        "sku_colors_cn_before": [
+          "萌寵樂園【帶胸墊】"
+        ],
+        "colors_all_before": [
+          "萌寵樂園【帶胸墊】"
+        ],
+        "hub_colors_preserved": ""
+      }
+    },
+    {
+      "ma": "S04",
+      "title_cn": "重工蕾絲魚骨抹胸上衣...",
+      "shop": "賣衣服養你啊",
+      "source_link": "https://e.tb.cn/h.8s4B4htXZ4FDIHD?tk=UYNRTiR2TUD",
+      "world_url": "https://world.taobao.com/item/1047301043121.htm",
+      "item_id": "1047301043121",
+      "hub_colors": "Trắng, Đỏ",
+      "sku_colors_cn": [
+        "红色（抹胸上衣+半身裙）",
+        "白色（抹胸上衣+半身裙）"
+      ],
+      "colors_all": [
+        "红色（抹胸上衣+半身裙）",
+        "白色（抹胸上衣+半身裙）"
+      ],
+      "colors_incomplete": false,
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L"
+      ],
+      "sizes_raw": [
+        "XS",
+        "S",
+        "M",
+        "L"
+      ],
+      "sizes_source": "seller_taobao_accuracy",
+      "size_chart": "NO_CHART",
+      "size_note": "",
+      "photos": [
+        {
+          "file": "S04_den_01.jpg",
+          "path": "photos/S04/S04_den_01.jpg",
+          "stage_path": "stage-photos/S04/S04_den_01.jpg",
+          "color_vi": "Đen",
+          "color_cn": "紅色（抹胸上衣+半身裙）",
+          "confidence": 0.15,
+          "rgb": [
+            32,
+            32,
+            0
+          ],
+          "included_default": true,
+          "primary_default": true,
+          "chartish": false
+        },
+        {
+          "file": "S04_den_02.jpg",
+          "path": "photos/S04/S04_den_02.jpg",
+          "stage_path": "stage-photos/S04/S04_den_02.jpg",
+          "color_vi": "Đen",
+          "color_cn": "紅色（抹胸上衣+半身裙）",
+          "confidence": 0.151,
+          "rgb": [
+            32,
+            32,
+            0
+          ],
+          "included_default": false,
+          "primary_default": false,
+          "chartish": false
+        }
+      ],
+      "public_default": true,
+      "status_default": "available",
+      "flags": [
+        "live_shows_single_sku_within_hub",
+        "no_chart_flag_from_audit",
+        "hub_multi_live_review_chip_only",
+        "NO_CHART",
+        "colors_incomplete_login_or_chip_only"
+      ],
+      "price_share_cny": "165",
+      "price_world_cny": "246.00",
+      "hub_size": "XS L S M",
+      "public_default_why": "S clothing/set + size + photos",
+      "photo_count": 2,
+      "photo_pull": {
+        "urls_found": 2,
+        "downloaded_new": 0,
+        "gaps": [
+          "login_gated_sku",
+          "public_logged_out_sparse"
+        ],
+        "updated_at_pt": "2026-09-18T17:03:39-07:00"
+      },
+      "colors_en": [
+        "Red (红色（抹胸上衣+半身裙）)",
+        "White (白色（抹胸上衣+半身裙）)"
+      ],
+      "color_mismatch": {
+        "status": "MISMATCH",
+        "sku_colors_cn_before": [
+          "紅色（抹胸上衣+半身裙）"
+        ],
+        "colors_all_before": [
+          "紅色（抹胸上衣+半身裙）"
+        ],
+        "hub_colors_preserved": "Trắng, Đỏ"
+      }
+    }
+  ],
+  "stats": {
+    "ma_count": 40,
+    "public_default_true": 36,
+    "public_default_true_mas": [
+      "A01",
+      "A02",
+      "A03",
+      "A04",
+      "A05",
+      "A06",
+      "A07",
+      "A08",
+      "A09",
+      "A10",
+      "A11",
+      "A12",
+      "A13",
+      "A14",
+      "A15",
+      "B01",
+      "B02",
+      "B03",
+      "D01",
+      "D02",
+      "D03",
+      "H01",
+      "J01",
+      "J02",
+      "K01",
+      "O01",
+      "O02",
+      "O04",
+      "O05",
+      "P01",
+      "P04",
+      "Q01",
+      "S01",
+      "S02",
+      "S03",
+      "S04"
+    ],
+    "colors_incomplete_count": 40,
+    "photo_count": 172,
+    "photos_before_full_pass": 159,
+    "photos_added_full_pass": 12,
+    "refetch_ok": 40,
+    "refetch_fail": 0
+  },
+  "photo_total": 159,
+  "updated_at_pt": "2026-09-20 08:32 AM PT",
+  "note_photo_pull": "Maximized public listing URLs 2026-09-18; OD/HQ kept; holds O03/P02/P03/P05",
+  "color_preselect_pass": {
+    "at_pt": "2026-09-19 9:10 PM PT",
+    "rule": "Seller Taobao SKU colors = truth; ALL preselected (preselected+selected true). GF conflicts in color_mismatch only.",
+    "totals": {
+      "fully_preselected": 39,
+      "partial": 0,
+      "no_seller_data": 1
+    },
+    "no_seller_data_mas": [
+      "J02"
+    ],
+    "source_audit": "COLOR_AUDIT_ALL_MA.json",
+    "preserve_live_prices": {
+      "A01": 25,
+      "P03": 18
+    }
+  },
+  "note_color_preselect": "2026-09-19 PT: sku_colors_cn/colors_all = full seller Taobao SKU colors, preselected for Confirm. J02 no seller data. GF conflicts in color_mismatch. Live catalog prices untouched (A01 $25 / P03 $18).",
+  "color_size_seller_sync": {
+    "at_pt": "2026-09-20 08:32 AM PT",
+    "source_patch": "out/overnight-2026-09-18/confirm_seed_patch.json",
+    "source_report": "out/overnight-2026-09-18/HARD_COLOR_SIZE_PUBLIC_REPORT.json",
+    "rule": "Seller Taobao SKU colors+sizes = truth. GF-only removed from public. No invented cm/ship/mã."
+  }
+}
