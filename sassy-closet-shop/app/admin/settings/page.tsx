@@ -20,6 +20,7 @@ export default async function AdminSettingsPage() {
         initialSettings={data.settings}
         storage={data.storage}
         site={data.site}
+        pipeline={data.pipeline}
         mode="settings"
       />
     </AdminFrame>

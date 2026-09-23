@@ -5,7 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CatalogList } from "@/app/admin/catalog-list";
 import { FormAlert } from "@/app/admin/fields";
+import { IntakeImportPanel } from "@/app/admin/intake-import";
 import { ItemForm } from "@/app/admin/item-form";
+import { PipelineTracker } from "@/app/admin/pipeline-tracker";
 import { SettingsPanel } from "@/app/admin/settings-panel";
 import {
   persistAdminToast,
@@ -16,9 +18,10 @@ import {
 import { KNOWN_SEED_MAS, catalogBlobPath } from "@/lib/catalog-contract";
 import type { SiteRuntimeInfo } from "@/lib/site-runtime";
 import type { CatalogStorageInfo } from "@/lib/storage-info";
+import type { PipelineDocument } from "@/lib/pipeline";
 import type { Product, SiteSettings } from "@/lib/types";
 
-export type AdminMode = "list" | "add" | "edit" | "settings";
+export type AdminMode = "list" | "add" | "edit" | "settings" | "intake" | "pipeline";
 
 function backendLabel(backend: CatalogStorageInfo["backend"]): string {
   switch (backend) {
@@ -54,6 +57,7 @@ export function AdminConsole({
   initialSettings,
   storage,
   site,
+  pipeline,
   mode,
   editMa,
   notice,
@@ -62,6 +66,7 @@ export function AdminConsole({
   initialSettings: SiteSettings;
   storage: CatalogStorageInfo;
   site: SiteRuntimeInfo;
+  pipeline: PipelineDocument;
   mode: AdminMode;
   editMa?: string;
   notice?: string;
@@ -163,8 +168,14 @@ export function AdminConsole({
           <Link href="/admin" className={navClass(mode === "list")}>
             Catalog
           </Link>
+          <Link href="/admin/intake" className={navClass(mode === "intake")}>
+            Intake
+          </Link>
           <Link href="/admin/new" className={navClass(mode === "add")}>
             Add mã
+          </Link>
+          <Link href="/admin/pipeline" className={navClass(mode === "pipeline")}>
+            Pipeline
           </Link>
           <Link
             href={editMa ? `/admin/edit/${editMa}` : "/admin"}
@@ -185,6 +196,15 @@ export function AdminConsole({
               site={site}
               onToast={pushToast}
               onSaved={sync}
+            />
+          ) : mode === "intake" ? (
+            <IntakeImportPanel products={products} canWrite={storage.canWrite} onToast={pushToast} />
+          ) : mode === "pipeline" ? (
+            <PipelineTracker
+              products={products}
+              initial={pipeline}
+              canWrite={storage.canWrite}
+              onToast={pushToast}
             />
           ) : mode === "add" ? (
             <ItemForm
@@ -238,6 +258,7 @@ export function AdminConsole({
               {notice ? <FormAlert tone="ok" text={notice} /> : null}
               <CatalogList
                 products={products}
+                pipeline={pipeline}
                 canWrite={storage.canWrite}
                 onAdd={() => router.push("/admin/new")}
                 onEdit={(ma) => router.push(`/admin/edit/${ma}`)}

@@ -40,6 +40,7 @@ export default async function AdminEditPage({
         initialSettings={data.settings}
         storage={data.storage}
         site={data.site}
+        pipeline={data.pipeline}
         mode="edit"
         editMa={ma}
         notice={notice}

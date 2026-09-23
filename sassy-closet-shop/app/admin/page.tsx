@@ -27,6 +27,7 @@ export default async function AdminPage({
         initialSettings={data.settings}
         storage={data.storage}
         site={data.site}
+        pipeline={data.pipeline}
         mode="list"
         notice={removed ? `Removed ${removed} from the catalog. It is gone from the shop.` : undefined}
       />

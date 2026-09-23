@@ -18,7 +18,7 @@ import {
   uploadCatalogImage,
 } from "@/lib/catalog-store";
 import { catalogExportFilename } from "@/lib/catalog-contract";
-import { normalizeMa } from "@/lib/ma";
+import { normalizeMa, isValidMa } from "@/lib/ma";
 import {
   asCatalogDocument,
   assertCanonicalSerializedCatalog,
@@ -31,6 +31,17 @@ import { assertImportSellContract, isSellableMa, nonAllowlistSaveError } from "@
 import { parseSiteSettings } from "@/lib/site-settings";
 import { siteId } from "@/lib/site-runtime";
 import { uploadOverServerActionLimit, uploadTooLargeError } from "@/lib/upload-limits";
+import {
+  sanitizeIntakeSubmission,
+  type IntakeSubmission,
+} from "@/lib/intake-import";
+import {
+  isPipelineStageId,
+  linkPipelineIntakeMa,
+  setPipelineStage,
+  type PipelineDocument,
+} from "@/lib/pipeline";
+import { readPipelineForAdmin, writePipelineRecord } from "@/lib/pipeline-store";
 
 export type AdminActionResult = SaveReceipt | { ok: false; error: string };
 
@@ -279,3 +290,132 @@ export async function uploadImageAction(
 }
 
 export { fieldsFromProduct };
+
+/**
+ * Intake site base URL. The intake app (sassy-closet) stages submissions in
+ * its own store — this sell-site app does not share it, so staged rows are
+ * pulled over the intake site's public /api/submissions (server-side fetch).
+ * Override with INTAKE_SITE_URL when the intake app moves.
+ */
+function intakeSiteBase(): string {
+  const raw = (process.env.INTAKE_SITE_URL ?? "https://sassy-closet.vercel.app").trim();
+  return raw.replace(/\/+$/, "");
+}
+
+export async function fetchIntakeStagedAction(): Promise<
+  { ok: true; items: IntakeSubmission[] } | { ok: false; error: string }
+> {
+  const base = intakeSiteBase();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
+  try {
+    const response = await fetch(`${base}/api/submissions`, {
+      cache: "no-store",
+      signal: controller.signal,
+      headers: { Accept: "application/json" },
+    });
+    if (!response.ok) {
+      return {
+        ok: false,
+        error: `Intake site answered ${response.status}. It may be redeploying — try again, or paste the submission JSON below.`,
+      };
+    }
+    let payload: unknown;
+    try {
+      payload = await response.json();
+    } catch {
+      return { ok: false, error: "Intake site returned unreadable data. Paste the submission JSON below instead." };
+    }
+    const list =
+      typeof payload === "object" && payload !== null && Array.isArray((payload as { submissions?: unknown }).submissions)
+        ? ((payload as { submissions: unknown[] }).submissions)
+        : [];
+    const items: IntakeSubmission[] = [];
+    for (const entry of list) {
+      const submission = sanitizeIntakeSubmission(entry);
+      if (submission && submission.status === "staged") {
+        items.push(submission);
+      }
+    }
+    items.sort((a, b) => b.updated_at.localeCompare(a.updated_at));
+    return { ok: true, items };
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      return { ok: false, error: "Intake site timed out after 15s. Paste the submission JSON below instead." };
+    }
+    return {
+      ok: false,
+      error: `Could not reach the intake site (${error instanceof Error ? error.message : "fetch failed"}). Paste the submission JSON below instead.`,
+    };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+export type PipelineActionResult =
+  | { ok: true; pipeline: PipelineDocument }
+  | { ok: false; error: string };
+
+export async function getPipelineAction(): Promise<PipelineActionResult> {
+  try {
+    return { ok: true, pipeline: await readPipelineForAdmin() };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "Pipeline read failed" };
+  }
+}
+
+/**
+ * Toggle one pipeline stage for a mã. Draft-only bookkeeping — it never
+ * touches products, prices, or Square. Requires a writable store.
+ */
+export async function setPipelineStageAction(
+  ma: string,
+  stage: string,
+  done: boolean,
+): Promise<PipelineActionResult> {
+  try {
+    const blocked = assertStorageWritable();
+    if (blocked) {
+      return blocked;
+    }
+    const target = normalizeMa(ma);
+    if (!isValidMa(target)) {
+      return { ok: false, error: `Not a valid mã: ${ma}. Never invent one.` };
+    }
+    if (!isPipelineStageId(stage)) {
+      return { ok: false, error: `Unknown pipeline stage: ${stage}.` };
+    }
+    const current = await readPipelineForAdmin();
+    const next = setPipelineStage(current, target, stage, done);
+    const saved = await writePipelineRecord(next);
+    return { ok: true, pipeline: saved };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "Pipeline save failed" };
+  }
+}
+
+/**
+ * Link an intake-minted mã to its sell-site mã on the tracker row, after an
+ * intake draft is saved under the sell site's assigned code.
+ */
+export async function linkPipelineIntakeAction(
+  ma: string,
+  intakeMa: string,
+): Promise<PipelineActionResult> {
+  try {
+    const blocked = assertStorageWritable();
+    if (blocked) {
+      return blocked;
+    }
+    const target = normalizeMa(ma);
+    const intake = normalizeMa(intakeMa);
+    if (!isValidMa(target) || !isValidMa(intake)) {
+      return { ok: false, error: "Link needs two valid mãs. Never invent one." };
+    }
+    const current = await readPipelineForAdmin();
+    const saved = await writePipelineRecord(linkPipelineIntakeMa(current, target, intake));
+    return { ok: true, pipeline: saved };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "Pipeline link failed" };
+  }
+}

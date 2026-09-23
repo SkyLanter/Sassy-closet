@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { uploadImageAction } from "@/app/admin/actions";
+import { linkPipelineIntakeAction, setPipelineStageAction, uploadImageAction } from "@/app/admin/actions";
 import { EditorCard, EditorSectionNav } from "@/app/admin/editor-chrome";
 import { Area, Field, FormAlert } from "@/app/admin/fields";
 import { applyColorsToDraft, ImageFields } from "@/app/admin/image-fields";
+import { PriceCalculator } from "@/app/admin/price-calculator";
 import { AdminColorEditor } from "@/components/admin-colors";
 import { AdminSizeEditor } from "@/components/admin-sizes";
 import { MaMark } from "@/components/ma-mark";
@@ -15,9 +16,11 @@ import { postAdminAdd, postAdminRemove, postAdminRename, postAdminSave, recoverA
 import { letterPickerOptions, TYPE_LABELS } from "@/lib/catalog";
 import { isKnownSeedMa } from "@/lib/catalog-contract";
 import { nextImageOrder } from "@/lib/hub-colors";
+import { prefillToDraft, type IntakePrefill } from "@/lib/intake-import";
+import { consumeIntakePrefill } from "@/lib/intake-prefill";
 import type { ItemDraft } from "@/lib/item-draft";
 import { parseDraftPrice, validateItemDraft } from "@/lib/item-draft";
-import { isValidMa, nextMaForLetter, normalizeMa, type MaLetter } from "@/lib/ma";
+import { isValidMa, MA_LETTERS, nextMaForLetter, normalizeMa, type MaLetter } from "@/lib/ma";
 import { isOpaqueRscError, opaquePostSaveMessage, publicSaveErrorMessage } from "@/lib/opaque-rsc-error";
 import { statusLabel } from "@/lib/site-settings";
 import type { CatalogStorageInfo } from "@/lib/storage-info";
@@ -94,9 +97,20 @@ export function ItemForm({
   onCancel: () => void;
 }) {
   const [saving, setSaving] = useState(false);
-  const [addLetter, setAddLetter] = useState<MaLetter>(product?.type ?? "A");
+  // Intake prefill: consumed once from sessionStorage (written by the Intake
+  // import page). Null on edit mode and on direct visits to /admin/new.
+  const [prefill] = useState<IntakePrefill | null>(() =>
+    mode === "add" && !product ? consumeIntakePrefill() : null,
+  );
+  const [addLetter, setAddLetter] = useState<MaLetter>(() => {
+    if (product?.type) {
+      return product.type;
+    }
+    const letter = prefill?.letter?.toUpperCase() ?? "";
+    return (MA_LETTERS as readonly string[]).includes(letter) ? (letter as MaLetter) : "A";
+  });
   const [draft, setDraft] = useState<ItemDraft>(() =>
-    product ? draftFromProduct(product) : emptyDraft("A"),
+    product ? draftFromProduct(product) : prefill ? prefillToDraft(prefill) : emptyDraft("A"),
   );
   const [renameInput, setRenameInput] = useState(product?.ma ?? "");
   const [formError, setFormError] = useState<string | null>(null);
@@ -167,7 +181,27 @@ export function ItemForm({
   function finishAdd(savedMa: string, message: string) {
     baselineRef.current = snapshotDraft(draft, savedMa);
     showOk(message);
+    markPipelineSaved(savedMa);
+    if (prefill && prefill.intakeMa !== savedMa) {
+      void linkPipelineIntakeAction(savedMa, prefill.intakeMa).then((result) => {
+        if (!result.ok) {
+          onToast("error", `Saved, but the pipeline tracker did not link intake ${prefill.intakeMa}: ${result.error}`);
+        }
+      });
+    }
     onCatalog(products, { announcementLines: [], facebookPageUrl: "" }, { nextMa: savedMa });
+  }
+
+  /** Auto-advance the pipeline tracker: a catalog save means the sell tab is staged. */
+  function markPipelineSaved(ma: string) {
+    if (!storage.canWrite) {
+      return;
+    }
+    void setPipelineStageAction(ma, "sell_tab", true).then((result) => {
+      if (!result.ok) {
+        onToast("error", `Saved, but the pipeline tracker did not update: ${result.error}`);
+      }
+    });
   }
 
   function payload() {
@@ -239,6 +273,7 @@ export function ItemForm({
         onCatalog(result.products, result.settings);
       }
       showOk(`Saved ${result.ma || currentMa} · ${saveReceiptLine(result)}.`);
+      markPipelineSaved(result.ma || currentMa);
     } catch (error) {
       if (mode === "add") {
         const recovered = await recoverAddedMa(previousMas, addLetter);
@@ -426,6 +461,17 @@ export function ItemForm({
           {mode === "add" ? (
             <p className="mt-3 max-w-xl text-sm text-gold-deep">
               Sell-test is polish-only. Do not Add a new mã until Boss reopens the catalog.
+            </p>
+          ) : null}
+          {mode === "add" && prefill ? (
+            <p
+              className="mt-3 max-w-xl rounded-xl border border-line bg-blush/60 px-4 py-3 text-sm text-ink"
+              data-testid="admin-intake-prefill"
+            >
+              Prefilled from intake <MaMark ma={prefill.intakeMa} className="text-[1em] tracking-[0.1em]" /> —
+              staged only (hold, never available, never Square).
+              {prefill.suggestedSell !== null ? ` Suggested sell $${prefill.suggestedSell}.` : ""}{" "}
+              Titles and swatch hexes still need you before Save.
             </p>
           ) : null}
         </div>
@@ -642,6 +688,25 @@ export function ItemForm({
             onChange={(sourceLink) => setDraft((current) => ({ ...current, sourceLink }))}
             placeholder="https://e.tb.cn/… (only if you have it)"
             hint="Paste a real e.tb.cn / taobao.com link. Leave blank if you do not have one. Never invent."
+          />
+        </div>
+        <div className="mt-4">
+          <PriceCalculator
+            letter={product?.type ?? addLetter}
+            initialCostCny={prefill?.costCny ?? null}
+            initialCostUsd={prefill?.costUsd ?? null}
+            initialSell={prefill?.suggestedSell ?? null}
+            onApplySell={(sell) => {
+              setDraft((current) => ({ ...current, priceInput: String(sell) }));
+              if (mode === "edit" && product) {
+                void setPipelineStageAction(product.ma, "priced", true).then((result) => {
+                  if (!result.ok) {
+                    onToast("error", result.error);
+                  }
+                });
+              }
+            }}
+            idPrefix={`item-${mode}`}
           />
         </div>
       </EditorCard>

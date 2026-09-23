@@ -10,6 +10,7 @@ import { letterPickerOptions, TYPE_LABELS } from "@/lib/catalog";
 import { isKnownSeedMa } from "@/lib/catalog-contract";
 import { inspectCatalogIntegrity } from "@/lib/catalog-integrity";
 import { formatUsd } from "@/lib/format";
+import { pipelineProgress, type PipelineDocument, type PipelineRow } from "@/lib/pipeline";
 import { isCompleteSaveReceipt, saveReceiptLine, silentSaveError } from "@/lib/save-receipt";
 import type { MaLetter } from "@/lib/ma";
 import { coverSrc } from "@/lib/product-media";
@@ -33,6 +34,7 @@ function PriceCell({ product }: { product: Product }) {
 
 export function CatalogList({
   products,
+  pipeline,
   onAdd,
   onEdit,
   canWrite,
@@ -40,6 +42,7 @@ export function CatalogList({
   onToast,
 }: {
   products: Product[];
+  pipeline: PipelineDocument;
   onAdd: () => void;
   onEdit: (ma: string) => void;
   canWrite: boolean;
@@ -54,6 +57,10 @@ export function CatalogList({
   const [selected, setSelected] = useState<string[]>([]);
   const letters = letterPickerOptions();
   const integrity = useMemo(() => inspectCatalogIntegrity(products), [products]);
+  const pipelineByMa = useMemo(
+    () => new Map<string, PipelineRow>(pipeline.rows.map((row) => [row.ma, row])),
+    [pipeline],
+  );
 
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -257,6 +264,7 @@ export function CatalogList({
                 <th className="px-4 py-3 font-medium">Title</th>
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium">Price</th>
+                <th className="px-4 py-3 font-medium" title="Pipeline stages done">Pipe</th>
                 <th className="hidden px-4 py-3 font-medium lg:table-cell">Source</th>
                 <th className="hidden px-4 py-3 font-medium md:table-cell">Colors</th>
                 <th className="hidden px-4 py-3 font-medium sm:table-cell">Images</th>
@@ -316,6 +324,20 @@ export function CatalogList({
                   </td>
                   <td className="px-4 py-3 tabular-nums text-ink">
                     <PriceCell product={product} />
+                  </td>
+                  <td className="px-4 py-3 tabular-nums text-muted" title="Pipeline stages done — see the Pipeline tab">
+                    {(() => {
+                      const row = pipelineByMa.get(product.ma);
+                      if (!row) {
+                        return <span>—</span>;
+                      }
+                      const progress = pipelineProgress(row);
+                      return (
+                        <span>
+                          {progress.done}/{progress.total}
+                        </span>
+                      );
+                    })()}
                   </td>
                   <td className="hidden px-4 py-3 text-[11px] uppercase tracking-[0.12em] text-muted lg:table-cell">
                     {product.fulfillment === "on_hand" ? "On hand" : "Dropship"}

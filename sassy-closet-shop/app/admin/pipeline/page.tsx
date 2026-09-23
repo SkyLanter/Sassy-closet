@@ -6,11 +6,11 @@ import { loadAdminPageData } from "@/app/admin/load";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Add item · Sell ops",
+  title: "Pipeline tracker · Sell ops",
   robots: { index: false, follow: false },
 };
 
-export default async function AdminNewPage() {
+export default async function AdminPipelinePage() {
   const data = await loadAdminPageData();
 
   return (
@@ -21,7 +21,7 @@ export default async function AdminNewPage() {
         storage={data.storage}
         site={data.site}
         pipeline={data.pipeline}
-        mode="add"
+        mode="pipeline"
       />
     </AdminFrame>
   );
