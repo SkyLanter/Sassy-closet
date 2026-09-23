@@ -3,12 +3,15 @@ import { getCatalogDocumentUncached, getCatalogReadSource } from "@/lib/products
 import { siteRuntimeInfo, type SiteRuntimeInfo } from "@/lib/site-runtime";
 import type { CatalogStorageInfo } from "@/lib/storage-info";
 import type { Product, SiteSettings } from "@/lib/types";
+import { readPipelineForAdmin } from "@/lib/pipeline-store";
+import type { PipelineDocument } from "@/lib/pipeline";
 
 export type AdminPageData = {
   products: Product[];
   settings: SiteSettings;
   storage: CatalogStorageInfo;
   site: SiteRuntimeInfo;
+  pipeline: PipelineDocument;
 };
 
 export async function loadAdminPageData(): Promise<AdminPageData> {
@@ -19,5 +22,6 @@ export async function loadAdminPageData(): Promise<AdminPageData> {
     settings: document.settings,
     storage: { ...getCatalogStorageInfo(), reading },
     site: siteRuntimeInfo(),
+    pipeline: await readPipelineForAdmin(),
   };
 }
