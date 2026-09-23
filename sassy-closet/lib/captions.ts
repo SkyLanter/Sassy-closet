@@ -11,7 +11,7 @@ const BLURB_VI: Record<string, string> = {
   G: "Đôi giày cưng xỉu 💕",
   B: "Chiếc túi cưng xỉu 💕",
   P: "Món nhỏ xinh xỉu 💕",
-  H: "Món tóc xinh xỉu 💕",
+  H: "Phụ kiện tóc xinh xỉu 💕",
   J: "Món trang sức xinh xỉu 💕",
   S: "Set đồ cưng xỉu 💕",
   O: "Món cưng xỉu 💕",

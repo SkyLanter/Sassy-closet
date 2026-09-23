@@ -8,7 +8,7 @@ import { PhotoLightbox } from "@/components/PhotoLightbox";
 import { PhotoThumbs } from "@/components/PhotoThumbs";
 import { SavedCard } from "@/components/SavedCard";
 import { convertCnyToUsd, convertUsdToCny } from "@/lib/fx";
-import { COLORS, KINDS, SIZES, assertNever } from "@/lib/kinds";
+import { COLORS, KINDS, assertNever, keepSizesForKind, sizeScaleForKind, sizesForKind } from "@/lib/kinds";
 import { nextMa, parseHubMa } from "@/lib/mint";
 import { normalizeFindCode } from "@/lib/on-hand";
 import { computeAutoPrice, DEBOX_LOCKED } from "@/lib/pricing";
@@ -335,13 +335,9 @@ export function IntakeApp({
     await save(null, current);
   }
 
-  function toggleSize(value: string) {
-    setSizes((current) =>
-      current.includes(value) ? current.filter((s) => s !== value) : [...current, value],
-    );
-  }
-
-  function onKind(next: KindCode) {    setKind(next);
+  function toggleSize(value: string) { setSizes((current) => current.includes(value) ? current.filter((s) => s !== value) : [...current, value]); } function onKind(next: KindCode) {
+    setKind(next);
+    setSizes((current) => keepSizesForKind(current, next));
     if (tab === "edit" && loadedMa) {
       const current = parseHubMa(loadedMa)?.kind;
       if (current && current !== next) {
@@ -827,10 +823,14 @@ function ItemForm(props: {
         </fieldset>
       </div>
       <div>
-        <fieldset className="mb-4">
-          <label className="mb-2 block text-sm font-medium">Size (tuỳ chọn)</label>
-          <div className="flex flex-wrap gap-1.5">
-            {SIZES.map((size) => {
+        <fieldset className="mb-4" data-testid="size-board">
+          <label className="mb-2 block text-sm font-medium">
+            {sizeScaleForKind(props.kind) === "shoe"
+              ? "Size giày Á châu · 35–41 (tuỳ chọn)"
+              : "Size (tuỳ chọn)"}
+          </label>
+          <div className="flex flex-wrap gap-1.5" data-testid="size-options">
+            {sizesForKind(props.kind).map((size) => {
               const on = props.sizes.includes(size);
               return (
                 <button

@@ -1,5 +1,5 @@
 import { buildCaptionVi, kindColorsLine } from "./captions";
-import { KIND_CODES } from "./kinds";
+import { CLOTHING_SIZES, KIND_CODES, SHOE_SIZES } from "./kinds";
 import { getSubmission, listSubmissions } from "./store";
 import type { AskCopy } from "./types";
 
@@ -46,9 +46,9 @@ export async function localAskAnswer(question: string): Promise<FallbackAnswer> 
     };
   }
 
-  if (/size/i.test(q)) {
+  if (/size|giày|giay|cao gót|cao got|heels|shoe/i.test(q)) {
     return {
-      reply: "Size trên form: 2XS XS S M L XL 2XL (Asian). Không đổi sang US. Gõ mã nếu muốn xem size đã lưu.",
+      reply: `Size áo/quần/váy/đầm: ${CLOTHING_SIZES.join(" ")} (Á châu). Giày / cao gót (G): ${SHOE_SIZES.join(" ")}. Không đổi sang US. Gõ mã nếu muốn xem size đã lưu.`,
       copies: [],
     };
   }
@@ -70,7 +70,7 @@ export async function localAskAnswer(question: string): Promise<FallbackAnswer> 
   return {
     reply: [
       "Món mới: ảnh / màu / size / giá / link tuỳ chọn → Lưu & lấy mã.",
-      "Size: 2XS XS S M L XL 2XL.",
+      `Size áo/quần: ${CLOTHING_SIZES.join(" ")}. Giày (G): ${SHOE_SIZES.join(" ")}.`,
       "Màu: chip + Khác phẩy ra nhiều tên. Tìm mã: ảnh đúng file đã lưu.",
       "Hỏi còn mã / viết caption / soạn inbox — Mini Boss copy giúp, không đăng, không gửi.",
       count ? `Site đang có ${count} mã đã Lưu.` : "Chưa có mã trên site này.",

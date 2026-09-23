@@ -87,6 +87,7 @@ export type MaStaged = {
   kind_label: string;
   colors: string;
   sizes: string;
+  size_options: string;
   cost_usd: string;
   cost_cny: string;
   sell_usd: string;
