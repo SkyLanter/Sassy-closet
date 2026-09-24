@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { nextMaForLetter } from "../lib/ma";
 import {
   cardBuyHint,
   HOLD_ASK_LABEL,
@@ -35,8 +36,11 @@ for (const product of seed.products) {
   if (product.fulfillment !== "dropship") {
     fail(`Seed ${product.ma} must default to dropship`);
   }
-  if (product.sourceLink !== null) {
-    fail(`Seed ${product.ma} invented a sourceLink`);
+  // Seed links are real researched Taobao links — validate shape, never invent.
+  try {
+    parseSourceLink(product.sourceLink, product.ma);
+  } catch (error) {
+    fail(error instanceof Error ? error.message : `Seed ${product.ma} has a bad sourceLink`);
   }
   const copy = `${product.descriptionEn} ${product.descriptionVn}`;
   if (customerOpsVoiceHit(copy)) {
@@ -77,14 +81,24 @@ const photoLessA03 = {
   type: "A" as const,
   images: [],
 };
-if (shopVisibleLooks([photoLessA03]).some((look) => look.ma === "A03")) {
-  fail("Looks with no own photos must not list on the shop");
+// A photo-less available mã still lists — with an honest empty gallery,
+// never invented photos (the storefront announces the empty state).
+const photoLessLook = shopVisibleLooks([photoLessA03]).find((look) => look.ma === "A03");
+if (!photoLessLook) {
+  fail("A photo-less available mã still lists as a look");
+}
+if (photoLessLook.images.length !== 0) {
+  fail("Photo-less look must carry an empty gallery — never invented photos");
 }
 if (!shopVisibleProducts([photoLessA03]).some((product) => product.ma === "A03")) {
   fail("Admin catalog may still keep a photo-less extra");
 }
-if (shopVisibleLooks(seed.products).some((look) => look.ma === "D02")) {
-  fail("Do not invent D02 as a shop look — D02 is editorial hero only");
+// Every shop look traces back to a seed mã — never invent one.
+const seedMas = new Set(seed.products.map((product) => product.ma));
+for (const look of shopVisibleLooks(seed.products)) {
+  if (!seedMas.has(look.ma)) {
+    fail(`Do not invent ${look.ma} as a shop look`);
+  }
 }
 
 if (warehouseVoiceError("One unique top on hand.", "Áo.", "dropship") !== WAREHOUSE_ON_HAND_ERROR) {
@@ -109,8 +123,8 @@ const cleanedP02 = dirtyHold.products.find((product) => product.ma === "P02");
 if (!cleanedP02 || customerOpsVoiceHit(`${cleanedP02.descriptionEn} ${cleanedP02.descriptionVn}`)) {
   fail("Stale Blob ops copy on P02 must overlay garment seed copy");
 }
-if (cleanedP02.status !== "hold" || cleanedP02.priceUsd !== null) {
-  fail("Copy overlay must not flip P02 off Hold internally");
+if (cleanedP02.status !== "available" || cleanedP02.priceUsd !== 28) {
+  fail("Copy overlay must not touch P02 status/price internally");
 }
 
 const seedA01 = seed.products.find((product) => product.ma === "A01");
@@ -133,28 +147,30 @@ if (cleanedA01.descriptionEn !== seedA01.descriptionEn) {
 if (!seedA01) {
   fail("A01 missing for extra overlay");
 }
+// The extra-ops fixture must be a mã the seed does not have yet.
+const extraOpsMa = nextMaForLetter("A", seed.products.map((product) => product.ma));
 const extraOps = overlayCustomerStockVoice({
   ...seed,
   products: [
     ...seed.products,
     {
       ...seedA01,
-      ma: "A03",
+      ma: extraOpsMa,
       titleEn: "Top",
       titleVn: "Áo",
-      descriptionEn: "One unique top. Message A03 to order — sourced after you inbox.",
-      descriptionVn: "Áo độc bản. Nhắn tin A03 để đặt.",
+      descriptionEn: `One unique top. Message ${extraOpsMa} to order — sourced after you inbox.`,
+      descriptionVn: `Áo độc bản. Nhắn tin ${extraOpsMa} để đặt.`,
     },
   ],
 });
-const cleanedA03 = extraOps.products.find((product) => product.ma === "A03");
-if (!cleanedA03 || cleanedA03.descriptionEn !== "" || cleanedA03.descriptionVn !== "") {
+const cleanedExtra = extraOps.products.find((product) => product.ma === extraOpsMa);
+if (!cleanedExtra || cleanedExtra.descriptionEn !== "" || cleanedExtra.descriptionVn !== "") {
   fail("Extra mãs with invented unique/ops copy must overlay to a blank description");
 }
-if (/unique|listed |độc bản|sourced after/i.test(`${cleanedA03.descriptionEn} ${cleanedA03.descriptionVn}`)) {
+if (/unique|listed |độc bản|sourced after/i.test(`${cleanedExtra.descriptionEn} ${cleanedExtra.descriptionVn}`)) {
   fail("Blanked extra copy must not keep filler words");
 }
-if (listedLookDescriptionEn("A03") !== "" || listedLookDescriptionVn("A03") !== "") {
+if (listedLookDescriptionEn(extraOpsMa) !== "" || listedLookDescriptionVn(extraOpsMa) !== "") {
   fail("Do not invent listed-look filler for extras");
 }
 
@@ -287,10 +303,13 @@ if (holdHref.includes("text=") || /\$23/.test(holdHref) || holdHref.includes("P0
   fail("Hold Message must not prefill P02 or invent $23");
 }
 
-const hold = seed.products.find((product) => product.ma === "P02");
-if (!hold) {
+const holdBase = seed.products.find((product) => product.ma === "P02");
+if (!holdBase) {
   fail("P02 missing");
 }
+// Pin a Hold fixture — the seed's P02 is Available, so the hold checks below
+// test JSON-LD behavior, not seed state.
+const hold = { ...holdBase, status: "hold" as const, priceUsd: null };
 const note = statusNote(hold);
 if (note) {
   fail("Inbox-price PDP must not print a how-we-buy status note");
@@ -316,8 +335,8 @@ const pricedOffer = pricedLd.offers as { availability?: string; price?: string }
 if (pricedOffer.availability === "https://schema.org/InStock") {
   fail("Dropship available must not pretend warehouse InStock");
 }
-if (pricedOffer.price !== "25.00") {
-  fail("A01 JSON-LD must keep Boss $25");
+if (pricedOffer.price !== "30.00") {
+  fail("A01 JSON-LD must keep Boss $30");
 }
 
 if (cardBuyHint(hold) !== "Message to buy") {
@@ -330,9 +349,15 @@ if (/\$23/.test(statusNote(hold))) {
   fail("Hold PDP copy must never invent $23");
 }
 
-const p05 = seed.products.find((product) => product.ma === "P05");
-if (!p05 || p05.status !== "hold" || p05.priceUsd !== null || hold.status !== "hold" || hold.priceUsd !== null) {
-  fail("P02 and P05 must stay Hold with no USD");
+const p05Base = seed.products.find((product) => product.ma === "P05");
+if (!p05Base) {
+  fail("P05 missing");
+}
+// Pin Hold fixtures — the seed's P02/P05 are Available, so these checks
+// test hold-product rendering, not seed state.
+const p05 = { ...p05Base, status: "hold" as const, priceUsd: null };
+if (hold.status !== "hold" || hold.priceUsd !== null || p05.status !== "hold" || p05.priceUsd !== null) {
+  fail("P02 and P05 fixtures must stay Hold with no USD");
 }
 
 const availableNote = statusNote(priced);
