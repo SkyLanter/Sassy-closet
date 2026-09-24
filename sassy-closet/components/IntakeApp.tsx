@@ -125,13 +125,16 @@ export function IntakeApp({
         setTbState("ok");
         setNeedsResearch(false);
         // Seller SKU colors are seller truth — keep them marked, never translated.
+        // Both updaters read fresh state: a color confirmed as a seller SKU
+        // color belongs in sellerColors, never duplicated in colors.
         setSellerColors((current) => {
           const merged = [...current];
           for (const color of item.colors) {
-            if (!colors.includes(color) && !merged.includes(color)) merged.push(color);
+            if (!merged.includes(color)) merged.push(color);
           }
           return merged;
         });
+        setColors((current) => current.filter((color) => !item.colors.includes(color)));
         // Prefill cost from the seller's list ¥ (promo noted in the panel).
         if (item.listCny) {
           setCostCny(item.listCny);

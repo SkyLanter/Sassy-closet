@@ -20,7 +20,7 @@
       "type": "A",
       "titleVn": "Áo len puppy",
       "titleEn": "Puppy cardigan",
-      "priceUsd": 29,
+      "priceUsd": 30,
       "qty": 1,
       "status": "available",
       "colors": [
@@ -69,7 +69,7 @@
       "type": "S",
       "titleVn": "Đầm polo",
       "titleEn": "Polo wrap dress",
-      "priceUsd": 44,
+      "priceUsd": 45,
       "qty": 1,
       "status": "available",
       "colors": [],
@@ -295,7 +295,7 @@
       "type": "P",
       "titleVn": "Mũ dâu",
       "titleEn": "Strawberry cap",
-      "priceUsd": 11,
+      "priceUsd": 12,
       "qty": 1,
       "status": "available",
       "colors": [
@@ -402,7 +402,7 @@
       "type": "K",
       "titleVn": "Áo khoác puppy",
       "titleEn": "Puppy zip jacket",
-      "priceUsd": 39,
+      "priceUsd": 40,
       "qty": 1,
       "status": "available",
       "colors": [
@@ -496,7 +496,7 @@
       "type": "A",
       "titleVn": "Áo chấm bi",
       "titleEn": "Polka-dot dress",
-      "priceUsd": 25,
+      "priceUsd": 26,
       "qty": 1,
       "status": "available",
       "colors": [

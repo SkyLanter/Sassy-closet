@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { nextMaForLetter } from "../lib/ma";
 import { mergeProductColors, renameProductInCatalog } from "../lib/admin-ops";
 import { mergeCatalogDocuments, mergeColorAssets } from "../lib/catalog-merge";
 import { reorderImages } from "../lib/image-order";
@@ -18,6 +19,8 @@ function fail(message: string): never {
 
 const seedPath = path.join(process.cwd(), "data", "products.json");
 const seed = parseCatalogDocument(JSON.parse(readFileSync(seedPath, "utf8")) as unknown);
+// The extra fixture must be a mã the seed does not have yet.
+const extraMa = nextMaForLetter("A", seed.products.map((product) => product.ma));
 
 const twoTone: Product = {
   ...seed.products[0]!,
@@ -93,15 +96,15 @@ if (!sameSlot.ok) {
 
 const extra: Product = {
   ...twoTone,
-  ma: "A03",
+  ma: extraMa,
   type: "A",
 };
 const catalogWithExtra = [...catalog, extra];
-const mergedColors = mergeProductColors(catalogWithExtra, "A03", "cblackcolor01", "ccamelcolor01");
+const mergedColors = mergeProductColors(catalogWithExtra, extraMa, "cblackcolor01", "ccamelcolor01");
 if (!mergedColors.ok) {
   fail(mergedColors.error);
 }
-const mergedExtra = mergedColors.products.find((product) => product.ma === "A03");
+const mergedExtra = mergedColors.products.find((product) => product.ma === extraMa);
 if (!mergedExtra || mergedExtra.colors.length !== 1 || mergedExtra.colors[0]?.id !== "cblackcolor01") {
   fail("color merge must drop the source color");
 }
@@ -128,11 +131,14 @@ const incoming = asCatalogDocument(
     {
       ...twoTone,
       titleEn: "Top — official overlay",
-      priceUsd: 25,
+      // A01's $30 is Boss-locked — an overlay must not rewrite the sell price.
     },
     {
       ...seed.products.find((product) => product.ma === "P02")!,
       titleEn: "Thermos — overlay",
+      // Pin Hold with no USD so the check below tests the merge, not the seed.
+      status: "hold",
+      priceUsd: null,
     },
   ],
   { announcementLines: ["Official overlay"], facebookPageUrl: seed.settings.facebookPageUrl },
@@ -165,7 +171,7 @@ const extraIncoming = asCatalogDocument(
   [
     ...incoming.products,
     {
-      ma: "A03",
+      ma: extraMa,
       type: "A",
       titleEn: "Added on official",
       titleVn: "Áo",
@@ -186,11 +192,11 @@ const extraIncoming = asCatalogDocument(
   "sassy-closet-official",
 );
 const withExtra = mergeCatalogDocuments(seed, extraIncoming);
-if (!withExtra.products.some((product) => product.ma === "A03")) {
+if (!withExtra.products.some((product) => product.ma === extraMa)) {
   fail("merge must add a new valid mã from incoming");
 }
-if (withExtra.products.length !== 11) {
-  fail(`expected 11 mãs after adding A03, got ${withExtra.products.length}`);
+if (withExtra.products.length !== seed.products.length + 1) {
+  fail(`expected ${seed.products.length + 1} mãs after adding ${extraMa}, got ${withExtra.products.length}`);
 }
 assertImportSellContract(withExtra.products);
 
@@ -211,7 +217,12 @@ if (clamped[0]?.src !== "a") {
   fail("reorder must no-op at the edge");
 }
 
-const holdLd = productJsonLd(seed.products.find((product) => product.ma === "P02")!);
+const holdFixture: Product = {
+  ...seed.products.find((product) => product.ma === "P02")!,
+  status: "hold",
+  priceUsd: null,
+};
+const holdLd = productJsonLd(holdFixture);
 const holdOffer = holdLd.offers;
 if (
   holdOffer &&

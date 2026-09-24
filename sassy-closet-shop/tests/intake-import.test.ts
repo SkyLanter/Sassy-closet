@@ -81,3 +81,59 @@ test("parseIntakeImportJson keeps needs_research through the paste path", () => 
     assert.equal(parsed.submissions[0].needsResearch, true);
   }
 });
+
+test("sanitizeIntakeSubmission carries auto_price and taobao_snapshot (#53)", () => {
+  const row = stagedRow({
+    auto_price: {
+      landedUsd: 17.6,
+      deboxUsd: 7.5,
+      sellUsd: 26,
+      marginUsd: 8.4,
+      marginPct: 0.32,
+      captionEligible: false,
+    },
+    taobao_snapshot: {
+      itemId: "123",
+      title: "Puppy cardigan",
+      listCny: "68",
+      promoCny: null,
+      colors: ["黑色", "白色"],
+    },
+  });
+  const submission = sanitizeIntakeSubmission(row);
+  assert.ok(submission);
+  assert.equal(submission.autoPrice?.sellUsd, 26);
+  assert.equal(submission.autoPrice?.landedUsd, 17.6);
+  assert.equal(submission.taobaoSnapshot?.itemId, "123");
+  assert.equal(submission.taobaoSnapshot?.title, "Puppy cardigan");
+  assert.deepEqual(submission.taobaoSnapshot?.colors, ["黑色", "白色"]);
+
+  const prefill = intakeToPrefill(submission);
+  assert.equal(prefill.autoPrice?.sellUsd, 26);
+  assert.equal(prefill.taobaoSnapshot?.listCny, "68");
+  assert.ok(
+    prefill.warnings.some((warning) => /\$26/.test(warning)),
+    `expected an auto-price warning naming $26, got: ${JSON.stringify(prefill.warnings)}`,
+  );
+
+  // Legacy rows without the fields stay null — never an error.
+  const legacy = sanitizeIntakeSubmission(stagedRow());
+  assert.ok(legacy);
+  assert.equal(legacy.autoPrice, null);
+  assert.equal(legacy.taobaoSnapshot, null);
+  const legacyPrefill = intakeToPrefill(legacy);
+  assert.equal(legacyPrefill.autoPrice, null);
+  assert.equal(legacyPrefill.taobaoSnapshot, null);
+});
+
+test("sanitizeIntakeSubmission drops malformed auto_price/taobao_snapshot", () => {
+  const bad = sanitizeIntakeSubmission(
+    stagedRow({
+      auto_price: { sellUsd: "twenty-six" },
+      taobao_snapshot: { title: "no item id" },
+    }),
+  );
+  assert.ok(bad);
+  assert.equal(bad.autoPrice, null);
+  assert.equal(bad.taobaoSnapshot, null);
+});

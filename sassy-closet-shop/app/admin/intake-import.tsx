@@ -313,6 +313,42 @@ export function IntakeImportPanel({
             </ul>
           ) : null}
 
+          {prefill.autoPrice ? (
+            <div className="rounded-xl border border-line bg-blush/40 px-4 py-3">
+              <p className="text-xs uppercase tracking-[0.14em] text-muted">Intake auto-price</p>
+              <p className="mt-1 text-sm text-ink">
+                <span className="text-lg font-semibold tabular-nums">${prefill.autoPrice.sellUsd}</span>
+                <span className="text-muted">
+                  {" "}· landed ${prefill.autoPrice.landedUsd.toFixed(2)} (debox $
+                  {prefill.autoPrice.deboxUsd.toFixed(2)}) · margin{" "}
+                  {(prefill.autoPrice.marginPct * 100).toFixed(0)}%
+                </span>
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  const sell = prefill.autoPrice?.sellUsd;
+                  if (sell != null) {
+                    void applySell(sell);
+                  }
+                }}
+                className="mt-2 min-h-10 rounded-full border border-line bg-paper px-4 py-2 text-xs uppercase tracking-[0.12em] text-ink"
+              >
+                Use ${prefill.autoPrice.sellUsd} as suggested sell
+              </button>
+            </div>
+          ) : null}
+
+          {prefill.taobaoSnapshot ? (
+            <p className="text-xs text-muted">
+              Taobao snapshot at intake: {prefill.taobaoSnapshot.title}
+              {prefill.taobaoSnapshot.listCny ? ` · list ¥${prefill.taobaoSnapshot.listCny}` : ""}
+              {prefill.taobaoSnapshot.promoCny ? ` · promo ¥${prefill.taobaoSnapshot.promoCny}` : ""} ·{" "}
+              {prefill.taobaoSnapshot.colors.length} seller color
+              {prefill.taobaoSnapshot.colors.length === 1 ? "" : "s"}
+            </p>
+          ) : null}
+
           <PriceCalculator
             letter={letterOrNull(prefill.letter)}
             initialCostCny={prefill.costCny}
