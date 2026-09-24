@@ -125,13 +125,16 @@ export function IntakeApp({
         setTbState("ok");
         setNeedsResearch(false);
         // Seller SKU colors are seller truth — keep them marked, never translated.
+        // Both updaters read fresh state: a color confirmed as a seller SKU
+        // color belongs in sellerColors, never duplicated in colors.
         setSellerColors((current) => {
           const merged = [...current];
           for (const color of item.colors) {
-            if (!colors.includes(color) && !merged.includes(color)) merged.push(color);
+            if (!merged.includes(color)) merged.push(color);
           }
           return merged;
         });
+        setColors((current) => current.filter((color) => !item.colors.includes(color)));
         // Prefill cost from the seller's list ¥ (promo noted in the panel).
         if (item.listCny) {
           setCostCny(item.listCny);
@@ -827,7 +830,9 @@ function ItemForm(props: {
           <label className="mb-2 block text-sm font-medium">
             {sizeScaleForKind(props.kind) === "shoe"
               ? "Size giày Á châu · 35–41 (tuỳ chọn)"
-              : "Size (tuỳ chọn)"}
+              : sizeScaleForKind(props.kind) === "onesize"
+                ? "Size · 均码 / One-size (tuỳ chọn)"
+                : "Size (tuỳ chọn)"}
           </label>
           <div className="flex flex-wrap gap-1.5" data-testid="size-options">
             {sizesForKind(props.kind).map((size) => {

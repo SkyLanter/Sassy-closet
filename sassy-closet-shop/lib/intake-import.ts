@@ -51,7 +51,91 @@ export type IntakeSubmission = {
   caption_en: string;
   blurb_suggested: string;
   photo_link: string;
+  /** #53 flag: Taobao lookup was blocked — research is still needed. */
+  needsResearch: boolean;
+  /**
+   * #53 auto-price breakdown computed on the intake site
+   * (sell = ceil(landed / 0.7) at 30% margin). Null when the intake
+   * calculator wasn't used. Carried through so the admin importer can
+   * offer it as the suggested sell instead of recomputing blind.
+   */
+  autoPrice: IntakeAutoPrice | null;
+  /**
+   * #53 Taobao snapshot captured on the intake site (seller truth:
+   * title, list/promo CNY, seller SKU colors). Carried through as
+   * provenance for the admin — never re-fetched, never invented.
+   */
+  taobaoSnapshot: IntakeTaobaoSnapshot | null;
 };
+
+/** Mirrors the intake app's PriceBreakdown (sassy-closet/lib/pricing.ts). */
+export type IntakeAutoPrice = {
+  landedUsd: number;
+  deboxUsd: number;
+  sellUsd: number;
+  marginUsd: number;
+  marginPct: number;
+  captionEligible: boolean;
+};
+
+/** Slimmed mirror of the intake app's TaobaoItem (sassy-closet/lib/taobao.ts). */
+export type IntakeTaobaoSnapshot = {
+  itemId: string;
+  title: string;
+  listCny: string | null;
+  promoCny: string | null;
+  colors: string[];
+};
+
+function asFiniteNumber(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function asNullableString(value: unknown): string | null {
+  return typeof value === "string" ? value : null;
+}
+
+function parseAutoPrice(value: unknown): IntakeAutoPrice | null {
+  if (typeof value !== "object" || value === null) {
+    return null;
+  }
+  const row = value as Record<string, unknown>;
+  const landedUsd = asFiniteNumber(row.landedUsd);
+  const deboxUsd = asFiniteNumber(row.deboxUsd);
+  const sellUsd = asFiniteNumber(row.sellUsd);
+  const marginUsd = asFiniteNumber(row.marginUsd);
+  const marginPct = asFiniteNumber(row.marginPct);
+  if (landedUsd === null || deboxUsd === null || sellUsd === null || marginUsd === null || marginPct === null) {
+    return null;
+  }
+  return {
+    landedUsd,
+    deboxUsd,
+    sellUsd,
+    marginUsd,
+    marginPct,
+    captionEligible: row.captionEligible === true,
+  };
+}
+
+function parseTaobaoSnapshot(value: unknown): IntakeTaobaoSnapshot | null {
+  if (typeof value !== "object" || value === null) {
+    return null;
+  }
+  const row = value as Record<string, unknown>;
+  const itemId = asNullableString(row.itemId);
+  const title = asNullableString(row.title);
+  if (!itemId || !title) {
+    return null;
+  }
+  return {
+    itemId,
+    title,
+    listCny: asNullableString(row.listCny),
+    promoCny: asNullableString(row.promoCny),
+    colors: asStringArray(row.colors),
+  };
+}
 
 function asString(value: unknown): string {
   return typeof value === "string" ? value : "";
@@ -113,6 +197,10 @@ export function sanitizeIntakeSubmission(raw: unknown): IntakeSubmission | null 
     caption_en: asString(row.caption_en),
     blurb_suggested: asString(row.blurb_suggested),
     photo_link: asString(row.photo_link),
+    // Older rows predate #53 — missing flag means "not flagged".
+    needsResearch: row.needs_research === true,
+    autoPrice: parseAutoPrice(row.auto_price),
+    taobaoSnapshot: parseTaobaoSnapshot(row.taobao_snapshot),
   };
 }
 
@@ -191,6 +279,12 @@ export type IntakePrefill = {
   photoPaths: string[];
   photoLink: string;
   createdAt: string;
+  /** Carried from the intake submission's needs_research flag (#53). */
+  needsResearch: boolean;
+  /** Intake auto-price breakdown (#53) — offered as the suggested sell. */
+  autoPrice: IntakeAutoPrice | null;
+  /** Intake Taobao snapshot (#53) — provenance for research. */
+  taobaoSnapshot: IntakeTaobaoSnapshot | null;
   warnings: string[];
 };
 
@@ -299,6 +393,18 @@ export function intakeToPrefill(submission: IntakeSubmission): IntakePrefill {
     warnings.push("No intake photos — save photos to OneDrive Photos/<MÃ>/, then upload here.");
   }
 
+  if (submission.needsResearch) {
+    warnings.push(
+      "Needs research — the intake Taobao lookup was blocked, so seller SKU truth was never captured. Research manually before the Researched stage can be checked off.",
+    );
+  }
+
+  if (submission.autoPrice) {
+    warnings.push(
+      `Intake auto-price $${submission.autoPrice.sellUsd} (landed $${submission.autoPrice.landedUsd.toFixed(2)}) — verify in the calculator before Apply.`,
+    );
+  }
+
   return {
     intakeMa: submission.ma,
     letter: submission.kind.trim().toUpperCase(),
@@ -318,6 +424,9 @@ export function intakeToPrefill(submission: IntakeSubmission): IntakePrefill {
     photoPaths: submission.photo_paths,
     photoLink: submission.photo_link.trim(),
     createdAt: submission.created_at,
+    needsResearch: submission.needsResearch,
+    autoPrice: submission.autoPrice,
+    taobaoSnapshot: submission.taobaoSnapshot,
     warnings,
   };
 }

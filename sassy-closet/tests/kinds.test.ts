@@ -31,8 +31,15 @@ test("G H J D labels and size rules match intake catalog", () => {
   assert.deepEqual([...sizesForKind("G")], ["35", "36", "37", "38", "39", "40", "41"]);
   assert.deepEqual([...sizesForKind("A")], ["2XS", "XS", "S", "M", "L", "XL", "2XL"]);
   assert.deepEqual([...sizesForKind("D")], [...sizesForKind("A")]);
-  assert.deepEqual([...sizesForKind("H")], [...sizesForKind("A")]);
-  assert.deepEqual([...sizesForKind("J")], [...sizesForKind("A")]);
+  // Accessories are one-size by seller truth (Inventory Manager, 2026-09-23):
+  // 均码 only, never the clothing 2XS–2XL ladder.
+  assert.equal(sizeScaleForKind("H"), "onesize");
+  assert.equal(sizeScaleForKind("J"), "onesize");
+  assert.equal(sizeScaleForKind("B"), "onesize");
+  assert.equal(sizeScaleForKind("P"), "onesize");
+  assert.deepEqual([...sizesForKind("H")], ["均码"]);
+  assert.deepEqual([...sizesForKind("J")], ["均码"]);
+  assert.deepEqual(keepSizesForKind(["M", "均码", "2XS"], "P"), ["均码"]);
   assert.equal(sizeOptionsLine("G"), SHOE_SIZES.join(" "));
   assert.deepEqual(keepSizesForKind(["M", "38", "2XS"], "G"), ["38"]);
   assert.deepEqual(keepSizesForKind(["M", "38", "2XS"], "A"), ["M", "2XS"]);
