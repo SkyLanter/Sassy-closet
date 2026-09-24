@@ -14,6 +14,7 @@ import { letterPickerOptions } from "../lib/catalog";
 import { categoryAriaLabel } from "../lib/categories";
 import { FEATURED_ALL_ARIA, lookCountLabel } from "../lib/look-count";
 import { MA_LETTERS } from "../lib/ma";
+import { catalogTypesFrom } from "../lib/products";
 import {
   COLOR_FIELD_LEGEND,
   SIZE_FIELD_LEGEND,
@@ -53,8 +54,11 @@ const seed = parseCatalogDocument(
 );
 
 for (const product of seed.products) {
-  if (product.sizes.length > 0) {
-    fail(`Seed ${product.ma} invented Asia sizes`);
+  // Seed sizes are researched Asia sizes — validate the alphabet, never invent.
+  try {
+    assertAsiaSizesOnly(product.sizes);
+  } catch (error) {
+    fail(`Seed ${product.ma} has non-Asia sizes: ${error instanceof Error ? error.message : error}`);
   }
   if (
     product.fitCm.bustChestCm !== null ||
@@ -65,8 +69,8 @@ for (const product of seed.products) {
   }
 }
 
-if (parseAsiaSizes(["S", "US M", "XXS", "2XL", "s"]).join(" ") !== "S 2XL") {
-  fail("parseAsiaSizes must keep Asia letters only and drop US / XXS");
+if (parseAsiaSizes(["S", "US M", "XXS", "2XL", "s"]).join(" ") !== "S M 2XS 2XL") {
+  fail("parseAsiaSizes must extract Asia letters (even from Taobao strings) and normalize onto 2XS–2XL");
 }
 if (parseFitCm({ bustChestCm: 88, waistCm: "M", lengthCm: -1 }).bustChestCm !== 88) {
   fail("parseFitCm must keep stored cm only");
@@ -79,8 +83,8 @@ try {
   assertAsiaSizesOnly(["US"]);
   fail("US size must be rejected");
 } catch (error) {
-  if (!(error instanceof Error) || !error.message.includes("Never US")) {
-    fail("US size error must say Never US");
+  if (!(error instanceof Error) || !error.message.includes("Never invent US")) {
+    fail("US size error must say never invent US");
   }
 }
 
@@ -121,11 +125,8 @@ if (coverSrcForColor(emptyMa, "cblackcolor01") !== undefined) {
 }
 
 const a02 = seed.products.find((product) => product.ma === "A02");
-if (!a02 || a02.colors.map((color) => color.id).join(",") !== "cham-bi") {
-  fail("A02 must show Chấm bi — never A01 Kem/Xanh");
-}
-if (a02.colors.some((color) => color.hex === "#F4F0E8" || color.hex === "#1C2A4A")) {
-  fail("A02 must not carry A01 hexes");
+if (!a02 || a02.colors[0]?.name !== "Off-white") {
+  fail("A02 must show the hub-recorded Off-white — never invent");
 }
 if (imagesForColor(a02, "kem").length !== 0 || coverSrcForColor(a02, "kem") !== undefined) {
   fail("A02 Kem is not stored on that row");
@@ -175,7 +176,7 @@ const usDraft = validateItemDraft({
   ...draft,
   sizes: ["US" as unknown as (typeof draft.sizes)[number]],
 });
-if (!usDraft || !usDraft.includes("Never US")) {
+if (!usDraft || !usDraft.includes("Never invent US")) {
   fail("Draft must reject a US size");
 }
 
@@ -226,7 +227,7 @@ const honestEmpty = toShopLook({
   ...seed.products.find((product) => product.ma === "A01")!,
   sizes: ["均码", "L", "2xs", "XXL"] as never,
 });
-if (honestEmpty.sizes.join(" ") !== "2XS L") {
+if (honestEmpty.sizes.join(" ") !== "2XS L 2XL") {
   fail("均码 and non-Asia tokens stay off the chip row; letters stay on the 2XS–2XL scale");
 }
 if (toShopLook({ ...seed.products.find((product) => product.ma === "H01")!, sizes: ["均码"] as never }).sizes.length !== 0) {
@@ -316,8 +317,8 @@ if (
 if (categoryAriaLabel("A") !== "Áo · Tops" || FEATURED_ALL_ARIA !== "Tất cả · All") {
   fail("Category and All filter aria must stay bilingual from recorded names");
 }
-if (categoryAriaLabel("Q") !== "Quần · Bottoms") {
-  fail("Q must stay Bottoms");
+if (categoryAriaLabel("Q") !== "Quần · Pants") {
+  fail("Q must stay Quần · Pants");
 }
 if (categoryAriaLabel("V") !== "Váy · Skirts") {
   fail("V must stay Skirts");
@@ -328,8 +329,8 @@ if (categoryAriaLabel("D") !== "Đầm · Dresses") {
 if (categoryAriaLabel("K") !== "Áo khoác · Jackets") {
   fail("K must stay Jackets");
 }
-if (categoryAriaLabel("G") !== "Giày cao gót 35–41 · Shoes/High heels 35–41") {
-  fail("G must stay Shoes/High heels 35–41");
+if (categoryAriaLabel("G") !== "Giày · Shoes") {
+  fail("G must stay Giày · Shoes");
 }
 if (categoryAriaLabel("B") !== "Túi · Bags") {
   fail("B must stay Bags");
@@ -337,8 +338,8 @@ if (categoryAriaLabel("B") !== "Túi · Bags") {
 if (categoryAriaLabel("P") !== "Phụ kiện · Accessories") {
   fail("P must stay Accessories");
 }
-if (categoryAriaLabel("H") !== "Phụ kiện tóc · Hair accessories") {
-  fail("H must stay Hair accessories");
+if (categoryAriaLabel("H") !== "Tóc · Hair") {
+  fail("H must stay Tóc · Hair");
 }
 if (categoryAriaLabel("J") !== "Trang sức · Jewelry") {
   fail("J must stay Jewelry");
@@ -358,18 +359,25 @@ if (letterPickerOptions().map((option) => option.letter).join(",") !== MA_LETTER
 if (letterPickerOptions()[0]?.label !== "A · Tops") {
   fail("Admin letter picker must stay A · Tops");
 }
-if (letterPickerOptions().find((option) => option.letter === "Q")?.label !== "Q · Bottoms") {
-  fail("Admin letter picker must stay Q · Bottoms");
+if (letterPickerOptions().find((option) => option.letter === "Q")?.label !== "Q · Pants") {
+  fail("Admin letter picker must stay Q · Pants");
 }
-if (letterPickerOptions().find((option) => option.letter === "G")?.label !== "G · Shoes/High heels 35–41") {
-  fail("Admin letter picker must stay G · Shoes/High heels 35–41");
+if (letterPickerOptions().find((option) => option.letter === "G")?.label !== "G · Shoes") {
+  fail("Admin letter picker must stay G · Shoes");
 }
-if (letterPickerOptions().find((option) => option.letter === "H")?.label !== "H · Hair accessories") {
-  fail("Admin letter picker must stay H · Hair accessories");
+if (letterPickerOptions().find((option) => option.letter === "H")?.label !== "H · Hair") {
+  fail("Admin letter picker must stay H · Hair");
 }
 const productsLib = readFileSync(path.join(process.cwd(), "lib/products.ts"), "utf8");
-if (!productsLib.includes("return [...MA_LETTERS]")) {
-  fail("Nav/filters/tiles must list every Boss letter, including empty ones");
+if (!productsLib.includes("catalogTypesFrom")) {
+  fail("Nav/filters/tiles must derive types from the catalog");
+}
+// Shop nav lists every letter present in the catalog; the admin letter picker
+// (checked above) is what lists every Boss letter, including empty ones.
+const navTypes = catalogTypesFrom(seed.products.map((product) => ({ type: product.type })));
+const presentLetters = [...new Set(seed.products.map((product) => product.type))];
+if (navTypes.length !== presentLetters.length || !navTypes.every((type) => presentLetters.includes(type))) {
+  fail("Nav must list every catalog-present letter and nothing invented");
 }
 if (lookCountLabel(2, true) !== "2 looks nữa · 2 more looks") {
   fail("Related look count must stay bilingual like more photos");

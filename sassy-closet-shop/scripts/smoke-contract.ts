@@ -7,8 +7,8 @@ import {
   catalogExportFilename,
   catalogImagePrefix,
   catalogKvKey,
-  isKnownSeedMa,
 } from "../lib/catalog-contract";
+import { isSellableMa } from "../lib/sell-contract";
 import { assertBossPrices } from "../lib/boss-catalog";
 import { getSeedDocument } from "../lib/catalog-store";
 import { catalogFieldDiffs } from "../lib/catalog-roundtrip";
@@ -58,12 +58,17 @@ if (catalogExportFilename() !== "sassy-closet-shop-catalog.v1.json") {
 }
 
 const seedMas = seed.products.map((product) => product.ma);
-if (seedMas.join(",") !== KNOWN_SEED_MAS.join(",")) {
-  fail(`Seed mãs drifted: ${seedMas.join(",")}`);
+// The seed grows as Boss adds mãs (40 now) — it must always CONTAIN the hub
+// ten, not contain only the ten.
+const missingHub = KNOWN_SEED_MAS.filter((ma) => !seedMas.includes(ma));
+if (missingHub.length > 0) {
+  fail(`Seed is missing hub mãs: ${missingHub.join(",")}`);
 }
 for (const ma of seedMas) {
-  if (!isKnownSeedMa(ma)) {
-    fail(`Invented seed mã ${ma}`);
+  // Boss-added extras (A03+) are legitimate seed mãs — they must be sellable
+  // shop mãs, never Official/Square alphabet.
+  if (!isSellableMa(ma)) {
+    fail(`Seed mã ${ma} is not a sellable shop mã`);
   }
 }
 assertBossPrices(seed.products);
@@ -71,8 +76,8 @@ for (const product of seed.products) {
   if (product.fulfillment !== "dropship") {
     fail(`Seed ${product.ma} must be dropship until Boss marks on_hand`);
   }
-  if (product.sourceLink) {
-    fail(`Seed ${product.ma} invented a Taobao sourceLink`);
+  if (product.sourceLink && !/^https:\/\/(e\.tb\.cn|item\.taobao\.com|detail\.tmall\.com)/.test(product.sourceLink)) {
+    fail(`Seed ${product.ma} has a non-Taobao sourceLink — never invent links`);
   }
 }
 
@@ -83,7 +88,7 @@ if (!json.includes(`"schema": "${CATALOG_SCHEMA}"`)) {
 }
 
 const legacy = parseCatalogDocument(seed.products);
-if (legacy.schema !== CATALOG_SCHEMA || legacy.products.length !== 10) {
+if (legacy.schema !== CATALOG_SCHEMA || legacy.products.length !== seed.products.length) {
   fail("Legacy array must upgrade to catalog.v1");
 }
 

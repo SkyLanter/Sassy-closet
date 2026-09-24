@@ -23,6 +23,7 @@ import {
 import { isCompleteSaveReceipt, silentSaveError } from "../lib/save-receipt";
 import { isOpaqueRscError, opaquePostSaveMessage } from "../lib/opaque-rsc-error";
 import { assertImportSellContract, NON_ALLOWLIST_SAVE_ERROR } from "../lib/sell-contract";
+import { bossRow } from "../lib/boss-catalog";
 import { shopVisibleProducts } from "../lib/site-settings";
 import type { Product } from "../lib/types";
 
@@ -49,33 +50,38 @@ assertCanonicalSerializedCatalog(toCatalogDocumentJson(seedDocument));
 const seed = seedDocument.products;
 const mas = seed.map((product) => product.ma);
 
-if (nextMaForLetter("A", mas) !== "A03") {
-  fail(`Counter still computes A03, got ${nextMaForLetter("A", mas)}`);
-}
+// The seed catalog grows (A01–A15 now) — derive the next mã from the seed
+// instead of hardcoding A03, so this smoke stays green as Boss adds mãs.
+const nextA = nextMaForLetter("A", mas);
 
 const added = addProductToCatalog(seed, "A", holdFields());
 if (!added.ok) {
-  fail(`Add A03 must Save, got ${added.error}`);
+  fail(`Add ${nextA} must Save, got ${added.error}`);
 }
-if (added.ma !== "A03") {
-  fail(`Add letter A must assign A03, got ${added.ma}`);
+if (added.ma !== nextA) {
+  fail(`Add letter A must assign ${nextA}, got ${added.ma}`);
 }
-if (!added.products.some((product) => product.ma === "A03")) {
-  fail("Add must insert A03 into the catalog");
+if (!added.products.some((product) => product.ma === nextA)) {
+  fail(`Add must insert ${nextA} into the catalog`);
 }
-if (!shopVisibleProducts(added.products).some((product) => product.ma === "A03")) {
-  fail("A03 must appear on the shop after Add (hold | available)");
+if (!shopVisibleProducts(added.products).some((product) => product.ma === nextA)) {
+  fail(`${nextA} must appear on the shop after Add (hold | available)`);
 }
 
-const savedA03 = saveProductInCatalog(added.products, "A03", {
+const savedNextA = saveProductInCatalog(added.products, nextA, {
   ...holdFields(),
-  titleEn: "Top — A03 saved",
+  titleEn: `Top — ${nextA} saved`,
 });
-if (!savedA03.ok) {
-  fail(`Save A03 after Add must work, got ${savedA03.error}`);
+if (!savedNextA.ok) {
+  fail(`Save ${nextA} after Add must work, got ${savedNextA.error}`);
 }
-if (savedA03.products.find((product) => product.ma === "A03")?.titleEn !== "Top — A03 saved") {
-  fail("A03 title did not save");
+if (savedNextA.products.find((product) => product.ma === nextA)?.titleEn !== `Top — ${nextA} saved`) {
+  fail(`${nextA} title did not save`);
+}
+
+const a01Price = bossRow("A01")?.priceUsd;
+if (a01Price == null) {
+  fail("Boss list must carry an A01 price");
 }
 
 const titled = saveProductInCatalog(seed, "A01", {
@@ -84,7 +90,7 @@ const titled = saveProductInCatalog(seed, "A01", {
   descriptionEn: "One unique top. Message A01 for real photos and size.",
   descriptionVn: "Áo độc bản — một chiếc.",
   status: "available",
-  priceUsd: 25,
+  priceUsd: a01Price,
   colors: [],
   images: [{ src: "/products/A01/cover.jpg", colorId: null, order: 1 }],
 });
@@ -101,7 +107,7 @@ const warehouseLie = saveProductInCatalog(seed, "A01", {
   descriptionEn: "One unique top on hand. Message A01.",
   descriptionVn: "Áo độc bản — một chiếc đang có.",
   status: "available",
-  priceUsd: 25,
+  priceUsd: a01Price,
   colors: [],
   images: [{ src: "/products/A01/cover.jpg", colorId: null, order: 1 }],
 });
@@ -118,7 +124,7 @@ const namedNoPhoto = saveProductInCatalog(titled.products, "A01", {
   descriptionEn: "One unique top. Message A01 for real photos and size.",
   descriptionVn: "Áo độc bản — một chiếc.",
   status: "available",
-  priceUsd: 25,
+  priceUsd: a01Price,
   colors: [{ id: "cblackcolor01", hex: "#111111", name: "Black", note: "Hoa" }],
   images: [{ src: "/products/A01/cover.jpg", colorId: null, order: 1 }],
 });
@@ -132,7 +138,7 @@ const usSize = saveProductInCatalog(titled.products, "A01", {
   descriptionEn: "desc",
   descriptionVn: "desc",
   status: "available",
-  priceUsd: 25,
+  priceUsd: a01Price,
   colors: [],
   images: [{ src: "/products/A01/cover.jpg", colorId: null, order: 1 }],
   sizes: ["US" as never],
@@ -183,12 +189,14 @@ if (p05Leak.ok) {
   fail("P05 $23 must be rejected");
 }
 
-const invent = saveProductInCatalog(titled.products, "A03", holdFields());
+// A99 is a sellable mã that never exists in the seed — saving it must fail
+// as "not in the catalog" (regression: the old A03 literal went live).
+const invent = saveProductInCatalog(titled.products, "A99", holdFields());
 if (invent.ok) {
-  fail("Save A03 must fail when it is not in the catalog yet");
+  fail("Save A99 must fail when it is not in the catalog yet");
 }
 if (!invent.error.includes("not in the catalog")) {
-  fail(`Save A03 before Add must say not in the catalog, got ${invent.error}`);
+  fail(`Save A99 before Add must say not in the catalog, got ${invent.error}`);
 }
 
 const official = saveProductInCatalog(titled.products, "AO001", holdFields());
@@ -238,10 +246,14 @@ if (invalid.ok) {
   fail("Invented letter Z must fail");
 }
 
+// Boss-added extra: derive an unused mã from the seed instead of hardcoding
+// A04 (live in the catalog now — the old literal created a duplicate).
+const extraMa = nextMaForLetter("A", mas);
+const extraTarget = nextMaForLetter("A", [...mas, extraMa]);
 const leftover: Product[] = [
   ...titled.products,
   {
-    ma: "A04",
+    ma: extraMa,
     type: "A",
     titleEn: "Leftover",
     titleVn: "Áo",
@@ -258,42 +270,42 @@ const leftover: Product[] = [
     fitCm: { bustChestCm: null, waistCm: null, lengthCm: null },
   },
 ];
-if (!shopVisibleProducts(leftover).some((product) => product.ma === "A04")) {
-  fail("Boss-added A04 must appear on the shop when hold | available");
+if (!shopVisibleProducts(leftover).some((product) => product.ma === extraMa)) {
+  fail(`Boss-added ${extraMa} must appear on the shop when hold | available`);
 }
-const saveLeftover = saveProductInCatalog(leftover, "A04", holdFields());
+const saveLeftover = saveProductInCatalog(leftover, extraMa, holdFields());
 if (!saveLeftover.ok) {
-  fail(`Save leftover A04 must work, got ${saveLeftover.error}`);
+  fail(`Save leftover ${extraMa} must work, got ${saveLeftover.error}`);
 }
-const renameExtra = renameProductInCatalog(leftover, "A04", "A03", {
+const renameExtra = renameProductInCatalog(leftover, extraMa, extraTarget, {
   ...holdFields(),
-  images: [{ src: "/products/A04/cover.jpg", colorId: null, order: 1 }],
+  images: [{ src: `/products/${extraMa}/cover.jpg`, colorId: null, order: 1 }],
 });
 if (!renameExtra.ok) {
-  fail(`Rename extra A04 → A03 must work, got ${renameExtra.error}`);
+  fail(`Rename extra ${extraMa} → ${extraTarget} must work, got ${renameExtra.error}`);
 }
-const renamedA03 = renameExtra.products.find((product) => product.ma === "A03");
-if (renamedA03?.images[0]?.src !== "/products/A04/cover.jpg") {
+const renamedExtra = renameExtra.products.find((product) => product.ma === extraTarget);
+if (renamedExtra?.images[0]?.src !== `/products/${extraMa}/cover.jpg`) {
   fail("Rename must keep existing photo URLs so thumbs do not 404 after the mã moves");
 }
-if (renameExtra.products.some((product) => product.ma === "A04")) {
+if (renameExtra.products.some((product) => product.ma === extraMa)) {
   fail("Rename must not leave two live SKUs for the same piece");
 }
 const removedAllowlist = removeProductFromCatalog(leftover, "A01");
 if (removedAllowlist.ok) {
   fail("Remove must refuse hub A01 — never invent a replacement");
 }
-const removedExtra = removeProductFromCatalog(leftover, "A04");
+const removedExtra = removeProductFromCatalog(leftover, extraMa);
 if (!removedExtra.ok) {
   fail(removedExtra.error);
 }
-if (removedExtra.products.some((product) => product.ma === "A04")) {
-  fail("Remove must clean leftover A04");
+if (removedExtra.products.some((product) => product.ma === extraMa)) {
+  fail(`Remove must clean leftover ${extraMa}`);
 }
 
 const integrity = inspectCatalogIntegrity(leftover);
-if (!integrity.extras.includes("A04") || integrity.missingAllowlist.length !== 0) {
-  fail("Integrity must flag leftover A04 and keep the ten");
+if (!integrity.extras.includes(extraMa) || integrity.missingAllowlist.length !== 0) {
+  fail(`Integrity must flag leftover ${extraMa} and keep the ten`);
 }
 if (!looksLikeOfficialMa("AO001") || looksLikeOfficialMa("A01")) {
   fail("Official alphabet is AO001, not A01");
@@ -392,19 +404,19 @@ if (itemFormHasNativeSaveConfirm()) {
   fail("item-form Add/Edit Save must not native-confirm");
 }
 
-const a03 = savedA03.products.find((product) => product.ma === "A03");
-if (!a03) {
-  fail("A03 missing after Save");
+const addedMa = savedNextA.products.find((product) => product.ma === nextA);
+if (!addedMa) {
+  fail(`${nextA} missing after Save`);
 }
-const a03Fields = {
+const addedMaFields = {
   ...holdFields(),
-  titleEn: "Top — A03 saved",
+  titleEn: `Top — ${nextA} saved`,
 };
-if (!liveProductReflectsFields(a03, a03Fields)) {
-  fail("Live A03 must reflect the saved identity fields");
+if (!liveProductReflectsFields(addedMa, addedMaFields)) {
+  fail(`Live ${nextA} must reflect the saved identity fields`);
 }
-if (liveProductReflectsFields(a03, { ...a03Fields, titleEn: "Other title" })) {
-  fail("Stale live A03 must not count as a Save receipt");
+if (liveProductReflectsFields(addedMa, { ...addedMaFields, titleEn: "Other title" })) {
+  fail(`Stale live ${nextA} must not count as a Save receipt`);
 }
 
 const emptyBody = parseAdminJsonResponse("", 200);
