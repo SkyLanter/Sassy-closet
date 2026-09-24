@@ -25,6 +25,8 @@ export const KINDS: Kind[] = [
 
 export const CLOTHING_SIZES = ["2XS", "XS", "S", "M", "L", "XL", "2XL"] as const;
 export const SHOE_SIZES = ["35", "36", "37", "38", "39", "40", "41"] as const;
+/** Accessories (B/H/J/P) are one-size by seller truth — 均码 is the only option. */
+export const ONE_SIZE = ["均码"] as const;
 /** Clothing Asia sizes. Prefer `sizesForKind` so giày (G) stays on 35–41. */
 export const SIZES = CLOTHING_SIZES;
 
@@ -63,7 +65,7 @@ export const COLORS: ColorChip[] = [
   { code: "khac", vi: "Khác" },
 ];
 
-export type SizeScale = "shoe" | "clothing";
+export type SizeScale = "shoe" | "clothing" | "onesize";
 
 export type IntakeCatalogKind = {
   code: KindCode;
@@ -89,15 +91,19 @@ export function sizeScaleForKind(kind: KindCode): SizeScale {
   switch (kind) {
     case "G":
       return "shoe";
+    // Accessories (B/H/J/P) are one-size by seller truth — offering the
+    // clothing 2XS–2XL ladder is misleading (Inventory Manager, 2026-09-23).
+    // 均码 is the single honest option; size stays optional.
+    case "B":
+    case "H":
+    case "J":
+    case "P":
+      return "onesize";
     case "A":
     case "Q":
     case "V":
     case "D":
     case "K":
-    case "B":
-    case "P":
-    case "H":
-    case "J":
     case "S":
     case "O":
       return "clothing";
@@ -109,7 +115,10 @@ export function sizeScaleForKind(kind: KindCode): SizeScale {
 }
 
 export function sizesForKind(kind: KindCode): readonly string[] {
-  return sizeScaleForKind(kind) === "shoe" ? SHOE_SIZES : CLOTHING_SIZES;
+  const scale = sizeScaleForKind(kind);
+  if (scale === "shoe") return SHOE_SIZES;
+  if (scale === "onesize") return ONE_SIZE;
+  return CLOTHING_SIZES;
 }
 
 export function sizeOptionsLine(kind: KindCode): string {

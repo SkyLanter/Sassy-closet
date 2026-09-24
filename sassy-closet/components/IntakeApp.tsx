@@ -830,7 +830,9 @@ function ItemForm(props: {
           <label className="mb-2 block text-sm font-medium">
             {sizeScaleForKind(props.kind) === "shoe"
               ? "Size giày Á châu · 35–41 (tuỳ chọn)"
-              : "Size (tuỳ chọn)"}
+              : sizeScaleForKind(props.kind) === "onesize"
+                ? "Size · 均码 / One-size (tuỳ chọn)"
+                : "Size (tuỳ chọn)"}
           </label>
           <div className="flex flex-wrap gap-1.5" data-testid="size-options">
             {sizesForKind(props.kind).map((size) => {
