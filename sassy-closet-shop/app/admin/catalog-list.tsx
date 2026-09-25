@@ -244,7 +244,8 @@ export function CatalogList({
           No items match this search.
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-line">          <table className="min-w-full text-left text-sm">
+        <div className="overflow-x-auto rounded-2xl border border-line">
+          <table className="min-w-full text-left text-sm">
             <thead className="border-b border-line bg-blush/50 text-[11px] uppercase tracking-[0.14em] text-muted">
               <tr>
                 <th className="px-3 py-3 font-medium">

@@ -80,10 +80,6 @@ export function AdminConsole({
   const [formDirty, setFormDirty] = useState(false);
 
   useEffect(() => {
-    setFormDirty(false);
-  }, [mode, editMa]);
-
-  useEffect(() => {
     setProducts(initialProducts);
     setSettings(initialSettings);
   }, [initialProducts, initialSettings]);

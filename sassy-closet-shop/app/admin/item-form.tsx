@@ -82,6 +82,7 @@ export function ItemForm({
   onToast,
   onCatalog,
   onCancel,
+  onDirtyChange,
 }: {
   mode: "add" | "edit";
   product?: Product;
@@ -95,6 +96,8 @@ export function ItemForm({
     options?: { nextMa?: string; renamedTo?: string; removed?: boolean },
   ) => void;
   onCancel: () => void;
+  /** Reports unsaved-changes state up so the admin nav can guard against losing edits. */
+  onDirtyChange?: (dirty: boolean) => void;
 }) {
   const [saving, setSaving] = useState(false);
   // Intake prefill: consumed once from sessionStorage (written by the Intake
@@ -109,17 +112,27 @@ export function ItemForm({
     const letter = prefill?.letter?.toUpperCase() ?? "";
     return (MA_LETTERS as readonly string[]).includes(letter) ? (letter as MaLetter) : "A";
   });
-  const [draft, setDraft] = useState<ItemDraft>(() =>
+  // The starting draft is computed once: the baseline for "unsaved" must be
+  // this exact value (not a fresh empty draft), otherwise an intake prefill
+  // shows "unsaved" before the owner touches anything.
+  const [initialDraft] = useState<ItemDraft>(() =>
     product ? draftFromProduct(product) : prefill ? prefillToDraft(prefill) : emptyDraft("A"),
   );
+  const [draft, setDraft] = useState<ItemDraft>(initialDraft);
   const [renameInput, setRenameInput] = useState(product?.ma ?? "");
   const [formError, setFormError] = useState<string | null>(null);
   const [formOk, setFormOk] = useState<string | null>(notice ?? null);
   const bannerRef = useRef<HTMLDivElement>(null);
-  const baselineRef = useRef(
-    snapshotDraft(product ? draftFromProduct(product) : emptyDraft(), product?.ma ?? ""),
-  );
+  const baselineRef = useRef(snapshotDraft(initialDraft, product?.ma ?? ""));
   const dirty = snapshotDraft(draft, renameInput) !== baselineRef.current;
+
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+    // Report clean on unmount so the nav guard never fires for a form that is gone.
+    return () => {
+      onDirtyChange?.(false);
+    };
+  }, [dirty, onDirtyChange]);
 
   useEffect(() => {
     if (typeof window === "undefined" || window.location.hash !== "#ma") {
@@ -515,7 +528,7 @@ export function ItemForm({
         title="Identity"
         hint={
           mode === "add"
-            ? "Pick a letter only (A · Tops). The next unused code is assigned on Save — unused letters are not shop tiles. English title is required."
+            ? "Pick the letter for this piece type. The next unused code is assigned on Save — unused letters are not shop tiles. English title is required."
             : "Titles customers see. Type follows the mã letter. Same mã — this is edit, not rename."
         }
       >
