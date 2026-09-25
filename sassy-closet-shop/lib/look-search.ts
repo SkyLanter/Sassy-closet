@@ -68,7 +68,7 @@ export function lookSearchHaystack(look: LookSearchItem): string {
 export function foldDiacritics(text: string): string {
   return text
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[̀-ͯ]/g, "")
     .replace(/đ/g, "d")
     .replace(/Đ/g, "D");
 }
@@ -111,7 +111,7 @@ export function filterLooksByQuery<T extends LookSearchItem>(
   looks: T[],
   query: string,
 ): T[] {
-  const needle = foldDiacritics(query.trim()).toLowerCase();
+  const needle = query.trim().toLowerCase();
   if (!needle) {
     return looks;
   }
