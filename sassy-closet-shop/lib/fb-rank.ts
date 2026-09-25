@@ -4,7 +4,7 @@ import type { Product } from "@/lib/types";
 
 export const DEFAULT_SHOP_SORT = "popular" as const;
 
-export type ShopSortId = "popular" | "ma";
+export type ShopSortId = "popular" | "ma" | "price-asc" | "price-desc";
 
 export type FbMaRankRow = {
   rank: number;
