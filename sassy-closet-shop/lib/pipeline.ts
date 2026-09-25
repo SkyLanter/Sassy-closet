@@ -9,6 +9,7 @@
 
 export const PIPELINE_STAGES = [
   { id: "intake", label: "Intake", hint: "GF submitted on the intake site (staged)" },
+  { id: "needs_research", label: "Needs research", hint: "Public fields BOTH-ok — per-SKU colors/sizes/prices still behind Taobao login" },
   { id: "researched", label: "Researched", hint: "Taobao link browsed — seller SKU truth captured" },
   { id: "priced", label: "Priced", hint: "Calculator run — sell set, or Inbox giá" },
   { id: "excel", label: "Excel", hint: "Row in the SoT Official sheet (OneDrive)" },
@@ -48,6 +49,7 @@ export type PipelineDocument = {
 function emptyStages(): PipelineStages {
   return {
     intake: null,
+    needs_research: null,
     researched: null,
     priced: null,
     excel: null,
