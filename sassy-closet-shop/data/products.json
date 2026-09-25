@@ -2054,6 +2054,195 @@
       "descriptionEn": "Lace bustier set, close fit.",
       "fulfillment": "dropship",
       "sourceLink": "https://e.tb.cn/h.8s4B4htXZ4FDIHD?tk=UYNRTiR2TUD"
+    },
+    {
+      "ma": "A17",
+      "type": "A",
+      "titleVn": "",
+      "titleEn": "Pink puppy knit sweater",
+      "priceUsd": null,
+      "qty": 1,
+      "status": "hold",
+      "colors": [],
+      "images": [
+        {
+          "src": "/products/A17/cover.jpg",
+          "colorId": null,
+          "order": 1
+        }
+      ],
+      "sizes": [],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "",
+      "descriptionEn": "",
+      "fulfillment": "dropship",
+      "sourceLink": null
+    },
+    {
+      "ma": "A18",
+      "type": "A",
+      "titleVn": "",
+      "titleEn": "Yellow puppy-embroidered knit cardigan",
+      "priceUsd": null,
+      "qty": 1,
+      "status": "hold",
+      "colors": [],
+      "images": [
+        {
+          "src": "/products/A18/cover.jpg",
+          "colorId": null,
+          "order": 1
+        }
+      ],
+      "sizes": [],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "",
+      "descriptionEn": "",
+      "fulfillment": "dropship",
+      "sourceLink": null
+    },
+    {
+      "ma": "A19",
+      "type": "A",
+      "titleVn": "",
+      "titleEn": "Pink sweet jacquard knit sweater",
+      "priceUsd": null,
+      "qty": 1,
+      "status": "hold",
+      "colors": [],
+      "images": [
+        {
+          "src": "/products/A19/cover.jpg",
+          "colorId": null,
+          "order": 1
+        }
+      ],
+      "sizes": [],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "",
+      "descriptionEn": "",
+      "fulfillment": "dropship",
+      "sourceLink": null
+    },
+    {
+      "ma": "A20",
+      "type": "A",
+      "titleVn": "",
+      "titleEn": "Preppy loose faux-mink sweater",
+      "priceUsd": null,
+      "qty": 1,
+      "status": "hold",
+      "colors": [],
+      "images": [
+        {
+          "src": "/products/A20/cover.jpg",
+          "colorId": null,
+          "order": 1
+        }
+      ],
+      "sizes": [],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "",
+      "descriptionEn": "",
+      "fulfillment": "dropship",
+      "sourceLink": null
+    },
+    {
+      "ma": "A21",
+      "type": "A",
+      "titleVn": "",
+      "titleEn": "Yellow doll-collar soft knit",
+      "priceUsd": null,
+      "qty": 1,
+      "status": "hold",
+      "colors": [],
+      "images": [
+        {
+          "src": "/products/A21/cover.jpg",
+          "colorId": null,
+          "order": 1
+        }
+      ],
+      "sizes": [],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "",
+      "descriptionEn": "",
+      "fulfillment": "dropship",
+      "sourceLink": null
+    },
+    {
+      "ma": "A22",
+      "type": "A",
+      "titleVn": "",
+      "titleEn": "Cute Christmas knit sweater",
+      "priceUsd": null,
+      "qty": 1,
+      "status": "hold",
+      "colors": [],
+      "images": [
+        {
+          "src": "/products/A22/cover.jpg",
+          "colorId": null,
+          "order": 1
+        }
+      ],
+      "sizes": [],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "",
+      "descriptionEn": "",
+      "fulfillment": "dropship",
+      "sourceLink": null
+    },
+    {
+      "ma": "S10",
+      "type": "S",
+      "titleVn": "",
+      "titleEn": "Green embroidered top and skirt set",
+      "priceUsd": null,
+      "qty": 1,
+      "status": "hold",
+      "colors": [],
+      "images": [
+        {
+          "src": "/products/S10/cover.jpg",
+          "colorId": null,
+          "order": 1
+        }
+      ],
+      "sizes": [],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "",
+      "descriptionEn": "",
+      "fulfillment": "dropship",
+      "sourceLink": null
     }
   ],
   "settings": {
