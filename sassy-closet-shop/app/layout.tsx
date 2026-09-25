@@ -1,4 +1,5 @@
 import type { Viewport } from "next";
+import type { ReactNode } from "react";
 import { Be_Vietnam_Pro, Cormorant_Garamond } from "next/font/google";
 import { rootSeo } from "@/lib/seo";
 import "./globals.css";
@@ -27,7 +28,7 @@ export async function generateMetadata() {
   return rootSeo();
 }
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang="en"
