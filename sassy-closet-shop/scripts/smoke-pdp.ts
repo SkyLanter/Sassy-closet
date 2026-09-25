@@ -120,10 +120,10 @@ if (coverSrcForColor(emptyMa, "cblackcolor01") !== undefined) {
 }
 
 const a02 = seed.products.find((product) => product.ma === "A02");
-if (!a02 || a02.colors.map((color) => color.id).join(",") !== "cham-bi") {
-  fail("A02 must show Chấm bi — never A01 Kem/Xanh");
+if (!a02 || a02.colors.map((color) => color.id).join(",") !== "ca0200") {
+  fail("A02 must show ca0200 Off-white (seed) — never invent colors");
 }
-if (a02.colors.some((color) => color.hex === "#F4F0E8" || color.hex === "#1C2A4A")) {
+if (a02.colors.some((color) => color.hex === "#F5D76E" || color.hex === "#7B5EA7")) {
   fail("A02 must not carry A01 hexes");
 }
 if (imagesForColor(a02, "kem").length !== 0 || coverSrcForColor(a02, "kem") !== undefined) {
