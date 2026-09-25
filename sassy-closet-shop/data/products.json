@@ -501,9 +501,9 @@
       "status": "available",
       "colors": [
         {
-          "id": "cham-bi",
-          "hex": "#6B6B6B",
-          "name": "Gray",
+          "id": "ca0200",
+          "hex": "#F4F0E8",
+          "name": "Off-white",
           "note": ""
         }
       ],
