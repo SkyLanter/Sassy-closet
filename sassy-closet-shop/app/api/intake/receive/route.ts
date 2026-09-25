@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import { getProductsUncached } from "@/lib/products";
 import { getCatalogStorageInfo } from "@/lib/catalog-store";
 import { NO_STORE_HEADERS } from "@/lib/http-no-store";
@@ -23,6 +24,11 @@ export const revalidate = 0;
  * priceUsd null ("Inbox giá") until a human verifies the fields.
  */
 
+function safeEqual(a: string, b: string): boolean {
+  const ab = Buffer.from(a), bb = Buffer.from(b);
+  return ab.length === bb.length && timingSafeEqual(ab, bb);
+}
+
 function readReceiveKey(): string {
   return process.env.INTAKE_RECEIVE_KEY?.trim() ?? "";
 }
@@ -46,7 +52,7 @@ function checkAuth(request: Request): Response | null {
   const bearer = request.headers.get("authorization") ?? "";
   const automationKey = request.headers.get("x-automation-key") ?? "";
   // The PR #42 sender transmits both headers; accept either.
-  if (bearer === `Bearer ${key}` || automationKey === key) {
+  if (safeEqual(bearer, `Bearer ${key}`) || safeEqual(automationKey, key)) {
     return null;
   }
   return unauthorized();
