@@ -5,7 +5,7 @@ export const TYPE_LABELS: Record<
   { vn: string; en: string; nav: string }
 > = {
   A: { vn: "Áo", en: "Top", nav: "Tops" },
-  Q: { vn: "Quần", en: "Pants", nav: "Pants" },
+  Q: { vn: "Quần", en: "Pants", nav: "Bottoms" },
   V: { vn: "Váy", en: "Skirt", nav: "Skirts" },
   K: { vn: "Áo khoác", en: "Jacket", nav: "Jackets" },
   G: { vn: "Giày", en: "Shoes", nav: "Shoes" },

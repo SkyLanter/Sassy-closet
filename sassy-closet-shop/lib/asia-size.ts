@@ -46,17 +46,12 @@ export function parseAsiaSizes(raw: unknown): ShopSize[] {
     }
     const rawText = String(item).trim();
     const upper = rawText.toUpperCase();
-    // Asia main: accept exact letters OR extract from Taobao "S 建议80-90斤" / "M女【…】" / "XXL"
-    const asiaMatch = upper.match(/^(2XS|XXS|XS|XXL|2XL|3XL|S|M|L|XL)\b/) ??
-      upper.match(/\b(2XS|XXS|XS|XXL|2XL|3XL|S|M|L|XL)\b/);
+    // Strict: keep Asia letters only (case-insensitive exact match).
+    // "US M" is a US size reference — never map US sizes to Asia.
+    // "XXS"/"XXL"/"3XL" are dropped, not normalized — only 2XS–2XL are valid.
     let next: ShopSize | null = null;
-    if (asiaMatch) {
-      let letter = asiaMatch[1];
-      if (letter === "XXS") letter = "2XS";
-      if (letter === "XXL" || letter === "3XL") letter = "2XL";
-      if (isAsiaSizeLetter(letter)) {
-        next = letter;
-      }
+    if (isAsiaSizeLetter(upper)) {
+      next = upper;
     } else if (isEuShoeSize(rawText.replace(/[^0-9]/g, ""))) {
       // Footwear secondary only — never invent US
       next = rawText.replace(/[^0-9]/g, "") as ShopSize;
@@ -112,7 +107,7 @@ export function assertAsiaSizesOnly(sizes: readonly string[]): void {
   for (const letter of sizes) {
     if (!isShopSize(letter)) {
       throw new Error(
-        `Size “${letter}” is not Asia (2XS–2XL) or EU shoe (34–42). Never invent US maps.`,
+        `Size “${letter}” is not Asia (2XS–2XL) or EU shoe (34–42). Never US — never invent US size maps.`,
       );
     }
   }

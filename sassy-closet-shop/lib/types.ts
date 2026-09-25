@@ -35,6 +35,8 @@ export type Product = {
   descriptionEn: string;
   fulfillment: Fulfillment;
   sourceLink: string | null;
+  /** Editorial hero only — shows on homepage hero, never as a shop look. */
+  editorialHero?: boolean;
   /** Optional Meta popular rank overlay — not persisted in catalog Blob. */
   fbRank?: number;
   fbViews?: number;

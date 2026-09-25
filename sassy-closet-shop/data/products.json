@@ -20,7 +20,7 @@
       "type": "A",
       "titleVn": "Áo len puppy",
       "titleEn": "Puppy cardigan",
-      "priceUsd": 29,
+      "priceUsd": 30,
       "qty": 1,
       "status": "available",
       "colors": [
@@ -69,7 +69,7 @@
       "type": "S",
       "titleVn": "Đầm polo",
       "titleEn": "Polo wrap dress",
-      "priceUsd": 44,
+      "priceUsd": 45,
       "qty": 1,
       "status": "available",
       "colors": [],
@@ -295,7 +295,7 @@
       "type": "P",
       "titleVn": "Mũ dâu",
       "titleEn": "Strawberry cap",
-      "priceUsd": 11,
+      "priceUsd": 12,
       "qty": 1,
       "status": "available",
       "colors": [
@@ -402,7 +402,7 @@
       "type": "K",
       "titleVn": "Áo khoác puppy",
       "titleEn": "Puppy zip jacket",
-      "priceUsd": 39,
+      "priceUsd": 40,
       "qty": 1,
       "status": "available",
       "colors": [
@@ -496,14 +496,14 @@
       "type": "A",
       "titleVn": "Áo chấm bi",
       "titleEn": "Polka-dot dress",
-      "priceUsd": 25,
+      "priceUsd": 26,
       "qty": 1,
       "status": "available",
       "colors": [
         {
-          "id": "ca0200",
-          "hex": "#F4F0E8",
-          "name": "Off-white",
+          "id": "cham-bi",
+          "hex": "#6B6B6B",
+          "name": "Gray",
           "note": ""
         }
       ],
@@ -589,7 +589,7 @@
       "type": "A",
       "titleVn": "Áo hai dây ren",
       "titleEn": "Lace panel tank",
-      "priceUsd": 23,
+      "priceUsd": 24,
       "qty": 1,
       "status": "available",
       "colors": [
@@ -753,7 +753,7 @@
       "type": "A",
       "titleVn": "Áo lace Frequency",
       "titleEn": "Frequency lace top",
-      "priceUsd": 28,
+      "priceUsd": 29,
       "qty": 1,
       "status": "available",
       "colors": [],
@@ -827,7 +827,7 @@
       "type": "A",
       "titleVn": "Áo cổ V ren",
       "titleEn": "V-neck lace top",
-      "priceUsd": 28,
+      "priceUsd": 29,
       "qty": 1,
       "status": "available",
       "colors": [
@@ -880,7 +880,7 @@
       "type": "A",
       "titleVn": "Áo cổ vuông kem",
       "titleEn": "Square-neck apricot lace tee",
-      "priceUsd": 31,
+      "priceUsd": 32,
       "qty": 1,
       "status": "available",
       "colors": [
@@ -938,7 +938,7 @@
       "type": "A",
       "titleVn": "Áo len cún vàng",
       "titleEn": "Butter puppy cardigan",
-      "priceUsd": 29,
+      "priceUsd": 30,
       "qty": 1,
       "status": "available",
       "colors": [
@@ -976,7 +976,7 @@
       "type": "A",
       "titleVn": "Áo bèo chấm bi",
       "titleEn": "White polka ruffle top",
-      "priceUsd": 32,
+      "priceUsd": 33,
       "qty": 1,
       "status": "available",
       "colors": [
@@ -1030,7 +1030,7 @@
       "type": "A",
       "titleVn": "Áo len mèo hoa",
       "titleEn": "Pink floral kitten knit",
-      "priceUsd": 27,
+      "priceUsd": 28,
       "qty": 1,
       "status": "available",
       "colors": [
@@ -1090,7 +1090,7 @@
       "type": "A",
       "titleVn": "Áo len mèo mềm",
       "titleEn": "Soft kitten knit",
-      "priceUsd": 26,
+      "priceUsd": 27,
       "qty": 1,
       "status": "available",
       "colors": [
@@ -1124,7 +1124,7 @@
       "type": "A",
       "titleVn": "Áo len hoa xám",
       "titleEn": "Heather knit top",
-      "priceUsd": 27,
+      "priceUsd": 28,
       "qty": 1,
       "status": "available",
       "colors": [
@@ -1297,7 +1297,7 @@
       "type": "B",
       "titleVn": "Túi Disney",
       "titleEn": "Disney gift bag",
-      "priceUsd": 67,
+      "priceUsd": 68,
       "qty": 1,
       "status": "available",
       "colors": [
@@ -1467,7 +1467,8 @@
       "descriptionVn": "Đầm trắng WITHMIN, form sạch.",
       "descriptionEn": "White WITHMIN dress, clean flare.",
       "fulfillment": "dropship",
-      "sourceLink": "https://e.tb.cn/h.8J19U7AXarFp5si?tk=laULT7BwQ6T"
+      "sourceLink": "https://e.tb.cn/h.8J19U7AXarFp5si?tk=laULT7BwQ6T",
+      "editorialHero": true
     },
     {
       "ma": "D03",
@@ -1516,7 +1517,7 @@
       "type": "J",
       "titleVn": "Bạc Moonlight Belle",
       "titleEn": "Moonlight Belle silver",
-      "priceUsd": 32,
+      "priceUsd": 33,
       "qty": 1,
       "status": "available",
       "colors": [
@@ -1602,7 +1603,7 @@
       "type": "O",
       "titleVn": "Guốc nơ chấm bi",
       "titleEn": "Polka bow heels",
-      "priceUsd": 21,
+      "priceUsd": 22,
       "qty": 1,
       "status": "available",
       "colors": [
@@ -1694,7 +1695,7 @@
       "type": "O",
       "titleVn": "Sticker mèo",
       "titleEn": "Kitty sticker pack",
-      "priceUsd": 6,
+      "priceUsd": 7,
       "qty": 1,
       "status": "available",
       "colors": [],
@@ -1798,7 +1799,7 @@
       "type": "O",
       "titleVn": "Dép lông cừu",
       "titleEn": "Lamb bow slippers",
-      "priceUsd": 14,
+      "priceUsd": 15,
       "qty": 1,
       "status": "available",
       "colors": [
@@ -1956,7 +1957,7 @@
       "type": "S",
       "titleVn": "Đồ ngủ thú cưng",
       "titleEn": "Pet-park pajama set",
-      "priceUsd": 29,
+      "priceUsd": 30,
       "qty": 1,
       "status": "available",
       "colors": [
