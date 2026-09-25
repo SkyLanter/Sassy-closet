@@ -94,12 +94,58 @@ export function sortByMa<T extends { ma: string }>(items: T[]): T[] {
   return [...items].sort((left, right) => compareMa(left.ma, right.ma));
 }
 
-export function sortShopLooks<T extends { ma: string }>(items: T[], sort: ShopSortId): T[] {
+export type PricedLook = { ma: string; priceUsd: number | null };
+
+/**
+ * Price sorts. `priceUsd: null` ("Inbox for price") never crashes the
+ * comparator — those looks pin to the END in both directions, ties by mã.
+ */
+export function comparePriceAsc(left: PricedLook, right: PricedLook): number {
+  const lp = left.priceUsd;
+  const rp = right.priceUsd;
+  if (lp === null && rp === null) {
+    return compareMa(left.ma, right.ma);
+  }
+  if (lp === null) {
+    return 1;
+  }
+  if (rp === null) {
+    return -1;
+  }
+  if (lp !== rp) {
+    return lp - rp;
+  }
+  return compareMa(left.ma, right.ma);
+}
+
+export function comparePriceDesc(left: PricedLook, right: PricedLook): number {
+  const lp = left.priceUsd;
+  const rp = right.priceUsd;
+  if (lp === null && rp === null) {
+    return compareMa(left.ma, right.ma);
+  }
+  if (lp === null) {
+    return 1;
+  }
+  if (rp === null) {
+    return -1;
+  }
+  if (lp !== rp) {
+    return rp - lp;
+  }
+  return compareMa(left.ma, right.ma);
+}
+
+export function sortShopLooks<T extends PricedLook>(items: T[], sort: ShopSortId): T[] {
   switch (sort) {
     case "popular":
       return sortProductsByPopular(items);
     case "ma":
       return sortByMa(items);
+    case "price-asc":
+      return [...items].sort(comparePriceAsc);
+    case "price-desc":
+      return [...items].sort(comparePriceDesc);
     default: {
       const _exhaustive: never = sort;
       return _exhaustive;
@@ -114,4 +160,14 @@ export const SHOP_SORT_OPTIONS: ReadonlyArray<{
 }> = [
   { id: "popular", label: "Popular", aria: "Popular · Most viewed" },
   { id: "ma", label: "Mã", aria: "Mã A to Z" },
+  {
+    id: "price-asc",
+    label: "Price ↑",
+    aria: "Price low to high · Inbox-for-price looks last",
+  },
+  {
+    id: "price-desc",
+    label: "Price ↓",
+    aria: "Price high to low · Inbox-for-price looks last",
+  },
 ];
