@@ -25,21 +25,65 @@ import {
   LOOK_SEARCH_EMPTY,
   LOOK_SEARCH_PLACEHOLDER,
   LOOK_SEARCH_TOGGLE,
+  foldedMatchRange,
   lookSearchHref,
   resolveLookSearch,
   suggestLooks,
   type LookSearchItem,
 } from "@/lib/look-search";
 
+const SEARCH_CLEAR_LABEL = "Xóa tìm kiếm · Clear search";
+const RECENT_LABEL = "Gần đây · Recent searches";
+const RECENT_CLEAR_LABEL = "Xóa gần đây · Clear recent";
+
+const RECENT_STORAGE_KEY = "sassy:recent-searches";
+const RECENT_MAX = 5;
+
+function readRecentQueries(): string[] {
+  try {
+    const parsed: unknown = JSON.parse(
+      window.localStorage.getItem(RECENT_STORAGE_KEY) ?? "[]",
+    );
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed
+      .filter((entry): entry is string => typeof entry === "string")
+      .map((entry) => entry.trim())
+      .filter((entry) => entry.length > 0)
+      .slice(0, RECENT_MAX);
+  } catch {
+    return [];
+  }
+}
+
+function HighlightedText({ text, query }: { text: string; query: string }) {
+  const range = foldedMatchRange(text, query);
+  if (!range) {
+    return <>{text}</>;
+  }
+  const [start, end] = range;
+  return (
+    <>
+      {text.slice(0, start)}
+      <mark className="bg-gold/30 text-inherit">{text.slice(start, end)}</mark>
+      {text.slice(end)}
+    </>
+  );
+}
+
 type HeaderSearchApi = {
   listId: string;
   fieldRef: RefObject<HTMLDivElement | null>;
   sheetRef: RefObject<HTMLDivElement | null>;
   inputRef: RefObject<HTMLInputElement | null>;
+  toggleRef: RefObject<HTMLButtonElement | null>;
   expanded: boolean;
   value: string;
   suggestions: LookSearchItem[];
+  recents: string[];
   showPanel: boolean;
+  hasQuery: boolean;
   active: number | null;
   setOpen: (next: boolean) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
@@ -47,6 +91,8 @@ type HeaderSearchApi = {
   onInputChange: (next: string) => void;
   onFocus: () => void;
   pickLook: (look: LookSearchItem) => void;
+  commitQuery: (query: string) => void;
+  clearRecents: () => void;
   closePanel: () => void;
 };
 
@@ -101,15 +147,50 @@ function HeaderSearchState({
   const router = useRouter();
   const listId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
   const fieldRef = useRef<HTMLDivElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const { looks, draft, setDraft } = useShopSearch();
   const [expanded, setExpanded] = useState(false);
   const [suggestOpen, setSuggestOpen] = useState(false);
   const [active, setActive] = useState<number | null>(null);
+  const [recents, setRecents] = useState<string[]>(() =>
+    // Lazy init (no effect): the sheet renders null until first focus, so the
+    // server/client first paint is identical and hydration stays clean.
+    typeof window === "undefined" ? [] : readRecentQueries(),
+  );
   const value = draft ?? urlQuery;
+  const hasQuery = value.trim().length > 0;
   const suggestions = suggestLooks(looks, value);
-  const showPanel = suggestOpen && value.trim().length > 0;
+  const showPanel = suggestOpen && (hasQuery || recents.length > 0);
+
+  function rememberRecent(entry: string) {
+    const clean = entry.trim();
+    if (!clean) {
+      return;
+    }
+    setRecents((prev) => {
+      const next = [
+        clean,
+        ...prev.filter((query) => query.toLowerCase() !== clean.toLowerCase()),
+      ].slice(0, RECENT_MAX);
+      try {
+        window.localStorage.setItem(RECENT_STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        // Private mode or blocked storage — recents just don't persist.
+      }
+      return next;
+    });
+  }
+
+  function clearRecents() {
+    setRecents([]);
+    try {
+      window.localStorage.removeItem(RECENT_STORAGE_KEY);
+    } catch {
+      // ignore
+    }
+  }
 
   const setOpen = useCallback(
     (next: boolean) => {
@@ -152,13 +233,18 @@ function HeaderSearchState({
   }
 
   function pickLook(look: LookSearchItem) {
+    rememberRecent(look.ma);
     closePanel();
     router.push(`/m/${look.ma}`);
   }
 
   function commit(raw: string) {
-    const resolution = resolveLookSearch(looks, raw);
-    setDraft(raw.trim());
+    const query = raw.trim();
+    const resolution = resolveLookSearch(looks, query);
+    if (query) {
+      rememberRecent(resolution.kind === "exact" ? resolution.ma : query);
+    }
+    setDraft(query);
     setSuggestOpen(false);
     setActive(null);
     setOpen(false);
@@ -211,7 +297,13 @@ function HeaderSearchState({
           return;
         }
         setOpen(false);
-        inputRef.current?.blur();
+        // Return focus to the toggle on mobile; on desktop the toggle is
+        // hidden (sm:hidden) so just blur the field instead.
+        if (toggleRef.current && toggleRef.current.offsetParent !== null) {
+          toggleRef.current.focus();
+        } else {
+          inputRef.current?.blur();
+        }
         break;
       default:
         return;
@@ -223,10 +315,13 @@ function HeaderSearchState({
     fieldRef,
     sheetRef,
     inputRef,
+    toggleRef,
     expanded,
     value,
     suggestions,
+    recents,
     showPanel,
+    hasQuery,
     active,
     setOpen,
     onSubmit,
@@ -237,9 +332,11 @@ function HeaderSearchState({
       setSuggestOpen(true);
     },
     onFocus: () => {
-      setSuggestOpen(value.trim().length > 0);
+      setSuggestOpen(true);
     },
     pickLook,
+    commitQuery: commit,
+    clearRecents,
     closePanel,
   };
 
@@ -283,30 +380,46 @@ export function HeaderSearchProvider({
 }
 
 export function HeaderSearch() {
-  const search = useHeaderSearch();
+  const {
+    toggleRef,
+    fieldRef,
+    inputRef,
+    expanded,
+    value,
+    showPanel,
+    active,
+    suggestions,
+    listId,
+    setOpen,
+    onSubmit,
+    onKeyDown,
+    onInputChange,
+    onFocus,
+  } = useHeaderSearch();
 
   return (
     <div
-      ref={search.fieldRef}
-      className={`relative min-w-0 ${search.expanded ? "flex-1" : ""} sm:w-[12.5rem] lg:w-[14.5rem]`}
+      ref={fieldRef}
+      className={`relative min-w-0 ${expanded ? "flex-1" : ""} sm:w-[12.5rem] lg:w-[14.5rem]`}
     >
       <div className="flex min-w-0 items-center justify-end gap-1">
         <button
           type="button"
+          ref={toggleRef}
           data-testid="shop-header-search-toggle"
-          aria-expanded={search.expanded}
-          aria-label={search.expanded ? LOOK_SEARCH_CLOSE : LOOK_SEARCH_TOGGLE}
+          aria-expanded={expanded}
+          aria-label={expanded ? LOOK_SEARCH_CLOSE : LOOK_SEARCH_TOGGLE}
           translate="no"
           onClick={() => {
-            const next = !search.expanded;
-            search.setOpen(next);
-            if (next && search.value.trim().length > 0) {
-              search.onFocus();
+            const next = !expanded;
+            setOpen(next);
+            if (next && value.trim().length > 0) {
+              onFocus();
             }
           }}
           className="inline-flex min-h-11 min-w-11 shrink-0 touch-manipulation select-none items-center justify-center text-ink hover-hover:hover:text-gold-deep sm:hidden"
         >
-          {search.expanded ? (
+          {expanded ? (
             <span className="text-lg leading-none" aria-hidden>
               ×
             </span>
@@ -316,20 +429,20 @@ export function HeaderSearch() {
         </button>
         <form
           role="search"
-          onSubmit={search.onSubmit}
+          onSubmit={onSubmit}
           data-testid="shop-header-search"
-          className={`${search.expanded ? "flex flex-1" : "hidden"} min-w-0 sm:flex`}
+          className={`${expanded ? "flex flex-1" : "hidden"} relative min-w-0 sm:flex`}
         >
           <label className="sr-only" htmlFor="shop-header-search-input">
             {LOOK_SEARCH_ARIA}
           </label>
           <input
-            ref={search.inputRef}
+            ref={inputRef}
             id="shop-header-search-input"
             type="search"
             role="combobox"
             name="q"
-            value={search.value}
+            value={value}
             autoComplete="off"
             autoCorrect="off"
             spellCheck={false}
@@ -337,19 +450,33 @@ export function HeaderSearch() {
             placeholder={LOOK_SEARCH_PLACEHOLDER}
             aria-label={LOOK_SEARCH_ARIA}
             aria-autocomplete="list"
-            aria-controls={search.showPanel ? search.listId : undefined}
-            aria-expanded={search.showPanel}
+            aria-controls={showPanel ? listId : undefined}
+            aria-expanded={showPanel}
             aria-activedescendant={
-              search.showPanel && search.active !== null && search.suggestions[search.active]
-                ? `${search.listId}-${search.suggestions[search.active].ma}`
+              showPanel && active !== null && suggestions[active]
+                ? `${listId}-${suggestions[active].ma}`
                 : undefined
             }
             translate="no"
-            onChange={(event) => search.onInputChange(event.target.value)}
-            onFocus={search.onFocus}
-            onKeyDown={search.onKeyDown}
-            className="min-h-11 w-full min-w-0 rounded-full border border-gold/35 bg-transparent px-3 text-[13px] text-ink placeholder:text-muted focus:border-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
+            onChange={(event) => onInputChange(event.target.value)}
+            onFocus={onFocus}
+            onKeyDown={onKeyDown}
+            className="min-h-11 w-full min-w-0 rounded-full border border-gold/35 bg-transparent py-2 pl-3 pr-11 text-[13px] text-ink placeholder:text-muted focus:border-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
           />
+          {value ? (
+            <button
+              type="button"
+              onClick={() => {
+                onInputChange("");
+                inputRef.current?.focus();
+              }}
+              aria-label={SEARCH_CLEAR_LABEL}
+              translate="no"
+              className="absolute right-0 top-1/2 inline-flex min-h-11 min-w-11 -translate-y-1/2 touch-manipulation select-none items-center justify-center rounded-full text-lg leading-none text-muted hover-hover:hover:text-ink"
+            >
+              <span aria-hidden>×</span>
+            </button>
+          ) : null}
         </form>
       </div>
     </div>
@@ -357,57 +484,109 @@ export function HeaderSearch() {
 }
 
 export function HeaderSearchSheet() {
-  const search = useHeaderSearch();
-  if (!search.showPanel) {
+  const {
+    sheetRef,
+    listId,
+    showPanel,
+    hasQuery,
+    suggestions,
+    recents,
+    active,
+    value,
+    closePanel,
+    commitQuery,
+    clearRecents,
+  } = useHeaderSearch();
+  if (!showPanel) {
     return null;
   }
 
   return (
     <div
-      ref={search.sheetRef}
+      ref={sheetRef}
       id="shop-search-suggest"
       data-testid="shop-search-sheet"
       className="shop-search-sheet absolute inset-x-0 top-full z-[70] max-h-[min(70dvh,24rem)] overflow-y-auto border-t border-gold/35"
     >
-      <ul
-        id={search.listId}
-        role="listbox"
-        aria-label={LOOK_SEARCH_ARIA}
-        data-testid="shop-header-search-hits"
-        className="py-1"
-      >
-        {search.suggestions.length === 0 ? (
-          <li
-            className="px-[max(1.25rem,env(safe-area-inset-left,0px))] py-4 pr-[max(1.25rem,env(safe-area-inset-right,0px))] text-left text-[15px] leading-[1.5] text-ink sm:px-[max(2rem,env(safe-area-inset-left,0px))] sm:pr-[max(2rem,env(safe-area-inset-right,0px))]"
-            role="option"
-            aria-selected={false}
-            translate="no"
-          >
-            {LOOK_SEARCH_EMPTY}
-          </li>
-        ) : (
-          search.suggestions.map((look, index) => (
-            <li key={look.ma} role="presentation">
-              <Link
-                id={`${search.listId}-${look.ma}`}
-                href={`/m/${look.ma}`}
-                role="option"
-                aria-selected={index === search.active}
-                data-testid="shop-header-search-hit"
-                data-ma={look.ma}
-                translate="no"
-                onClick={search.closePanel}
-                className={`flex min-h-11 touch-manipulation select-none items-center gap-2 px-[max(1.25rem,env(safe-area-inset-left,0px))] pr-[max(1.25rem,env(safe-area-inset-right,0px))] text-left text-[13px] sm:px-[max(2rem,env(safe-area-inset-left,0px))] sm:pr-[max(2rem,env(safe-area-inset-right,0px))] ${
-                  index === search.active ? "bg-blush text-ink" : "text-ink hover-hover:hover:bg-blush"
-                }`}
-              >
-                <MaMark ma={look.ma} className="text-[11px] tracking-[0.14em] text-gold-deep" />
-                <span className="min-w-0 truncate">{displayName(look)}</span>
-              </Link>
+      {hasQuery ? (
+        <ul
+          id={listId}
+          role="listbox"
+          aria-label={LOOK_SEARCH_ARIA}
+          data-testid="shop-header-search-hits"
+          className="py-1"
+        >
+          {suggestions.length === 0 ? (
+            <li
+              className="px-[max(1.25rem,env(safe-area-inset-left,0px))] py-4 pr-[max(1.25rem,env(safe-area-inset-right,0px))] text-left text-[15px] leading-[1.5] text-ink sm:px-[max(2rem,env(safe-area-inset-left,0px))] sm:pr-[max(2rem,env(safe-area-inset-right,0px))]"
+              role="option"
+              aria-selected={false}
+              translate="no"
+            >
+              {LOOK_SEARCH_EMPTY}
             </li>
-          ))
-        )}
-      </ul>
+          ) : (
+            suggestions.map((look, index) => (
+              <li key={look.ma} role="presentation">
+                <Link
+                  id={`${listId}-${look.ma}`}
+                  href={`/m/${look.ma}`}
+                  role="option"
+                  aria-selected={index === active}
+                  data-testid="shop-header-search-hit"
+                  data-ma={look.ma}
+                  translate="no"
+                  onClick={closePanel}
+                  className={`flex min-h-11 touch-manipulation select-none items-center gap-2 px-[max(1.25rem,env(safe-area-inset-left,0px))] pr-[max(1.25rem,env(safe-area-inset-right,0px))] text-left text-[13px] sm:px-[max(2rem,env(safe-area-inset-left,0px))] sm:pr-[max(2rem,env(safe-area-inset-right,0px))] ${
+                    index === active ? "bg-blush text-ink" : "text-ink hover-hover:hover:bg-blush"
+                  }`}
+                >
+                  <MaMark ma={look.ma} className="text-[11px] tracking-[0.14em] text-gold-deep" />
+                  <span className="min-w-0 truncate">
+                    <HighlightedText text={displayName(look)} query={value} />
+                  </span>
+                </Link>
+              </li>
+            ))
+          )}
+        </ul>
+      ) : (
+        <div className="py-1">
+          <div className="flex min-h-11 items-center justify-between px-[max(1.25rem,env(safe-area-inset-left,0px))] pr-[max(1.25rem,env(safe-area-inset-right,0px))] sm:px-[max(2rem,env(safe-area-inset-left,0px))] sm:pr-[max(2rem,env(safe-area-inset-right,0px))]">
+            <p
+              className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted"
+              translate="no"
+            >
+              {RECENT_LABEL}
+            </p>
+            <button
+              type="button"
+              onClick={clearRecents}
+              translate="no"
+              className="inline-flex min-h-11 touch-manipulation select-none items-center px-2 text-[11px] uppercase tracking-[0.16em] text-muted hover-hover:hover:text-ink"
+            >
+              {RECENT_CLEAR_LABEL}
+            </button>
+          </div>
+          <ul id={listId} aria-label={RECENT_LABEL}>
+            {recents.map((query) => (
+              <li key={query}>
+                <button
+                  type="button"
+                  onClick={() => commitQuery(query)}
+                  translate="no"
+                  className="flex min-h-11 w-full touch-manipulation select-none items-center gap-2 px-[max(1.25rem,env(safe-area-inset-left,0px))] pr-[max(1.25rem,env(safe-area-inset-right,0px))] text-left text-[13px] text-ink hover-hover:hover:bg-blush sm:px-[max(2rem,env(safe-area-inset-left,0px))] sm:pr-[max(2rem,env(safe-area-inset-right,0px))]"
+                >
+                  <span aria-hidden className="text-muted">
+                    ↺
+                  </span>
+                  <span className="min-w-0 truncate">{query}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

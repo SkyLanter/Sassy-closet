@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { MessengerCta } from "@/components/messenger-cta";
 import { SHOP_ERROR_BODY } from "@/lib/pdp-copy";
 
@@ -25,6 +26,13 @@ export default function ShopError({
         >
           Try again
         </button>
+        <Link
+          href="/"
+          translate="no"
+          className="inline-flex min-h-11 touch-manipulation select-none items-center border-y border-gold/45 px-4 py-2 text-[11px] uppercase tracking-[0.16em] text-ink hover-hover:hover:border-gold"
+        >
+          Xem looks · Browse looks
+        </Link>
         <MessengerCta />
       </div>
     </div>
