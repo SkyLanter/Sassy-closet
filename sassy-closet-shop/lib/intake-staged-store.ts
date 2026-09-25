@@ -1,6 +1,5 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { get, put } from "@vercel/blob";
 import { createClient } from "@vercel/kv";
 import { getCatalogStorageInfo } from "@/lib/catalog-store";
 import {
@@ -19,6 +18,10 @@ import { siteId } from "@/lib/site-runtime";
  * Staged records are NOT the live catalog. Nothing here publishes, merges,
  * or marks Square stock — promotion to a sell tab is a separate, human-
  * approved step.
+ *
+ * Security: intake staging never touches public Blob. When the catalog
+ * backend resolves to "blob", staging reads and writes via KV instead, and
+ * writes fail closed if KV is not configured.
  */
 
 export function intakeStagedBlobPath(id = siteId()): string {
@@ -59,12 +62,16 @@ export async function readStagedRecord(): Promise<IntakeStagedDocument | null> {
   const now = new Date().toISOString();
   try {
     if (info.backend === "blob") {
-      const result = await get(intakeStagedBlobPath(id), { access: "public", useCache: false });
-      if (!result || result.statusCode !== 200 || !result.stream) {
+      // Public Blob is never read for intake staging; read via KV instead.
+      const client = kvClient();
+      if (!client) {
         return null;
       }
-      const text = await new Response(result.stream).text();
-      return parseStagedDocument(JSON.parse(text) as unknown, now);
+      const raw = await client.get<unknown>(intakeStagedKvKey(id));
+      if (raw === null || raw === undefined) {
+        return null;
+      }
+      return parseStagedDocument(raw, now);
     }
     if (info.backend === "kv") {
       const client = kvClient();
@@ -111,13 +118,12 @@ export async function writeStagedRecord(
   const json = serialize(stamped);
 
   if (info.backend === "blob") {
-    await put(intakeStagedBlobPath(id), json, {
-      access: "public",
-      addRandomSuffix: false,
-      allowOverwrite: true,
-      contentType: "application/json",
-      cacheControlMaxAge: 0,
-    });
+    // Refuse public Blob for intake staging; write via KV, or fail closed.
+    const client = kvClient();
+    if (!client) {
+      throw new Error("Intake staging refuses public Blob. Configure KV for intake staging.");
+    }
+    await client.set(intakeStagedKvKey(id), stamped);
     return stamped;
   }
   if (info.backend === "kv") {
