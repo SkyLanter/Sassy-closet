@@ -150,6 +150,11 @@ export function PriceCalculator({
           : "Letter has no locked debox — enter the Cainiao share or leave blank. Never invent one."}{" "}
         ¥ cost wins over $ cost when both are set.
       </p>
+      <p className="mt-1 text-[11px] text-muted">
+        The formula prices at a 30% margin, but the guard needs 35%. When the formula sell lands
+        under the floor, the caption stays “Inbox giá” — 30% vs 35% is a Boss call, so flag it
+        instead of forcing a sell.
+      </p>
 
       <dl className="mt-3 space-y-1 text-sm tabular-nums" aria-live="polite">
         <div className="flex justify-between gap-4">
@@ -199,8 +204,11 @@ export function PriceCalculator({
             className="rounded-xl border border-gold-deep/40 bg-paper px-3 py-2 text-sm text-gold-deep"
             data-testid="price-verdict-inbox"
           >
-            ⚠ Inbox giá — {effectiveSell === null ? "sell is blank" : `under the ${Math.round(MARGIN_FLOOR * 100)}% margin floor`}.
-            Caption stays “Inbox giá”.
+            ⚠ Inbox giá —{" "}
+            {effectiveSell === null
+              ? "sell is blank"
+              : `under the ${Math.round(MARGIN_FLOOR * 100)}% margin floor (UNDER — flag to Boss)`}
+            . Caption stays “Inbox giá”; do not Apply a sell.
           </p>
         )}
         {onApplySell && verdict === "ok" && effectiveSell !== null ? (

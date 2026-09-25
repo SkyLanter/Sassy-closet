@@ -232,6 +232,9 @@ export function CatalogList({
           </select>
         </label>
       </div>
+      <p className="-mt-3 text-[11px] text-muted">
+        Pipe = pipeline stages done for that mã (details on the Pipeline tab). Tap a row to edit it.
+      </p>
 
       {visible.length === 0 ? (
         <p
@@ -241,8 +244,7 @@ export function CatalogList({
           No items match this search.
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-line">
-          <table className="min-w-full text-left text-sm">
+        <div className="overflow-x-auto rounded-2xl border border-line">          <table className="min-w-full text-left text-sm">
             <thead className="border-b border-line bg-blush/50 text-[11px] uppercase tracking-[0.14em] text-muted">
               <tr>
                 <th className="px-3 py-3 font-medium">

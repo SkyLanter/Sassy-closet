@@ -36,7 +36,7 @@ export function ImageFields({
         <h3 className="text-xs uppercase tracking-[0.14em] text-muted">All images</h3>
         <p className="mt-1 text-sm text-muted">
           Upload or paste a URL. Tag each photo to a color (or none). Use arrows to reorder — first
-          image is the cover.
+          image is the cover. Uploads cap at 4.5 MB each — compress the JPEG first if it fails.
         </p>
       </div>
       {draft.images.map((image, index) => (

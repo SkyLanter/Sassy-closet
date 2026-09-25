@@ -564,11 +564,16 @@ export function ItemForm({
             label="Title (EN)"
             testId="admin-title-en"
             value={draft.titleEn}
+            required
+            placeholder="e.g. White knit set with belt"
+            hint="Shown on the shop tile. Required — Save refuses a blank English title."
             onChange={(titleEn) => setDraft((current) => ({ ...current, titleEn }))}
           />
           <Field
             label="Title (VN flavor)"
             value={draft.titleVn}
+            placeholder="e.g. Set len trắng kèm thắt lưng"
+            hint="Optional Vietnamese flavor under the English title."
             onChange={(titleVn) => setDraft((current) => ({ ...current, titleVn }))}
           />
         </div>
@@ -661,7 +666,9 @@ export function ItemForm({
             hint={
               draft.status === "sold"
                 ? "Optional last price. Sold items do not appear on the shop."
-                : undefined
+                : draft.status === "hold"
+                  ? "Hold shows “Inbox for price” on the shop — no USD until the calculator below says the margin is safe."
+                  : "Run the calculator below first — sell = ceil(landed ÷ 0.7). Whole dollars are fine."
             }
             onChange={(priceInput) => setDraft((current) => ({ ...current, priceInput }))}
           />
@@ -736,8 +743,8 @@ export function ItemForm({
             className="rounded-2xl border border-gold-deep/40 bg-blush px-4 py-3 text-sm text-gold-deep"
             data-testid="admin-hold-media"
           >
-            {currentMa} is Hold · Inbox for price. A pretty gallery does not publish $23 or any USD.
-            Message-first — dropship after inbox.
+            {currentMa} is Hold · Inbox for price. A pretty gallery does not publish a USD price —
+            it stays message-first (dropship after inbox).
           </p>
         ) : null}
         <AdminColorEditor
@@ -775,11 +782,13 @@ export function ItemForm({
           <Area
             label="Description (EN)"
             value={draft.descriptionEn}
+            placeholder="Fabric, fit, and care in a line or two. Never write “on hand” for dropship."
             onChange={(descriptionEn) => setDraft((current) => ({ ...current, descriptionEn }))}
           />
           <Area
             label="Description (VN flavor)"
             value={draft.descriptionVn}
+            placeholder="Chất vải, form dáng… giọng shop cute."
             onChange={(descriptionVn) => setDraft((current) => ({ ...current, descriptionVn }))}
           />
         </div>

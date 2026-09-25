@@ -75,6 +75,13 @@ export function AdminConsole({
   const [products, setProducts] = useState(initialProducts);
   const [settings, setSettings] = useState(initialSettings);
   const [toasts, setToasts] = useState<AdminToast[]>([]);
+  // Set by the item form when it has unsaved edits; the section nav confirms
+  // before navigating away so a stray tap on the phone does not lose work.
+  const [formDirty, setFormDirty] = useState(false);
+
+  useEffect(() => {
+    setFormDirty(false);
+  }, [mode, editMa]);
 
   useEffect(() => {
     setProducts(initialProducts);
@@ -110,6 +117,16 @@ export function AdminConsole({
       );
     }
   }, [pushToast, storage.canWrite]);
+
+  function navGuard(event: { preventDefault: () => void }): void {
+    if (!formDirty) {
+      return;
+    }
+    const ok = window.confirm("Leave without saving? The shop will not see these edits.");
+    if (!ok) {
+      event.preventDefault();
+    }
+  }
 
   function sync(nextProducts: Product[], nextSettings: SiteSettings) {
     setProducts(nextProducts);
@@ -165,25 +182,26 @@ export function AdminConsole({
           className="mt-6 flex gap-6 overflow-x-auto tab-scroll text-[11px] font-medium uppercase tracking-[0.18em] lg:mt-8 lg:flex-col lg:gap-3 lg:overflow-visible"
           aria-label="Admin"
         >
-          <Link href="/admin" className={navClass(mode === "list")}>
+          <Link href="/admin" className={navClass(mode === "list")} onClick={navGuard}>
             Catalog
           </Link>
-          <Link href="/admin/intake" className={navClass(mode === "intake")}>
+          <Link href="/admin/intake" className={navClass(mode === "intake")} onClick={navGuard}>
             Intake
           </Link>
-          <Link href="/admin/new" className={navClass(mode === "add")}>
+          <Link href="/admin/new" className={navClass(mode === "add")} onClick={navGuard}>
             Add mã
           </Link>
-          <Link href="/admin/pipeline" className={navClass(mode === "pipeline")}>
+          <Link href="/admin/pipeline" className={navClass(mode === "pipeline")} onClick={navGuard}>
             Pipeline
           </Link>
           <Link
             href={editMa ? `/admin/edit/${editMa}` : "/admin"}
             className={navClass(mode === "edit")}
+            onClick={navGuard}
           >
             Edit item
           </Link>
-          <Link href="/admin/settings" className={navClass(mode === "settings")}>
+          <Link href="/admin/settings" className={navClass(mode === "settings")} onClick={navGuard}>
             Site settings
           </Link>
         </nav>
@@ -213,6 +231,7 @@ export function AdminConsole({
               storage={storage}
               onToast={pushToast}
               onCancel={() => router.push("/admin")}
+              onDirtyChange={setFormDirty}
               onCatalog={(nextProducts, nextSettings, options) => {
                 if (options?.nextMa) {
                   router.replace(`/admin/edit/${options.nextMa}?added=1`);
@@ -232,6 +251,7 @@ export function AdminConsole({
               notice={notice}
               onToast={pushToast}
               onCancel={() => router.push("/admin")}
+              onDirtyChange={setFormDirty}
               onCatalog={(nextProducts, nextSettings, options) => {
                 setProducts(nextProducts);
                 setSettings(nextSettings);
