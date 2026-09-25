@@ -292,3 +292,32 @@ CONTRACT
 
 Vercel Root Directory: sassy-closet. Do not change sassy-closet.vercel.app Production.
 ```
+
+---
+
+## 15) AI clothing-shop playbook → sell-test apply
+
+Contract: `prompts/AI_CLOTHING_SHOP_APPLY_TO_SELL_TEST.md`.  
+Playbook (sourced URLs): `docs/ai-clothing-shop/`.  
+Allowlist + export gate: `excel-kit/sell_test_allowlist.py`, `excel-kit/sot/validate_sell_catalog_export.py`.
+
+```
+Sassy Closet kit — AI clothing-shop learn notes + apply list for sell-test
+https://sassy-closet-shop.vercel.app
+
+KIT LANE ONLY. Do not fight Origin shop main. Intake untouched.
+
+RUN
+  python3 excel-kit/sot/validate_sell_catalog_export.py --help
+  python3 excel-kit/tests/run_checks.py
+
+CONTRACT
+- Playbook lives in docs/ai-clothing-shop/ (boutique UX, message-first,
+  tiny admin, per-color media, Next.js+Blob, CLONE_TO_OFFICIAL, failure modes).
+- Apply list: prompts/AI_CLOTHING_SHOP_APPLY_TO_SELL_TEST.md
+- Mã allowlist only: A01 S01 P01–P05 K01 H01 A02. Never invent.
+- Merge catalog export / CLONE_TO_OFFICIAL — do not start a second Official writer.
+- No Square Save. No FB Send. No passwords.
+
+STOP if you would edit sassy-closet/ intake or Origin shop main.
+```

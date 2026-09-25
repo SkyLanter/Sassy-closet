@@ -21,6 +21,9 @@ excel-kit/
   prompts/BOUTIQUE_PHONE_SAFE.md
   prompts/GF_CLOTHES_INTAKE.md   ← GF self-upload contract (not live inventory)
   prompts/SAVED_CARD_AND_REAL_MINIBOSS_ASK_2026-09-07.md
+  prompts/AI_CLOTHING_SHOP_APPLY_TO_SELL_TEST.md
+  sell_test_allowlist.py         ← sell-test mã lock (A01…A02)
+  sot/validate_sell_catalog_export.py
   KIT.md                         ← site env names (no secret values)
   templates/from_gf/             ← HOW_TO + INTAKE_TEMPLATE + example packets
   inbox/gf_intake_reply_templates.md
