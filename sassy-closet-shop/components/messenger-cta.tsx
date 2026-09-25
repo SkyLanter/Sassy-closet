@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { MaMark } from "@/components/ma-mark";
 import { useMessengerAppDevice } from "@/components/messenger-device";
 import { useSiteSettings } from "@/components/site-settings";
@@ -69,21 +68,15 @@ export function MessengerCta({
   const canHover = useCanHover();
   const isAppDevice = useMessengerAppDevice();
   const { facebookPageUrl } = useSiteSettings();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const webHref = messengerHref(facebookPageUrl);
   const useAppScheme = messengerUsesAppScheme(isAppDevice, canHover);
   const tapHref = messengerTapHref(facebookPageUrl, useAppScheme);
-  // Server + hydration markup must match: before mount, only UA-flagged app
-  // devices render the web fallback. After mount the real tap href decides.
+  // SSR + hydration render from the server snapshots (canHover=false,
+  // context UA flag), so markup matches; the hooks re-resolve on the client
+  // after hydration with no mismatch.
   const showWebFallback =
-    webHref !== "" &&
-    tapHref !== "" &&
-    tapHref !== webHref &&
-    (mounted || isAppDevice);
+    webHref !== "" && tapHref !== "" && tapHref !== webHref && isAppDevice;
 
   const label = ma
     ? undefined

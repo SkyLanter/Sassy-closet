@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { ColorNameChips } from "@/components/color-name-chips";
@@ -29,21 +29,6 @@ export function ProductCard({
   const [colorId, setColorId] = useState<string | null>(null);
   const reel = useMemo(() => productGalleryReel(product), [product]);
   const slideIndex = clampedReelIndexForColor(reel, colorId);
-  const [waterRoll, setWaterRoll] = useState(false);
-  const skipWater = useRef(true);
-
-  useEffect(() => {
-    if (skipWater.current) {
-      skipWater.current = false;
-      return;
-    }
-    if (reduced || reel.length < 2) {
-      return;
-    }
-    setWaterRoll(true);
-    const timer = window.setTimeout(() => setWaterRoll(false), GALLERY_ROLL_MS + 40);
-    return () => window.clearTimeout(timer);
-  }, [reduced, reel.length, slideIndex]);
 
   function pickColor(id: string) {
     setColorId((current) => (current === id ? null : id));
@@ -56,12 +41,11 @@ export function ProductCard({
       transition={springSoft}
       className="min-w-0 list-none"
     >
-      <Link href={`/m/${product.ma}`} className="group block touch-manipulation">
+      <Link href={`/m/${product.ma}`} className="group block touch-manipulation select-none">
         <div
           className="ky-gallery-shell relative aspect-[3/4] overflow-hidden bg-[#f3f1ee] shadow-[0_0_0_0_rgba(17,17,17,0)] motion-safe:transition-[transform,box-shadow] motion-safe:duration-500 motion-safe:ease-out motion-safe:hover-hover:group-hover:-translate-y-1.5 motion-safe:hover-hover:group-hover:shadow-[0_12px_28px_-22px_rgba(17,17,17,0.32)]"
           data-testid="card-cover-reel"
           data-slide-index={String(slideIndex)}
-          data-water-roll={waterRoll ? "1" : "0"}
           style={namedCover ? { viewTransitionName: `product-${product.ma}`, contain: "layout" } : undefined}
         >
           {reel.length === 0 ? (
@@ -95,8 +79,8 @@ export function ProductCard({
               ))}
             </div>
           )}
-          {reel.length > 1 ? <div className="gallery-water-sheen" aria-hidden /> : null}
-          <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-t from-ink/16 via-transparent to-transparent opacity-0 motion-safe:transition-opacity motion-safe:duration-500 motion-safe:hover-hover:group-hover:opacity-100" aria-hidden />
+          <span className="liquid-glass-rim pointer-events-none absolute inset-0 z-[1]" aria-hidden />
+          <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-t from-ink/10 via-transparent to-transparent opacity-0 motion-safe:transition-opacity motion-safe:duration-500 motion-safe:hover-hover:group-hover:opacity-70" aria-hidden />
           <span className="pointer-events-none absolute inset-x-0 bottom-0 z-[2] h-px origin-center scale-x-100 bg-gold/45" aria-hidden />
         </div>
         <p className="mt-2 flex flex-wrap items-baseline gap-x-1.5 px-0.5 text-ink">
@@ -123,7 +107,7 @@ export function ProductCard({
         />
       </div>
       {product.colors.length > 0 ? (
-        <div className="mt-2 px-0.5">
+        <div className="mt-2 min-w-0 px-0.5">
           <ColorNameChips
             colors={product.colors}
             selectedId={colorId}
