@@ -46,7 +46,7 @@ export default async function ProductPage({
   const related = (await getProductsByType(product.type)).filter((item) => item.ma !== product.ma);
 
   return (
-    <div className="bg-paper pb-[var(--shop-buy-bar-space)] md:pb-0">
+    <div className="bg-paper">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd(product)) }}

@@ -57,14 +57,61 @@ export function firstSearchQueryParam(
 }
 
 export function lookSearchHaystack(look: LookSearchItem): string {
-  return `${look.ma} ${look.titleEn} ${look.titleVn}`.toLowerCase();
+  return foldDiacritics(`${look.ma} ${look.titleEn} ${look.titleVn}`).toLowerCase();
+}
+
+/**
+ * Vietnamese-aware fold: strips combining marks (váy -> vay) and maps đ/Đ
+ * (which do NOT decompose under NFD) so shoppers without a Vietnamese
+ * keyboard still match.
+ */
+export function foldDiacritics(text: string): string {
+  return text
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D");
+}
+
+/**
+ * Fold-aware substring match. Returns [start, end) indices into the ORIGINAL
+ * string so the matched span can be highlighted, or null when there is no
+ * match.
+ */
+export function foldedMatchRange(
+  haystack: string,
+  needle: string,
+): [number, number] | null {
+  const foldedNeedle = foldDiacritics(needle.trim()).toLowerCase();
+  if (!foldedNeedle) {
+    return null;
+  }
+  let folded = "";
+  const map: number[] = [];
+  for (let index = 0; index < haystack.length; index += 1) {
+    const piece = foldDiacritics(haystack[index] ?? "");
+    for (let j = 0; j < piece.length; j += 1) {
+      folded += piece[j];
+      map.push(index);
+    }
+  }
+  const at = folded.toLowerCase().indexOf(foldedNeedle);
+  if (at < 0) {
+    return null;
+  }
+  const start = map[at];
+  const end = map[at + foldedNeedle.length - 1];
+  if (start === undefined || end === undefined) {
+    return null;
+  }
+  return [start, end + 1];
 }
 
 export function filterLooksByQuery<T extends LookSearchItem>(
   looks: T[],
   query: string,
 ): T[] {
-  const needle = query.trim().toLowerCase();
+  const needle = foldDiacritics(query.trim()).toLowerCase();
   if (!needle) {
     return looks;
   }

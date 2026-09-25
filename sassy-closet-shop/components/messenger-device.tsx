@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useLayoutEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useSyncExternalStore, type ReactNode } from "react";
 import { isMessengerAppDevice } from "@/lib/messenger";
 
 const MessengerDeviceContext = createContext(false);
@@ -22,19 +22,22 @@ function clientChMobile(): string {
   return data?.mobile === true ? "?1" : "";
 }
 
+function subscribe(): () => void {
+  // The UA never changes for the life of the page; nothing to resubscribe.
+  return () => {};
+}
+
+function getClientSnapshot(): boolean {
+  return isMessengerAppDevice(
+    navigator.userAgent,
+    navigator.maxTouchPoints || 0,
+    clientChMobile(),
+  );
+}
+
 export function useMessengerAppDevice(): boolean {
   const serverIsApp = useContext(MessengerDeviceContext);
-  const [isAppDevice, setIsAppDevice] = useState(serverIsApp);
-
-  useLayoutEffect(() => {
-    setIsAppDevice(
-      isMessengerAppDevice(
-        navigator.userAgent,
-        navigator.maxTouchPoints || 0,
-        clientChMobile(),
-      ),
-    );
-  }, []);
-
-  return isAppDevice;
+  // Server + hydration render from the UA-flagged context value so markup
+  // matches; the client snapshot takes over after hydration.
+  return useSyncExternalStore(subscribe, getClientSnapshot, () => serverIsApp);
 }

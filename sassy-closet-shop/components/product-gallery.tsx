@@ -51,6 +51,16 @@ export function ProductGallery({
   const thumbRailRef = useRef<HTMLDivElement>(null);
   const version = useCatalogMediaVersion();
   const reel = useMemo(() => productGalleryReel(product), [product]);
+  // Snap to the selected color's first shot when the color or reel changes.
+  // Adjusted during render (previous-values pattern) instead of in an effect.
+  const target = clampedReelIndexForColor(reel, colorId);
+  const [prevReel, setPrevReel] = useState(reel);
+  const [prevColorId, setPrevColorId] = useState(colorId);
+  if (prevReel !== reel || prevColorId !== colorId) {
+    setPrevReel(reel);
+    setPrevColorId(colorId);
+    setIndex((current) => (current === target ? current : target));
+  }
 
   function setColorId(next: string | null) {
     onColorId?.(next);
@@ -89,11 +99,6 @@ export function ProductGallery({
   const overflowCount = Math.max(0, reel.length - THUMB_CAP);
   const thumbs = reel.slice(0, THUMB_CAP);
   const colorHasShots = colorId === null || selectedShots.length > 0;
-
-  useLayoutEffect(() => {
-    const target = clampedReelIndexForColor(reel, colorId);
-    setIndex((current) => (current === target ? current : target));
-  }, [colorId, reel]);
 
   useLayoutEffect(() => {
     scrollCurrentChromeIntoView(thumbRailRef.current);

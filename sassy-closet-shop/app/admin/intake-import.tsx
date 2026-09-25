@@ -154,6 +154,13 @@ export function IntakeImportPanel({
           never available, never touching Square. The intake app keeps its own store; this page
           fetches its staged rows over /api/submissions, or takes a pasted submission JSON.
         </p>
+        <ol className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs uppercase tracking-[0.12em] text-muted">
+          <li><span className="text-gold-deep">1</span> Fetch or paste</li>
+          <li><span className="text-gold-deep">2</span> Pick a submission</li>
+          <li><span className="text-gold-deep">3</span> Check colors · sizes · photos</li>
+          <li><span className="text-gold-deep">4</span> Price it (or Inbox giá)</li>
+          <li><span className="text-gold-deep">5</span> Create draft →</li>
+        </ol>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -230,14 +237,21 @@ export function IntakeImportPanel({
             <h3 className="font-display text-2xl text-ink">
               <MaMark ma={prefill.intakeMa} className="tracking-[0.06em]" />
             </h3>
-            <button
-              type="button"
-              onClick={() => void createDraft()}
-              disabled={busy}
-              className="min-h-11 rounded-full bg-ink px-5 py-2.5 text-sm text-paper disabled:opacity-40"
-            >
-              {busy ? "Staging…" : "Create draft →"}
-            </button>
+            <div className="flex flex-col items-end gap-1">
+              <button
+                type="button"
+                onClick={() => void createDraft()}
+                disabled={busy}
+                className="min-h-11 rounded-full bg-ink px-5 py-2.5 text-sm text-paper disabled:opacity-40"
+              >
+                {busy ? "Staging…" : "Create draft →"}
+              </button>
+              {!canWrite ? (
+                <p className="max-w-[16rem] text-right text-[11px] text-gold-deep">
+                  The draft still opens, but the tracker cannot stage without a writable store.
+                </p>
+              ) : null}
+            </div>
           </div>
 
           {alreadyInCatalog ? (

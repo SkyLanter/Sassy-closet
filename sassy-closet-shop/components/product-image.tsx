@@ -71,7 +71,7 @@ function ProductImageFrame({
           src={resolved}
           alt=""
           draggable={false}
-          className="relative z-[1] h-full w-full select-none object-cover motion-safe:transition-transform motion-safe:duration-[800ms] motion-safe:ease-out motion-safe:hover-hover:group-hover:scale-[1.08]"
+          className="relative z-[1] h-full w-full select-none object-cover object-top motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-out motion-safe:hover-hover:group-hover:scale-[1.04]"
           sizes="(max-width: 640px) 50vw, (max-width: 1280px) 25vw, 20vw"
           decoding="async"
           loading={priority ? "eager" : "lazy"}
@@ -98,7 +98,7 @@ export function PlaceholderTile({
 }) {
   return (
     <div
-      className="relative z-0 flex h-full w-full flex-col items-center justify-center bg-[#f4f1ec]"
+      className="relative z-0 flex h-full w-full select-none flex-col items-center justify-center bg-[#f4f1ec]"
       aria-hidden={decorative || undefined}
     >
       <span className="font-display text-6xl font-medium leading-[1.08] text-gold/80">{letter}</span>

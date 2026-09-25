@@ -8,6 +8,7 @@ export function Field({
   placeholder,
   hint,
   testId,
+  required,
 }: {
   label: string;
   value: string;
@@ -16,10 +17,19 @@ export function Field({
   placeholder?: string;
   hint?: string;
   testId?: string;
+  /** Shows a small "Required" chip next to the label. */
+  required?: boolean;
 }) {
   return (
     <label className="block text-xs uppercase tracking-[0.14em] text-muted">
-      {label}
+      <span className="inline-flex items-center gap-2">
+        {label}
+        {required ? (
+          <span className="rounded-full border border-gold-deep/40 bg-blush px-2 py-0.5 text-[10px] font-medium normal-case tracking-normal text-gold-deep">
+            Required
+          </span>
+        ) : null}
+      </span>
       <input
         value={value}
         disabled={disabled}
@@ -42,11 +52,13 @@ export function Area({
   value,
   onChange,
   hint,
+  placeholder,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   hint?: string;
+  placeholder?: string;
 }) {
   return (
     <label className="block text-xs uppercase tracking-[0.14em] text-muted">
@@ -54,6 +66,7 @@ export function Area({
       <textarea
         value={value}
         rows={5}
+        placeholder={placeholder}
         onChange={(event) => onChange(event.target.value)}
         className="mt-1 w-full min-h-11 rounded-lg border border-line bg-paper px-3 py-2 text-sm normal-case tracking-normal text-ink outline-none focus:border-gold"
       />

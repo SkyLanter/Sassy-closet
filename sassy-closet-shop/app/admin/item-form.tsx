@@ -82,6 +82,7 @@ export function ItemForm({
   onToast,
   onCatalog,
   onCancel,
+  onDirtyChange,
 }: {
   mode: "add" | "edit";
   product?: Product;
@@ -95,6 +96,8 @@ export function ItemForm({
     options?: { nextMa?: string; renamedTo?: string; removed?: boolean },
   ) => void;
   onCancel: () => void;
+  /** Reports unsaved-changes state up so the admin nav can guard against losing edits. */
+  onDirtyChange?: (dirty: boolean) => void;
 }) {
   const [saving, setSaving] = useState(false);
   // Intake prefill: consumed once from sessionStorage (written by the Intake
@@ -109,17 +112,27 @@ export function ItemForm({
     const letter = prefill?.letter?.toUpperCase() ?? "";
     return (MA_LETTERS as readonly string[]).includes(letter) ? (letter as MaLetter) : "A";
   });
-  const [draft, setDraft] = useState<ItemDraft>(() =>
+  // The starting draft is computed once: the baseline for "unsaved" must be
+  // this exact value (not a fresh empty draft), otherwise an intake prefill
+  // shows "unsaved" before the owner touches anything.
+  const [initialDraft] = useState<ItemDraft>(() =>
     product ? draftFromProduct(product) : prefill ? prefillToDraft(prefill) : emptyDraft("A"),
   );
+  const [draft, setDraft] = useState<ItemDraft>(initialDraft);
   const [renameInput, setRenameInput] = useState(product?.ma ?? "");
   const [formError, setFormError] = useState<string | null>(null);
   const [formOk, setFormOk] = useState<string | null>(notice ?? null);
   const bannerRef = useRef<HTMLDivElement>(null);
-  const baselineRef = useRef(
-    snapshotDraft(product ? draftFromProduct(product) : emptyDraft(), product?.ma ?? ""),
-  );
+  const baselineRef = useRef(snapshotDraft(initialDraft, product?.ma ?? ""));
   const dirty = snapshotDraft(draft, renameInput) !== baselineRef.current;
+
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+    // Report clean on unmount so the nav guard never fires for a form that is gone.
+    return () => {
+      onDirtyChange?.(false);
+    };
+  }, [dirty, onDirtyChange]);
 
   useEffect(() => {
     if (typeof window === "undefined" || window.location.hash !== "#ma") {
@@ -515,7 +528,7 @@ export function ItemForm({
         title="Identity"
         hint={
           mode === "add"
-            ? "Pick a letter only (A · Tops). The next unused code is assigned on Save — unused letters are not shop tiles. English title is required."
+            ? "Pick the letter for this piece type. The next unused code is assigned on Save — unused letters are not shop tiles. English title is required."
             : "Titles customers see. Type follows the mã letter. Same mã — this is edit, not rename."
         }
       >
@@ -564,11 +577,16 @@ export function ItemForm({
             label="Title (EN)"
             testId="admin-title-en"
             value={draft.titleEn}
+            required
+            placeholder="e.g. White knit set with belt"
+            hint="Shown on the shop tile. Required — Save refuses a blank English title."
             onChange={(titleEn) => setDraft((current) => ({ ...current, titleEn }))}
           />
           <Field
             label="Title (VN flavor)"
             value={draft.titleVn}
+            placeholder="e.g. Set len trắng kèm thắt lưng"
+            hint="Optional Vietnamese flavor under the English title."
             onChange={(titleVn) => setDraft((current) => ({ ...current, titleVn }))}
           />
         </div>
@@ -661,7 +679,9 @@ export function ItemForm({
             hint={
               draft.status === "sold"
                 ? "Optional last price. Sold items do not appear on the shop."
-                : undefined
+                : draft.status === "hold"
+                  ? "Hold shows “Inbox for price” on the shop — no USD until the calculator below says the margin is safe."
+                  : "Run the calculator below first — sell = ceil(landed ÷ 0.7). Whole dollars are fine."
             }
             onChange={(priceInput) => setDraft((current) => ({ ...current, priceInput }))}
           />
@@ -736,8 +756,8 @@ export function ItemForm({
             className="rounded-2xl border border-gold-deep/40 bg-blush px-4 py-3 text-sm text-gold-deep"
             data-testid="admin-hold-media"
           >
-            {currentMa} is Hold · Inbox for price. A pretty gallery does not publish $23 or any USD.
-            Message-first — dropship after inbox.
+            {currentMa} is Hold · Inbox for price. A pretty gallery does not publish a USD price —
+            it stays message-first (dropship after inbox).
           </p>
         ) : null}
         <AdminColorEditor
@@ -775,11 +795,13 @@ export function ItemForm({
           <Area
             label="Description (EN)"
             value={draft.descriptionEn}
+            placeholder="Fabric, fit, and care in a line or two. Never write “on hand” for dropship."
             onChange={(descriptionEn) => setDraft((current) => ({ ...current, descriptionEn }))}
           />
           <Area
             label="Description (VN flavor)"
             value={draft.descriptionVn}
+            placeholder="Chất vải, form dáng… giọng shop cute."
             onChange={(descriptionVn) => setDraft((current) => ({ ...current, descriptionVn }))}
           />
         </div>

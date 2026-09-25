@@ -232,6 +232,9 @@ export function CatalogList({
           </select>
         </label>
       </div>
+      <p className="-mt-3 text-[11px] text-muted">
+        Pipe = pipeline stages done for that mã (details on the Pipeline tab). Tap a row to edit it.
+      </p>
 
       {visible.length === 0 ? (
         <p

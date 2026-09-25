@@ -269,9 +269,9 @@ export function PhotoLightbox({
       >
         <div className="mb-3 flex items-start justify-between gap-3">
           <div>
-            <p id={titleId} className="font-display text-2xl leading-[1.08] tracking-[0.02em] text-balance text-ink" translate="no">
+            <h2 id={titleId} className="font-display text-2xl leading-[1.08] tracking-[0.02em] text-balance text-ink" translate="no">
               {title}
-            </p>
+            </h2>
             <p
               className="mt-1 text-[10px] uppercase tracking-[0.16em] text-muted tabular-nums"
               aria-live="polite"

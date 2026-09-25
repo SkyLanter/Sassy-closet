@@ -96,7 +96,12 @@ export function SettingsPanel({
       {error ? <FormAlert tone="error" text={error} /> : null}
       {ok ? <FormAlert tone="ok" text={ok} /> : null}
       <div className="space-y-3">
-        <p className="text-xs uppercase tracking-[0.14em] text-muted">Announcement lines</p>
+        <p className="text-xs uppercase tracking-[0.14em] text-muted">
+          Announcement lines · {lines.length}/6
+        </p>
+        <p className="-mt-1 text-[11px] text-muted">
+          Shown in the shop&apos;s top bar, one line at a time. Keep them short.
+        </p>
         {lines.map((line, index) => (
           <div key={`line-${index}`} className="flex gap-2">
             <input
@@ -123,7 +128,9 @@ export function SettingsPanel({
         ))}
         <button
           type="button"
-          className="text-xs uppercase tracking-[0.12em] text-ink hover:text-gold-deep"
+          disabled={lines.length >= 6}
+          title={lines.length >= 6 ? "Six lines is the max" : "Add another line"}
+          className="text-xs uppercase tracking-[0.12em] text-ink hover:text-gold-deep disabled:opacity-40"
           onClick={() => {
             if (lines.length >= 6) {
               return;
@@ -131,7 +138,7 @@ export function SettingsPanel({
             setLines([...lines, ""]);
           }}
         >
-          Add line
+          Add line{lines.length >= 6 ? " · max 6" : ""}
         </button>
       </div>
       <Field

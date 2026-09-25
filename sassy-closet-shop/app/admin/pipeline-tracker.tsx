@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { MaMark } from "@/components/ma-mark";
 import { setPipelineStageAction } from "@/app/admin/actions";
 import { FormAlert } from "@/app/admin/fields";
@@ -133,7 +134,7 @@ export function PipelineTracker({
           <table className="min-w-full text-left text-sm">
             <thead className="border-b border-line bg-blush/50 text-[11px] uppercase tracking-[0.12em] text-muted">
               <tr>
-                <th className="px-3 py-3 font-medium">Mã</th>
+                <th className="sticky left-0 z-10 bg-blush px-3 py-3 font-medium">Mã</th>
                 <th className="px-3 py-3 font-medium">Progress</th>
                 {PIPELINE_STAGES.map((stage) => (
                   <th key={stage.id} className="px-2 py-3 text-center font-medium" title={stage.hint}>
@@ -149,12 +150,21 @@ export function PipelineTracker({
                 const next = row ? nextOpenStage(row) : ("intake" as PipelineStageId);
                 return (
                   <tr key={ma} className="border-b border-line last:border-0 hover:bg-blush/40">
-                    <td className="px-3 py-2">
+                    <td className="sticky left-0 z-10 bg-paper px-3 py-2">
                       <MaMark ma={ma} className="text-[13px] tracking-[0.12em]" />
                       {row?.intakeMa ? (
                         <p className="text-[11px] text-muted">intake {row.intakeMa}</p>
                       ) : null}
-                      {!inCatalog ? <p className="text-[11px] text-muted">not in catalog yet</p> : null}
+                      {!inCatalog ? (
+                        <p className="text-[11px] text-muted">not in catalog yet</p>
+                      ) : (
+                        <Link
+                          href={`/admin/edit/${ma}`}
+                          className="text-[11px] uppercase tracking-[0.12em] text-gold-deep hover:text-ink"
+                        >
+                          Edit
+                        </Link>
+                      )}
                     </td>
                     <td className="px-3 py-2 tabular-nums text-muted">
                       {progress.done}/{progress.total}
@@ -186,6 +196,25 @@ export function PipelineTracker({
           </table>
         </div>
       )}
+      {rows.length > 0 ? (
+        <details className="rounded-2xl border border-line px-4 py-3">
+          <summary className="cursor-pointer text-xs uppercase tracking-[0.14em] text-muted">
+            What each stage means
+          </summary>
+          <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+            {PIPELINE_STAGES.map((stage) => (
+              <div key={stage.id} className="flex gap-2">
+                <dt className="shrink-0 font-medium text-ink">{stage.label}:</dt>
+                <dd className="text-muted">{stage.hint}</dd>
+              </div>
+            ))}
+          </dl>
+          <p className="mt-3 text-[11px] text-muted">
+            Intake, Priced, and Sell tab check themselves off from the admin. The rest are honest
+            manual checkoffs — tick a box only when the step is really done.
+          </p>
+        </details>
+      ) : null}
     </div>
   );
 }
