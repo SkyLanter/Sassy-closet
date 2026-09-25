@@ -111,7 +111,7 @@ export function filterLooksByQuery<T extends LookSearchItem>(
   looks: T[],
   query: string,
 ): T[] {
-  const needle = query.trim().toLowerCase();
+  const needle = foldDiacritics(query.trim()).toLowerCase();
   if (!needle) {
     return looks;
   }
