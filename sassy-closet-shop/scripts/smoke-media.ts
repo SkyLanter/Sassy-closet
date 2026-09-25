@@ -168,7 +168,7 @@ const extraPackGalleries: { ma: string; files: string[]; colorIds: string }[] = 
   { ma: "P03", files: ["cover.jpg", "photo-2.jpg", "photo-3.jpg"], colorIds: ",," },
   { ma: "P04", files: ["cover.jpg", "photo-2.jpg"], colorIds: "kem," },
   { ma: "P05", files: ["cover.jpg", "photo-2.jpg", "photo-3.jpg"], colorIds: "hong,hong,xanh" },
-  { ma: "A02", files: ["cover.jpg", "photo-2.jpg"], colorIds: "cham-bi," },
+  { ma: "A02", files: ["cover.jpg", "photo-2.jpg"], colorIds: "ca0200,ca0200" },
   { ma: "H01", files: ["cover.jpg", "photo-2.jpg", "photo-3.jpg"], colorIds: ",," },
   { ma: "K01", files: ["cover.jpg"], colorIds: "" },
 ];
@@ -227,11 +227,11 @@ if (!p02 || p02.status !== "hold" || p02.priceUsd !== null) {
 }
 
 const a02 = seed.products.find((product) => product.ma === "A02");
-if (!a02 || a02.colors[0]?.id !== "cham-bi") {
-  fail("A02 keeps cham-bi — do not rename to trang");
+if (!a02 || a02.colors[0]?.id !== "ca0200") {
+  fail("A02 keeps ca0200 Off-white (seed) — do not invent colors");
 }
-if (a02.colors.some((color) => color.id === "kem" || color.hex === "#F4F0E8")) {
-  fail("A02 must not show A01 Kem hexes");
+if (a02.colors.some((color) => color.id === "ca0100" || color.id === "ca0101")) {
+  fail("A02 must not borrow A01 colors");
 }
 if (!srcBelongsToMa("/products/A02/cover.jpg", "A02") || srcBelongsToMa("/products/A01/cover.jpg", "A02")) {
   fail("A02 folder filter must keep A02 files and drop A01");
@@ -253,7 +253,7 @@ const remappedA02 = applyHubColorNames([
   },
 ])[0];
 if (!remappedA02 || remappedA02.colors.some((color) => color.id === "kem" || color.id === "xanh")) {
-  fail("Stale A02 Kem/Xanh must remap to cham-bi");
+  fail("Stale foreign colors on A02 must be remapped/dropped");
 }
 if (remappedA02.images.some((image) => image.src.includes("/products/A01/"))) {
   fail("Stale A02 must drop A01 files");

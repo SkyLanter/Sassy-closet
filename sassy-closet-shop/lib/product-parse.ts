@@ -194,6 +194,7 @@ export function parseProduct(raw: unknown, index: number): Product {
     descriptionEn: descriptionEn.trim(),
     fulfillment: parseFulfillment(row.fulfillment, ma),
     sourceLink: parseSourceLink(row.sourceLink ?? row.source_link, ma),
+    editorialHero: row.editorialHero === true ? true : undefined,
   };
 }
 

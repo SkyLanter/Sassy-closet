@@ -79,7 +79,13 @@ export function shopVisibleProducts(products: Product[]): Product[] {
 }
 
 export function shopVisibleLooks(products: Product[]): ShopLook[] {
-  return shopVisibleProducts(products).map(toShopLook);
+  // Shop cards need photos — photo-less products stay in the admin catalog
+  // but never list as shoppable looks. Editorial heroes (D02) are homepage
+  // only, never duplicated as shop looks.
+  return shopVisibleProducts(products)
+    .filter((product) => product.images.length > 0)
+    .filter((product) => !product.editorialHero)
+    .map(toShopLook);
 }
 
 export function asksInboxPrice(status: ProductStatus): boolean {

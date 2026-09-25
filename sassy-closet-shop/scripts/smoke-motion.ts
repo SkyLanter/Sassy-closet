@@ -2261,7 +2261,7 @@ if (a01Reel.length !== 2 || firstReelIndexForColor(a01Reel, "xanh") !== 1) {
   fail("A01 color pick must roll to the yellow puppy slide");
 }
 if (firstReelIndexForColor(a01Reel, "cham-bi") >= 0) {
-  fail("A01 must not roll to A02’s Chấm bi");
+  fail("A01 must not roll to a foreign color id");
 }
 if (clampedReelIndexForColor(a01Reel, "xanh") !== 1 || clampedReelIndexForColor(a01Reel, null) !== 0) {
   fail("Card/PDP color index must clamp to this mã’s tagged slide");
@@ -2289,19 +2289,19 @@ if (!h01 || productGalleryReel(h01).length !== 3) {
 }
 const a02 = seed.products.find((product) => product.ma === "A02");
 if (!a02 || a02.colors.some((color) => color.id === "kem" || color.id === "xanh")) {
-  fail("A02 must keep cham-bi — never borrow A01 Kem/Xanh");
+  fail("A02 must keep its own seed colors — never borrow hub slugs");
 }
-if (a02.colors.map((color) => color.id).join(",") !== "cham-bi") {
-  fail("A02 chips are Chấm bi only");
+if (a02.colors.map((color) => color.id).join(",") !== "ca0200") {
+  fail("A02 chips are Off-white (ca0200) only — seed");
 }
 const a02Reel = productGalleryReel(a02);
-if (a02Reel.length !== 2 || firstReelIndexForColor(a02Reel, "cham-bi") !== 0) {
-  fail("A02 Chấm bi must roll to its own cover");
+if (a02Reel.length !== 2 || firstReelIndexForColor(a02Reel, "ca0200") !== 0) {
+  fail("A02 ca0200 must roll to its own cover");
 }
 if (a02Reel.some((slide) => slide.src.includes("/products/A01/"))) {
   fail("A02 reel must never include A01 files");
 }
-if (imagesForColor(a02, "cham-bi").some((image) => image.src.includes("/products/A01/"))) {
+if (imagesForColor(a02, "ca0200").some((image) => image.src.includes("/products/A01/"))) {
   fail("A02 must never list A01 files");
 }
 if (coverSrcForColor(a02, "kem") !== undefined) {

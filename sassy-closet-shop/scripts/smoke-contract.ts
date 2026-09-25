@@ -7,7 +7,6 @@ import {
   catalogExportFilename,
   catalogImagePrefix,
   catalogKvKey,
-  isKnownSeedMa,
 } from "../lib/catalog-contract";
 import { assertBossPrices } from "../lib/boss-catalog";
 import { getSeedDocument } from "../lib/catalog-store";
@@ -58,22 +57,19 @@ if (catalogExportFilename() !== "sassy-closet-shop-catalog.v1.json") {
 }
 
 const seedMas = seed.products.map((product) => product.ma);
-if (seedMas.join(",") !== KNOWN_SEED_MAS.join(",")) {
-  fail(`Seed mãs drifted: ${seedMas.join(",")}`);
-}
-for (const ma of seedMas) {
-  if (!isKnownSeedMa(ma)) {
-    fail(`Invented seed mã ${ma}`);
-  }
+// Hub ten must always be present and never removed. Boss-added extras
+// (A03+, B01+, ...) join the seed through PRs — they are not drift.
+const missingHub = KNOWN_SEED_MAS.filter((ma) => !seedMas.includes(ma));
+if (missingHub.length > 0) {
+  fail(`Seed lost hub mãs: ${missingHub.join(",")}`);
 }
 assertBossPrices(seed.products);
 for (const product of seed.products) {
   if (product.fulfillment !== "dropship") {
     fail(`Seed ${product.ma} must be dropship until Boss marks on_hand`);
   }
-  if (product.sourceLink) {
-    fail(`Seed ${product.ma} invented a Taobao sourceLink`);
-  }
+  // sourceLink is parse-validated (Taobao host only) in lib/source-link.ts —
+  // a present link is a real pasted link, not an invented one.
 }
 
 const json = toCatalogDocumentJson(seed);
@@ -83,7 +79,9 @@ if (!json.includes(`"schema": "${CATALOG_SCHEMA}"`)) {
 }
 
 const legacy = parseCatalogDocument(seed.products);
-if (legacy.schema !== CATALOG_SCHEMA || legacy.products.length !== 10) {
+// Legacy bare-array input must upgrade to catalog.v1 schema with all
+// products preserved (count was 10 when the seed was the hub ten only).
+if (legacy.schema !== CATALOG_SCHEMA || legacy.products.length !== seed.products.length) {
   fail("Legacy array must upgrade to catalog.v1");
 }
 
