@@ -9,7 +9,7 @@ export default function ShopLoading() {
       </p>
       <div className="mt-10 grid min-w-0 grid-cols-2 gap-x-3 gap-y-12 sm:grid-cols-3 sm:gap-x-5 lg:grid-cols-4 xl:grid-cols-5">
         {Array.from({ length: 8 }, (_, index) => (
-          <div key={index} className="ky-gallery-shell relative aspect-[3/4] overflow-hidden bg-[#f3f1ee]" aria-hidden>
+          <div key={index} className="sc-card-well ky-gallery-shell relative aspect-[3/4] overflow-hidden bg-[#f3f1ee]" aria-hidden>
             <div className="shimmer pointer-events-none absolute inset-0" aria-hidden />
             <span className="liquid-glass-rim pointer-events-none absolute inset-0 z-[2]" aria-hidden />
             <span className="pointer-events-none absolute inset-x-0 bottom-0 z-[2] h-px origin-center scale-x-100 bg-gold/45" aria-hidden />

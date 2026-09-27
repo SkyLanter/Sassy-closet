@@ -2,6 +2,7 @@
 
 import type { KeyboardEvent } from "react";
 import { useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "framer-motion";
 import { AnimatedProductGrid } from "@/components/animated-product-grid";
 import { ContentWaveLooks, useContentWave } from "@/components/content-wave";
@@ -12,7 +13,7 @@ import { categoryAriaLabel, categoryCopy, TYPE_SLUGS } from "@/lib/categories";
 import { DEFAULT_SHOP_SORT, sortShopLooks, type ShopSortId } from "@/lib/fb-rank";
 import { scrollChromeChildIntoView } from "@/lib/gallery-snap";
 import { collectionEmptyCopy, FEATURED_ALL_ARIA, lookCountLabel } from "@/lib/look-count";
-import { filterLooksByQuery, LOOK_SEARCH_NO_MATCH, LOOK_SEARCH_TAB_EMPTY } from "@/lib/look-search";
+import { filterLooksByQuery, LOOK_SEARCH_TAB_EMPTY } from "@/lib/look-search";
 import { slideDirection, springSoft } from "@/lib/motion";
 import type { MaLetter } from "@/lib/ma";
 import type { ShopLook } from "@/lib/shop-look";
@@ -38,7 +39,8 @@ export function FeaturedBoard({
   const tabRailRef = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
   const wave = useContentWave();
-  const { draft } = useShopSearch();
+  const router = useRouter();
+  const { draft, setDraft } = useShopSearch();
   const needle = draft ?? committedQuery;
   const order = useMemo(() => ["all" as const, ...types], [types]);
   const searched = useMemo(() => filterLooksByQuery(products, needle), [needle, products]);
@@ -196,7 +198,10 @@ export function FeaturedBoard({
                 {...(needle.trim()
                   ? {
                       title: filter === "all" ? "Looks" : categoryCopy(filter).label,
-                      body: searched.length === 0 ? LOOK_SEARCH_NO_MATCH : LOOK_SEARCH_TAB_EMPTY,
+                      body:
+                        searched.length === 0
+                          ? `Không thấy “${needle.trim().slice(0, 40)}” · No results for “${needle.trim().slice(0, 40)}”.`
+                          : LOOK_SEARCH_TAB_EMPTY,
                     }
                   : filter === "all"
                     ? {
@@ -204,6 +209,33 @@ export function FeaturedBoard({
                         body: "Chưa có looks trên lookbook · No looks listed.",
                       }
                     : collectionEmptyCopy(categoryCopy(filter).label, TYPE_SLUGS[filter]))}
+                actions={
+                  needle.trim() ? (
+                    <div className="mt-5 flex flex-wrap items-center justify-center gap-2 px-2">
+                      <button
+                        type="button"
+                        className="inline-flex min-h-11 touch-manipulation items-center rounded-full border border-gold/45 px-4 text-[13px] text-ink"
+                        onClick={() => {
+                          setDraft(null);
+                          router.push("/#featured-collection");
+                        }}
+                      >
+                        Xóa tìm · Clear search
+                      </button>
+                      <button
+                        type="button"
+                        className="inline-flex min-h-11 touch-manipulation items-center rounded-full border border-gold/45 px-4 text-[13px] text-ink"
+                        onClick={() => {
+                          setDraft(null);
+                          choose("all");
+                          router.push("/#featured-collection");
+                        }}
+                      >
+                        Xem tất cả · Browse all
+                      </button>
+                    </div>
+                  ) : null
+                }
               />
             ) : (
               <AnimatedProductGrid products={visible} motionKey={`${filter}-${sort}-${needle}`} direction={direction} />
@@ -250,7 +282,7 @@ function FilterTab({
       data-testid="featured-filter-tab"
       aria-label={`${ariaName}, ${lookCountLabel(count)}`}
       translate="no"
-      className={`relative min-h-11 shrink-0 touch-manipulation select-none whitespace-nowrap px-2.5 pb-2 text-[11px] font-medium uppercase tracking-[0.16em] motion-safe:transition-colors motion-safe:duration-300 ${
+      className={`relative inline-flex min-h-11 min-w-11 shrink-0 touch-manipulation select-none items-end justify-center whitespace-nowrap px-2.5 pb-2 text-[11px] font-medium uppercase tracking-[0.16em] motion-safe:transition-colors motion-safe:duration-150 ${
         active ? "text-ink" : "text-muted hover-hover:hover:text-ink"
       }`}
     >

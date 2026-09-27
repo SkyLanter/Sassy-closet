@@ -118,8 +118,8 @@ export function ColorNameChips({
                   wave.play();
                 }
               }}
-              className={`ky-color-chip liquid-glass-chip relative inline-flex shrink-0 items-center touch-manipulation select-none whitespace-nowrap px-3 font-medium uppercase ${
-                compact ? "min-h-8 text-[10px] tracking-[0.12em]" : "min-h-11 text-[11px] tracking-[0.16em]"
+              className={`ky-color-chip liquid-glass-chip relative inline-flex min-w-11 shrink-0 items-center justify-center touch-manipulation select-none whitespace-nowrap px-3 font-medium uppercase ${
+                compact ? "min-h-8 max-sm:min-h-11 text-[10px] tracking-[0.12em] max-sm:text-[11px]" : "min-h-11 text-[11px] tracking-[0.16em]"
               } ${selected ? "text-ink" : "text-muted hover-hover:hover:text-ink"}`}
               translate="no"
             >
