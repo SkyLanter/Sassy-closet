@@ -5,9 +5,10 @@ export const dynamic = "force-dynamic";
 export default async function AdminPage() {
   const storage = storeHealth();
   return (
-    <main className="mx-auto max-w-md px-4 py-10 text-rose-800">
-      <h1 className="text-2xl font-bold">Kit export CSV</h1>
-      <p className="mt-2 text-sm text-rose-700/80">
+    <main className="mx-auto max-w-md px-4 py-10 text-[#5c3d48]">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#a85d74]">Intake</p>
+      <h1 className="mt-1 text-[21px] font-semibold text-[#3c2a2e]">Kit export CSV</h1>
+      <p className="mt-2 text-[13.5px] leading-relaxed text-[#7d5360]">
         Chỉ món đã bấm <strong>Lưu & lấy mã</strong>. Không Post, không Square Save.
       </p>
       <p

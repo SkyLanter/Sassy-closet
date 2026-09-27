@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ConfirmDialog, ToastStack, type ToastItem } from "@/components/AdminChrome";
 import { AskPanel } from "@/components/AskPanel";
 import { BrandHeader } from "@/components/BrandHeader";
 import { FindMaCard } from "@/components/FindMaCard";
@@ -11,7 +12,7 @@ import { convertCnyToUsd, convertUsdToCny } from "@/lib/fx";
 import { COLORS, KINDS, assertNever, keepSizesForKind, sizeScaleForKind, sizesForKind } from "@/lib/kinds";
 import { nextMa, parseHubMa } from "@/lib/mint";
 import { normalizeFindCode } from "@/lib/on-hand";
-import { computeAutoPrice, DEBOX_LOCKED } from "@/lib/pricing";
+import { computeAutoPrice, DEBOX_LOCKED, MARGIN_FLOOR, TARGET_MARGIN } from "@/lib/pricing";
 import type { PriceBreakdown } from "@/lib/pricing";
 import type { TaobaoItem } from "@/lib/taobao";
 import type { KindCode } from "@/lib/kinds";
@@ -68,8 +69,18 @@ export function IntakeApp({
   const [findCode, setFindCode] = useState("");
   const [findCard, setFindCard] = useState<MaLookup | null>(null);
   const [findMiss, setFindMiss] = useState(false);
+  const [savedRows, setSavedRows] = useState<Submission[]>([]);
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const [confirm, setConfirm] = useState<null | { kind: "rename" | "overwrite"; ma: string; next: string | null }>(null);
+  const toastSeq = useRef(0);
+
+  function pushToast(text: string, tone: ToastItem["tone"]) {
+    const id = (toastSeq.current += 1);
+    setToasts((current) => [...current, { id, text, tone }].slice(-4));
+  }
 
   useEffect(() => {
+    void refreshMas();
     const ma = new URLSearchParams(window.location.search).get("ma");
     if (!ma) return;
     setTab("edit");
@@ -208,8 +219,10 @@ export function IntakeApp({
   async function refreshMas(): Promise<string[]> {
     try {
       const response = await fetch("/api/submissions");
-      const data = (await response.json()) as { submissions?: { ma?: string }[] };
-      const mas = (data.submissions ?? []).map((row) => String(row.ma ?? "")).filter(Boolean);
+      const data = (await response.json()) as { submissions?: Submission[] };
+      const rows = data.submissions ?? [];
+      setSavedRows(rows);
+      const mas = rows.map((row) => String(row.ma ?? "")).filter(Boolean);
       setKnownMas(mas);
       return mas;
     } catch {
@@ -272,7 +285,7 @@ export function IntakeApp({
     setRenameTo("");
   }
 
-  async function save(renameMa?: string | null, editingMa?: string | null) {
+  async function save(renameMa?: string | null, editingMa?: string | null): Promise<boolean> {
     setError(null);
     setBusy(true);
     try {
@@ -305,17 +318,20 @@ export function IntakeApp({
       const data = (await response.json()) as { submission?: Submission; error?: string };
       if (!response.ok || !data.submission) {
         setError(data.error || "Chưa nhận được mã. Thử lại nha 🥺");
-        return;
+        return false;
       }
       setSaved(data.submission);
+      pushToast(`Đã lưu ${data.submission.ma}`, "ok");
       setLoadedMa(data.submission.ma);
       setLookupMa(data.submission.ma);
       setLastMa(data.submission.ma);
       if (tab === "create") resetForm();
       else applySubmission(data.submission);
       await refreshMas();
+      return true;
     } catch {
       setError("Chưa gửi được. Kiểm tra mạng rồi thử lại 💕");
+      return false;
     } finally {
       setBusy(false);
     }
@@ -328,11 +344,19 @@ export function IntakeApp({
       current = loaded?.ma ?? null;
     }
     if (tab === "edit" && !current) return;
-    if (tab === "edit" && current && renameTo.trim()) {
-      await save(renameTo.trim(), current);
+    if (tab === "edit" && current) {
+      const next = renameTo.trim();
+      setConfirm({ kind: next ? "rename" : "overwrite", ma: current, next: next || null });
       return;
     }
     await save(null, current);
+  }
+
+  async function confirmSave() {
+    if (!confirm) return;
+    const pending = confirm;
+    const ok = await save(pending.kind === "rename" ? pending.next : null, pending.ma);
+    if (ok) setConfirm(null);
   }
 
   function toggleSize(value: string) { setSizes((current) => current.includes(value) ? current.filter((s) => s !== value) : [...current, value]); } function onKind(next: KindCode) {
@@ -411,10 +435,21 @@ export function IntakeApp({
       data-testid="intake-shell"
       className="relative z-10 mx-auto flex min-h-dvh w-full max-w-md flex-col px-4 py-6 md:max-w-2xl md:px-6 lg:max-w-5xl lg:px-10 lg:py-12 xl:max-w-6xl"
     >
-      <BrandHeader />
+      <div className="mb-4 flex items-end justify-between gap-3 border-b border-[#eadfdc] pb-4">
+        <BrandHeader />
+        <button
+          type="button"
+          className="inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-sm font-semibold text-[#5c3d48] ring-1 ring-[#eadfdc]"
+          onClick={() => switchTab("create")}
+        >
+          Món mới
+        </button>
+      </div>
       <div
         data-testid="intake-tabs"
-        className="mb-4 grid grid-cols-4 rounded-full bg-white/70 p-1 shadow-sm ring-1 ring-rose-100 lg:mx-auto lg:mb-6 lg:w-full lg:max-w-xl"
+        role="tablist"
+        aria-label="Intake"
+        className="adm-scroll mb-4 flex gap-1 overflow-x-auto rounded-full bg-white/80 p-1 ring-1 ring-[#eadfdc] lg:mx-auto lg:mb-6 lg:w-full lg:max-w-xl"
       >
         <TabButton id="create" current={tab} onClick={switchTab} mobile="Món mới" desktop="Món mới" />
         <TabButton id="edit" current={tab} onClick={switchTab} mobile="Sửa mã" desktop="Sửa theo mã" />
@@ -428,7 +463,7 @@ export function IntakeApp({
           ariaLabel="Hỏi Mini Boss · Ask"
         />
       </div>
-      <section className="flex flex-1 flex-col rounded-3xl bg-card/90 p-4 shadow-sm ring-1 ring-rose-100 lg:p-8">
+      <section className="flex flex-1 flex-col rounded-3xl bg-card p-4 ring-1 ring-[#eadfdc] lg:p-8">
         {renderTab({
           tab,
           kind,
@@ -492,16 +527,41 @@ export function IntakeApp({
           findBusy: busy,
         })}
         {error ? (
-          <p data-testid="intake-error" className="mt-4 text-center text-sm text-rose-700">
+          <p data-testid="intake-error" role="alert" className="mt-4 text-center text-sm text-[#9b2c2c]">
             {error}
           </p>
         ) : null}
       </section>
+      <SavedList
+        rows={savedRows}
+        onOpen={(ma) => {
+          setTab("edit");
+          setLookupMa(ma);
+          void loadMa(ma);
+        }}
+        onCreate={() => switchTab("create")}
+      />
+      {confirm ? (
+        <ConfirmDialog
+          title={confirm.kind === "rename" ? `Đổi mã ${confirm.ma}?` : `Lưu đè ${confirm.ma}?`}
+          body={
+            confirm.kind === "rename"
+              ? `${confirm.ma} sẽ thành ${confirm.next ?? ""}.`
+              : `Ghi đè món ${confirm.ma} bằng form này.`
+          }
+          confirmLabel={confirm.kind === "rename" ? "Đổi mã" : "Lưu đè"}
+          danger={confirm.kind === "rename"}
+          pending={busy}
+          onCancel={() => setConfirm(null)}
+          onConfirm={() => void confirmSave()}
+        />
+      ) : null}
+      <ToastStack toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((toast) => toast.id !== id))} />
       <p className="mt-4 text-center text-xs text-rose-700/70">
-        <a className="underline-offset-2 hover:underline" href="/admin">
+        <a className="inline-flex min-h-11 items-center underline-offset-2 hover:underline" href="/admin">
           Kit export CSV
-        </a>{" "}
-        · Boss one-pager trong README / BOSS.md
+        </a>
+        <span className="mx-1">· Boss one-pager trong README / BOSS.md</span>
       </p>
       <SavedCard result={saved} onClose={() => setSaved(null)} />
       <FindMaCard result={findCard} onClose={() => setFindCard(null)} />
@@ -618,10 +678,12 @@ function TabButton({
   return (
     <button
       type="button"
+      role="tab"
+      aria-selected={active}
       data-testid={`tab-${id}`}
       aria-label={ariaLabel}
-      className={`h-12 rounded-full px-0.5 text-[9px] font-semibold leading-tight sm:px-2 sm:text-[11px] lg:text-sm ${
-        active ? "bg-primary text-primary-foreground shadow" : "text-rose-700"
+      className={`inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full px-3 text-[13px] font-semibold ${
+        active ? "bg-white text-[#3c2a2e] shadow-sm ring-1 ring-[#eadfdc]" : "text-[#7d5360]"
       }`}
       onClick={() => onClick(id)}
     >
@@ -735,10 +797,10 @@ function ItemForm(props: {
                 key={item.code}
                 type="button"
                 data-testid={`kind-${item.code}`}
-                className={`min-h-11 rounded-full px-3 py-2 text-sm font-semibold ring-1 ${
+                className={`inline-flex min-h-11 min-w-11 items-center rounded-full px-3 py-2 text-sm font-semibold ring-1 ${
                   props.kind === item.code
-                    ? "bg-primary text-primary-foreground ring-primary"
-                    : "bg-white text-rose-800 ring-rose-100"
+                    ? "bg-[#f3e6e2] text-[#3c2a2e] ring-[#e6d0ca]"
+                    : "bg-white text-[#5c3d48] ring-[#eadfdc]"
                 }`}
                 onClick={() => props.onKind(item.code)}
               >
@@ -795,8 +857,8 @@ function ItemForm(props: {
                     type="button"
                     data-testid={`color-chip-${chip.code}`}
                     aria-pressed={on}
-                    className={`inline-flex min-h-10 items-center rounded-full px-3 text-xs font-semibold ring-1 ${
-                      on ? "bg-primary text-primary-foreground ring-primary" : "bg-white text-rose-800 ring-rose-100"
+                    className={`inline-flex min-h-11 min-w-11 items-center rounded-full px-3 text-xs font-semibold ring-1 ${
+                      on ? "bg-[#f3e6e2] text-[#3c2a2e] ring-[#e6d0ca]" : "bg-white text-[#5c3d48] ring-[#eadfdc]"
                     }`}
                     onClick={() =>
                       props.setColors(
@@ -837,8 +899,8 @@ function ItemForm(props: {
                   key={size}
                   type="button"
                   data-testid={`size-${size}`}
-                  className={`min-h-10 rounded-full px-3 text-sm font-semibold ring-1 ${
-                    on ? "bg-primary text-primary-foreground ring-primary" : "bg-white text-rose-800 ring-rose-100"
+                  className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-full px-3 text-sm font-semibold ring-1 ${
+                    on ? "bg-[#f3e6e2] text-[#3c2a2e] ring-[#e6d0ca]" : "bg-white text-[#5c3d48] ring-[#eadfdc]"
                   }`}
                   onClick={() =>
                     props.setSizes(on ? props.sizes.filter((s) => s !== size) : [...props.sizes, size])
@@ -958,13 +1020,21 @@ function ItemForm(props: {
             </button>
           </p>
         ) : null}
+        <StatusChips
+          photos={props.photos.length}
+          sizes={props.sizes.length}
+          hasPrice={Boolean(props.sellUsd.trim() || props.sellCny.trim())}
+          needsResearch={props.needsResearch}
+          belowFloor={props.priceBreakdown ? !props.priceBreakdown.captionEligible : false}
+        />
         <button
           type="button"
           data-testid="save-mint"
           disabled={props.busy || !props.canSave}
-          className="h-12 w-full rounded-full bg-primary text-base font-bold text-primary-foreground disabled:opacity-50 lg:h-14 lg:text-lg"
+          className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary text-base font-bold text-primary-foreground disabled:opacity-50 lg:h-14 lg:text-lg"
           onClick={() => void props.onSaveClick()}
         >
+          {props.busy ? <span className="adm-spin" aria-hidden /> : null}
           {props.busy
             ? "Đang lưu…"
             : props.tab === "edit"
@@ -1004,7 +1074,7 @@ function TaobaoPanel({
           data-testid="taobao-lookup"
           onClick={onLookup}
           disabled={state === "loading"}
-          className="h-10 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+          className="inline-flex min-h-11 items-center rounded-full bg-white px-4 text-sm font-semibold text-[#5c3d48] ring-1 ring-[#eadfdc] disabled:opacity-50"
         >
           {state === "loading" ? "Đang tra…" : "Tra link"}
         </button>
@@ -1070,8 +1140,8 @@ function TaobaoPanel({
                       type="button"
                       onClick={() => toggleSize(value)}
                       aria-pressed={on}
-                      className={`rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${
-                        on ? "bg-primary text-primary-foreground ring-primary" : "bg-white text-rose-800 ring-rose-100"
+                      className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-full px-3 text-xs font-semibold ring-1 ${
+                        on ? "bg-[#f3e6e2] text-[#3c2a2e] ring-[#e6d0ca]" : "bg-white text-[#5c3d48] ring-[#eadfdc]"
                       }`}
                     >
                       {value}
@@ -1125,7 +1195,7 @@ function PricePanel({
 }) {
   return (
     <div data-testid="price-panel" className="mb-5 rounded-2xl bg-white p-3 ring-1 ring-rose-100">
-      <p className="text-sm font-medium">💰 Tính giá tự động <span className="font-normal text-rose-700/60">(margin 30%)</span></p>
+      <p className="text-sm font-medium">💰 Tính giá tự động <span className="font-normal text-rose-700/60">(margin {Math.round(TARGET_MARGIN * 100)}%)</span></p>
       <div className="mt-2 grid grid-cols-3 gap-2">
         <label className="block">
           <span className="mb-1 block text-[11px] text-rose-700">Giá vốn ¥</span>
@@ -1135,7 +1205,7 @@ function PricePanel({
             onChange={(event) => setCalcCny(event.target.value)}
             placeholder="¥"
             inputMode="decimal"
-            className="h-10 w-full rounded-xl bg-[oklch(0.995_0.01_50)] px-2 text-sm ring-1 ring-rose-100"
+            className="h-11 w-full rounded-xl bg-[oklch(0.995_0.01_50)] px-2 text-base ring-1 ring-rose-100 md:text-sm"
           />
         </label>
         <label className="block">
@@ -1146,7 +1216,7 @@ function PricePanel({
             onChange={(event) => setCalcFx(event.target.value)}
             placeholder="6.723"
             inputMode="decimal"
-            className="h-10 w-full rounded-xl bg-[oklch(0.995_0.01_50)] px-2 text-sm ring-1 ring-rose-100"
+            className="h-11 w-full rounded-xl bg-[oklch(0.995_0.01_50)] px-2 text-base ring-1 ring-rose-100 md:text-sm"
           />
         </label>
         <label className="block">
@@ -1160,7 +1230,7 @@ function PricePanel({
             disabled={deboxLocked}
             placeholder="$0"
             inputMode="decimal"
-            className="h-10 w-full rounded-xl bg-[oklch(0.995_0.01_50)] px-2 text-sm ring-1 ring-rose-100 disabled:opacity-60"
+            className="h-11 w-full rounded-xl bg-[oklch(0.995_0.01_50)] px-2 text-base ring-1 ring-rose-100 disabled:opacity-60 md:text-sm"
           />
         </label>
       </div>
@@ -1168,7 +1238,7 @@ function PricePanel({
         {deboxLocked
           ? `Debox ${kind} cố định $7.50 (bảng khoá V/Q/D).`
           : "Debox các loại khác mặc định $0 — sửa được."}{" "}
-        Giá bán = ceil(giá vốn $ ÷ 0.7).
+        Giá bán = ceil(giá vốn $ ÷ {1 - TARGET_MARGIN}).
       </p>
       {breakdown ? (
         <div data-testid="price-breakdown" className="mt-2 rounded-xl bg-rose-50 p-2 text-xs text-rose-900 ring-1 ring-rose-100">
@@ -1179,15 +1249,15 @@ function PricePanel({
             <span className="text-rose-700/70"> · lãi ${breakdown.marginUsd.toFixed(2)} ({(breakdown.marginPct * 100).toFixed(1)}%)</span>
           </p>
           {breakdown.captionEligible ? (
-            <p className="mt-1 font-semibold text-emerald-700">✓ Đủ 35% — caption sẽ hiện giá.</p>
+            <p className="mt-1 font-semibold text-[#246044]">✓ Đủ {Math.round(MARGIN_FLOOR * 100)}% — caption sẽ hiện giá.</p>
           ) : (
-            <p className="mt-1 font-semibold text-amber-700">⚠ Dưới 35% — caption sẽ là “Inbox giá”.</p>
+            <p className="mt-1 font-semibold text-[#8a5a12]">⚠ Dưới {Math.round(MARGIN_FLOOR * 100)}% — caption sẽ là “Inbox giá”.</p>
           )}
           <button
             type="button"
             data-testid="price-use"
             onClick={onUse}
-            className="mt-2 h-10 w-full rounded-full bg-primary text-sm font-bold text-primary-foreground"
+            className="mt-2 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-white text-sm font-bold text-[#5c3d48] ring-1 ring-[#eadfdc]"
           >
             Dùng giá ${breakdown.sellUsd}
           </button>
@@ -1304,7 +1374,7 @@ function FindPanel({
           </p>
           <button
             type="button"
-            className="h-9 rounded-full bg-primary px-3 text-xs font-semibold text-primary-foreground"
+            className="inline-flex min-h-11 items-center rounded-full bg-primary px-3 text-xs font-semibold text-primary-foreground"
             onClick={async () => {
               await navigator.clipboard.writeText(match.ma);
               setCopied(match.ma);
@@ -1315,5 +1385,122 @@ function FindPanel({
         </div>
       ))}
     </div>
+  );
+}
+
+function StatusChips({
+  photos,
+  sizes,
+  hasPrice,
+  needsResearch,
+  belowFloor,
+}: {
+  photos: number;
+  sizes: number;
+  hasPrice: boolean;
+  needsResearch: boolean;
+  belowFloor: boolean;
+}) {
+  const chips: { tone: "warn" | "info" | "ok"; label: string }[] = [];
+  if (photos === 0) chips.push({ tone: "warn", label: "Thiếu ảnh" });
+  if (sizes === 0) chips.push({ tone: "warn", label: "Thiếu size" });
+  if (!hasPrice) chips.push({ tone: "warn", label: "Thiếu giá" });
+  if (belowFloor) chips.push({ tone: "warn", label: `Dưới ${Math.round(MARGIN_FLOOR * 100)}%` });
+  if (needsResearch) chips.push({ tone: "info", label: "Cần xem tay" });
+  if (chips.length === 0) chips.push({ tone: "ok", label: "Đủ để lưu" });
+  const toneClass = {
+    warn: "bg-[#fbf3e4] text-[#8a5a12]",
+    info: "bg-[#e7f1f6] text-[#1f5670]",
+    ok: "bg-[#e7f4ec] text-[#246044]",
+  };
+  return (
+    <div className="mb-3 flex flex-wrap gap-1.5" data-testid="intake-status-chips">
+      {chips.map((chip) => (
+        <span
+          key={chip.label}
+          className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] ${toneClass[chip.tone]}`}
+        >
+          {chip.label}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function SavedList({
+  rows,
+  onOpen,
+  onCreate,
+}: {
+  rows: Submission[];
+  onOpen: (ma: string) => void;
+  onCreate: () => void;
+}) {
+  return (
+    <section className="mt-6" aria-labelledby="saved-list-title">
+      <h2 id="saved-list-title" className="text-[21px] leading-tight text-[#3c2a2e]">
+        Đã lưu
+      </h2>
+      <p className="mt-1 text-[12.5px] text-[#7d5360]">Món đã bấm lưu trên máy này.</p>
+      {rows.length === 0 ? (
+        <div className="mt-3 rounded-2xl bg-white px-4 py-5 ring-1 ring-[#eadfdc]">
+          <p className="text-[13.5px] text-[#3c2a2e]">Chưa có món.</p>
+          <button
+            type="button"
+            className="mt-3 inline-flex min-h-11 items-center rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground"
+            onClick={onCreate}
+          >
+            Thêm món
+          </button>
+        </div>
+      ) : (
+        <ul className="mt-3 divide-y divide-[#eadfdc] overflow-hidden rounded-2xl bg-white ring-1 ring-[#eadfdc]">
+          {rows.map((row) => {
+            const thumb = row.photo_paths?.[0];
+            const price = row.sell_usd ? `$${row.sell_usd}` : row.sell_cny ? `¥${row.sell_cny}` : "Thiếu giá";
+            return (
+              <li key={row.ma}>
+                <button
+                  type="button"
+                  className="flex min-h-11 w-full items-center gap-3 px-3 py-2 text-left hover:bg-[#fbf6f4]"
+                  onClick={() => onOpen(row.ma)}
+                >
+                  {thumb ? (
+                    <img src={`/api/photos/${thumb}`} alt="" className="h-12 w-10 rounded-lg object-cover" />
+                  ) : (
+                    <span className="flex h-12 w-10 items-center justify-center rounded-lg bg-[#f3e6e2] text-[11px] text-[#7d5360]">
+                      Ảnh
+                    </span>
+                  )}
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[13.5px] font-semibold tabular text-[#3c2a2e]">{row.ma}</span>
+                    <span className="mt-1 flex flex-wrap gap-1">
+                      <span className="rounded-full bg-[#f3e6e2] px-2 py-0.5 text-[11px] uppercase tracking-[0.08em] text-[#5c3d48]">
+                        {row.kind}
+                      </span>
+                      {row.size ? (
+                        <span className="rounded-full bg-white px-2 py-0.5 text-[11px] uppercase tracking-[0.08em] text-[#7d5360] ring-1 ring-[#eadfdc]">
+                          {row.size}
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-[#fbf3e4] px-2 py-0.5 text-[11px] uppercase tracking-[0.08em] text-[#8a5a12]">
+                          Thiếu size
+                        </span>
+                      )}
+                      {row.needs_research ? (
+                        <span className="rounded-full bg-[#e7f1f6] px-2 py-0.5 text-[11px] uppercase tracking-[0.08em] text-[#1f5670]">
+                          Cần xem tay
+                        </span>
+                      ) : null}
+                    </span>
+                  </span>
+                  <span className="shrink-0 text-[13.5px] font-semibold tabular text-[#3c2a2e]">{price}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
   );
 }

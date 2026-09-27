@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Allura, Nunito } from "next/font/google";
 import "./globals.css";
@@ -13,6 +13,13 @@ const allura = Allura({
   subsets: ["latin"],
   variable: "--font-allura",
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#fbf6f3",
+};
 
 export const metadata: Metadata = {
   title: "Sassy Closet",

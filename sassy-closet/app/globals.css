@@ -3,16 +3,83 @@
 @tailwind utilities;
 
 :root {
-  --background: #fff1f5;
+  --adm-paper: #fbf6f3;
+  --adm-card: #fffaf8;
+  --adm-ink: #3c2a2e;
+  --adm-muted: #7d5360;
+  --adm-line: #eadfdc;
+  --adm-brand: #a85d74;
+  --adm-brand-ink: #fffaf8;
+  --adm-danger: #9b2c2c;
+  --adm-ok: #246044;
+  --adm-warn: #8a5a12;
+  --adm-info: #1f5670;
+  --adm-focus: #6d4452;
+  --adm-radius: 1rem;
+  --background: var(--adm-paper);
+}
+
+html {
+  color-scheme: light;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
   background:
-    radial-gradient(1200px 600px at 50% -10%, #ffd6e4 0%, transparent 55%),
-    #fff1f5;
-  color: #7a1f3d;
+    radial-gradient(900px 420px at 50% -12%, #f6ddd6 0%, transparent 60%),
+    var(--adm-paper);
+  color: var(--adm-ink);
 }
 
-.sassy-shell {
-  min-height: 100%;
+:focus-visible {
+  outline: 2px solid var(--adm-focus);
+  outline-offset: 2px;
+}
+
+@media (max-width: 767px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.adm-spin {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 999px;
+  animation: adm-spin 0.7s linear infinite;
+}
+
+@keyframes adm-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.adm-scroll {
+  scrollbar-width: none;
+}
+
+.adm-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
 }
