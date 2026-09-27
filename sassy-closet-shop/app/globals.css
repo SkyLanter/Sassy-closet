@@ -3,14 +3,24 @@
 @custom-variant hover-hover (@media (hover: hover));
 
 :root {
-  --canvas: #faf7f4;
-  --paper: #faf7f4;
+  /* --sc-* is the shop surface (blush paper, rose ink, one CTA hue).
+     Kelly Ying --gold / --blush / --ink stay so hairlines and frost do not drift. */
+  --canvas: #fde4dc;
+  --paper: #fdece6;
   --ink: #111111;
-  --muted: #6b6b6b;
-  --line: #ececec;
+  --muted: #7a655e;
+  --line: #f3d4cb;
   --gold: #b08968;
   --gold-deep: #8c6a4e;
   --blush: #f3eee8;
+  --sc-paper: var(--paper);
+  --sc-ink: var(--ink);
+  --sc-muted: var(--muted);
+  --sc-line: var(--line);
+  --sc-cta: var(--ink);
+  --sc-focus: var(--gold-deep);
+  --sc-radius: 1.35rem;
+  --sc-ease: cubic-bezier(0.23, 1, 0.32, 1);
   --ky-metal: conic-gradient(
     from 0deg,
     var(--gold-deep),
@@ -80,7 +90,9 @@ html {
 }
 
 body {
-  background: var(--paper);
+  background:
+    radial-gradient(980px 420px at 50% -12%, #ffd5cc 0%, transparent 62%),
+    var(--sc-paper);
   color: var(--ink);
   font-family: var(--font-be-vietnam), ui-sans-serif, system-ui, sans-serif;
   overscroll-behavior-y: contain;
@@ -729,6 +741,10 @@ summary::-webkit-details-marker {
     scroll-behavior: auto;
   }
 
+  .ky-header-film {
+    transition: none;
+  }
+
   .announce-fade,
   .shimmer,
   .content-wave-sheen {
@@ -921,4 +937,19 @@ summary::-webkit-details-marker {
 
 @page {
   margin: 12mm;
+}
+
+/* Scroll-aware header: quiet hairline after 4px. Pattern 9. */
+.ky-header-film {
+  transition: box-shadow 150ms var(--sc-ease);
+}
+
+.ky-header-film[data-scrolled="true"] {
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--gold) 40%, var(--sc-line));
+}
+
+/* Product wells: soft radius, hairline, no heavy lift shadow. Pattern 7–8. */
+.sc-card-well {
+  border-radius: var(--sc-radius);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 32%, transparent);
 }

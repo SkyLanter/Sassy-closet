@@ -21,6 +21,16 @@ export function Header({ types }: { types: MaLetter[] }) {
   const gated = useRef(false);
   const navRef = useRef<HTMLElement | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => {
+      setScrolled(window.scrollY > 4);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   useLayoutEffect(() => {
     scrollChromeChildIntoView(
@@ -57,6 +67,7 @@ export function Header({ types }: { types: MaLetter[] }) {
     <HeaderSearchProvider onExpandedChange={setSearchOpen}>
     <motion.header
       className="ky-header-film liquid-glass-bar relative"
+      data-scrolled={scrolled ? "true" : "false"}
       style={{ viewTransitionName: "site-header" }}
     >
       <div className="relative z-20 mx-auto flex h-14 min-w-0 max-w-7xl items-center justify-between gap-2 pl-[max(1.25rem,env(safe-area-inset-left,0px))] pr-[max(1.25rem,env(safe-area-inset-right,0px))] sm:h-16 sm:gap-3 sm:pl-[max(2rem,env(safe-area-inset-left,0px))] sm:pr-[max(2rem,env(safe-area-inset-right,0px))]">
@@ -108,7 +119,7 @@ export function Header({ types }: { types: MaLetter[] }) {
                 aria-current={active ? "page" : undefined}
                 aria-label={categoryAriaLabel(type)}
                 translate="no"
-                className={`relative inline-flex min-h-11 shrink-0 touch-manipulation select-none items-end whitespace-nowrap pb-1.5 text-[11px] font-medium uppercase tracking-[0.16em] ${
+                className={`relative inline-flex min-h-11 min-w-11 shrink-0 touch-manipulation select-none items-end justify-center whitespace-nowrap pb-1.5 text-[11px] font-medium uppercase tracking-[0.16em] ${
                   active ? "text-ink" : "text-muted hover-hover:hover:text-ink"
                 }`}
               >

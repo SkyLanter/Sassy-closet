@@ -28,7 +28,7 @@ export function ProductGrid({
 
   return (
     <motion.ul
-      className="grid min-w-0 grid-cols-2 gap-x-3 gap-y-10 sm:grid-cols-3 sm:gap-x-4 lg:grid-cols-4 xl:grid-cols-5"
+      className="grid min-w-0 grid-cols-2 gap-x-3 gap-y-12 sm:grid-cols-3 sm:gap-x-5 lg:grid-cols-4 xl:grid-cols-5"
       variants={replay ? staggerContainer(Boolean(reduced)) : undefined}
       initial={replay && !reduced ? "hidden" : false}
       animate={replay ? "show" : undefined}

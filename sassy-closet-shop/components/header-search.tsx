@@ -323,6 +323,7 @@ export function HeaderSearch() {
           <label className="sr-only" htmlFor="shop-header-search-input">
             {LOOK_SEARCH_ARIA}
           </label>
+          <div className="relative min-w-0 flex-1">
           <input
             ref={search.inputRef}
             id="shop-header-search-input"
@@ -348,8 +349,24 @@ export function HeaderSearch() {
             onChange={(event) => search.onInputChange(event.target.value)}
             onFocus={search.onFocus}
             onKeyDown={search.onKeyDown}
-            className="min-h-11 w-full min-w-0 rounded-full border border-gold/35 bg-transparent px-3 text-[13px] text-ink placeholder:text-muted focus:border-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
+            className="min-h-11 w-full min-w-0 rounded-full border border-gold/35 bg-transparent px-3 pr-11 text-[16px] text-ink placeholder:text-muted focus:border-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold md:text-[13px]"
           />
+          {search.value ? (
+            <button
+              type="button"
+              data-testid="shop-header-search-clear"
+              aria-label="Xóa tìm · Clear search"
+              translate="no"
+              className="absolute inset-y-0 right-0 inline-flex min-h-11 min-w-11 touch-manipulation items-center justify-center text-[16px] leading-none text-muted hover-hover:hover:text-ink"
+              onClick={() => {
+                search.onInputChange("");
+                search.inputRef.current?.focus();
+              }}
+            >
+              <span aria-hidden>×</span>
+            </button>
+          ) : null}
+          </div>
         </form>
       </div>
     </div>
