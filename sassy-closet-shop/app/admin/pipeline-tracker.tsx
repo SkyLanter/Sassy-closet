@@ -94,8 +94,8 @@ export function PipelineTracker({
       <div>
         <h2 className="font-display text-3xl text-ink">Pipeline tracker</h2>
         <p className="mt-1 max-w-2xl text-sm text-muted">
-          One checklist per mã: intake → researched → priced → excel → photos → sell tab → PR →
-          merged. Intake, priced, and sell tab advance automatically from the admin; the rest are
+          One checklist per mã: intake → needs research → researched → priced → excel → photos →
+          sell tab → PR → merged. Intake, priced, and sell tab advance automatically from the admin; the rest are
           honest manual checkoffs. Excel lives on OneDrive, PRs merge only by Boss.
         </p>
       </div>

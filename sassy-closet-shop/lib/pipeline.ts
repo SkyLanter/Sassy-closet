@@ -1,6 +1,6 @@
 /**
  * Per-mã intake → sell pipeline tracker. Stages follow the standing pipeline:
- * intake → researched → priced → excel → photos → sell tab → PR → merged.
+ * intake → needs research → researched → priced → excel → photos → sell tab → PR → merged.
  *
  * Persisted per mã through the same catalog storage backends (see
  * lib/pipeline-store.ts) — no new backend. Manual checkoffs except where the

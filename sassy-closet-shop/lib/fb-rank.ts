@@ -1,5 +1,6 @@
 import fbMaRank from "@/data/fb-ma-rank.json";
 import { compareMa, normalizeMa } from "@/lib/ma";
+import { sortByPopular } from "@/lib/popular-rank";
 import type { Product } from "@/lib/types";
 
 export const DEFAULT_SHOP_SORT = "popular" as const;
@@ -74,8 +75,8 @@ export function applyFbRankToCatalog(products: Product[]): Product[] {
 }
 
 /**
- * Popular: CSV rank (views DESC, engagement DESC), then mã.
- * Unranked mãs (no FB post in the 90-day table) sort after every ranked mã, by mã.
+ * Facebook 90-day views rank (fb-ma-rank.json). Stamped onto catalog rows.
+ * The Looks Popular chip does not use this — it uses Meta order in popular-order.json.
  */
 export function compareByPopularThenMa(leftMa: string, rightMa: string): number {
   const leftRank = fbRankOf(leftMa) ?? Number.POSITIVE_INFINITY;
@@ -97,7 +98,7 @@ export function sortByMa<T extends { ma: string }>(items: T[]): T[] {
 export function sortShopLooks<T extends { ma: string }>(items: T[], sort: ShopSortId): T[] {
   switch (sort) {
     case "popular":
-      return sortProductsByPopular(items);
+      return sortByPopular(items);
     case "ma":
       return sortByMa(items);
     default: {
@@ -112,6 +113,6 @@ export const SHOP_SORT_OPTIONS: ReadonlyArray<{
   label: string;
   aria: string;
 }> = [
-  { id: "popular", label: "Popular", aria: "Popular · Most viewed" },
+  { id: "popular", label: "Popular", aria: "Popular" },
   { id: "ma", label: "Mã", aria: "Mã A to Z" },
 ];

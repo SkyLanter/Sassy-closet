@@ -2,18 +2,18 @@
 
 import type { KeyboardEvent } from "react";
 import { useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "framer-motion";
 import { AnimatedProductGrid } from "@/components/animated-product-grid";
 import { ContentWaveLooks, useContentWave } from "@/components/content-wave";
 import { LooksSortChips } from "@/components/looks-sort";
+import { SearchResultsBar } from "@/components/search-results-bar";
 import { ShopEmpty } from "@/components/shop-empty";
 import { useShopSearch } from "@/components/shop-search";
 import { categoryAriaLabel, categoryCopy, TYPE_SLUGS } from "@/lib/categories";
 import { DEFAULT_SHOP_SORT, sortShopLooks, type ShopSortId } from "@/lib/fb-rank";
 import { scrollChromeChildIntoView } from "@/lib/gallery-snap";
 import { collectionEmptyCopy, FEATURED_ALL_ARIA, lookCountLabel } from "@/lib/look-count";
-import { filterLooksByQuery, LOOK_SEARCH_TAB_EMPTY } from "@/lib/look-search";
+import { filterLooksByQuery, LOOK_SEARCH_TAB_EMPTY, shopSearchNeedle } from "@/lib/look-search";
 import { slideDirection, springSoft } from "@/lib/motion";
 import type { MaLetter } from "@/lib/ma";
 import type { ShopLook } from "@/lib/shop-look";
@@ -39,9 +39,8 @@ export function FeaturedBoard({
   const tabRailRef = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
   const wave = useContentWave();
-  const router = useRouter();
-  const { draft, setDraft } = useShopSearch();
-  const needle = draft ?? committedQuery;
+  const { draft, clearSearch } = useShopSearch();
+  const needle = shopSearchNeedle(draft, committedQuery);
   const order = useMemo(() => ["all" as const, ...types], [types]);
   const searched = useMemo(() => filterLooksByQuery(products, needle), [needle, products]);
   const visible = useMemo(() => {
@@ -184,6 +183,7 @@ export function FeaturedBoard({
             </motion.span>
           </AnimatePresence>
         </p>
+        <SearchResultsBar query={needle} />
         <div
           id="featured-panel"
           role="tabpanel"
@@ -215,10 +215,7 @@ export function FeaturedBoard({
                       <button
                         type="button"
                         className="inline-flex min-h-11 touch-manipulation items-center rounded-full border border-gold/45 px-4 text-[13px] text-ink"
-                        onClick={() => {
-                          setDraft(null);
-                          router.push("/#featured-collection");
-                        }}
+                        onClick={() => clearSearch()}
                       >
                         Xóa tìm · Clear search
                       </button>
@@ -226,9 +223,8 @@ export function FeaturedBoard({
                         type="button"
                         className="inline-flex min-h-11 touch-manipulation items-center rounded-full border border-gold/45 px-4 text-[13px] text-ink"
                         onClick={() => {
-                          setDraft(null);
                           choose("all");
-                          router.push("/#featured-collection");
+                          clearSearch();
                         }}
                       >
                         Xem tất cả · Browse all

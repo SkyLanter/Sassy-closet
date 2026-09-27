@@ -951,3 +951,66 @@ summary::-webkit-details-marker {
   border-radius: var(--sc-radius);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 32%, transparent);
 }
+
+/* This rule sits after the scroll shadow so reduced motion still wins. */
+@media (prefers-reduced-motion: reduce) {
+  .ky-header-film {
+    transition: none;
+  }
+}
+
+/* Solid search field so the pill reads on blush glass and on the page. */
+input.shop-search-field {
+  background-color: #ffffff;
+  border: 2px solid #b44762;
+  box-shadow:
+    0 1px 2px rgb(180 71 98 / 0.16),
+    0 8px 16px -12px rgb(120 40 60 / 0.42);
+  color: #111111;
+  caret-color: #a33d58;
+  min-height: 2.75rem;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+input.shop-search-field::placeholder {
+  color: #5c3140;
+  opacity: 1;
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  input.shop-search-field::placeholder {
+    font-size: 13px;
+  }
+}
+
+input.shop-search-field::-webkit-search-cancel-button,
+input.shop-search-field::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+
+input.shop-search-field:focus-visible {
+  border-color: #a33d58;
+  outline: 3px solid #a33d58;
+  outline-offset: 2px;
+  box-shadow:
+    0 1px 2px rgb(163 61 88 / 0.2),
+    0 8px 16px -12px rgb(120 40 60 / 0.45);
+}
+
+.shop-search-icon {
+  color: #5c3140;
+}
+
+.shop-search-clear {
+  color: #111111;
+}
+
+@media (hover: hover) {
+  .shop-search-clear:hover {
+    color: #a33d58;
+  }
+}
