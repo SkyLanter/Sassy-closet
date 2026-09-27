@@ -38,7 +38,7 @@ Copy names from [`.env.example`](../.env.example). Set real values in Vercel —
 
 Optional KV (`KV_REST_API_URL` + `KV_REST_API_TOKEN`) only if Blob is unset. Blob wins when both are set.
 
-There is **no** `ADMIN_PASSWORD`. `/admin` is open for sell-ops. Do not add Square checkout, Facebook Send, or personal Zelle names on the public UI.
+Admin sign-in uses `ADMIN_PASSWORD` and `ADMIN_SESSION_SECRET` (names only — set the values in Vercel, never in git). If either is missing, `/admin` stays locked. See [ADMIN_ACCESS.md](./ADMIN_ACCESS.md). Do not add Square checkout, Facebook Send, or personal Zelle names on the public UI.
 
 ## 4. Blob prefix
 
@@ -74,7 +74,7 @@ HTTP: `GET /api/admin/catalog/export` · `POST /api/admin/catalog/import`. Never
 - [ ] Blob token set; Add/Save shows a receipt (`ok`, `blobWritten`, `catalogSha`, `revalidated`)
 - [ ] Export → import round-trip: hub ten present, P02/P05 no fake $23
 - [ ] Customer UI: name / price / description / colors / Message only — no Hold / Available / on-hand
-- [ ] `/admin` not in the main nav (logo long-press / gold dot)
+- [ ] `/admin` not in the main nav (gold dot only after sign-in)
 - [ ] Intake site untouched
 - [ ] No Square Save, no Facebook Send, no invented mãs
 

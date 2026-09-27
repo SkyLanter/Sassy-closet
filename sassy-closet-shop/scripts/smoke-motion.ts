@@ -1355,8 +1355,12 @@ if (!header.includes("scrollChromeChildIntoView") || !header.includes('[aria-cur
 if (header.includes("scrollIntoView")) {
   fail("Category nav must not use page scrollIntoView");
 }
-if (!header.includes("holdTimer") || !header.includes("clearTimeout")) {
-  fail("Header long-press admin must clear its timer on unmount");
+const logoHold = read("components/logo-admin-hold.tsx");
+if (!logoHold.includes("holdTimer") || !logoHold.includes("clearTimeout")) {
+  fail("Signed-in logo long-press must clear its timer on unmount");
+}
+if (header.includes("holdTimer") || header.includes("admin-entry") || header.includes("useAdminEntry")) {
+  fail("Public header must not ship the admin long-press");
 }
 if (!header.includes('translate="no"')) {
   fail("Header wordmark and category names must not be auto-translated");

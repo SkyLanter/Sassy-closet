@@ -41,7 +41,15 @@ import {
   setPipelineStage,
   type PipelineDocument,
 } from "@/lib/pipeline";
+import { hasAdminSession } from "@/lib/admin-session-request";
 import { readPipelineForAdmin, writePipelineRecord } from "@/lib/pipeline-store";
+
+async function guardAdmin(): Promise<{ ok: false; error: string } | null> {
+  if (await hasAdminSession()) {
+    return null;
+  }
+  return { ok: false, error: "Unauthorized." };
+}
 
 export type AdminActionResult = SaveReceipt | { ok: false; error: string };
 
@@ -73,6 +81,10 @@ export async function saveProductAction(
   input: ProductFieldsInput & { ma: string },
 ): Promise<AdminActionResult> {
   try {
+    const denied = await guardAdmin();
+    if (denied) {
+      return denied;
+    }
     const blocked = assertStorageWritable();
     if (blocked) {
       return blocked;
@@ -95,6 +107,10 @@ export async function addProductAction(
   input: ProductFieldsInput & { letter: string },
 ): Promise<AdminActionResult> {
   try {
+    const denied = await guardAdmin();
+    if (denied) {
+      return denied;
+    }
     const blocked = assertStorageWritable();
     if (blocked) {
       return blocked;
@@ -124,6 +140,10 @@ export async function renameProductAction(
   input: ProductFieldsInput & { from: string; to: string },
 ): Promise<AdminActionResult> {
   try {
+    const denied = await guardAdmin();
+    if (denied) {
+      return denied;
+    }
     const blocked = assertStorageWritable();
     if (blocked) {
       return blocked;
@@ -147,6 +167,10 @@ export async function renameProductAction(
 
 export async function removeProductAction(ma: string): Promise<AdminActionResult> {
   try {
+    const denied = await guardAdmin();
+    if (denied) {
+      return denied;
+    }
     const blocked = assertStorageWritable();
     if (blocked) {
       return blocked;
@@ -167,6 +191,10 @@ export async function saveSettingsAction(input: {
   facebookPageUrl: string;
 }): Promise<AdminActionResult> {
   try {
+    const denied = await guardAdmin();
+    if (denied) {
+      return denied;
+    }
     const blocked = assertStorageWritable();
     if (blocked) {
       return blocked;
@@ -189,6 +217,10 @@ export async function exportCatalogAction(): Promise<
   { ok: true; json: string; filename: string } | { ok: false; error: string }
 > {
   try {
+    const denied = await guardAdmin();
+    if (denied) {
+      return denied;
+    }
     const document = await getCatalogDocumentUncached();
     return {
       ok: true,
@@ -205,6 +237,10 @@ export async function importCatalogAction(
   mode: "replace" | "merge" = "replace",
 ): Promise<AdminActionResult> {
   try {
+    const denied = await guardAdmin();
+    if (denied) {
+      return denied;
+    }
     const blocked = assertStorageWritable();
     if (blocked) {
       return blocked;
@@ -237,6 +273,10 @@ export async function importCatalogAction(
 
 export async function bulkHoldAction(mas: string[]): Promise<AdminActionResult> {
   try {
+    const denied = await guardAdmin();
+    if (denied) {
+      return denied;
+    }
     const blocked = assertStorageWritable();
     if (blocked) {
       return blocked;
@@ -262,6 +302,10 @@ export async function uploadImageAction(
   formData: FormData,
 ): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
   try {
+    const denied = await guardAdmin();
+    if (denied) {
+      return denied;
+    }
     if (!getCatalogStorageInfo().canUpload) {
       return {
         ok: false,
@@ -305,6 +349,10 @@ function intakeSiteBase(): string {
 export async function fetchIntakeStagedAction(): Promise<
   { ok: true; items: IntakeSubmission[] } | { ok: false; error: string }
 > {
+  const denied = await guardAdmin();
+  if (denied) {
+    return denied;
+  }
   const base = intakeSiteBase();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 15000);
@@ -358,6 +406,10 @@ export type PipelineActionResult =
 
 export async function getPipelineAction(): Promise<PipelineActionResult> {
   try {
+    const denied = await guardAdmin();
+    if (denied) {
+      return denied;
+    }
     return { ok: true, pipeline: await readPipelineForAdmin() };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : "Pipeline read failed" };
@@ -374,6 +426,10 @@ export async function setPipelineStageAction(
   done: boolean,
 ): Promise<PipelineActionResult> {
   try {
+    const denied = await guardAdmin();
+    if (denied) {
+      return denied;
+    }
     const blocked = assertStorageWritable();
     if (blocked) {
       return blocked;
@@ -403,6 +459,10 @@ export async function linkPipelineIntakeAction(
   intakeMa: string,
 ): Promise<PipelineActionResult> {
   try {
+    const denied = await guardAdmin();
+    if (denied) {
+      return denied;
+    }
     const blocked = assertStorageWritable();
     if (blocked) {
       return blocked;

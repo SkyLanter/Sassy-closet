@@ -94,7 +94,7 @@ The hub ten stay on the catalog. **Add next mãs (A03+)** Saves to the live cata
 
 ## Test admin (`/admin`)
 
-Open sell-ops console. No password, no login. Not linked in the main nav. On the shop: long-press the logo, or tap the tiny gold dot (bottom-right) → **Open admin**.
+Open the sell-ops console only after signing in at `/admin/login`. Customers do not see the gold dot or a logo long-press. See [docs/ADMIN_ACCESS.md](./docs/ADMIN_ACCESS.md).
 
 - **Catalog** (`/admin`) — thumb, mã, title, status, price, colors, image count, search, type/status filters, bulk Hold, Edit + Preview PDP. Marker `data-save-contract="blob+revalidate"`
 - **Add** (`/admin/new`) — pick a letter (`A · Tops`, not `→ Q01` tiles). Save assigns the next unused mã via `POST /api/admin/add` (JSON receipt). That path does **not** use a Server Action, so the page does not die behind React #441 after Blob write. Success toast + footer receipt, then soft-navigate to Edit. Visible error if write fails — never the minified React overlay.
@@ -115,7 +115,7 @@ P02 and P05 stay Hold / Inbox for price (no invented $). All ten are **Message t
 
 ### Env vars for Mini Boss (Vercel project `sassy-closet-shop`)
 
-Set on **Production** (and Preview). Do not put values in git. There is **no** `ADMIN_PASSWORD`.
+Set on **Production** (and Preview). Do not put values in git. Admin stays locked until both admin variables below are set. Steps: [docs/ADMIN_ACCESS.md](./docs/ADMIN_ACCESS.md).
 
 | Name | Required | What it does |
 | --- | --- | --- |
@@ -126,6 +126,8 @@ Set on **Production** (and Preview). Do not put values in git. There is **no** `
 | `BLOB_READ_WRITE_TOKEN` | Preferred store | Live catalog JSON + image uploads (Vercel Blob) |
 | `KV_REST_API_URL` | Alternative store | Catalog JSON only, if Blob is unset |
 | `KV_REST_API_TOKEN` | With the URL | Catalog JSON only, if Blob is unset |
+| `ADMIN_PASSWORD` | Admin sign-in | Desk password. Missing value locks `/admin`. Never commit it |
+| `ADMIN_SESSION_SECRET` | Session MAC | Signs the httpOnly cookie. Missing value locks `/admin` |
 
 On Vercel without Blob/KV, `/admin` still opens; Add/Save show an error toast until a store is attached. Blob wins when both are set.
 
@@ -149,7 +151,7 @@ Customer tiles show **name, price, description, color, photos** and **Message**.
 
 ## How to test admin
 
-1. Open `/admin` (or gold-dot → Open admin). Test only · not in the main nav.
+1. Sign in at `/admin/login`, then open `/admin`. The gold dot is not on the public shop.
 2. **Add mã** → letter A → title → Save. Receipt toast shows `Saved A04 · sha …`. Footer is not stuck on unsaved. No React #441. Edit opens with the new mã. **A03+** appears on `/` and `/m/{ma}`.
 3. Edit **A01** → title nudge → Save. Confirm `/m/A01` (refresh twice if needed) and `GET /api/admin/catalog` `catalogSha` changed. Restore the title.
 4. `POST /api/admin/save` with `{ "ma": "A03" }` works after Add (400 only if A03 is not in the catalog yet). P05 never $23. `AO001` stays rejected.

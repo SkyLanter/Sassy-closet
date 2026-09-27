@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "smoke:admin": "npx --yes tsx --require ./scripts/alias.cjs scripts/smoke-admin.ts",
+    "smoke:admin-lock": "npx --yes tsx --require ./scripts/alias.cjs scripts/smoke-admin-lock.ts",
     "smoke:persist": "npx --yes tsx --require ./scripts/alias.cjs scripts/prove-persist.ts",
     "smoke:link": "npx --yes tsx --require ./scripts/alias.cjs scripts/prove-linked-catalog.ts",
     "smoke:contract": "npx --yes tsx --require ./scripts/alias.cjs scripts/smoke-contract.ts",
