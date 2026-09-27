@@ -11,7 +11,6 @@ MA="${MA:-A01}"
 ADMIN_COOKIE="${ADMIN_COOKIE:-}"
 ADMIN_TOKEN="${ADMIN_TOKEN:-}"
 CONFIRM_PROD_DRILL="${CONFIRM_PROD_DRILL:-}"
-PROD="https://sassy-closet-shop.vercel.app"
 UA="SassyCloset-LearnQA/1.0"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 
@@ -20,6 +19,11 @@ if [[ -z "$SHOP" ]]; then
   exit 2
 fi
 SHOP="${SHOP%/}"
+# Both public hosts are production. The customer URL and the older alias serve the same shop.
+case "$SHOP" in
+  https://sassycloset.vercel.app|https://sassy-closet-shop.vercel.app) PROD="$SHOP" ;;
+  *) PROD="" ;;
+esac
 
 if [[ "$SHOP" == "$PROD" && "$CONFIRM_PROD_DRILL" != "YES" ]]; then
   echo "Refusing Production sell-test. Use a Preview host, or Boss CONFIRM_PROD_DRILL=YES + restore." >&2

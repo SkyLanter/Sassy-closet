@@ -29,7 +29,7 @@ import sys
 import urllib.error
 import urllib.request
 
-SHOP = os.environ.get("SHOP", "https://sassy-closet-shop.vercel.app").rstrip("/")
+SHOP = os.environ.get("SHOP", "https://sassycloset.vercel.app").rstrip("/")
 ALLOW = ["A01", "S01", "P01", "P02", "P03", "P04", "P05", "K01", "H01", "A02"]
 PRICE = {
     "A01": "25",
