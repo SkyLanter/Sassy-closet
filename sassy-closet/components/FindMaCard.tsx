@@ -68,7 +68,7 @@ export function FindMaCard({
             type="button"
             data-testid="find-card-close"
             aria-label="Đóng"
-            className="flex h-10 w-10 items-center justify-center rounded-full text-lg font-bold text-rose-700 ring-1 ring-rose-100"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-lg font-bold text-rose-700 ring-1 ring-rose-100"
             onClick={onClose}
           >
             ✕
