@@ -11,11 +11,11 @@ import {
 import { isColorId } from "../lib/colors";
 import { parseCatalogDocument } from "../lib/product-parse";
 import { assignSlideColor, moveLinkedSlide } from "../lib/image-order";
-import { overlaySeedHubGalleries } from "../lib/catalog-store";
+import { overlayCleanedExtraCovers, overlaySeedHubGalleries } from "../lib/catalog-store";
 import { applyHubColorNames } from "../lib/hub-import";
 import { firstReelIndexForColor, productGalleryReel } from "../lib/gallery-reel";
 import { coverSrcForColor, hasOwnShopPhotos, imagesForColor, srcBelongsToMa } from "../lib/product-media";
-import type { Product } from "../lib/types";
+import type { CatalogDocument, Product } from "../lib/types";
 
 function fail(message: string): never {
   throw new Error(message);
@@ -293,6 +293,49 @@ const aiCoverLive = overlaySeedHubGalleries({
 const repairedA01 = aiCoverLive.products.find((product) => product.ma === "A01");
 if (repairedA01?.images[0]?.src !== "/products/A01/cover.jpg") {
   fail("Hub overlay must force the real intake cover, never a Blob AI file");
+}
+const localCovers = overlayCleanedExtraCovers({
+  schema: "catalog.v1",
+  version: 1,
+  siteId: "sassy-closet-shop",
+  products: [
+    {
+      ma: "A16",
+      images: [
+        {
+          src: "https://efsi0jejsfy7j058.public.blob.vercel-storage.com/sassy-closet-shop/products/A16/cover.jpg",
+          colorId: null,
+          order: 1,
+        },
+      ],
+    },
+    {
+      ma: "D04",
+      images: [
+        {
+          src: "https://efsi0jejsfy7j058.public.blob.vercel-storage.com/sassy-closet-shop/products/D04/cover.jpg?v=1",
+          colorId: "cwhited04look",
+          order: 1,
+        },
+      ],
+    },
+    {
+      ma: "B03",
+      images: [{ src: "/products/B03/cover.jpg", colorId: null, order: 1 }],
+    },
+  ],
+} as CatalogDocument);
+const a16Cover = localCovers.products.find((product) => product.ma === "A16")?.images[0];
+const d04Cover = localCovers.products.find((product) => product.ma === "D04")?.images[0];
+const b03Cover = localCovers.products.find((product) => product.ma === "B03")?.images[0];
+if (a16Cover?.src !== "/products/A16/cover.jpg" || a16Cover.colorId !== null || a16Cover.order !== 1) {
+  fail("A16 blob cover must become the local cleaned file, and only the src");
+}
+if (d04Cover?.src !== "/products/D04/cover.jpg" || d04Cover.colorId !== "cwhited04look") {
+  fail("D04 blob cover must become the local cleaned file");
+}
+if (b03Cover?.src !== "/products/B03/cover.jpg") {
+  fail("Local cover overlay must leave other mãs alone");
 }
 if (coverSrcForColor(a02, "kem") !== undefined || imagesForColor(a02, "kem").length !== 0) {
   fail("A02 has no kem — honest empty, never A01 cover");
