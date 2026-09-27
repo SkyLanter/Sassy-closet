@@ -36,7 +36,7 @@
   --glass-blur: 22px;
   --glass-blur-bar: 32px;
   --glass-sat: 1.7;
-  --shop-buy-bar-space: max(9.25rem, calc(5.5rem + env(safe-area-inset-bottom, 0px)));
+  --shop-buy-bar-space: max(11rem, calc(5.5rem + env(safe-area-inset-bottom, 0px)));
 }
 
 @theme inline {
@@ -956,6 +956,38 @@ summary::-webkit-details-marker {
 @media (prefers-reduced-motion: reduce) {
   .ky-header-film {
     transition: none;
+  }
+}
+
+/* Phone buy bar is a solid sheet so color chips and the heading cannot show through. */
+.ky-buy-bar.liquid-glass-bar {
+  background-color: #ffffff;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+@media (max-width: 767px) {
+  html:has([data-testid="shop-ship-bar"]) {
+    scroll-padding-bottom: var(--shop-buy-bar-space);
+  }
+
+  [data-testid="pdp-color-chips"],
+  [data-testid="pdp-size-chips"],
+  #look-title {
+    scroll-margin-bottom: var(--shop-buy-bar-space);
+  }
+
+  /* Multi-photo looks have an index line the chips can close up. Single-photo looks stay under the thumbs. */
+  [data-testid="product-gallery"]:has(> p.mt-2) [data-testid="pdp-color-chips"] {
+    margin-top: -1.35rem;
+  }
+
+  [data-testid="product-gallery"]:not(:has(> p.mt-2)) [data-testid="pdp-color-chips"] {
+    margin-top: 0.125rem;
+  }
+
+  [data-testid="product-gallery"] [data-testid="pdp-size-chips"] {
+    margin-top: 5rem;
   }
 }
 

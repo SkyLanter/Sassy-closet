@@ -15,7 +15,7 @@ export function ProductLook({ product }: { product: ShopLook }) {
   const type = categoryCopy(product.type);
 
   return (
-    <article aria-labelledby="look-title" className="mx-auto grid max-w-7xl gap-8 ky-gutter py-8 lg:grid-cols-2 lg:gap-14 lg:py-12">
+    <article aria-labelledby="look-title" className="mx-auto grid max-w-7xl gap-8 ky-gutter pt-2 pb-8 md:py-8 lg:grid-cols-2 lg:gap-14 lg:py-12">
       <ContentWaveLooks>
         <ProductGallery product={product} />
       </ContentWaveLooks>

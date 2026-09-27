@@ -19,12 +19,12 @@ export function BuyBar({ product }: { product: ShopLook }) {
           paddingRight: "max(1rem, env(safe-area-inset-right, 0px))",
         }}
       >
-        <div className="pt-3">
+        <div className="pt-2.5">
           <div className="mx-auto flex max-w-6xl items-center gap-3">
             <div className="min-w-0 flex-1">
-              <p className="flex min-w-0 items-start gap-x-1.5">
-                <MaMark ma={product.ma} className="mt-0.5 shrink-0 text-[10px] tracking-[0.16em] text-muted" />
-                <span className="min-w-0 select-none font-display text-[1.15rem] font-medium leading-[1.12] tracking-[0.02em] text-ink line-clamp-2" title={name} translate="no">
+              <p className="flex min-w-0 items-center gap-x-1.5">
+                <MaMark ma={product.ma} className="shrink-0 text-[10px] tracking-[0.16em] text-muted" />
+                <span className="min-w-0 flex-1 select-none overflow-hidden text-ellipsis whitespace-nowrap font-display text-[15px] font-medium leading-[1.15] tracking-[0.01em] text-ink" title={name} translate="no">
                   {name}
                 </span>
               </p>
