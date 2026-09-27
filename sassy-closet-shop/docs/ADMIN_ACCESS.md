@@ -9,9 +9,9 @@ Vercel → that project → Settings → Environment Variables. Paste the values
 
 ## Sign in
 
-1. Open `/admin/login` on the shop (production: `https://sassy-closet-shop.vercel.app/admin/login`).
+1. Open `/admin/login` on the host you are using. Customer site: `https://sassycloset.vercel.app/admin/login`. The older alias `https://sassy-closet-shop.vercel.app/admin/login` is the same shop.
 2. Enter the password.
-3. The browser keeps a cookie for about 30 days.
+3. The browser keeps a cookie for about 30 days on that host only.
 4. Use **Sign out** on any admin page when you are done.
 
 A wrong password does not open the desk. After 5 failed tries from the same IP within 10 minutes, that IP has to wait 10 minutes. Each failure also waits briefly. The counter lives in one server instance, so a fresh Vercel instance starts over. The wait still applies on every failure.
@@ -20,6 +20,7 @@ A wrong password does not open the desk. After 5 failed tries from the same IP w
 
 - Name: `sc_admin`
 - httpOnly, Secure, SameSite=Lax, Path=/, Max-Age 30 days
+- No Domain attribute. The cookie is host-only, so sign-in works on both `sassycloset.vercel.app` and `sassy-closet-shop.vercel.app`. A session on one host is not sent to the other; sign in again on the host you are using. Login and logout redirects stay on the request host.
 - Body is a version and an expiry. It is signed with HMAC-SHA256.
 - The MAC key is `HMAC-SHA256(ADMIN_SESSION_SECRET, ADMIN_PASSWORD)`. Changing either variable signs every browser out. The secret is not derived from the password alone, so the password by itself cannot forge a cookie.
 

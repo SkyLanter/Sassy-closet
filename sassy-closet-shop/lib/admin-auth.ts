@@ -4,6 +4,9 @@ import { createHash, createHmac, timingSafeEqual } from "node:crypto";
  * Admin session cookie. httpOnly + Secure + SameSite=Lax, about 30 days.
  * The value is base64url(JSON {v, exp}) + "." + base64url(HMAC).
  * It never contains the password.
+ * No Domain attribute: the cookie is host-only, so both
+ * sassycloset.vercel.app and sassy-closet-shop.vercel.app can sign in.
+ * A session on one host is not sent to the other.
  */
 export const ADMIN_SESSION_COOKIE = "sc_admin";
 

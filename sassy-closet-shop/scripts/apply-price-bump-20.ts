@@ -69,7 +69,7 @@ async function main() {
   });
 
   try {
-    const res = await fetch("https://sassy-closet-shop.vercel.app/api/admin/revalidate", {
+    const res = await fetch("https://sassycloset.vercel.app/api/admin/revalidate", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({}),

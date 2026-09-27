@@ -1,6 +1,6 @@
 # Sassy Closet — sell-only shop
 
-Category-first boutique catalog. Live: [https://sassy-closet-shop.vercel.app](https://sassy-closet-shop.vercel.app)
+Category-first boutique catalog. Customers: [https://sassycloset.vercel.app](https://sassycloset.vercel.app). The older alias [https://sassy-closet-shop.vercel.app](https://sassy-closet-shop.vercel.app) still serves this same shop.
 
 This is **not** the GF intake tool. Do not deploy over [https://sassy-closet.vercel.app](https://sassy-closet.vercel.app).
 
@@ -12,7 +12,7 @@ Boss (2026-09-21): this folder in [SkyLanter/Sassy-closet](https://github.com/Sk
 
 1. Point the existing Vercel project at this GitHub repo.
 2. Set **Root Directory** to `sassy-closet-shop`.
-3. Leave the live URL at [https://sassy-closet-shop.vercel.app](https://sassy-closet-shop.vercel.app).
+3. Customer URL is [https://sassycloset.vercel.app](https://sassycloset.vercel.app). Leave [https://sassy-closet-shop.vercel.app](https://sassy-closet-shop.vercel.app) attached; it still serves this shop.
 
 Product photos stay on Vercel Blob / CDN. Git keeps the existing `/products/...` path references and does not store those image binaries. This pull request does not deploy production.
 
@@ -121,7 +121,7 @@ Set on **Production** (and Preview). Do not put values in git. Admin stays locke
 | --- | --- | --- |
 | `SITE_ID` / `NEXT_PUBLIC_SITE_ID` | Store name | Blob/KV prefix. Default `sassy-closet-shop` |
 | `NEXT_PUBLIC_SITE_MODE` | `test` or `official` | Labels admin; official uses a different default id |
-| `NEXT_PUBLIC_SHOP_URL` | Official public origin | Canonical shop URL. Empty locally — not hardcoded |
+| `NEXT_PUBLIC_SHOP_URL` | Official public origin | Canonical, OG, sitemap, and share URLs. Production customer origin is `https://sassycloset.vercel.app`. Empty locally — the app does not hardcode a host |
 | `NEXT_PUBLIC_MESSENGER_URL` | Messenger Page URL | Overrides the default Page link |
 | `BLOB_READ_WRITE_TOKEN` | Preferred store | Live catalog JSON + image uploads (Vercel Blob) |
 | `KV_REST_API_URL` | Alternative store | Catalog JSON only, if Blob is unset |
@@ -200,6 +200,6 @@ Origin gate (look + silent-Save): `python3 docs/ai-clothing-shop/qa/qa_selltest_
 
 ## Vercel
 
-The live host stays [https://sassy-closet-shop.vercel.app](https://sassy-closet-shop.vercel.app) (project `sassy-closet-shop`). Do not attach or deploy over intake [https://sassy-closet.vercel.app](https://sassy-closet.vercel.app). Official is a **second** project — [CLONE_TO_OFFICIAL.md](./CLONE_TO_OFFICIAL.md).
+Customers use [https://sassycloset.vercel.app](https://sassycloset.vercel.app) (project `sassy-closet-shop`). [https://sassy-closet-shop.vercel.app](https://sassy-closet-shop.vercel.app) still serves the same app. Do not attach or deploy over intake [https://sassy-closet.vercel.app](https://sassy-closet.vercel.app). Official is a **second** project — [CLONE_TO_OFFICIAL.md](./CLONE_TO_OFFICIAL.md).
 
 GitHub `SkyLanter/Sassy-closet` is the source of truth. When reconnecting, set Vercel **Root Directory** to `sassy-closet-shop`. Origin temp `tiensidequests/tmp-87ea3acf7683fefe` is deprecated for new commits; leave it in place until Mini Boss / Boss finishes that reconnect. Do not production-deploy from this migration. Never link this app to the intake project.

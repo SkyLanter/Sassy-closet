@@ -5,7 +5,7 @@ This folder (`sassy-closet-shop/` in GitHub `SkyLanter/Sassy-closet`) is the **s
 | Site | URL | Blob / `SITE_ID` | Indexing |
 | --- | --- | --- | --- |
 | **Intake (READ ONLY)** | https://sassy-closet.vercel.app | intake project — never write from this repo | n/a |
-| **This TEST shop** | https://sassy-closet-shop.vercel.app | `sassy-closet-shop` | `NEXT_PUBLIC_SITE_MODE=test` → HTML **noindex** |
+| **This TEST shop** | https://sassycloset.vercel.app (alias https://sassy-closet-shop.vercel.app still serves it) | `sassy-closet-shop` | `NEXT_PUBLIC_SITE_MODE=test` → HTML **noindex** |
 | **Official (new)** | your domain | `sassy-closet-official` (new Blob prefix) | `NEXT_PUBLIC_SITE_MODE=official` → index |
 
 Same git. New Vercel project. New Blob prefix (or new Blob store). Do not reuse the test domain unless you intend to replace the test site.

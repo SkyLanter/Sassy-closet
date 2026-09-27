@@ -51,13 +51,13 @@ Prompts also live in `excel-kit/prompts/` (`BOUTIQUE_DESKTOP_EFFICIENT.md`, `BOU
 
 ## Sell shop
 
-Next.js sell shop in [`sassy-closet-shop/`](sassy-closet-shop/). Live URL stays [https://sassy-closet-shop.vercel.app](https://sassy-closet-shop.vercel.app).
+Next.js sell shop in [`sassy-closet-shop/`](sassy-closet-shop/). Customers use [https://sassycloset.vercel.app](https://sassycloset.vercel.app). [https://sassy-closet-shop.vercel.app](https://sassy-closet-shop.vercel.app) still serves the same shop.
 
 GitHub is the source of truth for this app (Boss 2026-09-21). Origin temp `tiensidequests/tmp-87ea3acf7683fefe` is deprecated for new commits. **Do not delete Origin** until Mini Boss / Boss reconnects Vercel:
 
 1. Connect the Vercel project `sassy-closet-shop` to this GitHub repo.
 2. Set **Root Directory** to `sassy-closet-shop`.
-3. Leave the live URL as https://sassy-closet-shop.vercel.app.
+3. Customer URL is https://sassycloset.vercel.app. Leave https://sassy-closet-shop.vercel.app attached; it still serves this shop.
 
 Product photos stay on Vercel Blob / CDN (`/products/...`). They are not in git. A pull request does not deploy production.
 

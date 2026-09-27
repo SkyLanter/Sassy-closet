@@ -153,9 +153,23 @@ try {
     fail("signed-in catalog read must allow");
   }
 
+  const hostCookie = adminSessionCookie("host-only");
+  if ("domain" in hostCookie) {
+    fail("admin cookie must stay host-only so both shop hostnames can sign in");
+  }
   const authSource = read("lib/admin-auth.ts");
   if (!authSource.includes("timingSafeEqual") || !authSource.includes('createHash("sha256")')) {
     fail("compare must hash then timingSafeEqual");
+  }
+  if (authSource.includes("domain:")) {
+    fail("admin cookie must not set a Domain attribute");
+  }
+  const loginRoute = read("app/api/admin/login/route.ts");
+  const proxySource = read("proxy.ts");
+  for (const source of [loginRoute, proxySource]) {
+    if (source.includes("sassy-closet-shop.vercel.app") || source.includes("sassycloset.vercel.app")) {
+      fail("login redirects must stay on the request host");
+    }
   }
   if (/length ===[\s\S]{0,120}timingSafeEqual/.test(authSource)) {
     fail("do not skip timingSafeEqual when lengths differ");
