@@ -251,8 +251,8 @@ if (!gallery.includes("ky-gallery-frame") || !gallery.includes('data-testid="gal
 if (!css.includes("@media (max-height: 540px)") || !css.includes("100dvh - 8.75rem")) {
   fail("PDP gallery must cap on short viewports so peek chrome stays on screen");
 }
-if (!css.includes("@media (max-width: 767px) and (min-height: 541px)") || !css.includes("100dvh - 29rem")) {
-  fail("Phone portrait PDP gallery must leave room above the sticky Message bar");
+if (css.includes("100dvh - 29rem")) {
+  fail("Phone portrait PDP gallery must not max-height clamp the 3/4 frame (it shrinks the hero to a narrow box)");
 }
 if (!gallery.includes("viewTransitionName: `product-${product.ma}`")) {
   fail("PDP hero must use product-{THIS mã} as the view-transition name");
