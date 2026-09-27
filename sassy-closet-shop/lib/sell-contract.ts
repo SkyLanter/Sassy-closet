@@ -1,7 +1,7 @@
 import { bossRow } from "@/lib/boss-catalog";
 import { KNOWN_SEED_MAS, isKnownSeedMa } from "@/lib/catalog-contract";
 import { isValidMa, normalizeMa } from "@/lib/ma";
-import type { Product, ProductStatus } from "@/lib/types";
+import type { CatalogDocument, Product, ProductStatus } from "@/lib/types";
 
 const OFFICIAL_MA_RE = /^(AO|QU|VA|AK|GI|PK|SET)\d+$/i;
 
@@ -27,20 +27,17 @@ export function isSellableMa(ma: string): boolean {
   return isValidMa(normalized) && !isOfficialAlphabetMa(normalized);
 }
 
-/** Hold ⇔ priceUsd null. Available allowlist ⇔ Boss USD. P05 never $23. */
+/** Hold ⇔ priceUsd null. Available allowlist ⇔ Boss USD. */
 export function assertHoldPricePairing(
   ma: string,
   status: ProductStatus,
   priceUsd: number | null,
 ): void {
   const normalized = normalizeMa(ma);
-  if (normalized === "P05" && priceUsd === 23) {
-    throw new Error("P05 must never publish $23.");
-  }
   switch (status) {
     case "hold":
       if (priceUsd !== null) {
-        throw new Error(`Hold ${normalized} cannot have a USD price (P02/P05 never $23).`);
+        throw new Error(`Hold ${normalized} cannot have a USD price.`);
       }
       return;
     case "available": {
@@ -86,6 +83,19 @@ export function publicSafeProduct(product: Product): Product {
       return _exhaustive;
     }
   }
+}
+
+/**
+ * Live catalog reads show Boss USD for locked mãs.
+ * Stored Blob can still have the previous price until the follow-up catalog write.
+ * Admin saves load this view, so the pairing check agrees with BOSS_PRICE_LIST.
+ * Writes do not call this — a raw document with a different locked price is still rejected.
+ */
+export function presentLockedBossPrices(document: CatalogDocument): CatalogDocument {
+  return {
+    ...document,
+    products: document.products.map(publicSafeProduct),
+  };
 }
 
 /** Customer tiles / PDP / JSON-LD — no factory URL. */

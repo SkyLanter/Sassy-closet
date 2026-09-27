@@ -80,17 +80,17 @@ Official clone (new Vercel + Blob, same code): [docs/OFFICIAL_CLONE.md](./docs/O
 | Mã | USD | Category |
 | --- | --- | --- |
 | A01 | 25 | Tops |
-| S01 | 28 | Sets |
-| P01 | 5 | Accessories |
-| P02 | — (Hold · Inbox for price) | Accessories |
-| P03 | 18 | Accessories |
-| P04 | 13 | Accessories |
-| P05 | — (Hold · Inbox for price) | Accessories |
-| K01 | 37 | Jackets |
-| H01 | 8 | Hair accessories |
-| A02 | 22 | Tops |
+| S01 | 39 | Sets |
+| P01 | 3 | Accessories |
+| P02 | 24 | Accessories |
+| P03 | 10 | Accessories |
+| P04 | 7 | Accessories |
+| P05 | 23 | Accessories |
+| K01 | 36 | Jackets |
+| H01 | 6 | Hair accessories |
+| A02 | 21 | Tops |
 
-The hub ten stay on the catalog. **Add next mãs (A03+)** Saves to the live catalog (Blob on Vercel, `data/live-catalog.json` locally) and the piece appears on the shop. Official alphabet (`AO001`) is still rejected. Qty is always 1. Hold ⇔ `priceUsd` null (P02/P05 never $23). Excel / OneDrive / intake are read-only — copy colors, empty sizes, staff `source_link`, and Message-first dropship copy into this sell catalog only.
+The hub ten stay on the catalog. **Add next mãs (A03+)** Saves to the live catalog (Blob on Vercel, `data/live-catalog.json` locally) and the piece appears on the shop. Official alphabet (`AO001`) is still rejected. Qty is always 1. Hold ⇔ `priceUsd` null. Excel / OneDrive / intake are read-only — copy colors, empty sizes, staff `source_link`, and Message-first dropship copy into this sell catalog only.
 
 ## Test admin (`/admin`)
 
@@ -152,7 +152,7 @@ Customer tiles show **name, price, description, color, photos** and **Message**.
 1. Open `/admin` (or gold-dot → Open admin). Test only · not in the main nav.
 2. **Add mã** → letter A → title → Save. Receipt toast shows `Saved A04 · sha …`. Footer is not stuck on unsaved. No React #441. Edit opens with the new mã. **A03+** appears on `/` and `/m/{ma}`.
 3. Edit **A01** → title nudge → Save. Confirm `/m/A01` (refresh twice if needed) and `GET /api/admin/catalog` `catalogSha` changed. Restore the title.
-4. `POST /api/admin/save` with `{ "ma": "A03" }` works after Add (400 only if A03 is not in the catalog yet). P05 never $23. `AO001` stays rejected.
+4. `POST /api/admin/save` with `{ "ma": "A03" }` works after Add (400 only if A03 is not in the catalog yet). Locked mãs save only at the Boss USD. `AO001` stays rejected.
 
 `npm run smoke:admin` checks Add A03 / Hold pairing / leftover Remove / missing-hub import / Official `AO001` refuse without the browser.
 

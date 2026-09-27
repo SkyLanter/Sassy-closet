@@ -13,6 +13,7 @@ import {
   type BlobCatalogPort,
 } from "@/lib/blob-catalog";
 import { assertLiveCatalogIntegrity, CatalogCorruptError, isCatalogCorruptError } from "@/lib/catalog-integrity";
+import { presentLockedBossPrices } from "@/lib/sell-contract";
 import { applyHubColorNames } from "@/lib/hub-import";
 import { applyRecordedHubSourceLink } from "@/lib/hub-source-links";
 import { catalogShaOf, isInPlaceCoverPath } from "@/lib/catalog-sha";
@@ -258,7 +259,7 @@ async function readBlobCatalog(): Promise<CatalogDocument | null> {
     return null;
   }
   const document = await readCatalogFromBlobPort(createVercelBlobPort());
-  return document ? hydrateLiveCatalog(document) : null;
+  return document ? presentLockedBossPrices(hydrateLiveCatalog(document)) : null;
 }
 
 async function readKvCatalog(): Promise<CatalogDocument | null> {
@@ -271,7 +272,7 @@ async function readKvCatalog(): Promise<CatalogDocument | null> {
     return null;
   }
   try {
-    return hydrateLiveCatalog(parseCatalogDocument(raw));
+    return presentLockedBossPrices(hydrateLiveCatalog(parseCatalogDocument(raw)));
   } catch (error) {
     const detail = error instanceof Error ? error.message : "invalid catalog.v1";
     throw new CatalogCorruptError(`KV catalog is corrupt and will not fall back to seed. ${detail}`);
@@ -286,7 +287,7 @@ async function readLocalCatalog(): Promise<CatalogDocument | null> {
     const text = await readFile(localCatalogPath(), "utf8");
     const raw: unknown = JSON.parse(text);
     try {
-      return hydrateLiveCatalog(parseCatalogDocument(raw));
+      return presentLockedBossPrices(hydrateLiveCatalog(parseCatalogDocument(raw)));
     } catch (error) {
       const detail = error instanceof Error ? error.message : "invalid catalog.v1";
       throw new CatalogCorruptError(
@@ -428,7 +429,7 @@ export async function readLiveCatalogRecord(): Promise<CatalogReadRecord> {
     console.error("Live local catalog read failed; using seed.", error);
   }
 
-  return { document: getSeedDocument(), source: "seed" };
+  return { document: presentLockedBossPrices(getSeedDocument()), source: "seed" };
 }
 
 export async function readLiveCatalogDocument(): Promise<CatalogDocument> {

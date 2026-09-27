@@ -7,18 +7,18 @@ export type BossPriceRow = {
   status: ProductStatus;
 };
 
-/** Boss-locked sell prices. Do not invent mãs or USD. Hold has no price. */
+/** Boss-locked sell prices (new-shipping, 2026-09-27). Do not invent mãs or USD. Hold has no price. */
 export const BOSS_PRICE_LIST: readonly BossPriceRow[] = [
-  { ma: "A01", priceUsd: 30, status: "available" },
-  { ma: "S01", priceUsd: 45, status: "available" },
-  { ma: "P01", priceUsd: 8, status: "available" },
-  { ma: "P02", priceUsd: 28, status: "available" },
-  { ma: "P03", priceUsd: 15, status: "available" },
-  { ma: "P04", priceUsd: 12, status: "available" },
-  { ma: "P05", priceUsd: 28, status: "available" },
-  { ma: "K01", priceUsd: 40, status: "available" },
-  { ma: "H01", priceUsd: 10, status: "available" },
-  { ma: "A02", priceUsd: 26, status: "available" },
+  { ma: "A01", priceUsd: 25, status: "available" },
+  { ma: "S01", priceUsd: 39, status: "available" },
+  { ma: "P01", priceUsd: 3, status: "available" },
+  { ma: "P02", priceUsd: 24, status: "available" },
+  { ma: "P03", priceUsd: 10, status: "available" },
+  { ma: "P04", priceUsd: 7, status: "available" },
+  { ma: "P05", priceUsd: 23, status: "available" },
+  { ma: "K01", priceUsd: 36, status: "available" },
+  { ma: "H01", priceUsd: 6, status: "available" },
+  { ma: "A02", priceUsd: 21, status: "available" },
 ] as const;
 
 export function bossRow(ma: string): BossPriceRow | undefined {

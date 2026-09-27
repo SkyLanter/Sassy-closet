@@ -166,10 +166,10 @@ const holdWithUsd = saveProductInCatalog(titled.products, "P02", {
   images: [{ src: "/products/P02/cover.jpg", colorId: null, order: 1 }],
 });
 if (holdWithUsd.ok) {
-  fail("Hold + USD must be rejected (P02/P05 never $23)");
+  fail("Hold + USD must be rejected");
 }
 
-const p05Leak = saveProductInCatalog(titled.products, "P05", {
+const p05Boss = saveProductInCatalog(titled.products, "P05", {
   titleEn: "Thermos",
   titleVn: "Bình",
   descriptionEn: "Hold",
@@ -179,8 +179,25 @@ const p05Leak = saveProductInCatalog(titled.products, "P05", {
   colors: [],
   images: [{ src: "/products/P05/cover.jpg", colorId: null, order: 1 }],
 });
-if (p05Leak.ok) {
-  fail("P05 $23 must be rejected");
+if (!p05Boss.ok) {
+  fail(`P05 Available must save at $23, got ${p05Boss.error}`);
+}
+if (p05Boss.products.find((product) => product.ma === "P05")?.priceUsd !== 23) {
+  fail("P05 Available must persist $23");
+}
+
+const p05OffList = saveProductInCatalog(titled.products, "P05", {
+  titleEn: "Thermos",
+  titleVn: "Bình",
+  descriptionEn: "Hold",
+  descriptionVn: "Hold",
+  status: "available",
+  priceUsd: 28,
+  colors: [],
+  images: [{ src: "/products/P05/cover.jpg", colorId: null, order: 1 }],
+});
+if (p05OffList.ok) {
+  fail("P05 Available must reject non-Boss USD");
 }
 
 const invent = saveProductInCatalog(titled.products, "A03", holdFields());

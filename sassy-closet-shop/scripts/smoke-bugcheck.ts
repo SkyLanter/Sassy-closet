@@ -44,7 +44,7 @@ const holdUsd = saveProductInCatalog(seed.products, "P05", {
   sourceLink: p05.sourceLink,
 });
 if (holdUsd.ok) {
-  fail("P05 $23 must be rejected");
+  fail("Hold P05 must reject a USD price");
 }
 
 const itemForm = readFileSync(path.join(root, "app/admin/item-form.tsx"), "utf8");
