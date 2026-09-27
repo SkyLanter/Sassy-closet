@@ -347,11 +347,9 @@ body {
   }
 }
 
-@media (max-width: 767px) and (min-height: 541px) {
-  .ky-gallery-frame {
-    max-height: calc(100dvh - 29rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
-  }
-}
+/* Portrait phones: no max-height clamp. With aspect-[3/4], a max-height makes
+   the browser shrink the frame's width to keep the ratio (152px of 335px on a
+   375x667 phone), so the hero sat in a narrow box. Full content width wins. */
 
 .ky-gallery-set {
   display: grid;
