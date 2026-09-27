@@ -973,21 +973,9 @@ summary::-webkit-details-marker {
 
   [data-testid="pdp-color-chips"],
   [data-testid="pdp-size-chips"],
-  #look-title {
+  #look-title,
+  [data-testid="product-gallery"] > p:not(.sr-only) {
     scroll-margin-bottom: var(--shop-buy-bar-space);
-  }
-
-  /* Multi-photo looks have an index line the chips can close up. Single-photo looks stay under the thumbs. */
-  [data-testid="product-gallery"]:has(> p.mt-2) [data-testid="pdp-color-chips"] {
-    margin-top: -1.35rem;
-  }
-
-  [data-testid="product-gallery"]:not(:has(> p.mt-2)) [data-testid="pdp-color-chips"] {
-    margin-top: 0.125rem;
-  }
-
-  [data-testid="product-gallery"] [data-testid="pdp-size-chips"] {
-    margin-top: 5rem;
   }
 }
 
