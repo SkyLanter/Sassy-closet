@@ -53,9 +53,9 @@ type HeaderSearchApi = {
 
 const HeaderSearchContext = createContext<HeaderSearchApi | null>(null);
 
-function SearchGlyph() {
+function SearchGlyph({ className = "h-4 w-4" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" aria-hidden>
+    <svg viewBox="0 0 24 24" className={className} aria-hidden>
       <path
         fill="currentColor"
         d="M10.5 3.8a6.7 6.7 0 0 1 5.2 10.9l4 4a.9.9 0 0 1-1.3 1.3l-4-4A6.7 6.7 0 1 1 10.5 3.8Zm0 1.7a5 5 0 1 0 0 10 5 5 0 0 0 0-10Z"
@@ -283,7 +283,7 @@ export function HeaderSearch() {
   return (
     <div
       ref={search.fieldRef}
-      className={`relative min-w-0 ${search.expanded ? "flex-1" : ""} sm:w-[12.5rem] lg:w-[14.5rem]`}
+      className={`relative min-w-0 ${search.expanded ? "flex-1" : ""} sm:w-[18.5rem] lg:w-[22rem]`}
     >
       <div className="flex min-w-0 items-center justify-end gap-1">
         <button
@@ -319,48 +319,55 @@ export function HeaderSearch() {
             {LOOK_SEARCH_ARIA}
           </label>
           <div className="relative min-w-0 flex-1">
-          <input
-            ref={search.inputRef}
-            id="shop-header-search-input"
-            type="search"
-            role="combobox"
-            name="q"
-            value={search.value}
-            autoComplete="off"
-            autoCorrect="off"
-            spellCheck={false}
-            enterKeyHint="search"
-            placeholder={LOOK_SEARCH_PLACEHOLDER}
-            aria-label={LOOK_SEARCH_ARIA}
-            aria-autocomplete="list"
-            aria-controls={search.showPanel ? search.listId : undefined}
-            aria-expanded={search.showPanel}
-            aria-activedescendant={
-              search.showPanel && search.active !== null && search.suggestions[search.active]
-                ? `${search.listId}-${search.suggestions[search.active].ma}`
-                : undefined
-            }
-            translate="no"
-            onChange={(event) => search.onInputChange(event.target.value)}
-            onFocus={search.onFocus}
-            onKeyDown={search.onKeyDown}
-            className="min-h-11 w-full min-w-0 rounded-full border border-gold/35 bg-transparent px-3 pr-11 text-[16px] text-ink placeholder:text-muted focus:border-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold md:text-[13px]"
-          />
-          {search.value ? (
-            <button
-              type="button"
-              data-testid="shop-header-search-clear"
-              aria-label="Xóa tìm · Clear search"
-              translate="no"
-              className="absolute inset-y-0 right-0 inline-flex min-h-11 min-w-11 touch-manipulation items-center justify-center text-[16px] leading-none text-muted hover-hover:hover:text-ink"
-              onClick={() => {
-                search.onInputChange("");
-                search.inputRef.current?.focus();
-              }}
+            <span
+              className="shop-search-icon pointer-events-none absolute inset-y-0 left-0 z-[1] flex w-11 items-center justify-center"
+              data-testid="shop-header-search-icon"
+              aria-hidden
             >
-              <span aria-hidden>×</span>
-            </button>
-          ) : null}
+              <SearchGlyph className="h-[18px] w-[18px]" />
+            </span>
+            <input
+              ref={search.inputRef}
+              id="shop-header-search-input"
+              type="search"
+              role="combobox"
+              name="q"
+              value={search.value}
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+              enterKeyHint="search"
+              placeholder={LOOK_SEARCH_PLACEHOLDER}
+              aria-label={LOOK_SEARCH_ARIA}
+              aria-autocomplete="list"
+              aria-controls={search.showPanel ? search.listId : undefined}
+              aria-expanded={search.showPanel}
+              aria-activedescendant={
+                search.showPanel && search.active !== null && search.suggestions[search.active]
+                  ? `${search.listId}-${search.suggestions[search.active].ma}`
+                  : undefined
+              }
+              translate="no"
+              onChange={(event) => search.onInputChange(event.target.value)}
+              onFocus={search.onFocus}
+              onKeyDown={search.onKeyDown}
+              className="shop-search-field min-h-11 w-full min-w-0 rounded-full bg-white py-2 pl-11 pr-11 text-[16px] text-ink md:text-[13px]"
+            />
+            {search.value ? (
+              <button
+                type="button"
+                data-testid="shop-header-search-clear"
+                aria-label="Xóa tìm · Clear search"
+                translate="no"
+                className="shop-search-clear absolute inset-y-0 right-0 z-[1] inline-flex min-h-11 min-w-11 touch-manipulation items-center justify-center text-[20px] font-medium leading-none"
+                onClick={() => {
+                  search.onInputChange("");
+                  search.inputRef.current?.focus();
+                }}
+              >
+                <span aria-hidden>×</span>
+              </button>
+            ) : null}
           </div>
         </form>
       </div>

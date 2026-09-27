@@ -7,7 +7,7 @@ export type LookSearchItem = {
   titleVn: string;
 };
 
-export const LOOK_SEARCH_PLACEHOLDER = "Tìm mã hoặc tên…";
+export const LOOK_SEARCH_PLACEHOLDER = "Tìm mã (A15)… / Search mã";
 export const LOOK_SEARCH_ARIA = "Tìm mã hoặc tên · Search mã or name";
 export const LOOK_SEARCH_EMPTY = "Không thấy look · No matching look";
 export const LOOK_SEARCH_TOGGLE = "Mở tìm · Open search";

@@ -7,6 +7,7 @@ import {
   exactMaLook,
   filterLooksByQuery,
   firstSearchQueryParam,
+  LOOK_SEARCH_PLACEHOLDER,
   lookSearchHref,
   resolveLookSearch,
   shopSearchNeedle,
@@ -192,6 +193,34 @@ if (!resultsBar.includes('data-testid="shop-search-results-clear"')) {
 }
 if (!catalog.includes("SearchResultsBar")) {
   fail("Category grid must show the same search results bar");
+}
+
+if (LOOK_SEARCH_PLACEHOLDER !== "Tìm mã (A15)… / Search mã") {
+  fail("Header placeholder must show an example mã and stay bilingual");
+}
+if (!searchUi.includes("shop-search-field") || !searchUi.includes('data-testid="shop-header-search-icon"')) {
+  fail("Header search must be a solid field with a left icon");
+}
+if (!searchUi.includes("bg-white") || !searchUi.includes("min-h-11") || !searchUi.includes("pl-11")) {
+  fail("Header search must keep a white fill, a 44px target, and room for the icon");
+}
+if (!searchUi.includes('data-testid="shop-header-search-clear"') || !searchUi.includes("shop-search-clear")) {
+  fail("Header search must show a clear control once there is text");
+}
+const shopCss = read("app/globals.css");
+if (
+  !shopCss.includes("input.shop-search-field") ||
+  !shopCss.includes("background-color: #ffffff") ||
+  !shopCss.includes("border: 2px solid #b44762") ||
+  !shopCss.includes("outline: 3px solid #a33d58")
+) {
+  fail("Header search must keep a 2px rose border, white fill, and a 3px focus ring");
+}
+if (!shopCss.includes("color: #5c3140") || !shopCss.includes("opacity: 1")) {
+  fail("Header search placeholder must stay a dark rose at full opacity");
+}
+if (shopCss.includes("--gold: #b08968") === false || shopCss.includes("--blush: #f3eee8") === false) {
+  fail("Search restyle must not change locked gold or blush");
 }
 
 console.log("look search ok", {
