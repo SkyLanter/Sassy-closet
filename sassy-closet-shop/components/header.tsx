@@ -7,6 +7,7 @@ import { LayoutGroup, motion, useReducedMotion } from "framer-motion";
 import { useAdminEntry } from "@/components/admin-entry";
 import { HeaderSearch, HeaderSearchProvider, HeaderSearchSheet } from "@/components/header-search";
 import { MessengerCta } from "@/components/messenger-cta";
+import { onShopHomeClick, useShopSearch } from "@/components/shop-search";
 import { categoryAriaLabel, categoryCopy, categoryHref } from "@/lib/categories";
 import { scrollChromeChildIntoView } from "@/lib/gallery-snap";
 import type { MaLetter } from "@/lib/ma";
@@ -15,6 +16,7 @@ import { SITE } from "@/lib/site";
 
 export function Header({ types }: { types: MaLetter[] }) {
   const pathname = usePathname();
+  const { clearSearch } = useShopSearch();
   const reduced = useReducedMotion();
   const studio = useAdminEntry();
   const holdTimer = useRef<number | null>(null);
@@ -73,6 +75,7 @@ export function Header({ types }: { types: MaLetter[] }) {
       <div className="relative z-20 mx-auto flex h-14 min-w-0 max-w-7xl items-center justify-between gap-2 pl-[max(1.25rem,env(safe-area-inset-left,0px))] pr-[max(1.25rem,env(safe-area-inset-right,0px))] sm:h-16 sm:gap-3 sm:pl-[max(2rem,env(safe-area-inset-left,0px))] sm:pr-[max(2rem,env(safe-area-inset-right,0px))]">
         <Link
           href="/"
+          data-testid="shop-logo"
           aria-current={pathname === "/" ? "page" : undefined}
           translate="no"
           className={`inline-flex min-h-11 min-w-0 touch-manipulation select-none items-center truncate whitespace-nowrap font-display text-[1.65rem] font-medium leading-[1.12] tracking-[0.02em] text-balance text-ink hover-hover:hover:text-gold-deep ${
@@ -86,7 +89,9 @@ export function Header({ types }: { types: MaLetter[] }) {
             if (gated.current) {
               event.preventDefault();
               gated.current = false;
+              return;
             }
+            onShopHomeClick(event, clearSearch);
           }}
         >
           {SITE.name}

@@ -15,6 +15,28 @@ export const LOOK_SEARCH_CLOSE = "Đóng tìm · Close search";
 export const LOOK_SEARCH_NO_MATCH = "Không thấy mã hoặc tên đó · No look matches that search.";
 export const LOOK_SEARCH_TAB_EMPTY = "Không có trong mục này · Nothing in this tab matches.";
 
+/** Keys this shop does not write today. Home still clears them so a stuck filter cannot survive in storage. */
+export const SHOP_SEARCH_STORAGE_KEYS = ["sassy-shop-search", "sassy-shop-q"] as const;
+
+/**
+ * Home URL is the filter. `null` means we left home and the header may keep its text.
+ * `""` means `/` has no q, so a previous mã must not keep filtering.
+ */
+export function draftAfterHomeQuery(homeQuery: string | null, draft: string | null): string | null {
+  if (homeQuery === null) {
+    return draft;
+  }
+  return homeQuery.trim();
+}
+
+/** `""` is an explicit clear and beats a stale `?q`. `null` follows the URL query. */
+export function shopSearchNeedle(draft: string | null, committedQuery: string): string {
+  if (draft === null) {
+    return committedQuery.trim();
+  }
+  return draft.trim();
+}
+
 /** ASCII request header so a unicode query can survive the proxy. */
 export const SHOP_SEARCH_HEADER = "x-sassy-q";
 

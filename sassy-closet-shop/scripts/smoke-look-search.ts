@@ -2,12 +2,14 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import {
   decodeShopSearchHeader,
+  draftAfterHomeQuery,
   encodeShopSearchHeader,
   exactMaLook,
   filterLooksByQuery,
   firstSearchQueryParam,
   lookSearchHref,
   resolveLookSearch,
+  shopSearchNeedle,
   suggestLooks,
   toLookSearchItems,
 } from "../lib/look-search";
@@ -140,6 +142,56 @@ if (!catalog.includes("filterLooksByQuery")) {
 }
 if (categoryPage.includes('type="search"') || catalog.includes('type="search"') || catalog.includes("Tìm mã")) {
   fail("Category pages must not host a second search box; header is the source of truth");
+}
+
+if (draftAfterHomeQuery(null, "A01") !== "A01") {
+  fail("Leaving home must keep the header text until the customer returns");
+}
+if (draftAfterHomeQuery("", "A01") !== "" || draftAfterHomeQuery("  ", "A15") !== "") {
+  fail("Home without ?q must clear a stuck mã");
+}
+if (draftAfterHomeQuery("A15", "puppy") !== "A15") {
+  fail("Home ?q= must replace the client draft");
+}
+if (shopSearchNeedle("", "A01") !== "" || shopSearchNeedle(null, "A01") !== "A01") {
+  fail("An explicit clear must beat a stale q, and a null draft must follow the URL");
+}
+if (shopSearchNeedle("  puppy  ", "") !== "puppy") {
+  fail("A typed draft must stay the active filter");
+}
+
+const shopSearch = read("components/shop-search.tsx");
+const resultsBar = read("components/search-results-bar.tsx");
+const footer = read("components/footer.tsx");
+if (!header.includes('data-testid="shop-logo"') || !header.includes("onShopHomeClick")) {
+  fail("Header logo must clear search and go home");
+}
+if (!footer.includes("onShopHomeClick") || !footer.includes('href="/"')) {
+  fail("Footer wordmark must clear search and go home");
+}
+if (!shopSearch.includes("clearSearch") || !shopSearch.includes("localStorage.removeItem") || !shopSearch.includes("sessionStorage.removeItem")) {
+  fail("Clear search must drop the client draft and any stored query");
+}
+if (!shopSearch.includes('router.push("/")')) {
+  fail("Clear search must drop the q param by returning to /");
+}
+if (!searchUi.includes("useLayoutEffect") || !searchUi.includes("onHomeQuery(homeQuery.trim())")) {
+  fail("Browser Back to home without ?q must sync an empty query before paint");
+}
+if (searchUi.includes('pathname === "/" ? searchParams.get("q") ?? "" : ""')) {
+  fail("Leaving home must not wipe the header query");
+}
+if (!featured.includes("SearchResultsBar") || !featured.includes("shopSearchNeedle")) {
+  fail("Home grid must follow shopSearchNeedle and show the results bar");
+}
+if (!resultsBar.includes('data-testid="shop-search-results"') || !resultsBar.includes("Showing results for")) {
+  fail('Active search must show Showing results for "…" · Clear');
+}
+if (!resultsBar.includes('data-testid="shop-search-results-clear"')) {
+  fail("Results bar must have a Clear control");
+}
+if (!catalog.includes("SearchResultsBar")) {
+  fail("Category grid must show the same search results bar");
 }
 
 console.log("look search ok", {

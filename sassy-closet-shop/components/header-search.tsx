@@ -7,6 +7,7 @@ import {
   useContext,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
   type FormEvent,
@@ -67,23 +68,12 @@ function UrlQueryReader({ onHomeQuery }: { onHomeQuery: (query: string) => void 
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const homeQuery = pathname === "/" ? (searchParams.get("q") ?? "") : null;
-  const previousHome = useRef<string | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (homeQuery === null) {
-      previousHome.current = null;
       return;
     }
-    const prior = previousHome.current;
-    previousHome.current = homeQuery;
-    const trimmed = homeQuery.trim();
-    if (trimmed) {
-      onHomeQuery(trimmed);
-      return;
-    }
-    if (prior !== null && prior.trim()) {
-      onHomeQuery("");
-    }
+    onHomeQuery(homeQuery.trim());
   }, [homeQuery, onHomeQuery]);
 
   return null;
@@ -103,7 +93,7 @@ function HeaderSearchState({
   const inputRef = useRef<HTMLInputElement>(null);
   const fieldRef = useRef<HTMLDivElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
-  const { looks, draft, setDraft } = useShopSearch();
+  const { looks, draft, setDraft, clearSearch } = useShopSearch();
   const [expanded, setExpanded] = useState(false);
   const [suggestOpen, setSuggestOpen] = useState(false);
   const [active, setActive] = useState<number | null>(null);
@@ -232,8 +222,13 @@ function HeaderSearchState({
     onSubmit,
     onKeyDown,
     onInputChange: (next: string) => {
-      setDraft(next);
       setActive(null);
+      if (!next.trim()) {
+        clearSearch();
+        setSuggestOpen(false);
+        return;
+      }
+      setDraft(next);
       setSuggestOpen(true);
     },
     onFocus: () => {
@@ -267,7 +262,7 @@ export function HeaderSearchProvider({
     (query: string) => {
       const trimmed = query.trim();
       setUrlQuery(trimmed);
-      setDraft(trimmed ? trimmed : null);
+      setDraft(trimmed);
     },
     [setDraft],
   );
