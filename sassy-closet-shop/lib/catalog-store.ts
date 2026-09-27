@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { get, list, put } from "@vercel/blob";
@@ -153,9 +154,48 @@ export function overlayCustomerStockVoice(document: CatalogDocument): CatalogDoc
   };
 }
 
+const CLEANED_LOCAL_COVERS = ["A16", "D04", "S09"] as const;
+
+/**
+ * These three extras live on Blob covers. The cleaned JPEGs are in
+ * public/products, so the shop src becomes that local cover only.
+ */
+export function overlayCleanedExtraCovers(document: CatalogDocument): CatalogDocument {
+  return {
+    ...document,
+    products: document.products.map((product) => {
+      if (!(CLEANED_LOCAL_COVERS as readonly string[]).includes(product.ma)) {
+        return product;
+      }
+      const local = `/products/${product.ma}/cover.jpg`;
+      const file = path.join(process.cwd(), "public", "products", product.ma, "cover.jpg");
+      if (!existsSync(file)) {
+        return product;
+      }
+      let changed = false;
+      const images = product.images.map((image) => {
+        const pathOnly = (image.src.split("?")[0] ?? image.src).trim();
+        const isThisCover =
+          pathOnly.endsWith(`/${product.ma}/cover.jpg`) ||
+          pathOnly.endsWith(`/${product.ma}/cover.jpeg`);
+        if (!isThisCover || pathOnly === local) {
+          return image;
+        }
+        changed = true;
+        return { ...image, src: local };
+      });
+      if (!changed) {
+        return product;
+      }
+      return { ...product, images };
+    }),
+  };
+}
+
 function hydrateLiveCatalog(document: CatalogDocument): CatalogDocument {
   const withSeedPhotos = overlaySeedHubGalleries(document);
-  const withSeedCopy = overlayCustomerStockVoice(withSeedPhotos);
+  const withLocalCovers = overlayCleanedExtraCovers(withSeedPhotos);
+  const withSeedCopy = overlayCustomerStockVoice(withLocalCovers);
   return parseCatalogDocument({
     ...withSeedCopy,
     products: applyHubColorNames(withSeedCopy.products).map(applyRecordedHubSourceLink),
