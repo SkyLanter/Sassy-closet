@@ -562,8 +562,11 @@ if (
 if (!buyBar.includes("whitespace-nowrap")) {
   fail("Phone Message must not wrap on the buy bar");
 }
-if (!buyBar.includes("displayName") || !buyBar.includes("line-clamp-2")) {
-  fail("Phone buy bar must show the look name after the title scrolls away");
+if (!buyBar.includes("displayName") || !buyBar.includes("text-ellipsis") || !buyBar.includes("whitespace-nowrap")) {
+  fail("Phone buy bar must show the look name on one line after the title scrolls away");
+}
+if (buyBar.includes("line-clamp-2")) {
+  fail("Phone buy bar title must stay one line");
 }
 if (!buyBar.includes("<MaMark") || !buyBar.includes("text-[10px] tracking-[0.16em] text-muted")) {
   fail("Phone buy bar must keep mã as a quiet kicker beside the look name");
