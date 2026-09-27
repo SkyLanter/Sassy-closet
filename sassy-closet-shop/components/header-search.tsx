@@ -299,7 +299,9 @@ export function HeaderSearch() {
               search.onFocus();
             }
           }}
-          className="inline-flex min-h-11 min-w-11 shrink-0 touch-manipulation select-none items-center justify-center text-ink hover-hover:hover:text-gold-deep sm:hidden"
+          className={`${
+            search.expanded ? "hidden" : "inline-flex"
+          } min-h-11 min-w-11 shrink-0 touch-manipulation select-none items-center justify-center text-ink hover-hover:hover:text-gold-deep sm:hidden`}
         >
           {search.expanded ? (
             <span className="text-lg leading-none" aria-hidden>
@@ -313,14 +315,14 @@ export function HeaderSearch() {
           role="search"
           onSubmit={search.onSubmit}
           data-testid="shop-header-search"
-          className={`${search.expanded ? "flex flex-1" : "hidden"} min-w-0 sm:flex`}
+          className={`${search.expanded ? "flex flex-1" : "hidden"} min-w-0 sm:flex sm:w-full sm:flex-1`}
         >
           <label className="sr-only" htmlFor="shop-header-search-input">
             {LOOK_SEARCH_ARIA}
           </label>
           <div className="relative min-w-0 flex-1">
             <span
-              className="shop-search-icon pointer-events-none absolute inset-y-0 left-0 z-[1] flex w-11 items-center justify-center"
+              className="shop-search-icon pointer-events-none absolute inset-y-0 left-0 z-[1] flex w-10 items-center justify-center"
               data-testid="shop-header-search-icon"
               aria-hidden
             >
@@ -351,7 +353,9 @@ export function HeaderSearch() {
               onChange={(event) => search.onInputChange(event.target.value)}
               onFocus={search.onFocus}
               onKeyDown={search.onKeyDown}
-              className="shop-search-field min-h-11 w-full min-w-0 rounded-full bg-white py-2 pl-11 pr-11 text-[16px] text-ink md:text-[13px]"
+              className={`shop-search-field min-h-11 w-full min-w-0 rounded-full bg-white py-2 pl-10 text-[16px] text-ink md:text-[13px] ${
+                search.value ? "pr-11" : "pr-3"
+              }`}
             />
             {search.value ? (
               <button

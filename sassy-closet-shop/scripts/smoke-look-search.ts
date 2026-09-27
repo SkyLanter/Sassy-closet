@@ -201,7 +201,7 @@ if (LOOK_SEARCH_PLACEHOLDER !== "Tìm mã (A15)… / Search mã") {
 if (!searchUi.includes("shop-search-field") || !searchUi.includes('data-testid="shop-header-search-icon"')) {
   fail("Header search must be a solid field with a left icon");
 }
-if (!searchUi.includes("bg-white") || !searchUi.includes("min-h-11") || !searchUi.includes("pl-11")) {
+if (!searchUi.includes("bg-white") || !searchUi.includes("min-h-11") || !searchUi.includes("pl-10")) {
   fail("Header search must keep a white fill, a 44px target, and room for the icon");
 }
 if (!searchUi.includes('data-testid="shop-header-search-clear"') || !searchUi.includes("shop-search-clear")) {

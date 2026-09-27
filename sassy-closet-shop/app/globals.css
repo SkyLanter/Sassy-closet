@@ -978,6 +978,13 @@ input.shop-search-field {
 input.shop-search-field::placeholder {
   color: #5c3140;
   opacity: 1;
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  input.shop-search-field::placeholder {
+    font-size: 13px;
+  }
 }
 
 input.shop-search-field::-webkit-search-cancel-button,
