@@ -7,14 +7,19 @@ import { AnimatedProductGrid } from "@/components/animated-product-grid";
 import { ContentWaveLooks, useContentWave } from "@/components/content-wave";
 import { LooksSortChips } from "@/components/looks-sort";
 import { SearchResultsBar } from "@/components/search-results-bar";
+import { CategorySuggestChips } from "@/components/category-suggest-chips";
+import { HScrollCue } from "@/components/h-scroll-cue";
 import { ShopEmpty } from "@/components/shop-empty";
+import { SizeFilterChips } from "@/components/size-filter";
 import { useShopSearch } from "@/components/shop-search";
-import { categoryAriaLabel, categoryCopy, TYPE_SLUGS } from "@/lib/categories";
+import type { AsiaSizeLetter } from "@/lib/asia-size";
+import { categoryAriaLabel, categoryFilterLabel, TYPE_SLUGS } from "@/lib/categories";
 import { DEFAULT_SHOP_SORT, sortShopLooks, type ShopSortId } from "@/lib/fb-rank";
 import { scrollChromeChildIntoView } from "@/lib/gallery-snap";
 import { collectionEmptyCopy, FEATURED_ALL_ARIA, lookCountLabel } from "@/lib/look-count";
 import { filterLooksByQuery, LOOK_SEARCH_TAB_EMPTY, shopSearchNeedle } from "@/lib/look-search";
-import { slideDirection, springSoft } from "@/lib/motion";
+import { easeOutFast, slideDirection } from "@/lib/motion";
+import { collectShopSizes } from "@/lib/shop-sizes";
 import type { MaLetter } from "@/lib/ma";
 import type { ShopLook } from "@/lib/shop-look";
 
@@ -34,6 +39,7 @@ export function FeaturedBoard({
   committedQuery?: string;
 }) {
   const [filter, setFilter] = useState<Filter>("all");
+  const [size, setSize] = useState<AsiaSizeLetter | null>(null);
   const [sort, setSort] = useState<ShopSortId>(DEFAULT_SHOP_SORT);
   const [direction, setDir] = useState(1);
   const tabRailRef = useRef<HTMLDivElement>(null);
@@ -43,11 +49,18 @@ export function FeaturedBoard({
   const needle = shopSearchNeedle(draft, committedQuery);
   const order = useMemo(() => ["all" as const, ...types], [types]);
   const searched = useMemo(() => filterLooksByQuery(products, needle), [needle, products]);
+  const inCategory = useMemo(
+    () => (filter === "all" ? searched : searched.filter((product) => product.type === filter)),
+    [filter, searched],
+  );
+  const sizeOptions = useMemo(() => collectShopSizes(inCategory), [inCategory]);
+  const activeSize = size && sizeOptions.includes(size) ? size : null;
   const visible = useMemo(() => {
-    const filtered =
-      filter === "all" ? searched : searched.filter((product) => product.type === filter);
+    const filtered = activeSize
+      ? inCategory.filter((product) => product.sizes.includes(activeSize))
+      : inCategory;
     return sortShopLooks(filtered, sort);
-  }, [filter, searched, sort]);
+  }, [activeSize, inCategory, sort]);
   const counts = useMemo(() => {
     const next: Record<string, number> = { all: searched.length };
     for (const type of types) {
@@ -120,7 +133,7 @@ export function FeaturedBoard({
           Looks
         </h2>
         <LooksSortChips sort={sort} onChange={setSort} />
-        <div className="ky-h-scroll-cue mt-5">
+        <HScrollCue className="ky-h-scroll-cue mt-5">
         <LayoutGroup id="featured-tabs">
           <motion.div
             ref={tabRailRef}
@@ -158,13 +171,14 @@ export function FeaturedBoard({
                   reduced={Boolean(reduced)}
                   ariaName={categoryAriaLabel(type)}
                 >
-                  {categoryCopy(type).label}
+                  {categoryFilterLabel(type)}
                 </FilterTab>
               ))}
             </div>
           </motion.div>
         </LayoutGroup>
-        </div>
+        </HScrollCue>
+        <SizeFilterChips sizes={sizeOptions} selected={activeSize} onChange={setSize} />
         <p
           className="mx-auto mt-3 max-w-full truncate whitespace-nowrap text-left text-[11px] uppercase tracking-[0.16em] text-muted tabular-nums"
           aria-live="polite"
@@ -183,52 +197,77 @@ export function FeaturedBoard({
             </motion.span>
           </AnimatePresence>
         </p>
-        <SearchResultsBar query={needle} />
+        <SearchResultsBar query={needle} count={visible.length} />
         <div
           id="featured-panel"
           role="tabpanel"
           aria-labelledby={tabId(filter)}
           data-shop-sort={sort}
+          data-shop-size={activeSize ?? undefined}
           data-shop-search={needle.trim() || undefined}
           className="mt-8 overflow-hidden"
         >
           <ContentWaveLooks>
             {visible.length === 0 ? (
               <ShopEmpty
-                {...(needle.trim()
+                {...(needle.trim() && searched.length === 0
                   ? {
-                      title: filter === "all" ? "Looks" : categoryCopy(filter).label,
-                      body:
-                        searched.length === 0
-                          ? `Không thấy “${needle.trim().slice(0, 40)}” · No results for “${needle.trim().slice(0, 40)}”.`
-                          : LOOK_SEARCH_TAB_EMPTY,
+                      title: filter === "all" ? "Looks" : categoryFilterLabel(filter),
+                      body: `Không thấy “${needle.trim().slice(0, 40)}” · No results for “${needle.trim().slice(0, 40)}”.`,
                     }
-                  : filter === "all"
+                  : activeSize && inCategory.length > 0
                     ? {
-                        title: "Looks",
-                        body: "Chưa có looks trên lookbook · No looks listed.",
+                        title: filter === "all" ? "Looks" : categoryFilterLabel(filter),
+                        body: `Không có size ${activeSize} · No size ${activeSize} in this view.`,
                       }
-                    : collectionEmptyCopy(categoryCopy(filter).label, TYPE_SLUGS[filter]))}
+                  : needle.trim()
+                    ? {
+                        title: filter === "all" ? "Looks" : categoryFilterLabel(filter),
+                        body: LOOK_SEARCH_TAB_EMPTY,
+                      }
+                    : filter === "all"
+                      ? {
+                          title: "Looks",
+                          body: "Chưa có looks trên lookbook · No looks listed.",
+                        }
+                      : collectionEmptyCopy(categoryFilterLabel(filter), TYPE_SLUGS[filter]))}
                 actions={
-                  needle.trim() ? (
-                    <div className="mt-5 flex flex-wrap items-center justify-center gap-2 px-2">
-                      <button
-                        type="button"
-                        className="inline-flex min-h-11 touch-manipulation items-center rounded-full border border-gold/45 px-4 text-[13px] text-ink"
-                        onClick={() => clearSearch()}
-                      >
-                        Xóa tìm · Clear search
-                      </button>
-                      <button
-                        type="button"
-                        className="inline-flex min-h-11 touch-manipulation items-center rounded-full border border-gold/45 px-4 text-[13px] text-ink"
-                        onClick={() => {
-                          choose("all");
-                          clearSearch();
-                        }}
-                      >
-                        Xem tất cả · Browse all
-                      </button>
+                  needle.trim() || activeSize ? (
+                    <div className="mt-5 px-2">
+                      <div className="flex flex-wrap items-center justify-center gap-2">
+                        {needle.trim() ? (
+                          <button
+                            type="button"
+                            className="inline-flex min-h-11 touch-manipulation items-center rounded-full border border-gold/45 px-4 text-[13px] text-ink"
+                            onClick={() => clearSearch()}
+                          >
+                            Xóa tìm · Clear search
+                          </button>
+                        ) : null}
+                        {activeSize ? (
+                          <button
+                            type="button"
+                            className="inline-flex min-h-11 touch-manipulation items-center rounded-full border border-gold/45 px-4 text-[13px] text-ink"
+                            onClick={() => setSize(null)}
+                          >
+                            Xóa size · Clear size
+                          </button>
+                        ) : null}
+                        <button
+                          type="button"
+                          className="inline-flex min-h-11 touch-manipulation items-center rounded-full border border-gold/45 px-4 text-[13px] text-ink"
+                          onClick={() => {
+                            choose("all");
+                            setSize(null);
+                            clearSearch();
+                          }}
+                        >
+                          Xem tất cả · Browse all
+                        </button>
+                      </div>
+                      {needle.trim() && searched.length === 0 ? (
+                        <CategorySuggestChips types={types} className="mt-5" />
+                      ) : null}
                     </div>
                   ) : null
                 }
@@ -276,7 +315,6 @@ function FilterTab({
       tabIndex={active ? 0 : -1}
       onClick={onClick}
       data-testid="featured-filter-tab"
-      aria-label={`${ariaName}, ${lookCountLabel(count)}`}
       translate="no"
       className={`relative inline-flex min-h-11 min-w-11 shrink-0 touch-manipulation select-none items-end justify-center whitespace-nowrap px-2.5 pb-2 text-[11px] font-medium uppercase tracking-[0.16em] motion-safe:transition-colors motion-safe:duration-150 ${
         active ? "text-ink" : "text-muted hover-hover:hover:text-ink"
@@ -286,14 +324,15 @@ function FilterTab({
         <span className="liquid-glass-chip pointer-events-none absolute inset-x-0 top-0.5 bottom-1 -z-0 rounded-md" aria-hidden />
       ) : null}
       <span className="relative z-[1]">{children}</span>
-      <span className={`relative z-[1] ml-1.5 tabular-nums tracking-[0.08em] ${active ? "text-gold-deep" : "text-muted/80"}`} aria-hidden>
+      <span className={`relative z-[1] ml-1.5 tabular-nums tracking-[0.08em] ${active ? "text-gold-deep" : "text-muted/80"}`}>
         {count}
       </span>
+      <span className="sr-only">{`, ${ariaName}`}</span>
       {active ? (
         <motion.span
           layoutId={reduced ? undefined : "featured-tab"}
           className="featured-tab-film pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gold"
-          transition={reduced ? { duration: 0 } : springSoft}
+          transition={reduced ? { duration: 0 } : easeOutFast}
           aria-hidden
         />
       ) : null}

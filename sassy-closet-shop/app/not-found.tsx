@@ -1,14 +1,16 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { ShopEmpty } from "@/components/shop-empty";
+import { notFoundSeo } from "@/lib/seo";
+import { SITE } from "@/lib/site";
 
-export const metadata: Metadata = {
-  title: "Not found",
-};
+export const metadata = notFoundSeo();
 
 export default function NotFound() {
   return (
-    <div className="mx-auto max-w-xl ky-gutter py-24">
+    <div className="mx-auto max-w-xl ky-gutter py-24" data-testid="shop-not-found">
+      <p className="mb-8 text-center font-display text-[1.85rem] font-medium leading-[1.08] tracking-[0.02em] text-balance text-ink" translate="no">
+        {SITE.name}
+      </p>
       <ShopEmpty
         title="Không tìm thấy · Not found"
         body="Không tìm thấy look trên lookbook · Not found."

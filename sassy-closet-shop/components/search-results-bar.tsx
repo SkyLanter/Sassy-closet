@@ -1,8 +1,9 @@
 "use client";
 
 import { useShopSearch } from "@/components/shop-search";
+import { lookCountLabel } from "@/lib/look-count";
 
-export function SearchResultsBar({ query }: { query: string }) {
+export function SearchResultsBar({ query, count }: { query: string; count?: number }) {
   const { clearSearch } = useShopSearch();
   const shown = query.trim().slice(0, 40);
   if (!shown) {
@@ -16,6 +17,11 @@ export function SearchResultsBar({ query }: { query: string }) {
     >
       <p className="min-w-0 break-words text-[13px] leading-snug text-ink" translate="no">
         Đang hiện “{shown}” · Showing results for “{shown}”
+        {typeof count === "number" ? (
+          <span className="mt-0.5 block text-[11px] uppercase tracking-[0.16em] text-muted tabular-nums">
+            {lookCountLabel(count)}
+          </span>
+        ) : null}
       </p>
       <button
         type="button"

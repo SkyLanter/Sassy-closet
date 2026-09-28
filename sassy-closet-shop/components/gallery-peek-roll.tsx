@@ -10,7 +10,9 @@ import {
   galleryScrollBehavior,
   GALLERY_ROLL_MS,
   nearestCenteredIndex,
+  scrollRailToChild,
 } from "@/lib/gallery-snap";
+import { FallibleLookPhoto } from "@/components/product-image";
 import { galleryReelLabel, photoIndexLabel, photoPositionLabel } from "@/lib/pdp-copy";
 
 export type PeekSlide = {
@@ -28,6 +30,7 @@ type Props = {
   onIndexChange: (next: number) => void;
   onCenterClick?: () => void;
   ma?: string;
+  letter?: string;
   className?: string;
 };
 
@@ -37,6 +40,7 @@ export function GalleryPeekRoll({
   onIndexChange,
   onCenterClick,
   ma,
+  letter,
   className,
 }: Props) {
   const reduced = useReducedMotion();
@@ -80,11 +84,7 @@ export function GalleryPeekRoll({
       cancelRoll.current = null;
       if (!port || behavior === "instant" || reduced || !peeking) {
         ignoreScroll.current = false;
-        el.scrollIntoView({
-          inline: peeking ? "center" : "start",
-          block: "nearest",
-          behavior: "instant",
-        });
+        scrollRailToChild(port, el, peeking ? "center" : "start");
         return;
       }
       ignoreScroll.current = true;
@@ -219,15 +219,19 @@ export function GalleryPeekRoll({
                       : photoIndexLabel(i + 1)
                   }
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <FallibleLookPhoto
                     src={slide.src}
                     alt={slide.alt}
-                    draggable={false}
-                    decoding={isCenter ? "sync" : "async"}
+                    priority={isCenter}
                     fetchPriority={isCenter ? "high" : "low"}
-                    sizes={peeking ? "(min-width: 1024px) 42vw, 100vw" : "(min-width: 1024px) 50vw, 100vw"}
-                    className="absolute inset-0 h-full w-full object-cover"
+                    sizes={
+                      peeking
+                        ? "(max-width: 1023px) calc(100vw - 40px), 46vw"
+                        : "(max-width: 1023px) calc(100vw - 40px), 50vw"
+                    }
+                    className="object-cover object-top"
+                    ma={ma ?? "Look"}
+                    letter={letter ?? ma?.slice(0, 1) ?? "S"}
                   />
                 </button>
               </div>
@@ -237,60 +241,38 @@ export function GalleryPeekRoll({
 
         {peeking ? <div aria-hidden className="gallery-water-sheen" /> : null}
 
-        {peeking && !reduced ? (
+        {peeking ? (
           <motion.span
             aria-hidden
-            className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-px origin-left bg-gold"
+            className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-px origin-left bg-gold motion-reduce:hidden"
             style={{ scaleX: scrollXProgress }}
           />
         ) : null}
       </div>
 
       {peeking ? (
-        <div className="ky-gallery-dock pointer-events-auto absolute inset-x-0 top-[calc(100%+0.7rem)] z-20">
+        <>
           <button
             type="button"
             onClick={() => go(safeIndex - 1)}
             disabled={!canPrev}
             aria-controls={railId}
-            className="liquid-glass flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center text-[15px] text-ink disabled:opacity-40"
+            className="absolute left-3 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 touch-manipulation items-center justify-center rounded-full border border-gold/45 bg-paper/80 text-[15px] text-ink md:flex disabled:opacity-40"
             aria-label="Ảnh trước"
           >
             <span aria-hidden>←</span>
           </button>
-          <div className="flex min-w-0 flex-1 justify-center gap-1">
-            {slides.map((slide, i) => (
-              <button
-                key={`dot-${slide.id}`}
-                type="button"
-                aria-label={photoIndexLabel(i + 1)}
-                aria-current={i === safeIndex}
-                aria-controls={railId}
-                aria-posinset={i + 1}
-                aria-setsize={slideCount}
-                onClick={() => go(i)}
-                className="flex h-11 min-w-11 touch-manipulation items-center justify-center"
-              >
-                <span
-                  className={`block rounded-full ${
-                    i === safeIndex ? "h-2 w-7 bg-gold" : "h-2 w-2 bg-paper ring-1 ring-gold/55"
-                  }`}
-                  aria-hidden
-                />
-              </button>
-            ))}
-          </div>
           <button
             type="button"
             onClick={() => go(safeIndex + 1)}
             disabled={!canNext}
             aria-controls={railId}
-            className="liquid-glass flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center text-[15px] text-ink disabled:opacity-40"
+            className="absolute right-3 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 touch-manipulation items-center justify-center rounded-full border border-gold/45 bg-paper/80 text-[15px] text-ink md:flex disabled:opacity-40"
             aria-label="Ảnh sau"
           >
             <span aria-hidden>→</span>
           </button>
-        </div>
+        </>
       ) : null}
 
       {center && slideCount > 0 ? (

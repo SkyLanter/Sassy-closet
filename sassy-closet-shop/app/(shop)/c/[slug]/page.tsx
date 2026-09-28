@@ -5,8 +5,8 @@ import { LooksCatalog } from "@/components/looks-catalog";
 import { ShopEmpty } from "@/components/shop-empty";
 import { categoryAriaLabel, categoryCopy, categoryFromSlug, TYPE_SLUGS } from "@/lib/categories";
 import { collectionEmptyCopy, lookCountLabel } from "@/lib/look-count";
-import { getProductsByType } from "@/lib/products";
-import { categoryJsonLd, categorySeo } from "@/lib/seo";
+import { getCatalogTypes, getProductsByType } from "@/lib/products";
+import { categoryJsonLd, categorySeo, notFoundSeo } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 export const dynamicParams = true;
@@ -24,7 +24,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const type = categoryFromSlug(slug);
   if (!type) {
-    notFound();
+    return notFoundSeo();
   }
   return categorySeo(type);
 }
@@ -42,6 +42,7 @@ export default async function CategoryPage({
 
   const labels = categoryCopy(type);
   const products = await getProductsByType(type);
+  const suggestTypes = await getCatalogTypes();
   const jsonLd = categoryJsonLd(labels.label, slug, products);
   const countLabel = lookCountLabel(products.length);
 
@@ -71,7 +72,7 @@ export default async function CategoryPage({
             <ShopEmpty {...collectionEmptyCopy(labels.label, slug)} />
           </div>
         ) : (
-          <LooksCatalog products={products} motionKey={slug} />
+          <LooksCatalog products={products} motionKey={slug} suggestTypes={suggestTypes} />
         )}
       </div>
     </ContentWaveHost>

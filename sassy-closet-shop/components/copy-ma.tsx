@@ -1,25 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { copyText } from "@/lib/copy-text";
 import { copyMaDone, copyMaDoneAria, copyMaLabel } from "@/lib/pdp-copy";
 
 export function CopyMa({ ma }: { ma: string }) {
   const [copied, setCopied] = useState(false);
 
   async function copy() {
-    try {
-      await navigator.clipboard.writeText(ma);
-    } catch {
-      const field = document.createElement("textarea");
-      field.value = ma;
-      field.setAttribute("readonly", "");
-      field.style.position = "fixed";
-      field.style.left = "-9999px";
-      document.body.appendChild(field);
-      field.select();
-      document.execCommand("copy");
-      document.body.removeChild(field);
-    }
+    await copyText(ma);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1600);
   }

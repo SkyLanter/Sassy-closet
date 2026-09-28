@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { MaMark } from "@/components/ma-mark";
 import { useSiteSettings } from "@/components/site-settings";
 import { useCanHover } from "@/lib/hover";
+import { messengerAskHref } from "@/lib/messenger-ask";
 import { messengerHref } from "@/lib/messenger";
 import { messageAria } from "@/lib/pdp-copy";
 import { SITE } from "@/lib/site";
@@ -12,6 +13,8 @@ type MessengerVariant = "primary" | "header" | "ghost" | "card";
 
 type MessengerCtaProps = {
   ma?: string;
+  sizeLabel?: string | null;
+  colorLabel?: string | null;
   askPrice?: boolean;
   variant?: MessengerVariant;
   className?: string;
@@ -51,6 +54,8 @@ function variantStyles(variant: MessengerVariant): string {
 
 export function MessengerCta({
   ma,
+  sizeLabel = null,
+  colorLabel = null,
   askPrice = false,
   variant = "primary",
   className,
@@ -58,7 +63,9 @@ export function MessengerCta({
   const reduced = useReducedMotion();
   const canHover = useCanHover();
   const { facebookPageUrl } = useSiteSettings();
-  const href = messengerHref(facebookPageUrl);
+  const href = ma
+    ? messengerAskHref(facebookPageUrl, ma, sizeLabel, colorLabel)
+    : messengerHref(facebookPageUrl);
   const label = ma
     ? `Message ${ma}`
     : variant === "header"

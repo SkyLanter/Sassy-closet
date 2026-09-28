@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { BuyBar } from "@/components/buy-bar";
 import { ContentWaveHost, ContentWaveLooks } from "@/components/content-wave";
+import { HScrollCue } from "@/components/h-scroll-cue";
 import { ProductLook } from "@/components/product-look";
 import { ProductGrid } from "@/components/product-grid";
 import { categoryAriaLabel, categoryCopy } from "@/lib/categories";
 import { lookCountLabel } from "@/lib/look-count";
 import { KNOWN_SEED_MAS } from "@/lib/catalog-contract";
-import { getProduct, getProductsByType } from "@/lib/products";
+import { catalogShaOf } from "@/lib/catalog-sha";
+import { getCatalogDocument, getProduct, getProductsByType } from "@/lib/products";
 import { productJsonLd, productSeo } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -26,9 +27,11 @@ export async function generateMetadata({
   const { ma } = await params;
   const product = await getProduct(ma);
   if (!product) {
-    return { title: "Item not found" };
+    notFound();
   }
-  return productSeo(product);
+  const document = await getCatalogDocument();
+  const version = document.updatedAt?.trim() || catalogShaOf(document);
+  return productSeo(product, version);
 }
 
 export default async function ProductPage({
@@ -66,19 +69,21 @@ export default async function ProductPage({
                 {type.label}
               </h2>
               <p className="mx-auto mt-2 max-w-full truncate whitespace-nowrap text-left text-[11px] uppercase tracking-[0.16em] text-muted tabular-nums" translate="no">
+                Có thể bạn thích · You may also like
+              </p>
+              <p className="mx-auto mt-1 max-w-full truncate whitespace-nowrap text-left text-[11px] uppercase tracking-[0.16em] text-muted tabular-nums" translate="no">
                 {lookCountLabel(related.length, true)}
               </p>
-              <div className="mt-8">
+              <HScrollCue className="sc-related-row ky-h-scroll-cue mt-8">
                 <ContentWaveLooks>
-                  <ProductGrid products={related} />
+                  <ProductGrid products={related} eagerCount={0} />
                 </ContentWaveLooks>
-              </div>
+              </HScrollCue>
             </div>
           </section>
         ) : null}
       </ContentWaveHost>
 
-      <BuyBar product={product} />
     </div>
   );
 }

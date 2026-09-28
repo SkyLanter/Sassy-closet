@@ -4,7 +4,7 @@ import type { KeyboardEvent } from "react";
 import { useLayoutEffect, useRef } from "react";
 import { LayoutGroup, motion, useReducedMotion } from "framer-motion";
 import { scrollChromeChildIntoView } from "@/lib/gallery-snap";
-import { springSoft } from "@/lib/motion";
+import { easeOutFast } from "@/lib/motion";
 import { SIZE_FIELD_LEGEND } from "@/lib/pdp-copy";
 import type { AsiaSizeLetter } from "@/lib/asia-size";
 
@@ -89,15 +89,12 @@ export function SizeNameChips({
               type="button"
               role="radio"
               aria-checked={selected}
-              aria-pressed={selected}
               tabIndex={tabbable ? 0 : -1}
-              aria-posinset={index + 1}
-              aria-setsize={sizes.length}
               data-testid="shop-size-chip"
               data-size-letter={letter}
               aria-label={letter}
               onClick={() => onSelect(letter)}
-              className={`ky-color-chip liquid-glass-chip relative inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center touch-manipulation select-none whitespace-nowrap px-3 text-[11px] font-medium uppercase tracking-[0.16em] ${
+              className={`ky-color-chip liquid-glass-chip sc-press relative inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center touch-manipulation select-none whitespace-nowrap px-3 text-[11px] font-medium uppercase tracking-[0.16em] ${
                 selected ? "text-ink" : "text-muted hover-hover:hover:text-ink"
               }`}
               translate="no"
@@ -107,7 +104,7 @@ export function SizeNameChips({
                 <motion.span
                   layoutId={lineLayoutId}
                   className="absolute inset-x-0 bottom-0 h-px bg-gold"
-                  transition={springSoft}
+                  transition={easeOutFast}
                   aria-hidden
                 />
               ) : null}

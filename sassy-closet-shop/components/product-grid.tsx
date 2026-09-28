@@ -10,10 +10,12 @@ export function ProductGrid({
   products,
   replay = false,
   namedCovers = true,
+  eagerCount = 2,
 }: {
   products: ShopLook[];
   replay?: boolean;
   namedCovers?: boolean;
+  eagerCount?: number;
 }) {
   const reduced = useReducedMotion();
 
@@ -28,7 +30,7 @@ export function ProductGrid({
 
   return (
     <motion.ul
-      className="grid min-w-0 grid-cols-2 gap-x-3 gap-y-12 sm:grid-cols-3 sm:gap-x-5 lg:grid-cols-4 xl:grid-cols-5"
+      className="sc-look-grid grid min-w-0 gap-x-3 gap-y-12 sm:gap-x-5"
       variants={replay ? staggerContainer(Boolean(reduced)) : undefined}
       initial={replay && !reduced ? "hidden" : false}
       animate={replay ? "show" : undefined}
@@ -37,7 +39,7 @@ export function ProductGrid({
         <ProductCard
           key={product.ma}
           product={product}
-          priority={index < 4}
+          priority={index < eagerCount}
           namedCover={namedCovers}
         />
       ))}
