@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "node scripts/write-local-product-manifest.mjs && next dev",
+    "build": "node scripts/write-local-product-manifest.mjs && next build",
     "start": "next start",
     "lint": "eslint",
     "test": "node --require ./scripts/alias.cjs --import tsx --test --test-concurrency=1 tests/*.test.ts",

@@ -1,9 +1,9 @@
 import { createHash } from "node:crypto";
-import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { get, list, put } from "@vercel/blob";
 import { createClient } from "@vercel/kv";
+import localProductFiles from "@/data/local-product-files.json";
 import seedCatalog from "@/data/products.json";
 import {
   getCatalogBlobPath,
@@ -158,6 +158,13 @@ export function overlayCustomerStockVoice(document: CatalogDocument): CatalogDoc
 const CLEANED_LOCAL_COVERS = ["A16", "D04", "S09", "V01"] as const;
 
 /**
+ * Files under public/products, written at build time.
+ * Vercel serverless functions do not have that folder on disk, so reading
+ * it during a request would hide photos the deployment actually serves.
+ */
+const LOCAL_PRODUCT_FILES = new Set<string>(localProductFiles);
+
+/**
  * These extras live on Blob covers. The cleaned JPEGs are in
  * public/products, so the shop src becomes that local cover only.
  */
@@ -169,8 +176,7 @@ export function overlayCleanedExtraCovers(document: CatalogDocument): CatalogDoc
         return product;
       }
       const local = `/products/${product.ma}/cover.jpg`;
-      const file = path.join(process.cwd(), "public", "products", product.ma, "cover.jpg");
-      if (!existsSync(file)) {
+      if (!LOCAL_PRODUCT_FILES.has(`${product.ma}/cover.jpg`)) {
         return product;
       }
       let changed = false;
@@ -193,7 +199,7 @@ export function overlayCleanedExtraCovers(document: CatalogDocument): CatalogDoc
   };
 }
 
-/** Drop /products/mã/file slides whose file is gone, so a removed duplicate does not 404. */
+/** Drop /products/mã/file slides missing from the build-time file list, so a removed duplicate does not 404. */
 function omitMissingLocalPhotos(document: CatalogDocument): CatalogDocument {
   return {
     ...document,
@@ -221,7 +227,7 @@ function localProductFileExists(src: string): boolean {
   if (folder.includes("..") || file.includes("..") || file !== path.basename(file)) {
     return true;
   }
-  return existsSync(path.join(process.cwd(), "public", "products", folder, file));
+  return LOCAL_PRODUCT_FILES.has(`${folder}/${file}`);
 }
 
 function hydrateLiveCatalog(document: CatalogDocument): CatalogDocument {
