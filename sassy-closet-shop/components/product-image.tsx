@@ -6,6 +6,7 @@ import { LookPhoto } from "@/components/look-photo";
 import { MaMark } from "@/components/ma-mark";
 import { cacheBustMediaSrc, shopCoverSrc } from "@/lib/catalog-sha";
 import { coverSrc } from "@/lib/product-media";
+import { SITE } from "@/lib/site";
 import type { ShopLook } from "@/lib/shop-look";
 
 const CARD_SIZES = "(max-width: 639px) 46vw, (max-width: 1023px) 31vw, (max-width: 1279px) 23vw, 18vw";
@@ -158,19 +159,16 @@ export function PlaceholderTile({
 }) {
   return (
     <div
-      className="relative z-0 flex h-full w-full select-none flex-col items-center justify-center bg-[#f4f1ec]"
+      className="sc-photo-fallback relative z-0 flex h-full w-full select-none flex-col items-center justify-center bg-canvas px-2 text-center"
       aria-hidden={decorative || undefined}
+      data-fallback-letter={letter}
     >
-      <span
-        className={`font-display font-medium text-gold/80 ${compact ? "text-2xl leading-none" : "text-6xl leading-[1.08]"}`}
-      >
-        {letter}
+      <span className={`font-display font-medium leading-[1.12] tracking-[0.02em] text-ink ${compact ? "text-[11px]" : "text-[15px]"}`}>
+        {SITE.name}
       </span>
-      {compact ? null : (
-        <span className="mt-2 text-gold-deep">
-          <MaMark ma={ma} className="text-[11px] tracking-[0.16em]" />
-        </span>
-      )}
+      <span className="mt-1 text-muted">
+        <MaMark ma={ma} className="text-[11px] tracking-[0.16em]" />
+      </span>
     </div>
   );
 }

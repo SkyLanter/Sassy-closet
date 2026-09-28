@@ -35,6 +35,23 @@ export function categoryHref(type: MaLetter): string {
   return `/c/${categorySlug(type)}`;
 }
 
+/** Anchor on the continuous looks page. */
+export function categorySectionId(type: MaLetter): string {
+  return `looks-${categorySlug(type)}`;
+}
+
+/**
+ * In-page hash while the continuous catalog is on screen.
+ * Other pages keep the real `/c/<slug>` URL, with the same hash so the landing scroll is exact.
+ */
+export function categoryChipHref(pathname: string, type: MaLetter): string {
+  const hash = `#${categorySectionId(type)}`;
+  if (pathname === "/" || pathname.startsWith("/c/")) {
+    return hash;
+  }
+  return `${categoryHref(type)}${hash}`;
+}
+
 export function categoryCopy(type: MaLetter): { label: string; singular: string } {
   const labels = TYPE_LABELS[type];
   return { label: labels.nav, singular: labels.en };

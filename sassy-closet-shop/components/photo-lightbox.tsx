@@ -295,7 +295,7 @@ export function PhotoLightbox({
               {title}
             </p>
             <p
-              className="mt-1 text-[10px] uppercase tracking-[0.16em] text-muted tabular-nums"
+              className="mt-1 text-[11px] uppercase tracking-[0.16em] text-muted tabular-nums"
               aria-live="polite"
               aria-label={`${colorLabel}. ${photoPositionLabel(safeIndex + 1, slides.length)}`}
               translate="no"

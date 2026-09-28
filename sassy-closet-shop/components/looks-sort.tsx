@@ -54,7 +54,7 @@ export function LooksSortChips({
       data-testid="looks-sort"
       data-active={sort}
       onKeyDown={onGroupKeyDown}
-      className="mt-4 flex min-w-0 flex-wrap items-center gap-2"
+      className="flex min-w-0 flex-wrap items-center gap-1"
     >
       {SHOP_SORT_OPTIONS.map((option) => {
         const active = option.id === sort;

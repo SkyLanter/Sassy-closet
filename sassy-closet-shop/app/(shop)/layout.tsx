@@ -3,7 +3,9 @@ import { headers } from "next/headers";
 import { AnnouncementBar } from "@/components/announcement-bar";
 import { BackToTop } from "@/components/back-to-top";
 import { CatalogMediaVersionProvider } from "@/components/catalog-media-version";
+import { CategorySpyProvider } from "@/components/category-spy";
 import { Footer } from "@/components/footer";
+import { GlassSheen } from "@/components/glass-sheen";
 import { Header } from "@/components/header";
 import { MessengerDeviceProvider } from "@/components/messenger-device";
 import { ShopPdpScroll } from "@/components/shop-pdp-scroll";
@@ -40,7 +42,9 @@ export default async function ShopLayout({ children }: { children: ReactNode }) 
           looks={looks}
           initialQuery={decodeShopSearchHeader(requestHeaders.get(SHOP_SEARCH_HEADER))}
         >
+        <CategorySpyProvider>
         <SkipToLooks />
+        <GlassSheen />
         <ShopPdpScroll />
         <div className="relative sticky top-0 z-50" data-testid="shop-chrome">
           <AnnouncementBar lines={settings.announcementLines} />
@@ -55,6 +59,7 @@ export default async function ShopLayout({ children }: { children: ReactNode }) 
         </main>
         <Footer />
         <BackToTop />
+        </CategorySpyProvider>
         </ShopSearchProvider>
       </CatalogMediaVersionProvider>
       </MessengerDeviceProvider>

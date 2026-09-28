@@ -23,7 +23,7 @@ export function BackToTop() {
   return (
     <button
       type="button"
-      className="sc-to-top inline-flex h-11 w-11 touch-manipulation items-center justify-center rounded-full border border-gold/50 bg-paper text-ink shadow-[0_10px_22px_-14px_rgb(17_17_17_/_0.45)]"
+      className="sc-to-top liquid-glass-chip inline-flex h-11 w-11 touch-manipulation items-center justify-center rounded-full text-ink"
       aria-label="Lên đầu trang · Back to top"
       data-testid="back-to-top"
       onClick={() => {

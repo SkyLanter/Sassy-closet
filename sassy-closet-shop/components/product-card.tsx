@@ -20,10 +20,12 @@ export function ProductCard({
   product,
   priority = false,
   namedCover = true,
+  variant = "full",
 }: {
   product: ShopLook;
   priority?: boolean;
   namedCover?: boolean;
+  variant?: "full" | "compact";
 }) {
   const reduced = useReducedMotion();
   const cardRef = useRef<HTMLLIElement>(null);
@@ -65,16 +67,19 @@ export function ProductCard({
     return () => observer.disconnect();
   }, [reduced]);
 
+  const compact = variant === "compact";
+
   return (
     <motion.li
       ref={cardRef}
       variants={fadeUp(Boolean(reduced))}
       exit="exit"
-      transition={springSoft}
-      className="sc-rise flex min-w-0 list-none flex-col self-start"
+      transition={reduced ? { duration: 0 } : springSoft}
+      data-testid="look-card"
+      className="sc-rise flex h-full min-w-0 list-none flex-col"
     >
-      <Link href={`/m/${product.ma}`} className="group block touch-manipulation select-none">
-        <div className="flex flex-col">
+      <Link href={`/m/${product.ma}`} className="group flex min-h-0 flex-1 flex-col touch-manipulation select-none">
+        <div className="flex min-h-0 flex-1 flex-col">
           <div
             className="sc-card-well ky-gallery-shell relative aspect-[3/4] w-full shrink-0 overflow-hidden bg-[#f3f1ee] shadow-[0_0_0_0_rgba(17,17,17,0)] motion-safe:transition-[transform,box-shadow] motion-safe:duration-150 motion-safe:ease-[cubic-bezier(0.23,1,0.32,1)] motion-safe:hover-hover:group-hover:-translate-y-1.5 motion-safe:active:scale-[0.98]"
             data-testid="card-cover-reel"
@@ -123,41 +128,47 @@ export function ProductCard({
             <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-t from-ink/10 via-transparent to-transparent opacity-0 motion-safe:transition-opacity motion-safe:duration-150 motion-safe:hover-hover:group-hover:opacity-70" aria-hidden />
             <span className="pointer-events-none absolute inset-x-0 bottom-0 z-[2] h-px origin-center scale-x-100 bg-gold/45" aria-hidden />
           </div>
-          <p className="mt-2.5 px-0.5">
-            <MaMark ma={product.ma} className="text-[10px] tracking-[0.16em] text-muted" />
+          <p className="mt-2 px-0.5">
+            <MaMark ma={product.ma} className="text-[11px] tracking-[0.16em] text-muted" />
           </p>
-          <p className="sc-card-title mt-0.5 px-0.5 font-display text-[1.15rem] font-medium leading-[1.15] tracking-[0.02em] text-ink sm:text-[1.25rem]" translate="no">
+          <p className="sc-card-title mt-0.5 px-0.5 min-w-0 font-display text-[1rem] font-medium leading-[1.12] tracking-[0.02em] text-balance text-ink sm:text-[1.125rem]" translate="no">
             {name}
           </p>
-          <p className="sc-card-copy mt-1.5 px-0.5 text-[12.5px] leading-[1.35] text-muted" translate="no">
-            {description}
-          </p>
+          {compact || !description ? null : (
+            <p className="sc-card-copy mt-1 px-0.5 text-[13px] leading-[1.35] text-pretty text-muted" translate="no">
+              {description}
+            </p>
+          )}
           <ProductPrice
             product={product}
             className="sc-price mt-auto block px-0.5 pt-2 text-[13px] font-semibold tracking-tight text-ink tabular-nums"
           />
         </div>
       </Link>
-      <div className="mt-1.5 px-0.5">
-        <MessengerCta
-          ma={product.ma}
-          askPrice={shopLookAsksPrice(product)}
-          variant="card"
-          colorLabel={colorLabel}
-        />
-      </div>
-      {product.colors.length > 0 ? (
-        <div className="mt-2 min-w-0 px-0.5">
-          <ColorNameChips
-            colors={product.colors}
-            selectedId={colorId}
-            onSelect={pickColor}
-            size="sm"
-            motionGroupId={`card-${product.ma}`}
-          />
-        </div>
-      ) : (
-        <div className="mt-2 min-h-11" aria-hidden />
+      {compact ? null : (
+        <>
+          <div className="mt-1 px-0.5">
+            <MessengerCta
+              ma={product.ma}
+              askPrice={shopLookAsksPrice(product)}
+              variant="card"
+              colorLabel={colorLabel}
+            />
+          </div>
+          {product.colors.length > 0 ? (
+            <div className="mt-2 min-w-0 px-0.5">
+              <ColorNameChips
+                colors={product.colors}
+                selectedId={colorId}
+                onSelect={pickColor}
+                size="sm"
+                motionGroupId={`card-${product.ma}`}
+              />
+            </div>
+          ) : (
+            <div className="mt-2 min-h-11" aria-hidden />
+          )}
+        </>
       )}
     </motion.li>
   );

@@ -10,58 +10,81 @@ import { FitNotes } from "@/components/fit-notes";
 import { MessengerCta } from "@/components/messenger-cta";
 import { ProductDescription } from "@/components/product-description";
 import { ProductGallery } from "@/components/product-gallery";
-import { ProductMaLine, ProductPageTitle } from "@/components/product-page-title";
+import { ProductOptions } from "@/components/product-options";
+import { ProductPageTitle } from "@/components/product-page-title";
 import { ProductPrice } from "@/components/product-price";
+import type { AsiaSizeLetter } from "@/lib/asia-size";
 import { categoryAriaLabel, categoryCopy, categoryHref } from "@/lib/categories";
+import { colorShopLabel } from "@/lib/colors";
+import { imagesForColor, uniqueImageSrcs } from "@/lib/product-media";
 import { productShareTitle } from "@/lib/trust-copy";
 import type { ShopLook } from "@/lib/shop-look";
 
 export function ProductLook({ product }: { product: ShopLook }) {
   const type = categoryCopy(product.type);
-  const [ask, setAsk] = useState<{ size: string | null; color: string | null }>({
-    size: null,
-    color: null,
-  });
+  const [colorId, setColorId] = useState<string | null>(null);
+  const [sizeLetter, setSizeLetter] = useState<AsiaSizeLetter | null>(null);
+  const colorIndex = product.colors.findIndex((color) => color.id === colorId);
+  const selectedColor = colorIndex >= 0 ? product.colors[colorIndex] : undefined;
+  const colorLabel = selectedColor ? colorShopLabel(selectedColor, colorIndex) : null;
+  const colorHasShots = colorId === null || uniqueImageSrcs(imagesForColor(product, colorId)).length > 0;
+
+  function chooseColor(id: string) {
+    setColorId((current) => (current === id ? null : id));
+  }
+
+  function chooseSize(letter: AsiaSizeLetter) {
+    setSizeLetter((current) => (current === letter ? null : letter));
+  }
 
   return (
     <>
-    <article aria-labelledby="look-title" className="mx-auto grid max-w-7xl gap-8 ky-gutter py-8 lg:grid-cols-2 lg:gap-14 lg:py-12">
-      <ContentWaveLooks>
-        <ProductGallery product={product} onAskChange={setAsk} />
-      </ContentWaveLooks>
-      <div className="flex min-w-0 flex-col lg:pt-4">
-        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] uppercase tracking-[0.18em] text-muted">
+    <article aria-labelledby="look-title" className="mx-auto grid max-w-7xl items-start gap-1 ky-gutter py-1 lg:grid-cols-2 lg:gap-14 lg:py-12">
+      <div className="min-w-0 lg:sticky lg:top-[calc(env(safe-area-inset-top,0px)+8.75rem)] lg:self-start">
+        <ContentWaveLooks>
+          <ProductGallery product={product} colorId={colorId} onColorId={setColorId} />
+        </ContentWaveLooks>
+      </div>
+      <div className="flex min-w-0 flex-col">
+        <p className="flex min-w-0 flex-nowrap items-center gap-x-2 overflow-x-auto tab-scroll text-[11px] uppercase tracking-[0.18em] text-muted">
           <Link
             href={categoryHref(product.type)}
             aria-label={categoryAriaLabel(product.type)}
             translate="no"
-            className="inline-flex min-h-11 touch-manipulation select-none items-center hover-hover:hover:text-ink"
+            className="inline-flex min-h-11 shrink-0 touch-manipulation select-none items-center whitespace-nowrap hover-hover:hover:text-ink"
           >
             {type.label}
           </Link>
-          <span aria-hidden>/</span>
+          <span className="shrink-0" aria-hidden>/</span>
           <CopyMa ma={product.ma} />
           <ShareLook ma={product.ma} title={productShareTitle(product)} />
         </p>
         <ProductPageTitle product={product} />
         <ProductPrice
           product={product}
-          className="sc-price mt-3 block text-[1.35rem] font-semibold tracking-tight text-ink sm:text-[1.5rem]"
+          className="sc-price mt-2 block text-[1.35rem] font-semibold tracking-tight text-ink sm:text-[1.5rem]"
         />
-        <ProductMaLine ma={product.ma} />
+        <ProductOptions
+          product={product}
+          colorId={colorId}
+          onColor={chooseColor}
+          sizeLetter={sizeLetter}
+          onSize={chooseSize}
+          colorHasShots={colorHasShots}
+        />
         <ProductDescription product={product} />
         <FitNotes measurements={product.measurements} />
-        <div className="mt-8 hidden md:block">
+        <div className="mt-6 hidden md:block">
           <MessengerCta
             ma={product.ma}
-            sizeLabel={ask.size}
-            colorLabel={ask.color}
+            sizeLabel={sizeLetter}
+            colorLabel={colorLabel}
             askPrice={product.priceUsd === null}
           />
         </div>
       </div>
     </article>
-    <BuyBar product={product} sizeLabel={ask.size} colorLabel={ask.color} />
+    <BuyBar product={product} sizeLabel={sizeLetter} colorLabel={colorLabel} />
     </>
   );
 }

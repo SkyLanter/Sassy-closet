@@ -12,6 +12,7 @@ import { useShopSearch } from "@/components/shop-search";
 import type { AsiaSizeLetter } from "@/lib/asia-size";
 import { DEFAULT_SHOP_SORT, sortShopLooks, type ShopSortId } from "@/lib/fb-rank";
 import { filterLooksByQuery, LOOK_SEARCH_NO_MATCH, shopSearchNeedle } from "@/lib/look-search";
+import { lookCountLabel } from "@/lib/look-count";
 import { collectShopSizes } from "@/lib/shop-sizes";
 import type { MaLetter } from "@/lib/ma";
 import type { ShopLook } from "@/lib/shop-look";
@@ -39,12 +40,25 @@ export function LooksCatalog({
     return sortShopLooks(filtered, sort);
   }, [activeSize, searched, sort]);
 
+  const countLabel = lookCountLabel(visible.length);
+
   return (
-    <div data-shop-sort={sort} data-shop-size={activeSize ?? undefined} data-shop-search={needle || undefined}>
-      <LooksSortChips sort={sort} onChange={setSort} />
-      <SizeFilterChips sizes={sizeOptions} selected={activeSize} onChange={setSize} />
-      <SearchResultsBar query={needle} count={visible.length} />
-      <div className="mt-8 overflow-hidden">
+    <>
+    <p
+      data-testid="looks-count"
+      className="col-start-2 row-start-1 mb-1 max-w-full shrink-0 truncate whitespace-nowrap text-right text-[11px] uppercase tracking-[0.16em] text-muted tabular-nums"
+      aria-live="polite"
+      translate="no"
+    >
+      {countLabel}
+    </p>
+    <div className="col-span-2 row-start-2" data-shop-sort={sort} data-shop-size={activeSize ?? undefined} data-shop-search={needle || undefined}>
+      <div className="mt-2 flex flex-wrap items-center gap-x-1 gap-y-1">
+        <LooksSortChips sort={sort} onChange={setSort} />
+        <SizeFilterChips sizes={sizeOptions} selected={activeSize} onChange={setSize} />
+      </div>
+      <SearchResultsBar query={needle} />
+      <div className="mt-4 overflow-hidden">
         <ContentWaveLooks>
           {visible.length === 0 ? (
             <ShopEmpty
@@ -92,5 +106,6 @@ export function LooksCatalog({
         </ContentWaveLooks>
       </div>
     </div>
+    </>
   );
 }

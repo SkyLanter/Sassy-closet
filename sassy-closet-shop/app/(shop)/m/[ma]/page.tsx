@@ -50,7 +50,7 @@ export default async function ProductPage({
   const related = (await getProductsByType(product.type)).filter((item) => item.ma !== product.ma);
 
   return (
-    <div className="bg-paper pb-[var(--shop-buy-bar-space)] md:pb-0">
+    <div className="bg-paper">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd(product)) }}
@@ -78,7 +78,7 @@ export default async function ProductPage({
               </p>
               <HScrollCue className="sc-related-row ky-h-scroll-cue mt-8">
                 <ContentWaveLooks>
-                  <ProductGrid products={related} eagerCount={0} />
+                  <ProductGrid products={related} eagerCount={0} variant="compact" />
                 </ContentWaveLooks>
               </HScrollCue>
             </div>

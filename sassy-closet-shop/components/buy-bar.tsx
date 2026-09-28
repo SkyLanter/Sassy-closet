@@ -20,7 +20,7 @@ export function BuyBar({
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 overscroll-contain md:hidden" data-testid="shop-ship-bar" translate="no" role="region" aria-label={name}>
       <div
-        className="ky-chrome-blur ky-buy-bar liquid-glass-bar border-t border-gold/45 shadow-[0_-18px_44px_-16px_rgba(17,17,17,0.38)]"
+        className="ky-chrome-blur ky-buy-bar liquid-glass-bar border-t border-gold/45"
         style={{
           paddingBottom: "max(0.75rem, env(safe-area-inset-bottom, 0px))",
           paddingLeft: "max(1rem, env(safe-area-inset-left, 0px))",
@@ -31,7 +31,7 @@ export function BuyBar({
           <div className="mx-auto flex max-w-6xl items-center gap-3">
             <div className="min-w-0 flex-1">
               <p className="flex min-w-0 items-center gap-x-1.5">
-                <MaMark ma={product.ma} className="shrink-0 text-[10px] tracking-[0.16em] text-muted" />
+                <MaMark ma={product.ma} className="shrink-0 text-[11px] tracking-[0.16em] text-muted" />
                 <span className="min-w-0 flex-1 select-none overflow-hidden text-ellipsis whitespace-nowrap font-display text-[15px] font-medium leading-[1.15] tracking-[0.01em] text-ink" title={name} translate="no">
                   {name}
                 </span>

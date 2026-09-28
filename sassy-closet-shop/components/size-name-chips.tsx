@@ -3,6 +3,7 @@
 import type { KeyboardEvent } from "react";
 import { useLayoutEffect, useRef } from "react";
 import { LayoutGroup, motion, useReducedMotion } from "framer-motion";
+import { HScrollCue } from "@/components/h-scroll-cue";
 import { scrollChromeChildIntoView } from "@/lib/gallery-snap";
 import { easeOutFast } from "@/lib/motion";
 import { SIZE_FIELD_LEGEND } from "@/lib/pdp-copy";
@@ -72,9 +73,10 @@ export function SizeNameChips({
 
   return (
     <LayoutGroup id={motionGroupId}>
+      <HScrollCue className="ky-h-scroll-cue min-w-0 max-w-full">
       <div
         ref={railRef}
-        className="flex min-w-0 max-w-full flex-nowrap gap-2 overflow-x-auto tab-scroll scroll-px-2"
+        className="flex min-w-0 max-w-full flex-nowrap gap-1 overflow-x-auto tab-scroll scroll-px-2"
         role="radiogroup"
         aria-orientation="horizontal"
         aria-label={SIZE_FIELD_LEGEND}
@@ -94,27 +96,34 @@ export function SizeNameChips({
               data-size-letter={letter}
               aria-label={letter}
               onClick={() => onSelect(letter)}
-              className={`ky-color-chip liquid-glass-chip sc-press relative inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center touch-manipulation select-none whitespace-nowrap px-3 text-[11px] font-medium uppercase tracking-[0.16em] ${
+              className={`sc-chip-hit ky-color-chip liquid-glass-chip sc-press relative inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center touch-manipulation select-none px-0.5 text-[11px] font-medium uppercase tracking-[0.16em] ${
                 selected ? "text-ink" : "text-muted hover-hover:hover:text-ink"
               }`}
               translate="no"
             >
-              <span className="relative z-[1]">{letter}</span>
+              <span
+                className={`sc-chip-face relative z-[1] inline-flex min-h-8 min-w-8 items-center justify-center rounded-full border px-3 whitespace-nowrap ${
+                  selected ? "border-ink text-ink" : "border-line text-muted"
+                }`}
+              >
+                {letter}
+              </span>
               {selected && animateSelection ? (
                 <motion.span
                   layoutId={lineLayoutId}
-                  className="absolute inset-x-0 bottom-0 h-px bg-gold"
+                  className="pointer-events-none absolute inset-x-3 bottom-1.5 h-px bg-gold"
                   transition={easeOutFast}
                   aria-hidden
                 />
               ) : null}
               {selected && !animateSelection ? (
-                <span className="absolute inset-x-0 bottom-0 h-px bg-gold" aria-hidden />
+                <span className="pointer-events-none absolute inset-x-3 bottom-1.5 h-px bg-gold" aria-hidden />
               ) : null}
             </button>
           );
         })}
       </div>
+      </HScrollCue>
     </LayoutGroup>
   );
 }

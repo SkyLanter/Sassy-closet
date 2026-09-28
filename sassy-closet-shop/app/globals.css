@@ -12,7 +12,15 @@
   --line: #f3d4cb;
   --gold: #b08968;
   --gold-deep: #8c6a4e;
+  /* Text-only. Decorative gold stays --gold / --gold-deep. */
+  --gold-ink: #6a4e38;
   --blush: #f3eee8;
+  --sc-photo-radius: 0.875rem;
+  --sc-type-eyebrow: 0.6875rem;
+  --sc-type-body: 0.8125rem;
+  --sc-type-card-title: 1rem;
+  --sc-type-pdp-title: 2.05rem;
+  --sc-type-section: 2.15rem;
   --sc-paper: var(--paper);
   --sc-ink: var(--ink);
   --sc-muted: var(--muted);
@@ -33,10 +41,24 @@
   --duration-enter: 210ms;
   --duration-move: 400ms;
   --blur-md: 12px;
-  --glass-blur: 22px;
-  --glass-blur-bar: 32px;
+  /* One glass set. Bars stay ≤0.75 so photos still read; sheets that carry 11px type go higher for AA.
+     Saturate 170% and a slightly deeper bar blur so the page refracts. Near + far blush shadows lift the panel. */
+  --glass-blur: 20px;
+  --glass-blur-bar: 22px;
   --glass-sat: 1.7;
-  --shop-buy-bar-space: max(11rem, calc(5.5rem + env(safe-area-inset-bottom, 0px)));
+  --glass-fill: rgb(255 247 244 / 0.68);
+  --glass-fill-bar: rgb(255 247 244 / 0.72);
+  --glass-fill-sheet: rgb(255 247 244 / 0.84);
+  --glass-fill-photo: rgb(17 17 17 / 0.66);
+  --glass-line: rgb(255 236 230 / 0.55);
+  --glass-shadow:
+    0 1px 2px rgb(176 112 98 / 0.16),
+    0 14px 28px -16px rgb(176 112 98 / 0.34),
+    0 36px 56px -36px rgb(120 62 52 / 0.28);
+  --glass-radius: 1rem;
+  --glass-sheen-x: 16%;
+  --glass-sheen-y: 8%;
+  --shop-buy-bar-space: calc(4.75rem + env(safe-area-inset-bottom, 0px));
 }
 
 @theme inline {
@@ -48,6 +70,7 @@
   --color-gold: var(--gold);
   --color-deep: var(--gold-deep);
   --color-gold-deep: var(--gold-deep);
+  --color-gold-ink: var(--gold-ink);
   --color-blush: var(--blush);
   --font-sans: var(--font-be-vietnam);
   --font-display: var(--font-cormorant);
@@ -235,16 +258,17 @@ body {
 }
 
 /* Frosted liquid glass for boutique chrome — never a lock-screen keypad,
-   never milky paper wash, never backdrop-filter on the garment itself. */
+   never milky paper wash, never backdrop-filter on the garment itself.
+   Shared tokens: --glass-fill / --glass-line / --glass-shadow / --glass-blur. */
 .liquid-glass,
 .liquid-glass-sheet,
 .liquid-glass-caption,
 .liquid-glass-chip {
-  border: 1px solid color-mix(in srgb, var(--gold) 28%, rgb(255 255 255 / 0.5));
+  border: 1px solid transparent;
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.5),
-    inset 0 -1px 0 rgb(17 17 17 / 0.1),
-    0 10px 28px -18px rgb(17 17 17 / 0.32);
+    inset 0 1px 0 rgb(255 255 255 / 0.7),
+    inset 0 -1px 0 rgb(120 72 64 / 0.16),
+    var(--glass-shadow);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
   transition:
@@ -254,7 +278,7 @@ body {
 
 .liquid-glass,
 .liquid-glass-caption {
-  background: rgb(17 17 17 / 0.32);
+  background: var(--glass-fill-photo);
   color: var(--paper);
   text-shadow: 0 1px 10px rgb(17 17 17 / 0.55);
 }
@@ -262,28 +286,33 @@ body {
 .liquid-glass-bar,
 .ky-chrome-blur {
   --muted: #2e2e2e;
-  background: rgb(255 255 255 / 0.48);
+  background: var(--glass-fill-bar);
   color: var(--ink);
   text-shadow: 0 0 12px rgb(255 255 255 / 0.88), 0 1px 0 rgb(255 255 255 / 0.55);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.5),
-    inset 0 -1px 0 rgb(17 17 17 / 0.08);
+    inset 0 1px 0 rgb(255 255 255 / 0.7),
+    inset 0 -1px 0 rgb(120 72 64 / 0.16),
+    var(--glass-shadow);
   backdrop-filter: blur(var(--glass-blur-bar)) saturate(var(--glass-sat));
   -webkit-backdrop-filter: blur(var(--glass-blur-bar)) saturate(var(--glass-sat));
 }
 
 .ky-header-film,
 .ky-buy-bar {
+  position: relative;
+  isolation: isolate;
   text-shadow: 0 0 16px rgb(255 255 255 / 0.95), 0 1px 0 rgb(255 255 255 / 0.7);
 }
 
 .ky-buy-bar [data-testid="shop-message-cta"],
 .ky-buy-bar [data-testid="shop-ask-price"] {
-  background: var(--ink);
-  color: var(--paper);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.55);
+  background: var(--glass-fill-sheet);
+  color: var(--ink);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.7),
+    inset 0 -1px 0 rgb(120 72 64 / 0.16),
+    0 0 0 1px rgb(255 255 255 / 0.55),
+    var(--glass-shadow);
 }
 
 /* The gold film is a border mask. Contrast checks treat the full overlay as the text background. */
@@ -295,38 +324,112 @@ body {
   .ky-buy-bar [data-testid="shop-message-cta"]:hover,
   .ky-buy-bar [data-testid="shop-ask-price"]:hover {
     box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.7),
       0 0 0 1px rgb(255 255 255 / 0.55),
-      0 8px 20px -14px rgb(17 17 17 / 0.28);
+      0 10px 22px -10px rgb(176 112 98 / 0.48);
   }
 }
 
 .liquid-glass-sheet {
   --muted: #2e2e2e;
-  background: rgb(255 255 255 / 0.48);
+  background: var(--glass-fill-sheet);
   color: var(--ink);
+  border-radius: var(--glass-radius);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  position: relative;
+  isolation: isolate;
 }
 
-/* Opaque paper so search copy never bleeds through category tabs. */
+/* Suggestions sit under the sticky header. Glass, not a second liquid-glass-sheet class. */
 .shop-search-sheet {
-  background: var(--paper);
+  background: var(--glass-fill-sheet);
   color: var(--ink);
   opacity: 1;
   isolation: isolate;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  border-bottom: 1px solid var(--glass-line);
   box-shadow:
-    0 18px 40px -24px rgb(17 17 17 / 0.28),
-    inset 0 1px 0 rgb(255 255 255 / 0.7);
+    inset 0 1px 0 rgb(255 255 255 / 0.7),
+    inset 0 -1px 0 rgb(120 72 64 / 0.16),
+    var(--glass-shadow);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
 }
 
 .liquid-glass-chip,
 .ky-color-chip {
   --muted: #2e2e2e;
-  background: rgb(255 255 255 / 0.42);
+  background: var(--glass-fill);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  position: relative;
+  isolation: isolate;
+}
+
+/* Lit edge + diagonal sheen. The sheen sits under the type (z-index -1 inside isolation).
+   Shader lenses stay out: Safari drops them and they hole the sticky bar. */
+.ky-header-film::before,
+.ky-buy-bar::before,
+.shop-search-sheet::before,
+.liquid-glass-sheet::before,
+.liquid-glass-chip:not(.sc-chip-hit)::before,
+.sc-chip-face::before,
+.gallery-photo-count::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    155deg,
+    rgb(255 255 255 / 0.92) 0%,
+    rgb(243 196 184 / 0.55) 36%,
+    rgb(255 255 255 / 0.05) 68%,
+    transparent 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+.ky-header-film::after,
+.ky-buy-bar::after,
+.shop-search-sheet::after,
+.liquid-glass-sheet::after,
+.liquid-glass-chip:not(.sc-chip-hit)::after,
+.sc-chip-face::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  background-image: linear-gradient(
+    108deg,
+    rgb(255 255 255 / 0) 38%,
+    rgb(255 255 255 / 0.55) 48%,
+    rgb(255 226 216 / 0.22) 54%,
+    rgb(255 255 255 / 0) 64%
+  );
+  background-size: 160% 160%;
+  background-position: var(--glass-sheen-x) var(--glass-sheen-y);
+}
+
+/* Sheen sits above the fill and under the type. A negative layer disappears behind the blur. */
+.ky-header-film > *,
+.ky-buy-bar > *,
+.shop-search-sheet > *,
+.liquid-glass-sheet > *,
+.sc-chip-face > * {
+  position: relative;
+  z-index: 2;
 }
 
 .liquid-glass-rim {
@@ -344,7 +447,7 @@ body {
 @media (hover: hover) {
   .liquid-glass:hover:not(:disabled) {
     border-color: color-mix(in srgb, var(--gold) 62%, rgb(255 255 255 / 0.5));
-    background: rgb(17 17 17 / 0.4);
+    background: rgb(17 17 17 / 0.74);
   }
 }
 
@@ -665,8 +768,20 @@ body {
 
   .shop-search-sheet,
   .sc-chip-in,
-  .sc-to-top {
-    animation: sc-fade-slide 200ms var(--sc-ease) both;
+  .sc-to-top,
+  .ky-buy-bar,
+  .sc-glass-cta {
+    animation: sc-glass-pop 320ms cubic-bezier(0.22, 1.15, 0.36, 1) both;
+  }
+
+  .ky-header-film::after,
+  .ky-buy-bar::after,
+  .shop-search-sheet::after,
+  .liquid-glass-sheet::after,
+  .liquid-glass-chip:not(.sc-chip-hit)::after,
+  .sc-chip-face::after,
+  .gallery-photo-count::after {
+    transition: background-position 180ms linear;
   }
 
   .ky-header-wordmark {
@@ -700,34 +815,32 @@ body {
   position: relative;
 }
 
-@media (max-width: 639px) {
-  .ky-h-scroll-cue::before,
-  .ky-h-scroll-cue::after {
-    content: "";
-    pointer-events: none;
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    z-index: 2;
-    width: 1.35rem;
-    opacity: 0;
-  }
+.ky-h-scroll-cue::before,
+.ky-h-scroll-cue::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 3;
+  width: 1.5rem;
+  opacity: 0;
+}
 
-  .ky-h-scroll-cue::before {
-    left: 0;
-    background: linear-gradient(to right, color-mix(in srgb, var(--paper) 94%, transparent), transparent);
-  }
+.ky-h-scroll-cue::before {
+  left: 0;
+  background: linear-gradient(to right, var(--paper) 20%, transparent);
+}
 
-  .ky-h-scroll-cue::after {
-    right: 0;
-    width: 1.85rem;
-    background: linear-gradient(to left, color-mix(in srgb, var(--paper) 94%, transparent), transparent);
-  }
+.ky-h-scroll-cue::after {
+  right: 0;
+  width: 2.25rem;
+  background: linear-gradient(to left, var(--paper) 28%, transparent);
+}
 
-  .ky-h-scroll-cue[data-fade-left="true"]::before,
-  .ky-h-scroll-cue[data-fade-right="true"]::after {
-    opacity: 1;
-  }
+.ky-h-scroll-cue[data-fade-left="true"]::before,
+.ky-h-scroll-cue[data-fade-right="true"]::after {
+  opacity: 1;
 }
 
 .ky-thumb-rail {
@@ -760,14 +873,27 @@ summary::-webkit-details-marker {
   }
 }
 
-@keyframes sc-fade-slide {
+@keyframes sc-glass-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.012);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes sc-glass-fade {
   from {
     opacity: 0;
-    transform: translateY(6px);
   }
   to {
     opacity: 1;
-    transform: none;
   }
 }
 
@@ -809,11 +935,16 @@ summary::-webkit-details-marker {
   .shimmer,
   .content-wave-sheen,
   .sc-rise,
+  .sc-photo {
+    animation: none !important;
+  }
+
   .shop-search-sheet,
   .sc-chip-in,
   .sc-to-top,
-  .sc-photo {
-    animation: none !important;
+  .ky-buy-bar,
+  .sc-glass-cta {
+    animation: sc-glass-fade 160ms ease both !important;
   }
 
   .sc-photo,
@@ -895,7 +1026,7 @@ summary::-webkit-details-marker {
 
   .liquid-glass,
   .liquid-glass-caption {
-    background: rgb(17 17 17 / 0.82);
+    background: rgb(17 17 17 / 0.88);
     color: var(--paper);
     text-shadow: none;
   }
@@ -906,10 +1037,38 @@ summary::-webkit-details-marker {
   .ky-color-chip,
   .ky-chrome-blur,
   .ky-buy-bar,
-  .shop-search-sheet {
+  .shop-search-sheet,
+  .sc-chip-face,
+  .gallery-photo-count,
+  .sc-to-top,
+  input.shop-search-field {
     background: var(--paper);
     color: var(--ink);
     text-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .liquid-glass,
+  .liquid-glass-caption {
+    background: rgb(17 17 17 / 0.88);
+  }
+
+  .liquid-glass-bar,
+  .liquid-glass-sheet,
+  .liquid-glass-chip,
+  .ky-color-chip,
+  .ky-chrome-blur,
+  .ky-buy-bar,
+  .shop-search-sheet,
+  .sc-chip-face,
+  .gallery-photo-count,
+  .sc-to-top {
+    background: var(--paper);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 }
 
@@ -1033,7 +1192,23 @@ summary::-webkit-details-marker {
 }
 
 .ky-header-film[data-scrolled="true"] {
-  box-shadow: 0 1px 0 color-mix(in srgb, var(--gold) 40%, var(--sc-line));
+  background: rgb(255 247 244 / 0.74);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.75),
+    inset 0 -1px 0 rgb(255 255 255 / 0.92),
+    0 1px 0 rgb(255 255 255 / 0.7),
+    0 12px 28px -16px rgb(176 112 98 / 0.4),
+    var(--glass-shadow);
+}
+
+/* Desktop photos are large, so a 0.66 wash reads as a clear panel and the type sits on the garment.
+   Keep the shared bar blur (22px / 170%) and a blush veil in the 70–80% range at every width from 768 up. */
+@media (min-width: 768px) {
+  .ky-header-film,
+  .ky-header-film[data-scrolled="true"] {
+    background: rgb(255 247 244 / 0.78);
+    -webkit-backdrop-filter: blur(var(--glass-blur-bar)) saturate(var(--glass-sat));
+  }
 }
 
 .ky-header-film[data-scrolled="true"] .ky-header-wordmark {
@@ -1042,7 +1217,7 @@ summary::-webkit-details-marker {
 
 /* Product wells: soft radius, hairline, no heavy lift shadow. Pattern 7–8. */
 .sc-card-well {
-  border-radius: var(--sc-radius);
+  border-radius: var(--sc-photo-radius);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 32%, transparent);
   /* Beat .ky-gallery-shell { height: 100% } so a taller chip row cannot stretch the photo. */
   height: auto;
@@ -1059,11 +1234,23 @@ summary::-webkit-details-marker {
   }
 }
 
-/* Phone buy bar is a solid sheet so color chips and the heading cannot show through. */
+/* Phone buy bar keeps the shared bar glass. Message stays solid ink. */
+.ky-buy-bar {
+  transform-origin: center bottom;
+}
+
+.shop-search-sheet {
+  transform-origin: center top;
+}
+
 .ky-buy-bar.liquid-glass-bar {
-  background-color: #ffffff;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  background: rgb(255 247 244 / 0.66);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.7),
+    inset 0 -1px 0 rgb(120 72 64 / 0.14),
+    0 -1px 2px rgb(176 112 98 / 0.14),
+    0 -18px 36px -18px rgb(176 112 98 / 0.36),
+    0 -40px 64px -40px rgb(120 62 52 / 0.24);
 }
 
 @media (max-width: 767px) {
@@ -1088,8 +1275,30 @@ summary::-webkit-details-marker {
 }
 
 .sc-look-grid {
-  align-items: start;
+  align-items: stretch;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Category anchors sit below the sticky glass header and the chip rail. */
+.sc-cat-rail {
+  position: sticky;
+  z-index: 30;
+  top: calc(env(safe-area-inset-top, 0px) + 8.25rem);
+  background: var(--paper);
+}
+
+.sc-cat-section {
+  scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 11.5rem);
+}
+
+@media (min-width: 640px) {
+  .sc-cat-rail {
+    top: calc(env(safe-area-inset-top, 0px) + 8.75rem);
+  }
+
+  .sc-cat-section {
+    scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 12rem);
+  }
 }
 
 @media (min-width: 640px) {
@@ -1120,26 +1329,35 @@ summary::-webkit-details-marker {
 }
 
 .sc-card-title {
-  -webkit-line-clamp: 3;
-  min-height: 3.45em;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  min-height: 0;
 }
 
 .sc-card-copy {
   -webkit-line-clamp: 2;
-  min-height: 2.7em;
+  line-clamp: 2;
+  min-height: 0;
+  text-wrap: pretty;
 }
 
 @media (hover: hover) {
   .group:hover .sc-card-well {
-    box-shadow:
-      0 16px 28px -18px rgb(17 17 17 / 0.38),
-      inset 0 0 0 1px color-mix(in srgb, var(--gold) 48%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 48%, transparent);
   }
 }
 
 .gallery-photo-count {
-  background: color-mix(in srgb, var(--paper) 88%, white);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 40%, transparent);
+  isolation: isolate;
+  background: var(--glass-fill-sheet);
+  color: var(--ink);
+  border: 1px solid var(--glass-line);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.7),
+    inset 0 -1px 0 rgb(120 72 64 / 0.14),
+    var(--glass-shadow);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
 }
 
 .sc-related-row .sc-look-grid {
@@ -1190,11 +1408,16 @@ summary::-webkit-details-marker {
 
 @media (prefers-reduced-motion: no-preference) {
   .sc-press {
-    transition: transform 160ms var(--sc-ease);
+    transition:
+      transform 160ms var(--sc-ease),
+      box-shadow 160ms var(--sc-ease);
   }
 
   .sc-press:active {
     transform: scale(0.97);
+    box-shadow:
+      0 0 0 1px rgb(255 255 255 / 0.72),
+      0 10px 22px -10px rgb(176 112 98 / 0.48);
   }
 
   .sc-rise[data-rise="pending"] {
@@ -1259,6 +1482,18 @@ input.shop-search-field:focus-visible {
     0 8px 16px -12px rgb(120 40 60 / 0.45);
 }
 
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  input.shop-search-field {
+    background-color: rgb(255 247 244 / 0.78);
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.7),
+      inset 0 -1px 0 rgb(120 72 64 / 0.12),
+      var(--glass-shadow);
+  }
+}
+
 .shop-search-icon {
   color: #5c3140;
 }
@@ -1267,8 +1502,235 @@ input.shop-search-field:focus-visible {
   color: #111111;
 }
 
+/* Hero side bands match the paper page. The 1px divider is the grid gap. */
+.hero-editorial {
+  background-color: var(--paper);
+}
+
+.hero-editorial .grid {
+  background-color: transparent;
+  gap: 0;
+}
+
+.ky-gallery-frame,
+.ky-thumb-shot {
+  border-radius: var(--sc-photo-radius);
+}
+
+.sc-thumb-rail > .ky-thumb-shot {
+  flex: 1 1 0;
+  width: auto;
+  min-width: 2.75rem;
+  max-width: 3rem;
+  height: auto;
+  aspect-ratio: 3 / 4;
+}
+
+@media (min-width: 1024px) {
+  .sc-thumb-rail > .ky-thumb-shot {
+    max-width: none;
+  }
+}
+
+.ky-thumb-shot.sc-thumb-active {
+  box-shadow: inset 0 0 0 1.5px var(--gold-deep);
+}
+
+/* The 44px hit target stays clear. The visible pill carries the glass. */
+.sc-chip-hit.ky-color-chip,
+.sc-chip-hit.liquid-glass-chip {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.sc-chip-face {
+  position: relative;
+  isolation: isolate;
+  background: var(--glass-fill);
+  border-color: var(--glass-line);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.7),
+    inset 0 -1px 0 rgb(120 72 64 / 0.14),
+    var(--glass-shadow);
+}
+
+button[aria-checked="true"] > .sc-chip-face {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.liquid-glass-chip.border-gold {
+  border-color: var(--gold);
+}
+
+.sc-card-message {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 5px;
+  text-decoration-color: color-mix(in srgb, var(--gold) 50%, var(--line));
+}
+
+/* Hero Messenger pill. Sheet fill so 11px gold-ink still clears AA over a dark photo.
+   The glyph and label sit above the sheen so the icon stays sharp. */
+.sc-messenger-glass {
+  border-color: transparent;
+  background: var(--glass-fill-sheet);
+  color: var(--ink);
+  text-shadow: none;
+  transform-origin: center;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.7),
+    inset 0 -1px 0 rgb(120 72 64 / 0.16),
+    0 0 0 1px rgb(255 255 255 / 0.55),
+    var(--glass-shadow);
+}
+
+.sc-messenger-glass.sc-card-message {
+  text-decoration: none;
+}
+
+.sc-messenger-glass .ky-chrome-rim {
+  display: none;
+}
+
+.sc-messenger-glass > span[aria-hidden].absolute {
+  display: none;
+}
+
+.sc-photo-fallback {
+  background: var(--canvas);
+}
+
 @media (hover: hover) {
   .shop-search-clear:hover {
     color: #a33d58;
+  }
+}
+
+/* Later glass rules must not beat these fallbacks. */
+@media (prefers-reduced-transparency: reduce) {
+  .ky-header-film,
+  .ky-header-film[data-scrolled="true"],
+  .ky-buy-bar.liquid-glass-bar,
+  .shop-search-sheet,
+  .gallery-photo-count,
+  .liquid-glass-sheet,
+  .liquid-glass-chip,
+  .sc-chip-face,
+  .sc-to-top,
+  input.shop-search-field {
+    background: var(--paper) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .liquid-glass,
+  .liquid-glass-caption {
+    background: rgb(17 17 17 / 0.88) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .ky-header-film,
+  .ky-header-film[data-scrolled="true"] {
+    background: rgb(255 247 244 / 0.96) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .ky-buy-bar.liquid-glass-bar,
+  .shop-search-sheet,
+  .gallery-photo-count,
+  .liquid-glass-sheet,
+  .liquid-glass-chip,
+  .sc-to-top {
+    background: var(--paper) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  input.shop-search-field {
+    background-color: #ffffff !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .ky-header-film,
+  .ky-header-film[data-scrolled="true"],
+  .ky-buy-bar.liquid-glass-bar,
+  .liquid-glass-bar,
+  .liquid-glass-sheet,
+  .liquid-glass-chip,
+  .shop-search-sheet,
+  .sc-chip-face,
+  .gallery-photo-count,
+  input.shop-search-field {
+    background: rgb(255 255 255 / 0.92) !important;
+    text-shadow: none !important;
+  }
+}
+
+/* Standard backdrop-filter lives in its own block. Paired with the prefix in
+   one rule, the build keeps only the prefix, and current Chromium ignores that. */
+@supports (backdrop-filter: blur(1px)) {
+  .liquid-glass,
+  .liquid-glass-sheet,
+  .liquid-glass-caption,
+  .liquid-glass-chip,
+  .ky-color-chip,
+  .shop-search-sheet,
+  .gallery-photo-count,
+  input.shop-search-field {
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  }
+
+  .liquid-glass-bar,
+  .ky-chrome-blur,
+  .ky-header-film,
+  .ky-header-film[data-scrolled="true"] {
+    backdrop-filter: blur(var(--glass-blur-bar)) saturate(var(--glass-sat));
+  }
+
+  @media (min-width: 768px) {
+    .ky-header-film,
+    .ky-header-film[data-scrolled="true"] {
+      backdrop-filter: blur(var(--glass-blur-bar)) saturate(var(--glass-sat));
+    }
+  }
+
+  .pdp-lightbox-veil {
+    backdrop-filter: blur(var(--blur-md));
+  }
+
+  .sc-chip-hit.ky-color-chip,
+  .sc-chip-hit.liquid-glass-chip {
+    backdrop-filter: none;
+  }
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  @media (prefers-reduced-transparency: reduce) {
+    .liquid-glass,
+    .liquid-glass-sheet,
+    .liquid-glass-caption,
+    .liquid-glass-chip,
+    .ky-color-chip,
+    .shop-search-sheet,
+    .gallery-photo-count,
+    .liquid-glass-bar,
+    .ky-chrome-blur,
+    .ky-header-film,
+    .ky-buy-bar,
+    .pdp-lightbox-veil,
+    input.shop-search-field {
+      backdrop-filter: none !important;
+    }
   }
 }
