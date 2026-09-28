@@ -16,8 +16,6 @@ import { GALLERY_ROLL_MS } from "@/lib/gallery-snap";
 import { fadeUp, springSoft } from "@/lib/motion";
 import { shopLookAsksPrice, type ShopLook } from "@/lib/shop-look";
 
-const COMPACT_SIZES = "(max-width: 639px) 70vw, (max-width: 1023px) 31vw, (max-width: 1279px) 23vw, 18vw";
-
 export function ProductCard({
   product,
   priority = false,
@@ -120,7 +118,6 @@ export function ProductCard({
                       priority={priority && index === 0}
                       named={false}
                       coverFallback={false}
-                      sizes={compact ? COMPACT_SIZES : undefined}
                       className="h-full w-full"
                     />
                   </div>

@@ -1217,8 +1217,8 @@ summary::-webkit-details-marker {
   }
 
   .sc-related-row .sc-look-grid > li {
-    flex: 0 0 70%;
-    max-width: 16.5rem;
+    flex: 0 0 46%;
+    max-width: 11.5rem;
     scroll-snap-align: start;
   }
 }
