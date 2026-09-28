@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@vercel/analytics";
 import { motion, useReducedMotion } from "framer-motion";
 import { MaMark } from "@/components/ma-mark";
 import { useSiteSettings } from "@/components/site-settings";
@@ -77,12 +78,20 @@ export function MessengerCta({
   const isCard = variant === "card";
   const showChromeRim = !isHeader && !isCard;
 
+  function onMessengerClick() {
+    if (!ma) {
+      return;
+    }
+    track("messenger_cta", { ma });
+  }
+
   return (
     <motion.a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
       referrerPolicy="no-referrer"
+      onClick={onMessengerClick}
       aria-label={ariaLabel}
       data-testid={askPrice ? "shop-ask-price" : "shop-message-cta"}
       data-messenger-ref={ma ?? undefined}

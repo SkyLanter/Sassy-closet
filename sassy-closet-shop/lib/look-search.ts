@@ -47,6 +47,18 @@ export function encodeShopSearchHeader(query: string): string {
   return encodeURIComponent(query.trim().slice(0, SHOP_SEARCH_MAX));
 }
 
+/**
+ * Header search submit payload for Web Analytics.
+ * Trimmed, capped at 80 characters. Blank queries are not events.
+ */
+export function searchSubmitQuery(raw: string): string | null {
+  const query = raw.trim().slice(0, SHOP_SEARCH_MAX);
+  if (!query) {
+    return null;
+  }
+  return query;
+}
+
 export function decodeShopSearchHeader(raw: string | null): string {
   if (!raw) {
     return "";

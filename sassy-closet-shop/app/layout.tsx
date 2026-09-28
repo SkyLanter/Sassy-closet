@@ -1,6 +1,8 @@
 import type { Viewport } from "next";
 import type { ReactNode } from "react";
 import { Be_Vietnam_Pro, Cormorant_Garamond } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { rootSeo } from "@/lib/seo";
 import "./globals.css";
 
@@ -36,6 +38,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     >
       <body className="flex min-h-full min-h-dvh flex-col bg-paper font-sans text-ink">
         {children}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

@@ -15,6 +15,7 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
+import { track } from "@vercel/analytics";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { CategorySuggestChips } from "@/components/category-suggest-chips";
@@ -30,6 +31,7 @@ import {
   LOOK_SEARCH_TOGGLE,
   lookSearchHref,
   resolveLookSearch,
+  searchSubmitQuery,
   suggestLooks,
   type LookSearchItem,
 } from "@/lib/look-search";
@@ -164,6 +166,10 @@ function HeaderSearchState({
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const query = searchSubmitQuery(value);
+    if (query) {
+      track("search_submit", { query });
+    }
     const picked = active !== null ? suggestions[active] : undefined;
     if (picked) {
       pickLook(picked);

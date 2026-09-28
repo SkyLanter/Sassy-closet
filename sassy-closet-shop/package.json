@@ -37,8 +37,10 @@
     "smoke:origin": "python3 docs/ai-clothing-shop/qa/qa_selltest_origin_gate.py"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "@vercel/blob": "^2.8.0",
     "@vercel/kv": "^3.0.0",
+    "@vercel/speed-insights": "^2.0.0",
     "framer-motion": "^13.2.0",
     "next": "16.3.4",
     "react": "19.2.8",
@@ -50,9 +52,9 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "tsx": "^4.20.5",
     "eslint-config-next": "16.3.4",
     "tailwindcss": "^4",
+    "tsx": "^4.20.5",
     "typescript": "^5"
   }
 }

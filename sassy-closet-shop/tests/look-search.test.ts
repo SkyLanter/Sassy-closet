@@ -9,6 +9,7 @@ import {
   lookSearchHref,
   looseMaCandidate,
   resolveLookSearch,
+  searchSubmitQuery,
   suggestLooks,
   type LookSearchItem,
 } from "../lib/look-search";
@@ -127,4 +128,12 @@ test("partial mã lists prefixes and suggestions stay capped", () => {
 test("search header stays capped at 80 characters", () => {
   const long = "a".repeat(120);
   assert.equal(decodeURIComponent(encodeShopSearchHeader(long)).length, 80);
+});
+
+test("search submit query is trimmed, capped at 80, and blank is skipped", () => {
+  assert.equal(searchSubmitQuery("  A15  "), "A15");
+  assert.equal(searchSubmitQuery("   "), null);
+  assert.equal(searchSubmitQuery(""), null);
+  assert.equal(searchSubmitQuery("áo".repeat(50))?.length, 80);
+  assert.equal(searchSubmitQuery(`  ${"b".repeat(90)}  `), "b".repeat(80));
 });
