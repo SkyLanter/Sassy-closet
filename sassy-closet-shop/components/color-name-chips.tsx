@@ -6,7 +6,7 @@ import { LayoutGroup, motion, useReducedMotion } from "framer-motion";
 import { useContentWave } from "@/components/content-wave";
 import { colorShopLabel } from "@/lib/colors";
 import { scrollChromeChildIntoView } from "@/lib/gallery-snap";
-import { springSoft } from "@/lib/motion";
+import { easeOutFast } from "@/lib/motion";
 import { COLOR_FIELD_LEGEND } from "@/lib/pdp-copy";
 import type { ProductColor } from "@/lib/types";
 
@@ -119,7 +119,7 @@ export function ColorNameChips({
               }}
               className={`ky-color-chip liquid-glass-chip sc-press relative inline-flex max-w-full min-w-11 items-center justify-center touch-manipulation select-none px-3 font-medium uppercase ${
                 compact
-                  ? "min-h-11 text-[11px] tracking-[0.12em] sm:min-h-8 sm:text-[10px]"
+                  ? "min-h-11 text-[11px] tracking-[0.12em]"
                   : "min-h-11 shrink-0 whitespace-nowrap text-[11px] tracking-[0.16em]"
               } ${selected ? "text-ink" : "text-muted hover-hover:hover:text-ink"}`}
               translate="no"
@@ -129,7 +129,7 @@ export function ColorNameChips({
                 <motion.span
                   layoutId={lineLayoutId}
                   className="absolute inset-x-0 bottom-0 h-px bg-gold"
-                  transition={springSoft}
+                  transition={easeOutFast}
                   aria-hidden
                 />
               ) : null}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useLayoutEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { BLUSH_BLUR } from "@/lib/image-placeholder";
 import { shouldOptimizeImage } from "@/lib/image-hosts";
@@ -27,21 +28,18 @@ export function LookPhoto({
 }) {
   if (!shouldOptimizeImage(src)) {
     return (
-      <img
+      <NativeLookPhoto
         src={src}
         alt={alt}
-        width={fill ? undefined : width}
-        height={fill ? undefined : height}
         sizes={sizes}
-        draggable={false}
-        loading={priority ? "eager" : "lazy"}
-        fetchPriority={priority ? "high" : "auto"}
-        onError={onError}
+        priority={priority}
         className={
-          fill
-            ? `absolute inset-0 h-full w-full ${className ?? ""}`
-            : className
+          fill ? `absolute inset-0 h-full w-full ${className ?? ""}` : className
         }
+        fill={fill}
+        width={width}
+        height={height}
+        onError={onError}
       />
     );
   }
@@ -76,6 +74,60 @@ export function LookPhoto({
       draggable={false}
       className={className}
       onError={onError}
+    />
+  );
+}
+
+function NativeLookPhoto({
+  src,
+  alt,
+  sizes,
+  priority,
+  className,
+  fill,
+  width,
+  height,
+  onError,
+}: {
+  src: string;
+  alt: string;
+  sizes: string;
+  priority: boolean;
+  className?: string;
+  fill: boolean;
+  width: number;
+  height: number;
+  onError?: () => void;
+}) {
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [pending, setPending] = useState(false);
+
+  useLayoutEffect(() => {
+    const img = imgRef.current;
+    if (priority || !img || (img.complete && img.naturalWidth > 0)) {
+      setPending(false);
+      return;
+    }
+    setPending(true);
+  }, [priority, src]);
+
+  return (
+    <img
+      ref={imgRef}
+      src={src}
+      alt={alt}
+      width={fill ? undefined : width}
+      height={fill ? undefined : height}
+      sizes={sizes}
+      draggable={false}
+      loading={priority ? "eager" : "lazy"}
+      fetchPriority={priority ? "high" : "auto"}
+      data-loaded={pending ? "false" : "true"}
+      onLoad={() => {
+        setPending(false);
+      }}
+      onError={onError}
+      className={`sc-photo ${className ?? ""}`}
     />
   );
 }

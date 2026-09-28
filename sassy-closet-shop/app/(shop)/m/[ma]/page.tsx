@@ -65,9 +65,12 @@ export default async function ProductPage({
                 {type.label}
               </h2>
               <p className="mx-auto mt-2 max-w-full truncate whitespace-nowrap text-left text-[11px] uppercase tracking-[0.16em] text-muted tabular-nums" translate="no">
+                Có thể bạn thích · You may also like
+              </p>
+              <p className="mx-auto mt-1 max-w-full truncate whitespace-nowrap text-left text-[11px] uppercase tracking-[0.16em] text-muted tabular-nums" translate="no">
                 {lookCountLabel(related.length, true)}
               </p>
-              <div className="mt-8">
+              <div className="sc-related-row ky-h-scroll-cue mt-8">
                 <ContentWaveLooks>
                   <ProductGrid products={related} eagerCount={0} />
                 </ContentWaveLooks>

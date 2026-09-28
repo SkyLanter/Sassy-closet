@@ -74,7 +74,7 @@ export function SizeFilterChips({
           role="radiogroup"
           aria-label="Filter by size"
           onKeyDown={onGroupKeyDown}
-          className="mt-2 flex min-w-0 flex-wrap items-center gap-2"
+          className="sc-chip-in mt-2 flex min-w-0 flex-wrap items-center gap-2"
         >
           {options.map((option) => {
             const active = option === selected;

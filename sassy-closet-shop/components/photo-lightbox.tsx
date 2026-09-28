@@ -282,8 +282,10 @@ export function PhotoLightbox({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        initial={false}
-        animate={{ opacity: 1 }}
+        initial={reduced ? false : { opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={reduced ? { opacity: 1, y: 0 } : { opacity: 0, y: 6 }}
+        transition={reduced ? { duration: 0 } : { duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
         className="relative z-[1] flex max-h-full min-h-0 w-full max-w-3xl flex-col overflow-y-auto border border-gold bg-paper p-3 shadow-[0_18px_40px_-24px_rgba(17,17,17,0.45)] sm:p-4"
       >
         <div className="mb-3 flex items-start justify-between gap-3">

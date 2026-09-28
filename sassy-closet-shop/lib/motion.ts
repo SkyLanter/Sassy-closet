@@ -31,6 +31,12 @@ export function staggerContainer(reduced: boolean) {
 
 export const filterEase = [0.22, 1, 0.36, 1] as const;
 
+/** Underlines, drawers, and lightbox. Ease-out, no spring bounce. */
+export const easeOutFast = {
+  duration: 0.2,
+  ease: filterEase,
+};
+
 /** 1 = later in the list (slide from the right), -1 = earlier (from the left). */
 export function slideDirection(fromIndex: number, toIndex: number): number {
   return toIndex >= fromIndex ? 1 : -1;

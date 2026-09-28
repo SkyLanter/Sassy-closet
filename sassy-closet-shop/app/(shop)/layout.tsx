@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { headers } from "next/headers";
 import { AnnouncementBar } from "@/components/announcement-bar";
+import { BackToTop } from "@/components/back-to-top";
 import { CatalogMediaVersionProvider } from "@/components/catalog-media-version";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
@@ -53,6 +54,7 @@ export default async function ShopLayout({ children }: { children: ReactNode }) 
           {children}
         </main>
         <Footer />
+        <BackToTop />
         </ShopSearchProvider>
       </CatalogMediaVersionProvider>
       </MessengerDeviceProvider>
