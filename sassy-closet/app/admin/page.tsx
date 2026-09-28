@@ -24,6 +24,11 @@ export default async function AdminPage() {
       >
         Tải CSV
       </a>
+      <p className="mt-6 text-sm">
+        <a className="underline-offset-2 hover:underline" href="/admin/shop">
+          Shop tools
+        </a>
+      </p>
     </main>
   );
 }

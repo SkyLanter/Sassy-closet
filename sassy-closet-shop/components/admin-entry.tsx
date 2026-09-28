@@ -1,5 +1,10 @@
 "use client";
 
+/**
+ * Not mounted. The customer shop must not render Shop tools.
+ * Catalog edits live on the intake app. Do not import this module.
+ */
+
 import {
   createContext,
   useCallback,

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { customerAdminApiClosed } from "@/lib/customer-admin-closed";
 import { catalogShaOf } from "@/lib/catalog-sha";
 import { readLiveCatalogRecord } from "@/lib/catalog-store";
 import { NO_STORE_HEADERS } from "@/lib/http-no-store";
@@ -8,6 +9,10 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET() {
+  const closed = customerAdminApiClosed();
+  if (closed) {
+    return closed;
+  }
   const record = await readLiveCatalogRecord();
   const products = catalogProductsInOrder(record.document.products);
   const body = {

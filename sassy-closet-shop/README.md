@@ -92,9 +92,11 @@ Official clone (new Vercel + Blob, same code): [docs/OFFICIAL_CLONE.md](./docs/O
 
 The hub ten stay on the catalog. **Add next mãs (A03+)** Saves to the live catalog (Blob on Vercel, `data/live-catalog.json` locally) and the piece appears on the shop. Official alphabet (`AO001`) is still rejected. Qty is always 1. Hold ⇔ `priceUsd` null. Excel / OneDrive / intake are read-only — copy colors, empty sizes, staff `source_link`, and Message-first dropship copy into this sell catalog only.
 
-## Test admin (`/admin`)
+## Admin
 
-Open sell-ops console. No password, no login. Not linked in the main nav. On the shop: long-press the logo, or tap the tiny gold dot (bottom-right) → **Open admin**.
+The customer shop has **no** `/admin` page and **no** Shop tools button. `/admin` is 404. Catalog list/edit lives on the intake app (password-locked). This app keeps `POST /api/admin/revalidate`, which requires header `x-shop-revalidate-secret` (`SHOP_REVALIDATE_SECRET`). Other `/api/admin/*` routes return 404.
+
+The old sell-ops screens are not served:
 
 - **Catalog** (`/admin`) — thumb, mã, title, status, price, colors, image count, search, type/status filters, bulk Hold, Edit + Preview PDP. Marker `data-save-contract="blob+revalidate"`
 - **Add** (`/admin/new`) — pick a letter (`A · Tops`, not `→ Q01` tiles). Save assigns the next unused mã via `POST /api/admin/add` (JSON receipt). That path does **not** use a Server Action, so the page does not die behind React #441 after Blob write. Success toast + footer receipt, then soft-navigate to Edit. Visible error if write fails — never the minified React overlay.
@@ -109,7 +111,7 @@ Open sell-ops console. No password, no login. Not linked in the main nav. On the
 `POST /api/admin/save` — `{ ma, titleEn }` receipt after write + revalidate + two warms.  
 `POST /api/admin/add` — `{ letter: "A" }` assigns the next unused mã (A03+), writes Blob/local, returns the same receipt. GET is 405.  
 `POST /api/admin/rename` · `POST /api/admin/remove` · `POST /api/admin/settings` · `POST /api/admin/hold` — same JSON receipt pattern (no Server Action / RSC #441).  
-`POST /api/admin/revalidate` — marks `/`, `/c/[slug]` `page`, `/m/[ma]` `page`. GET is 405, never 404.
+`POST /api/admin/revalidate` — marks `/`, `/c/[slug]` `page`, `/m/[ma]` `page` when `x-shop-revalidate-secret` matches `SHOP_REVALIDATE_SECRET`. Missing or wrong secret is 401. GET is 405. Other admin APIs are 404.
 
 P02 and P05 stay Hold / Inbox for price (no invented $). All ten are **Message to buy** (dropship OK; Square on-hand may be 0). Available hub rows keep Boss USD.
 

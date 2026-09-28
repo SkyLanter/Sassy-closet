@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { headers } from "next/headers";
-import { AdminEntryProvider } from "@/components/admin-entry";
 import { AnnouncementBar } from "@/components/announcement-bar";
 import { CatalogMediaVersionProvider } from "@/components/catalog-media-version";
 import { Footer } from "@/components/footer";
@@ -36,7 +35,6 @@ export default async function ShopLayout({ children }: { children: ReactNode }) 
     <SiteSettingsProvider settings={settings}>
       <MessengerDeviceProvider isAppDevice={isAppDevice}>
       <CatalogMediaVersionProvider version={mediaVersion}>
-        <AdminEntryProvider>
         <ShopSearchProvider
           looks={looks}
           initialQuery={decodeShopSearchHeader(requestHeaders.get(SHOP_SEARCH_HEADER))}
@@ -56,7 +54,6 @@ export default async function ShopLayout({ children }: { children: ReactNode }) 
         </main>
         <Footer />
         </ShopSearchProvider>
-        </AdminEntryProvider>
       </CatalogMediaVersionProvider>
       </MessengerDeviceProvider>
     </SiteSettingsProvider>

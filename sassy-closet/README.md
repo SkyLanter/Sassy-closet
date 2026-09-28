@@ -2,6 +2,8 @@
 
 GF intake at https://sassy-closet.vercel.app. Existing tabs only: **Món mới**, **Sửa theo mã**, **Tìm mã**, **Hỏi Mini Boss · Ask**.
 
+Shop catalog edits are a separate password page at `/admin/shop` (footer link **Shop tools**). They are not a fifth tab. See [docs/SHOP_ADMIN.md](docs/SHOP_ADMIN.md).
+
 This folder is the site source. The Excel kit stays at repo-root `excel-kit/`. Vercel Root Directory should be `sassy-closet`.
 
 ## Saved card

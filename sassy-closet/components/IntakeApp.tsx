@@ -561,6 +561,10 @@ export function IntakeApp({
         <a className="inline-flex min-h-11 items-center underline-offset-2 hover:underline" href="/admin">
           Kit export CSV
         </a>
+        <span className="mx-1">·</span>
+        <a className="inline-flex min-h-11 items-center underline-offset-2 hover:underline" href="/admin/shop">
+          Shop tools
+        </a>
         <span className="mx-1">· Boss one-pager trong README / BOSS.md</span>
       </p>
       <SavedCard result={saved} onClose={() => setSaved(null)} />

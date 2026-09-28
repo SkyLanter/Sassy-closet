@@ -1,3 +1,4 @@
+import { customerAdminApiClosed } from "@/lib/customer-admin-closed";
 import { addProductToCatalog, type ProductFieldsInput } from "@/lib/admin-ops";
 import { isAddLetter, mergeAddFields } from "@/lib/admin-add";
 import {
@@ -17,6 +18,10 @@ type AddBody = {
 } & Partial<ProductFieldsInput>;
 
 export async function GET() {
+  const closed = customerAdminApiClosed();
+  if (closed) {
+    return closed;
+  }
   return adminMethodNotAllowed(
     "POST",
     "Use POST to Add the next unused mã (A03+). Save writes Blob.",
@@ -24,6 +29,10 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const closed = customerAdminApiClosed();
+  if (closed) {
+    return closed;
+  }
   const blocked = adminWriteBlocked();
   if (blocked) {
     return blocked;

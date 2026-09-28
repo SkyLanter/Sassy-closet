@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { KNOWN_SEED_MAS } from "@/lib/catalog-contract";
 import { NO_STORE_HEADERS } from "@/lib/http-no-store";
 import { refreshShop, warmShopPaths } from "@/lib/refresh-shop";
+import { revalidateRequestAuthorized } from "@/lib/revalidate-secret";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -13,7 +14,13 @@ export async function GET() {
   );
 }
 
-export async function POST() {
+export async function POST(request: Request) {
+  if (!revalidateRequestAuthorized(request)) {
+    return NextResponse.json(
+      { ok: false, error: "Unauthorized." },
+      { status: 401, headers: NO_STORE_HEADERS },
+    );
+  }
   const revalidated = await refreshShop(...KNOWN_SEED_MAS);
   await warmShopPaths(revalidated);
   return NextResponse.json(

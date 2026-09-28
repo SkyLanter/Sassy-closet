@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { customerAdminApiClosed } from "@/lib/customer-admin-closed";
 import { catalogExportFilename } from "@/lib/catalog-contract";
 import { assertHandoffJson, toHandoffCatalogJson } from "@/lib/catalog-handoff";
 import { getCatalogDocumentUncached } from "@/lib/products";
@@ -8,6 +9,10 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function POST() {
+  const closed = customerAdminApiClosed();
+  if (closed) {
+    return closed;
+  }
   return NextResponse.json(
     { ok: false, error: "Use GET to export catalog.v1." },
     { status: 405, headers: { ...NO_STORE_HEADERS, Allow: "GET" } },
@@ -15,6 +20,10 @@ export async function POST() {
 }
 
 export async function GET() {
+  const closed = customerAdminApiClosed();
+  if (closed) {
+    return closed;
+  }
   try {
     const document = await getCatalogDocumentUncached();
     const json = toHandoffCatalogJson(document);

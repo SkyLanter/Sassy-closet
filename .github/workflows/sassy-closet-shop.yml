@@ -24,6 +24,7 @@ jobs:
           cache: npm
           cache-dependency-path: sassy-closet-shop/package-lock.json
       - run: npm ci
+      - run: npm test
       - name: Build
         run: |
           # next/font + Turbopack can fail once with
