@@ -40,6 +40,12 @@ export function categoryCopy(type: MaLetter): { label: string; singular: string 
   return { label: labels.nav, singular: labels.en };
 }
 
+/** VN + English names so search can match "áo", "tops", or "phu kien". */
+export function categorySearchLabels(type: MaLetter): string {
+  const labels = TYPE_LABELS[type];
+  return `${labels.vn} ${labels.en} ${labels.nav}`;
+}
+
 export function categoryAriaLabel(type: MaLetter): string {
   const labels = TYPE_LABELS[type];
   return `${labels.vn} · ${labels.nav}`;

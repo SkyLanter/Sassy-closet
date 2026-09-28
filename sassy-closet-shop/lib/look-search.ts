@@ -1,4 +1,5 @@
-import { isValidMa, normalizeMa } from "@/lib/ma";
+import { categorySearchLabels } from "@/lib/categories";
+import { isValidMa, maLetter, normalizeMa } from "@/lib/ma";
 
 /** Customer search index — mã + titles only. Never invent rows. */
 export type LookSearchItem = {
@@ -78,19 +79,86 @@ export function firstSearchQueryParam(
   return value?.trim() ?? "";
 }
 
+/** Fold accents, map đ → d, and collapse whitespace. Shared by haystack and needle. */
+export function foldSearchText(value: string): string {
+  const folded = value.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+  return folded.replace(/đ/g, "d").replace(/\s+/g, " ").trim();
+}
+
+function categoryText(ma: string): string {
+  const letter = maLetter(ma);
+  if (!letter) {
+    return "";
+  }
+  return categorySearchLabels(letter);
+}
+
 export function lookSearchHaystack(look: LookSearchItem): string {
-  return `${look.ma} ${look.titleEn} ${look.titleVn}`.toLowerCase();
+  return foldSearchText(`${look.ma} ${look.titleEn} ${look.titleVn} ${categoryText(look.ma)}`);
+}
+
+const LOOSE_MA = /^([a-z])[\s-]*(\d+)$/i;
+
+/**
+ * A whole query that is one letter, optional spaces or dashes, then digits.
+ * Leading zeros stay (`a015` → A015) so they cannot become a different mã.
+ */
+export function looseMaCandidate(query: string): string | null {
+  const match = query.trim().match(LOOSE_MA);
+  const letter = match?.[1];
+  const digits = match?.[2];
+  if (!letter || !digits) {
+    return null;
+  }
+  const ma = `${letter.toUpperCase()}${digits}`;
+  return isValidMa(ma) ? ma : null;
+}
+
+function stemMatches(haystack: string, token: string): boolean {
+  if (haystack.includes(token)) {
+    return true;
+  }
+  if (token.length > 3 && token.endsWith("s") && !token.endsWith("ss")) {
+    const stem = token.slice(0, -1);
+    if (stem.length >= 3 && haystack.includes(stem)) {
+      return true;
+    }
+  }
+  if (token.length > 4 && token.endsWith("es")) {
+    const stem = token.slice(0, -2);
+    if (stem.length >= 3 && haystack.includes(stem)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 export function filterLooksByQuery<T extends LookSearchItem>(
   looks: T[],
   query: string,
 ): T[] {
-  const needle = query.trim().toLowerCase();
-  if (!needle) {
+  const raw = query.trim();
+  if (!raw) {
     return looks;
   }
-  return looks.filter((look) => lookSearchHaystack(look).includes(needle));
+  const ma = looseMaCandidate(raw);
+  if (ma) {
+    const hit = looks.find((look) => look.ma === ma);
+    if (hit) {
+      return [hit];
+    }
+  }
+  // A partial mã (`a1`, `d0`, `a 1`) is not an exact row. Match the prefix
+  // with spaces and dashes removed so typing A15 one key at a time still lists looks.
+  const needle = ma ? raw.replace(/[\s-]+/g, "") : raw;
+  const tokens = foldSearchText(needle).split(" ").filter(Boolean);
+  if (tokens.length === 0) {
+    return looks;
+  }
+  return looks.filter((look) => {
+    const haystack = lookSearchHaystack(look);
+    return tokens.every((token) => stemMatches(haystack, token));
+  });
 }
 
 export function suggestLooks<T extends LookSearchItem>(
@@ -110,10 +178,11 @@ export function exactMaLook<T extends LookSearchItem>(
   query: string,
 ): T | undefined {
   const normalized = normalizeMa(query);
-  if (!isValidMa(normalized)) {
+  const candidate = isValidMa(normalized) ? normalized : looseMaCandidate(query);
+  if (!candidate || !isValidMa(candidate)) {
     return undefined;
   }
-  return looks.find((look) => look.ma === normalized);
+  return looks.find((look) => look.ma === candidate);
 }
 
 export type LookSearchResolution =

@@ -1,4 +1,6 @@
 import { categoryCopy } from "@/lib/categories";
+import { HOLD_PRICE_LABEL } from "@/lib/dropship-copy";
+import { formatUsd } from "@/lib/format";
 import type { MaLetter } from "@/lib/ma";
 
 export const HOME_TITLE = "Sassy Closet";
@@ -118,12 +120,13 @@ export function productShareTitle(product: { ma: string; titleEn: string }): str
 }
 
 export function productShareDescription(product: {
-  ma: string;
   titleEn: string;
   descriptionEn: string;
+  priceUsd: number | null;
 }): string {
-  const body = product.descriptionEn.trim() || product.titleEn.trim();
-  return `${product.ma} · ${body}`;
+  const body = (product.descriptionEn.trim() || product.titleEn.trim()).replace(/\.+$/, "");
+  const price = product.priceUsd !== null ? formatUsd(product.priceUsd) : HOLD_PRICE_LABEL;
+  return `${price} · ${body} · Message Sassy Closet on Messenger`;
 }
 
 export function productOgAlt(product: { ma: string; titleEn: string }): string {

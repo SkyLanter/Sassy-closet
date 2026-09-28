@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { categoryCopy, categorySlug } from "@/lib/categories";
-import { coverSrc } from "@/lib/product-media";
 import { SITE } from "@/lib/site";
 import { siteMode } from "@/lib/site-runtime";
 import { resolvableShopOrigin } from "@/lib/shop-origin";
@@ -55,6 +54,7 @@ function shareImage(path: string, alt: string): NonNullable<Metadata["openGraph"
       width: 1200,
       height: 630,
       alt,
+      type: "image/png",
     },
   ];
 }
@@ -88,7 +88,7 @@ export function rootSeo(): Metadata {
       images: images,
     },
     appleWebApp: {
-      statusBarStyle: "black-translucent",
+      statusBarStyle: "default",
       title: SITE.name,
     },
     other: {
@@ -97,15 +97,22 @@ export function rootSeo(): Metadata {
   };
 }
 
-function productShareImages(product: ShopLook): NonNullable<Metadata["openGraph"]>["images"] {
-  return shareImage(`/share/m/${product.ma}`, productOgAlt(product));
+function productShareImages(
+  product: ShopLook,
+  version?: string,
+): NonNullable<Metadata["openGraph"]>["images"] {
+  const token = version?.trim();
+  const path = token
+    ? `/share/m/${product.ma}?v=${encodeURIComponent(token)}`
+    : `/share/m/${product.ma}`;
+  return shareImage(path, productOgAlt(product));
 }
 
-export function productSeo(product: ShopLook): Metadata {
+export function productSeo(product: ShopLook, version?: string): Metadata {
   const title = productShareTitle(product);
   const description = productShareDescription(product);
   const canonical = shopCanonical(`/m/${product.ma}`);
-  const images = productShareImages(product);
+  const images = productShareImages(product, version);
   return {
     title,
     description,
@@ -216,9 +223,19 @@ export function categoryJsonLd(
   return jsonLd;
 }
 
+export function notFoundSeo(): Metadata {
+  return {
+    title: "Not found",
+    robots: null,
+    alternates: { canonical: null },
+  };
+}
+
 export function productJsonLd(product: ShopLook): Record<string, unknown> {
   const canonical = shopCanonical(`/m/${product.ma}`);
-  const cover = coverSrc(product);
+  const photos = product.images
+    .map((image) => absoluteMedia(image.src.trim()))
+    .filter((src) => src.length > 0);
   const offer: Record<string, unknown> = {
     "@type": "Offer",
     url: canonical,
@@ -238,7 +255,7 @@ export function productJsonLd(product: ShopLook): Record<string, unknown> {
       "@type": "Brand",
       name: SITE.name,
     },
-    image: cover ? [absoluteMedia(cover)] : undefined,
+    image: photos.length > 0 ? photos : undefined,
     offers: offer,
   };
   if (canonical) {

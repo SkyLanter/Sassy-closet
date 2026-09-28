@@ -7,7 +7,8 @@ import { ProductGrid } from "@/components/product-grid";
 import { categoryAriaLabel, categoryCopy } from "@/lib/categories";
 import { lookCountLabel } from "@/lib/look-count";
 import { KNOWN_SEED_MAS } from "@/lib/catalog-contract";
-import { getProduct, getProductsByType } from "@/lib/products";
+import { catalogShaOf } from "@/lib/catalog-sha";
+import { getCatalogDocument, getProduct, getProductsByType } from "@/lib/products";
 import { productJsonLd, productSeo } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -26,9 +27,11 @@ export async function generateMetadata({
   const { ma } = await params;
   const product = await getProduct(ma);
   if (!product) {
-    return { title: "Item not found" };
+    notFound();
   }
-  return productSeo(product);
+  const document = await getCatalogDocument();
+  const version = document.updatedAt?.trim() || catalogShaOf(document);
+  return productSeo(product, version);
 }
 
 export default async function ProductPage({

@@ -6,7 +6,7 @@ import { ShopEmpty } from "@/components/shop-empty";
 import { categoryAriaLabel, categoryCopy, categoryFromSlug, TYPE_SLUGS } from "@/lib/categories";
 import { collectionEmptyCopy, lookCountLabel } from "@/lib/look-count";
 import { getCatalogTypes, getProductsByType } from "@/lib/products";
-import { categoryJsonLd, categorySeo } from "@/lib/seo";
+import { categoryJsonLd, categorySeo, notFoundSeo } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 export const dynamicParams = true;
@@ -24,7 +24,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const type = categoryFromSlug(slug);
   if (!type) {
-    notFound();
+    return notFoundSeo();
   }
   return categorySeo(type);
 }

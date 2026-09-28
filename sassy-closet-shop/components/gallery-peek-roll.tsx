@@ -223,7 +223,12 @@ export function GalleryPeekRoll({
                     src={slide.src}
                     alt={slide.alt}
                     priority={isCenter}
-                    sizes={peeking ? "(max-width: 1023px) 100vw, 46vw" : "(max-width: 1023px) 100vw, 50vw"}
+                    fetchPriority={isCenter ? "high" : "low"}
+                    sizes={
+                      peeking
+                        ? "(max-width: 1023px) calc(100vw - 40px), 46vw"
+                        : "(max-width: 1023px) calc(100vw - 40px), 50vw"
+                    }
                     className="object-cover object-top"
                     ma={ma ?? "Look"}
                     letter={letter ?? ma?.slice(0, 1) ?? "S"}
@@ -236,10 +241,10 @@ export function GalleryPeekRoll({
 
         {peeking ? <div aria-hidden className="gallery-water-sheen" /> : null}
 
-        {peeking && !reduced ? (
+        {peeking ? (
           <motion.span
             aria-hidden
-            className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-px origin-left bg-gold"
+            className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-px origin-left bg-gold motion-reduce:hidden"
             style={{ scaleX: scrollXProgress }}
           />
         ) : null}
