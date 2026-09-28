@@ -288,7 +288,7 @@ export function PhotoLightbox({
       >
         <div className="mb-3 flex items-start justify-between gap-3">
           <div>
-            <p id={titleId} className="font-display text-2xl leading-[1.08] tracking-[0.02em] text-balance text-ink" translate="no">
+            <p id={titleId} className="line-clamp-3 font-display text-2xl leading-[1.08] tracking-[0.02em] text-balance text-ink" translate="no">
               {title}
             </p>
             <p
@@ -381,7 +381,7 @@ export function PhotoLightbox({
           />
         ) : null}
         {peeking ? (
-          <div className="ky-gallery-dock mt-3">
+          <div className="ky-gallery-dock mt-3 shrink-0">
             <GalleryNavButton
               label="Ảnh trước"
               side="left"
@@ -419,7 +419,7 @@ export function PhotoLightbox({
           </div>
         ) : null}
         {peeking ? (
-          <div className="ky-thumb-rail mt-3 flex flex-nowrap gap-2.5 overflow-x-auto tab-scroll">
+          <div className="ky-thumb-rail mt-3 flex shrink-0 flex-nowrap gap-2.5 overflow-x-auto tab-scroll">
             {slides.map((slideItem, slideIndex) => {
               const thumb = version ? cacheBustMediaSrc(slideItem.src, version) : slideItem.src;
               return (
