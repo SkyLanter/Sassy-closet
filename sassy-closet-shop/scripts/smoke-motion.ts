@@ -1441,7 +1441,7 @@ if (!gallery.includes("aria-current={safeIndex >= THUMB_CAP}")) {
 if (!gallery.includes("ky-thumb-rail") || !gallery.includes("border-gold/35")) {
   fail("Gallery thumbs must keep a quiet gold rim and kill the iOS callout");
 }
-if (!gallery.includes("ky-thumb-rail mt-3 flex min-w-0 max-w-full flex-nowrap")) {
+if (!gallery.includes("ky-thumb-rail mt-0 flex min-w-0 max-w-full flex-nowrap")) {
   fail("Gallery thumb rail must shrink instead of blowing the PDP column");
 }
 if (!gallery.includes("border-gold/35 hover-hover:hover:border-gold") || !gallery.includes("draggable={false}")) {
@@ -1702,7 +1702,7 @@ if (!featured.includes('aria-label="Lọc looks · Filter looks"')) {
 if (!css.includes(".ky-gutter") || !css.includes(".ky-gutter-bleed")) {
   fail("Shop gutters must pad landscape safe-area");
 }
-if (!css.includes("--shop-buy-bar-space") || !css.includes("4.25rem + env(safe-area-inset-bottom, 0px)")) {
+if (!css.includes("--shop-buy-bar-space") || !css.includes("4.75rem + env(safe-area-inset-bottom, 0px)")) {
   fail("Phone buy-bar clearance must match the bar plus the home indicator");
 }
 if (!css.includes("@custom-variant hover-hover") || !css.includes("@media (hover: hover)")) {

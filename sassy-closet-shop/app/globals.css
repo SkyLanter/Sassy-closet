@@ -53,7 +53,7 @@
   --glass-line: rgb(255 236 230 / 0.55);
   --glass-shadow: 0 12px 28px -16px rgb(176 112 98 / 0.32);
   --glass-radius: 1rem;
-  --shop-buy-bar-space: calc(4.25rem + env(safe-area-inset-bottom, 0px));
+  --shop-buy-bar-space: calc(4.75rem + env(safe-area-inset-bottom, 0px));
 }
 
 @theme inline {
@@ -1350,9 +1350,15 @@ input.shop-search-field:focus-visible {
   flex: 1 1 0;
   width: auto;
   min-width: 2.75rem;
-  max-width: 4.25rem;
+  max-width: 3rem;
   height: auto;
   aspect-ratio: 3 / 4;
+}
+
+@media (min-width: 1024px) {
+  .sc-thumb-rail > .ky-thumb-shot {
+    max-width: none;
+  }
 }
 
 .ky-thumb-shot.sc-thumb-active {

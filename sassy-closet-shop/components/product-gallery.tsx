@@ -157,7 +157,7 @@ export function ProductGallery({
         </p>
       ) : null}
       {reel.length > 0 ? (
-        <div ref={thumbRailRef} className="ky-thumb-rail sc-thumb-rail mt-3 flex min-w-0 max-w-full flex-nowrap gap-2 overflow-x-auto tab-scroll">
+        <div ref={thumbRailRef} className="ky-thumb-rail sc-thumb-rail mt-0 flex min-w-0 max-w-full flex-nowrap gap-2 overflow-x-auto tab-scroll">
           {thumbs.map((thumb, thumbIndex) => {
             const src = version ? cacheBustMediaSrc(thumb.src, version) : thumb.src;
             const currentThumb = thumbIndex === safeIndex;

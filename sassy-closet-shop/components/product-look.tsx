@@ -39,7 +39,7 @@ export function ProductLook({ product }: { product: ShopLook }) {
 
   return (
     <>
-    <article aria-labelledby="look-title" className="mx-auto grid max-w-7xl items-start gap-3 ky-gutter py-3 lg:grid-cols-2 lg:gap-14 lg:py-12">
+    <article aria-labelledby="look-title" className="mx-auto grid max-w-7xl items-start gap-1 ky-gutter py-1 lg:grid-cols-2 lg:gap-14 lg:py-12">
       <div className="min-w-0 lg:sticky lg:top-[calc(env(safe-area-inset-top,0px)+8.75rem)] lg:self-start">
         <ContentWaveLooks>
           <ProductGallery product={product} colorId={colorId} onColorId={setColorId} />
