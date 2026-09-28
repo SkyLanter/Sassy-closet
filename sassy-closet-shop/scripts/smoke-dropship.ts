@@ -316,8 +316,8 @@ const pricedOffer = pricedLd.offers as { availability?: string; price?: string }
 if (pricedOffer.availability === "https://schema.org/InStock") {
   fail("Dropship available must not pretend warehouse InStock");
 }
-if (pricedOffer.price !== "25.00") {
-  fail("A01 JSON-LD must keep Boss $25");
+if (pricedOffer.price !== "24.00") {
+  fail("A01 JSON-LD must keep Boss $24");
 }
 
 if (cardBuyHint(hold) !== "Message to buy") {

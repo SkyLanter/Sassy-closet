@@ -6,11 +6,35 @@ import {
   deboxForLetter,
   formatUsd2,
   FX_DEFAULT,
+  MARGIN_DIVISOR,
   MARGIN_FLOOR,
   marginPct,
   marginVerdict,
+  quoteSellUsd,
+  UNDER_TEN_BUMP_USD,
+  UNDER_TEN_LIMIT_USD,
 } from "@/lib/pricing";
 import type { MaLetter } from "@/lib/ma";
+
+function FormulaSell({ landedUsd, sellUsd }: { landedUsd: number | null; sellUsd: number | null }) {
+  if (landedUsd === null || sellUsd === null) {
+    return <strong>{formatUsd2(sellUsd)}</strong>;
+  }
+  const quoted = quoteSellUsd(landedUsd);
+  if (quoted.quotedUsd < UNDER_TEN_LIMIT_USD) {
+    return (
+      <>
+        ceil({formatUsd2(landedUsd)} ÷ {MARGIN_DIVISOR}) = {formatUsd2(quoted.quotedUsd)} + ${UNDER_TEN_BUMP_USD} ={" "}
+        <strong>{formatUsd2(sellUsd)}</strong>
+      </>
+    );
+  }
+  return (
+    <>
+      ceil({formatUsd2(landedUsd)} ÷ {MARGIN_DIVISOR}) = <strong>{formatUsd2(sellUsd)}</strong>
+    </>
+  );
+}
 
 function numOrNull(raw: string): number | null {
   const trimmed = raw.trim().replace(/,/g, "");
@@ -74,7 +98,7 @@ export function PriceCalculator({
     <div className="rounded-2xl border border-line bg-blush/40 p-4" data-testid="price-calculator">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">
-          Price calculator · sell = ceil(landed ÷ 0.7)
+          Price calculator · sell = ceil(landed ÷ {MARGIN_DIVISOR}), +${UNDER_TEN_BUMP_USD} under ${UNDER_TEN_LIMIT_USD}
         </p>
         {lockedDebox !== null && letter ? (
           <button
@@ -175,7 +199,7 @@ export function PriceCalculator({
             {usingOverride ? (
               <strong>{formatUsd2(effectiveSell)}</strong>
             ) : (
-              <>ceil({formatUsd2(breakdown.landedUsd)} ÷ 0.7) = <strong>{formatUsd2(effectiveSell)}</strong></>
+              <FormulaSell landedUsd={breakdown.landedUsd} sellUsd={effectiveSell} />
             )}
           </dd>
         </div>

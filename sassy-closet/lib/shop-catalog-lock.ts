@@ -12,16 +12,16 @@ export type LockedBossPrice = {
  * the intake desk from writing a different price or status for those mãs.
  */
 export const LOCKED_BOSS_PRICES: readonly LockedBossPrice[] = [
-  { ma: "A01", priceUsd: 25, status: "available" },
-  { ma: "S01", priceUsd: 39, status: "available" },
+  { ma: "A01", priceUsd: 24, status: "available" },
+  { ma: "S01", priceUsd: 37, status: "available" },
   { ma: "P01", priceUsd: 5, status: "available" },
-  { ma: "P02", priceUsd: 24, status: "available" },
+  { ma: "P02", priceUsd: 22, status: "available" },
   { ma: "P03", priceUsd: 10, status: "available" },
   { ma: "P04", priceUsd: 9, status: "available" },
-  { ma: "P05", priceUsd: 23, status: "available" },
-  { ma: "K01", priceUsd: 36, status: "available" },
-  { ma: "H01", priceUsd: 8, status: "available" },
-  { ma: "A02", priceUsd: 21, status: "available" },
+  { ma: "P05", priceUsd: 22, status: "available" },
+  { ma: "K01", priceUsd: 34, status: "available" },
+  { ma: "H01", priceUsd: 7, status: "available" },
+  { ma: "A02", priceUsd: 20, status: "available" },
 ];
 
 export function lockedBossPrice(ma: string): LockedBossPrice | undefined {

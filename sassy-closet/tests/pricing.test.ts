@@ -7,6 +7,8 @@ import {
   DEFAULT_FX,
   MARGIN_FLOOR,
   TARGET_MARGIN,
+  UNDER_TEN_BUMP_USD,
+  UNDER_TEN_LIMIT_USD,
 } from "../lib/pricing";
 
 const FX = 6.723;
@@ -26,16 +28,34 @@ test("debox defaults to $0 for other letters unless Boss sets a value", () => {
   assert.equal(deboxFor("G", { G: -1 }), 0);
 });
 
-test("auto price: sell = ceil(landed / 0.7) with landed = CNY/FX + debox", () => {
-  // V03-style: ¥53.78 at FX 6.723 + $7.50 debox -> landed $15.50, sell ceil(22.14) = 23
+test("auto price: sell = ceil(landed / 0.75) with landed = CNY/FX + debox", () => {
+  // V03-style: ¥53.78 at FX 6.723 + $7.50 debox -> landed $15.50, sell ceil(20.67) = 21
   const breakdown = computeAutoPrice({ costCny: 53.78, fxRate: FX, kind: "V" });
   assert.ok(breakdown);
   assert.equal(breakdown.deboxUsd, 7.5);
   assert.ok(Math.abs(breakdown.landedUsd - (53.78 / FX + 7.5)) < 1e-9);
   assert.equal(breakdown.sellUsd, Math.ceil(breakdown.landedUsd / (1 - TARGET_MARGIN)));
-  assert.equal(breakdown.sellUsd, 23);
-  assert.ok(Math.abs(breakdown.marginPct - 0.3) < 0.05); // ceil bumps margin a touch
+  assert.equal(breakdown.sellUsd, 21);
+  assert.ok(Math.abs(breakdown.marginPct - 0.25) < 0.05); // ceil bumps margin a touch
   assert.equal(breakdown.captionEligible, breakdown.marginPct >= MARGIN_FLOOR);
+});
+
+test("auto price: ceil under $10 adds $2", () => {
+  // landed = 30/6.723 ≈ $4.46; ceil(4.46/0.75) = 6; 6 < $10 so sell = 8
+  const breakdown = computeAutoPrice({ costCny: 30, fxRate: FX, kind: "A" });
+  assert.ok(breakdown);
+  const quoted = Math.ceil(breakdown.landedUsd / (1 - TARGET_MARGIN));
+  assert.ok(quoted < UNDER_TEN_LIMIT_USD);
+  assert.equal(breakdown.sellUsd, quoted + UNDER_TEN_BUMP_USD);
+  assert.equal(breakdown.sellUsd, 8);
+});
+
+test("auto price: ceil at $10 does not add $2", () => {
+  // landed = 50/6.723 ≈ $7.44; ceil(7.44/0.75) = 10
+  const breakdown = computeAutoPrice({ costCny: 50, fxRate: FX, kind: "A" });
+  assert.ok(breakdown);
+  assert.equal(Math.ceil(breakdown.landedUsd / (1 - TARGET_MARGIN)), 10);
+  assert.equal(breakdown.sellUsd, 10);
 });
 
 test("auto price returns null for bad inputs instead of inventing a price", () => {
