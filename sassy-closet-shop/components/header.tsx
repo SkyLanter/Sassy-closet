@@ -4,7 +4,6 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutGroup, motion, useReducedMotion } from "framer-motion";
-import { useAdminEntry } from "@/components/admin-entry";
 import { HeaderSearch, HeaderSearchProvider, HeaderSearchSheet } from "@/components/header-search";
 import { MessengerCta } from "@/components/messenger-cta";
 import { onShopHomeClick, useShopSearch } from "@/components/shop-search";
@@ -18,9 +17,6 @@ export function Header({ types }: { types: MaLetter[] }) {
   const pathname = usePathname();
   const { clearSearch } = useShopSearch();
   const reduced = useReducedMotion();
-  const studio = useAdminEntry();
-  const holdTimer = useRef<number | null>(null);
-  const gated = useRef(false);
   const navRef = useRef<HTMLElement | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -41,30 +37,6 @@ export function Header({ types }: { types: MaLetter[] }) {
     );
   }, [pathname]);
 
-  useEffect(() => {
-    return () => {
-      if (holdTimer.current !== null) {
-        window.clearTimeout(holdTimer.current);
-      }
-    };
-  }, []);
-
-  function clearHold() {
-    if (holdTimer.current !== null) {
-      window.clearTimeout(holdTimer.current);
-      holdTimer.current = null;
-    }
-  }
-
-  function startHold() {
-    clearHold();
-    gated.current = false;
-    holdTimer.current = window.setTimeout(() => {
-      gated.current = true;
-      studio?.openStudio();
-    }, 700);
-  }
-
   return (
     <HeaderSearchProvider onExpandedChange={setSearchOpen}>
     <motion.header
@@ -81,16 +53,7 @@ export function Header({ types }: { types: MaLetter[] }) {
           className={`inline-flex min-h-11 min-w-0 touch-manipulation select-none items-center truncate whitespace-nowrap font-display text-[1.65rem] font-medium leading-[1.12] tracking-[0.02em] text-balance text-ink hover-hover:hover:text-gold-deep ${
             searchOpen ? "max-sm:hidden" : ""
           }`}
-          onPointerDown={startHold}
-          onPointerUp={clearHold}
-          onPointerCancel={clearHold}
-          onPointerLeave={clearHold}
           onClick={(event) => {
-            if (gated.current) {
-              event.preventDefault();
-              gated.current = false;
-              return;
-            }
             onShopHomeClick(event, clearSearch);
           }}
         >

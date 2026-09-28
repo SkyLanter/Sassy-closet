@@ -1,3 +1,4 @@
+import { customerAdminApiClosed } from "@/lib/customer-admin-closed";
 import { bulkHoldInCatalog } from "@/lib/admin-ops";
 import {
   adminFail,
@@ -18,10 +19,18 @@ type HoldBody = {
 };
 
 export async function GET() {
+  const closed = customerAdminApiClosed();
+  if (closed) {
+    return closed;
+  }
   return adminMethodNotAllowed("POST", "Use POST to Hold selected mãs.");
 }
 
 export async function POST(request: Request) {
+  const closed = customerAdminApiClosed();
+  if (closed) {
+    return closed;
+  }
   const blocked = adminWriteBlocked();
   if (blocked) {
     return blocked;

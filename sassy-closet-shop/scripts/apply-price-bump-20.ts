@@ -69,9 +69,20 @@ async function main() {
   });
 
   try {
-    const res = await fetch("https://sassy-closet-shop.vercel.app/api/admin/revalidate", {
+    const secret = process.env.SHOP_REVALIDATE_SECRET?.trim() ?? "";
+    const url =
+      process.env.SHOP_REVALIDATE_URL?.trim() ||
+      "https://sassy-closet-shop.vercel.app/api/admin/revalidate";
+    if (!secret) {
+      console.warn("revalidate skipped: SHOP_REVALIDATE_SECRET is unset");
+      return;
+    }
+    const res = await fetch(url, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        "x-shop-revalidate-secret": secret,
+      },
       body: JSON.stringify({}),
     });
     console.log("revalidate", res.status, (await res.text()).slice(0, 200));

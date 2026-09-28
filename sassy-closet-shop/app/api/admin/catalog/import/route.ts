@@ -1,3 +1,4 @@
+import { customerAdminApiClosed } from "@/lib/customer-admin-closed";
 import {
   applyCatalogHandoff,
   parseHandoffCatalog,
@@ -23,10 +24,18 @@ function importModeOf(value: unknown): "replace" | "merge" {
 }
 
 export async function GET() {
+  const closed = customerAdminApiClosed();
+  if (closed) {
+    return closed;
+  }
   return adminMethodNotAllowed("POST", "Use POST to import catalog.v1.");
 }
 
 export async function POST(request: Request) {
+  const closed = customerAdminApiClosed();
+  if (closed) {
+    return closed;
+  }
   const blocked = adminWriteBlocked();
   if (blocked) {
     return blocked;

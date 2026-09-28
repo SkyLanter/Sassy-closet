@@ -1355,8 +1355,11 @@ if (!header.includes("scrollChromeChildIntoView") || !header.includes('[aria-cur
 if (header.includes("scrollIntoView")) {
   fail("Category nav must not use page scrollIntoView");
 }
-if (!header.includes("holdTimer") || !header.includes("clearTimeout")) {
-  fail("Header long-press admin must clear its timer on unmount");
+if (header.includes("holdTimer") || header.includes("useAdminEntry") || header.includes("Shop tools")) {
+  fail("Customer header must not open Shop tools");
+}
+if (read("app/(shop)/layout.tsx").includes("admin-entry") || read("app/(shop)/layout.tsx").includes("AdminEntry")) {
+  fail("Customer shop layout must not mount Shop tools");
 }
 if (!header.includes('translate="no"')) {
   fail("Header wordmark and category names must not be auto-translated");

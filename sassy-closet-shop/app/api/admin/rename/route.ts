@@ -1,3 +1,4 @@
+import { customerAdminApiClosed } from "@/lib/customer-admin-closed";
 import { mergeItemFieldsFromBody } from "@/lib/admin-json-body";
 import { fieldsFromProduct, renameProductInCatalog } from "@/lib/admin-ops";
 import {
@@ -20,10 +21,18 @@ type RenameBody = {
 };
 
 export async function GET() {
+  const closed = customerAdminApiClosed();
+  if (closed) {
+    return closed;
+  }
   return adminMethodNotAllowed("POST", "Use POST to change mã.");
 }
 
 export async function POST(request: Request) {
+  const closed = customerAdminApiClosed();
+  if (closed) {
+    return closed;
+  }
   const blocked = adminWriteBlocked();
   if (blocked) {
     return blocked;

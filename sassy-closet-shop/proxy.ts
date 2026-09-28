@@ -1,10 +1,22 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { customerAdminProxyDecision } from "@/lib/customer-admin-closed";
 import { encodeShopSearchHeader, SHOP_SEARCH_HEADER } from "@/lib/look-search";
 import { canonicalCategoryPath, canonicalMaPath } from "@/lib/ma-url";
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  if (customerAdminProxyDecision(pathname) === "not-found") {
+    return new NextResponse(null, {
+      status: 404,
+      headers: {
+        "Cache-Control": "private, no-store, no-cache, max-age=0, must-revalidate",
+        "CDN-Cache-Control": "private, no-store",
+        "Vercel-CDN-Cache-Control": "private, no-store",
+        "X-Robots-Tag": "noindex, nofollow",
+      },
+    });
+  }
   const maCanon = canonicalMaPath(pathname);
   if (maCanon) {
     const url = request.nextUrl.clone();

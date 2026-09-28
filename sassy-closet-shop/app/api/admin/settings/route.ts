@@ -1,3 +1,4 @@
+import { customerAdminApiClosed } from "@/lib/customer-admin-closed";
 import { asCatalogDocument } from "@/lib/product-parse";
 import {
   adminFail,
@@ -18,10 +19,18 @@ type SettingsBody = {
 };
 
 export async function GET() {
+  const closed = customerAdminApiClosed();
+  if (closed) {
+    return closed;
+  }
   return adminMethodNotAllowed("POST", "Use POST to save site settings.");
 }
 
 export async function POST(request: Request) {
+  const closed = customerAdminApiClosed();
+  if (closed) {
+    return closed;
+  }
   const blocked = adminWriteBlocked();
   if (blocked) {
     return blocked;

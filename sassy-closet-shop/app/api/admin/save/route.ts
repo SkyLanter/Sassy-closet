@@ -1,3 +1,4 @@
+import { customerAdminApiClosed } from "@/lib/customer-admin-closed";
 import { mergeItemFieldsFromBody } from "@/lib/admin-json-body";
 import { fieldsFromProduct, saveProductInCatalog } from "@/lib/admin-ops";
 import {
@@ -19,10 +20,18 @@ type SaveBody = {
 };
 
 export async function GET() {
+  const closed = customerAdminApiClosed();
+  if (closed) {
+    return closed;
+  }
   return adminMethodNotAllowed("POST", "Use POST to save a catalog mã.");
 }
 
 export async function POST(request: Request) {
+  const closed = customerAdminApiClosed();
+  if (closed) {
+    return closed;
+  }
   const blocked = adminWriteBlocked();
   if (blocked) {
     return blocked;

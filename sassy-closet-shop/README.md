@@ -92,24 +92,18 @@ Official clone (new Vercel + Blob, same code): [docs/OFFICIAL_CLONE.md](./docs/O
 
 The hub ten stay on the catalog. **Add next mãs (A03+)** Saves to the live catalog (Blob on Vercel, `data/live-catalog.json` locally) and the piece appears on the shop. Official alphabet (`AO001`) is still rejected. Qty is always 1. Hold ⇔ `priceUsd` null. Excel / OneDrive / intake are read-only — copy colors, empty sizes, staff `source_link`, and Message-first dropship copy into this sell catalog only.
 
-## Test admin (`/admin`)
+## Admin
 
-Open sell-ops console. No password, no login. Not linked in the main nav. On the shop: long-press the logo, or tap the tiny gold dot (bottom-right) → **Open admin**.
+The customer shop has **no** `/admin` page and **no** Shop tools button. `/admin` is 404. Catalog list/edit lives on the intake app (password-locked). This app keeps `POST /api/admin/revalidate`, which requires header `x-shop-revalidate-secret` (`SHOP_REVALIDATE_SECRET`). Other `/api/admin/*` routes return 404.
 
-- **Catalog** (`/admin`) — thumb, mã, title, status, price, colors, image count, search, type/status filters, bulk Hold, Edit + Preview PDP. Marker `data-save-contract="blob+revalidate"`
-- **Add** (`/admin/new`) — pick a letter (`A · Tops`, not `→ Q01` tiles). Save assigns the next unused mã via `POST /api/admin/add` (JSON receipt). That path does **not** use a Server Action, so the page does not die behind React #441 after Blob write. Success toast + footer receipt, then soft-navigate to Edit. Visible error if write fails — never the minified React overlay.
-- **Edit item** (`/admin/edit/A01`) — identity, status/price, colors+photos, copy, change mã. Preview PDP. Sticky Save writes on click (the bar is the confirm — no native dialog). Success is a receipt (`ok`, `blobWritten`, `catalogSha`, `revalidated`) or a visible error. Never silent.
-- **Change mã** — JSON `POST /api/admin/rename`. Hub ten stay. Taken / Official codes refused. Photos keep their URLs so thumbs do not 404
-- **Colors** — Boxes only — no names on the swatches (admin hex). Shop shows **text-only** color names. Link / unlink / reorder gallery slides per color (`image.colorId`); Save still Blob + revalidate
-- **Images** — hashed Blob path (never in-place `cover.jpg`). Shop `<img>` uses `/products/{MA}/cover.jpg?v=`
-- **Sold / Gone** — hides the piece from the shop without a checkout flow
-- **Site settings** (`/admin/settings`) — announcement lines, Messenger / Facebook Page URL (no personal name), **Export / Import catalog.v1** (import keeps extras; hub ten must stay)
+Those routes return **404** (the page and every admin API except revalidate):
 
-`GET /api/admin/catalog` — private no-store JSON (`products` hub-first then extras, `catalogSha`, `updatedAt`).  
-`POST /api/admin/save` — `{ ma, titleEn }` receipt after write + revalidate + two warms.  
-`POST /api/admin/add` — `{ letter: "A" }` assigns the next unused mã (A03+), writes Blob/local, returns the same receipt. GET is 405.  
-`POST /api/admin/rename` · `POST /api/admin/remove` · `POST /api/admin/settings` · `POST /api/admin/hold` — same JSON receipt pattern (no Server Action / RSC #441).  
-`POST /api/admin/revalidate` — marks `/`, `/c/[slug]` `page`, `/m/[ma]` `page`. GET is 405, never 404.
+- `/admin`, `/admin/new`, `/admin/edit/[ma]`, `/admin/settings`, `/admin/pipeline`, `/admin/intake`
+- `GET` and `POST` `/api/admin/catalog`, `/api/admin/save`, `/api/admin/add`, `/api/admin/rename`, `/api/admin/remove`, `/api/admin/hold`, `/api/admin/settings`, `/api/admin/catalog/export`, `/api/admin/catalog/import`
+
+`POST /api/admin/revalidate` marks `/`, `/c/[slug]` `page`, `/m/[ma]` `page` when header `x-shop-revalidate-secret` matches `SHOP_REVALIDATE_SECRET`. Missing, wrong, or unset secret is 401. GET is 405.
+
+List and edit of existing mãs is intake `/admin/shop` (see `sassy-closet/docs/SHOP_ADMIN.md`). That desk does not add mãs, rename, import, or upload photos.
 
 P02 and P05 stay Hold / Inbox for price (no invented $). All ten are **Message to buy** (dropship OK; Square on-hand may be 0). Available hub rows keep Boss USD.
 
@@ -123,13 +117,14 @@ Set on **Production** (and Preview). Do not put values in git. There is **no** `
 | `NEXT_PUBLIC_SITE_MODE` | `test` or `official` | Labels admin; official uses a different default id |
 | `NEXT_PUBLIC_SHOP_URL` | Official public origin | Canonical shop URL. Empty locally — not hardcoded |
 | `NEXT_PUBLIC_MESSENGER_URL` | Messenger Page URL | Overrides the default Page link |
-| `BLOB_READ_WRITE_TOKEN` | Preferred store | Live catalog JSON + image uploads (Vercel Blob) |
+| `BLOB_READ_WRITE_TOKEN` | Preferred store | Live catalog JSON the shop reads (Vercel Blob) |
 | `KV_REST_API_URL` | Alternative store | Catalog JSON only, if Blob is unset |
 | `KV_REST_API_TOKEN` | With the URL | Catalog JSON only, if Blob is unset |
+| `SHOP_REVALIDATE_SECRET` | Revalidate lock | Same value as intake. `POST /api/admin/revalidate` is 401 without it |
 
-On Vercel without Blob/KV, `/admin` still opens; Add/Save show an error toast until a store is attached. Blob wins when both are set.
+There is no shop admin UI to open when Blob/KV is missing. The customer site still serves the catalog from Blob, KV, or the seed. Intake writes the shop Blob with its own `SHOP_BLOB_READ_WRITE_TOKEN`.
 
-Locally (not on Vercel), Add/Save persist to `data/live-catalog.json` and uploads go to `public/uploads/` so you can sell-test without tokens. That file is gitignored. Do not write the catalog to the serverless filesystem on Vercel.
+Locally (not on Vercel), a gitignored `data/live-catalog.json` is the shop’s file fallback when Blob is unset. Do not write the catalog to the serverless filesystem on Vercel.
 
 ## Buy path
 
@@ -149,10 +144,9 @@ Customer tiles show **name, price, description, color, photos** and **Message**.
 
 ## How to test admin
 
-1. Open `/admin` (or gold-dot → Open admin). Test only · not in the main nav.
-2. **Add mã** → letter A → title → Save. Receipt toast shows `Saved A04 · sha …`. Footer is not stuck on unsaved. No React #441. Edit opens with the new mã. **A03+** appears on `/` and `/m/{ma}`.
-3. Edit **A01** → title nudge → Save. Confirm `/m/A01` (refresh twice if needed) and `GET /api/admin/catalog` `catalogSha` changed. Restore the title.
-4. `POST /api/admin/save` with `{ "ma": "A03" }` works after Add (400 only if A03 is not in the catalog yet). Locked mãs save only at the Boss USD. `AO001` stays rejected.
+On this shop: `GET /admin` is 404, the home HTML has no Shop tools button, admin APIs other than revalidate are 404, and `POST /api/admin/revalidate` is 401 until `x-shop-revalidate-secret` matches `SHOP_REVALIDATE_SECRET`.
+
+Catalog edits are on the intake app at `/admin/shop` after the password cookie. See `sassy-closet/docs/SHOP_ADMIN.md`.
 
 `npm run smoke:admin` checks Add A03 / Hold pairing / leftover Remove / missing-hub import / Official `AO001` refuse without the browser.
 
@@ -192,7 +186,7 @@ Customer tiles show **name, price, description, color, photos** and **Message**.
 
 Craft notes (learn → apply): [docs/ai-clothing-shop/](./docs/ai-clothing-shop/).
 
-`npm run smoke:link` POSTs `/api/admin/save` on A01 (title nudge + restore), checks the receipt, two PDP warms, catalog sha, and revalidate. `/m/A03` is 200 after Add, 404 until then.
+`npm run smoke:link` checks `GET /admin` is 404, the home HTML has no Shop tools, admin catalog/save/add are 404, and revalidate is 401 without the secret (200 with `SHOP_REVALIDATE_SECRET`). It does not write the catalog.
 
 Origin gate (look + silent-Save): `python3 docs/ai-clothing-shop/qa/qa_selltest_origin_gate.py` — [§18 apply note](./docs/ai-clothing-shop/11-origin-f18-apply.md).
 
