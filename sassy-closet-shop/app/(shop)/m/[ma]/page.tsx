@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ContentWaveHost, ContentWaveLooks } from "@/components/content-wave";
 import { HScrollCue } from "@/components/h-scroll-cue";
 import { ProductLook } from "@/components/product-look";
+import { ProductViewEvent } from "@/components/product-view-event";
 import { ProductGrid } from "@/components/product-grid";
 import { categoryAriaLabel, categoryCopy } from "@/lib/categories";
 import { lookCountLabel } from "@/lib/look-count";
@@ -55,6 +56,7 @@ export default async function ProductPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd(product)) }}
       />
       <ContentWaveHost className="shop-content-layer">
+        <ProductViewEvent ma={product.ma} />
         <ProductLook product={product} />
 
         {related.length > 0 ? (
