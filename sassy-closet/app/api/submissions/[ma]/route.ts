@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { saveFromForm } from "@/lib/form-save";
+import { normalizeMa } from "@/lib/mint";
 import { scheduleNewMaWebhookFromRow } from "@/lib/newMaWebhook";
 import { getSubmission } from "@/lib/store";
 
@@ -27,7 +28,12 @@ export async function PATCH(
   try {
     const form = await request.formData();
     const submission = await saveFromForm(form, ma);
-    scheduleNewMaWebhookFromRow("update", submission);
+    const previousMa = normalizeMa(ma);
+    scheduleNewMaWebhookFromRow(
+      "update",
+      submission,
+      previousMa !== submission.ma ? previousMa : undefined,
+    );
     return NextResponse.json({ submission });
   } catch (error) {
     const status = (error as { status?: number }).status ?? 400;

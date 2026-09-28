@@ -4,9 +4,12 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, test } from "node:test";
 import { GET } from "../app/api/listing-status/route";
 import {
+  LISTING_STATUS_POLL_MS,
   LISTING_TEXT_CAP,
+  formatUsd,
   listingChip,
   listingItemForMa,
+  listingPollIntervalMs,
   listingStatusFromApi,
   listingWebView,
   parseListingFile,
@@ -123,6 +126,14 @@ describe("listing status parse", () => {
     assert.deepEqual(held.notes, [PHOTO_VI, SIZE_VI]);
     assert.equal(listingWebView(undefined).summary, "Đang chờ bot");
     assert.equal(listingItemForMa(items, "a17")?.state, "live");
+    assert.equal(formatUsd(25), "$25");
+    assert.equal(formatUsd(24.5), "$24.50");
+    assert.equal(formatUsd(10.1), "$10.10");
+    assert.equal(
+      listingChip({ state: "live", priceUsd: 24.5, reasons: [], todo: [] }).label,
+      "Live $24.50",
+    );
+    assert.equal(listingWebView({ state: "live", priceUsd: 24.5, reasons: [], todo: [] }).summary, "Live · $24.50");
   });
 
   test("enabled false hides items; a bare items bag still shows badges", () => {
@@ -135,6 +146,24 @@ describe("listing status parse", () => {
     assert.equal(on.enabled, true);
     assert.equal(on.items.A17.priceUsd, 24);
     assert.deepEqual(listingStatusFromApi(null), { enabled: false, items: {} });
+    const failed = listingStatusFromApi({
+      enabled: false,
+      error: true,
+      items: { A17: { state: "live", priceUsd: 25 } },
+    });
+    assert.equal(failed.enabled, false);
+    assert.deepEqual(failed.items, {});
+  });
+
+  test("badges poll every 45s only while the tab is visible", () => {
+    assert.equal(LISTING_STATUS_POLL_MS, 45_000);
+    assert.equal(listingPollIntervalMs("visible"), 45_000);
+    assert.equal(listingPollIntervalMs("hidden"), null);
+    assert.equal(listingPollIntervalMs("prerender"), null);
+    const intake = fs.readFileSync(path.join(process.cwd(), "components/IntakeApp.tsx"), "utf8");
+    assert.match(intake, /visibilitychange/);
+    assert.match(intake, /listingPollIntervalMs/);
+    assert.match(intake, /scheduleListingRefresh/);
   });
 });
 
@@ -197,24 +226,26 @@ describe("GET /api/listing-status", () => {
     assert.equal(JSON.stringify(body).includes(BLOB_TOKEN), false);
   });
 
-  test("500, timeout, and bad JSON return empty items with 200", async () => {
+  test("500, timeout, and bad JSON hide badges with a distinct error", async () => {
     process.env.LISTING_STATUS_URL = STATUS_URL;
+    const hidden = { enabled: false, error: true, items: {} };
     globalThis.fetch = (async () => new Response("nope", { status: 500 })) as typeof fetch;
     const failed = await GET();
     assert.equal(failed.status, 200);
-    assert.deepEqual(await failed.json(), { items: {} });
+    assert.deepEqual(await failed.json(), hidden);
 
     globalThis.fetch = (async () => {
       throw new DOMException("The operation was aborted.", "TimeoutError");
     }) as typeof fetch;
     const timedOut = await GET();
     assert.equal(timedOut.status, 200);
-    assert.deepEqual(await timedOut.json(), { items: {} });
+    assert.deepEqual(await timedOut.json(), hidden);
 
     globalThis.fetch = (async () => new Response("not-json", { status: 200 })) as typeof fetch;
     const bad = await GET();
     assert.equal(bad.status, 200);
-    assert.deepEqual(await bad.json(), { items: {} });
+    assert.deepEqual(await bad.json(), hidden);
+    assert.equal(listingStatusFromApi(hidden).enabled, false);
   });
 });
 

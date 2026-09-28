@@ -8,7 +8,6 @@ import { PATCH } from "../app/api/submissions/[ma]/route";
 import {
   buildNewMaWebhookPayload,
   newMaWebhookConfigured,
-  newMaWebhookUrlConfigured,
   notifyNewMaWebhook,
   scheduleNewMaWebhook,
   type NewMaWebhookInput,
@@ -76,27 +75,34 @@ describe("new mã webhook helper", () => {
     const blank = buildNewMaWebhookPayload(sampleInput({ event: "update", photo_count: 0 }));
     assert.equal(blank.photo_count, 0);
     assert.equal("photo_count" in blank, true);
+    assert.equal("previous_ma" in blank, false);
+
+    const renamed = buildNewMaWebhookPayload(
+      sampleInput({ event: "update", ma: "A09", previous_ma: "A01" }),
+    );
+    assert.equal(renamed.ma, "A09");
+    assert.equal(renamed.previous_ma, "A01");
+    const same = buildNewMaWebhookPayload(sampleInput({ event: "update", previous_ma: "A17" }));
+    assert.equal("previous_ma" in same, false);
   });
 
   test("unset, whitespace, or half-set env is a no-op — fetch is not called", async () => {
     assert.equal(newMaWebhookConfigured(), false);
-    assert.equal(newMaWebhookUrlConfigured(), false);
     await notifyNewMaWebhook(sampleInput());
     assert.equal(fetchCalls.length, 0);
 
     process.env.NEW_MA_WEBHOOK_URL = "  ";
     process.env.NEW_MA_WEBHOOK_TOKEN = TEST_TOKEN;
     assert.equal(newMaWebhookConfigured(), false);
-    assert.equal(newMaWebhookUrlConfigured(), false);
     await notifyNewMaWebhook(sampleInput());
     assert.equal(fetchCalls.length, 0);
 
     process.env.NEW_MA_WEBHOOK_URL = TEST_URL;
     delete process.env.NEW_MA_WEBHOOK_TOKEN;
     assert.equal(newMaWebhookConfigured(), false);
-    assert.equal(newMaWebhookUrlConfigured(), true);
     await notifyNewMaWebhook(sampleInput());
     assert.equal(fetchCalls.length, 0);
+    assert.equal(errors.length, 0);
 
     delete process.env.NEW_MA_WEBHOOK_URL;
     process.env.NEW_MA_WEBHOOK_TOKEN = `  ${TEST_TOKEN}  `;
@@ -160,6 +166,21 @@ describe("new mã webhook helper", () => {
     await notifyNewMaWebhook(sampleInput({ event: "update" }));
     assert.deepEqual(errors[0][1], { event: "update", ma: "A17", status: "network" });
     assertNoSecret(errors);
+  });
+
+  test("http URL is not called and logs skip without the URL", async () => {
+    const httpUrl = "http://example.invalid/new-ma";
+    process.env.NEW_MA_WEBHOOK_URL = httpUrl;
+    process.env.NEW_MA_WEBHOOK_TOKEN = TEST_TOKEN;
+    assert.equal(newMaWebhookConfigured(), true);
+
+    await notifyNewMaWebhook(sampleInput({ previous_ma: "A01" }));
+    assert.equal(fetchCalls.length, 0);
+    assert.deepEqual(errors[0][1], { event: "create", ma: "A17", status: "skip" });
+    const dumped = JSON.stringify(errors);
+    assert.equal(dumped.includes(httpUrl), false);
+    assert.equal(dumped.includes("example.invalid"), false);
+    assert.equal(dumped.includes(TEST_TOKEN), false);
   });
 
   test("schedule outside a request still sends and does not throw", async () => {
@@ -234,9 +255,10 @@ describe("save routes stay 200 when the new-mã webhook fails", { concurrency: 1
     assert.equal(createdBody.ma, "A01");
     assert.equal(createdBody.updated_at, created.submission.updated_at);
     assert.equal(createdBody.photo_count, 0);
+    assert.equal("previous_ma" in createdBody, false);
 
-    const patchedRes = await PATCH(jsonForm("PATCH", "/api/submissions/A01", { new_ma: "A09" }), {
-      params: Promise.resolve({ ma: "A01" }),
+    const patchedRes = await PATCH(jsonForm("PATCH", "/api/submissions/a01", { new_ma: "A09" }), {
+      params: Promise.resolve({ ma: "a01" }),
     });
     assert.equal(patchedRes.status, 200);
     const patched = (await patchedRes.json()) as { submission: { ma: string; updated_at: string } };
@@ -247,10 +269,22 @@ describe("save routes stay 200 when the new-mã webhook fails", { concurrency: 1
       event: string;
       ma: string;
       updated_at: string;
+      previous_ma?: string;
     };
     assert.equal(patchedBody.event, "update");
     assert.equal(patchedBody.ma, "A09");
+    assert.equal(patchedBody.previous_ma, "A01");
     assert.equal(patchedBody.updated_at, patched.submission.updated_at);
+
+    const sameRes = await PATCH(jsonForm("PATCH", "/api/submissions/A09"), {
+      params: Promise.resolve({ ma: "A09" }),
+    });
+    assert.equal(sameRes.status, 200);
+    await flush();
+    assert.equal(fetchCalls.length, 3);
+    const sameBody = JSON.parse(String(fetchCalls[2].init.body)) as { ma: string; previous_ma?: string };
+    assert.equal(sameBody.ma, "A09");
+    assert.equal("previous_ma" in sameBody, false);
     assertNoSecret(errors);
   });
 

@@ -2,6 +2,8 @@ import { assertNever } from "./kinds";
 
 export const LISTING_TEXT_CAP = 300;
 export const LISTING_STATUS_TIMEOUT_MS = 2_000;
+/** Badge refresh while the intake tab is visible. Hidden tabs do not poll. */
+export const LISTING_STATUS_POLL_MS = 45_000;
 const LISTING_NOTE_CAP = 20;
 const LISTING_MA_CAP = 40;
 
@@ -59,13 +61,19 @@ export function parseListingItems(value: unknown): Record<string, ListingItem> |
   return items;
 }
 
-/** Client read of GET /api/listing-status. `enabled: false` means no badges. */
+/** Client read of GET /api/listing-status. `enabled: false` or `error: true` means no badges. */
 export function listingStatusFromApi(payload: unknown): ListingStatusClient {
-  if (!isRecord(payload) || payload.enabled === false) {
+  if (!isRecord(payload) || payload.enabled === false || payload.error === true) {
     return { enabled: false, items: {} };
   }
   const items = parseListingItems(payload.items);
   return { enabled: true, items: items ?? {} };
+}
+
+/** Interval while the tab is visible. Any other visibility stops the poll. */
+export function listingPollIntervalMs(visibility: string): number | null {
+  if (visibility === "visible") return LISTING_STATUS_POLL_MS;
+  return null;
 }
 
 export function listingItemForMa(
@@ -125,7 +133,8 @@ export function listingWebView(item: ListingItem | undefined): ListingWebView {
 
 export function formatUsd(priceUsd: number | undefined): string | null {
   if (typeof priceUsd !== "number" || !Number.isFinite(priceUsd) || priceUsd < 0) return null;
-  return `$${String(priceUsd)}`;
+  if (Number.isInteger(priceUsd)) return `$${String(priceUsd)}`;
+  return `$${priceUsd.toFixed(2)}`;
 }
 
 function parseListingItem(value: unknown): ListingItem | null {

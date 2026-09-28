@@ -14,6 +14,7 @@ import { nextMa, parseHubMa } from "@/lib/mint";
 import {
   listingChip,
   listingItemForMa,
+  listingPollIntervalMs,
   listingStatusFromApi,
   listingWebView,
   type ListingItem,
@@ -104,8 +105,38 @@ export function IntakeApp({
   }, []);
 
   useEffect(() => {
+    let pollTimer: number | null = null;
+
+    function stopPoll() {
+      if (pollTimer === null) return;
+      window.clearInterval(pollTimer);
+      pollTimer = null;
+    }
+
+    function startPoll() {
+      stopPoll();
+      const delay = listingPollIntervalMs(document.visibilityState);
+      if (delay === null) return;
+      pollTimer = window.setInterval(() => {
+        loadListingRef.current();
+      }, delay);
+    }
+
+    function onVisibility() {
+      if (listingPollIntervalMs(document.visibilityState) === null) {
+        stopPoll();
+        return;
+      }
+      loadListingRef.current();
+      startPoll();
+    }
+
     loadListingRef.current();
+    startPoll();
+    document.addEventListener("visibilitychange", onVisibility);
     return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      stopPoll();
       if (listingTimer.current !== null) window.clearTimeout(listingTimer.current);
     };
   }, []);

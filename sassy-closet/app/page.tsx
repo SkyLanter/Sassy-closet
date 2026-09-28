@@ -1,5 +1,5 @@
 import { IntakeApp } from "@/components/IntakeApp";
-import { newMaWebhookUrlConfigured } from "@/lib/newMaWebhook";
+import { newMaWebhookConfigured } from "@/lib/newMaWebhook";
 import { getFx } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
@@ -10,7 +10,7 @@ export default async function HomePage() {
     <IntakeApp
       initialFxRate={fx.usd_cny}
       initialFxLabel={fx.label}
-      newMaWebhookOn={newMaWebhookUrlConfigured()}
+      newMaWebhookOn={newMaWebhookConfigured()}
     />
   );
 }
