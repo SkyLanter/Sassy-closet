@@ -3,7 +3,6 @@ import path from "node:path";
 import { ImageResponse } from "next/og";
 import type { ShareCardModel } from "@/lib/share-card";
 import type { SharePhoto } from "@/lib/share-photo";
-import { FULFILL_LINE_SHORT } from "@/lib/trust-copy";
 
 export const SHARE_CARD_SIZE = { width: 1200, height: 630 } as const;
 
@@ -11,7 +10,6 @@ const PAPER = "#fdece6";
 const INK = "#111111";
 const GOLD = "#b08968";
 const GOLD_DEEP = "#8c6a4e";
-const MUTED = "#7a655e";
 const PHOTO_WIDTH = 472;
 
 type OgFont = {
@@ -134,7 +132,7 @@ function CardCopy({ model, withPhoto }: { model: ShareCardModel; withPhoto: bool
               fontFamily: "Be Vietnam Pro",
               fontWeight: 500,
               fontSize: 34,
-              color: model.detail === FULFILL_LINE_SHORT ? MUTED : INK,
+              color: INK,
             }}
           >
             {model.detail}

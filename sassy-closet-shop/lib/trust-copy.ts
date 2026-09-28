@@ -124,7 +124,7 @@ export function productShareDescription(product: {
   descriptionEn: string;
   priceUsd: number | null;
 }): string {
-  const body = product.descriptionEn.trim() || product.titleEn.trim();
+  const body = (product.descriptionEn.trim() || product.titleEn.trim()).replace(/\.+$/, "");
   const price = product.priceUsd !== null ? formatUsd(product.priceUsd) : HOLD_PRICE_LABEL;
   return `${price} · ${body} · Message Sassy Closet on Messenger`;
 }

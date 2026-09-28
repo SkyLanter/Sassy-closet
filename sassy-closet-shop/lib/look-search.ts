@@ -144,9 +144,14 @@ export function filterLooksByQuery<T extends LookSearchItem>(
   const ma = looseMaCandidate(raw);
   if (ma) {
     const hit = looks.find((look) => look.ma === ma);
-    return hit ? [hit] : [];
+    if (hit) {
+      return [hit];
+    }
   }
-  const tokens = foldSearchText(raw).split(" ").filter(Boolean);
+  // A partial mã (`a1`, `d0`, `a 1`) is not an exact row. Match the prefix
+  // with spaces and dashes removed so typing A15 one key at a time still lists looks.
+  const needle = ma ? raw.replace(/[\s-]+/g, "") : raw;
+  const tokens = foldSearchText(needle).split(" ").filter(Boolean);
   if (tokens.length === 0) {
     return looks;
   }

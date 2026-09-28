@@ -9,7 +9,9 @@ import { renderShareCard } from "../lib/og-card";
 import { productJsonLd, productSeo, notFoundSeo } from "../lib/seo";
 import {
   cardWithPhoto,
+  categoryShareCardFields,
   categorySharePlan,
+  homeShareCardFields,
   productShareCardCopy,
   productSharePlan,
   shareCardVariant,
@@ -61,6 +63,16 @@ function read(relative: string): string {
   return readFileSync(path.join(process.cwd(), relative), "utf8");
 }
 
+test("home and category cards do not repeat the messenger line or a look mã", () => {
+  const home = homeShareCardFields();
+  assert.equal(home.cta, "Message us on Messenger");
+  assert.equal(home.detail, undefined);
+  assert.equal(JSON.stringify(home).includes("Message on Messenger"), false);
+  const category = categoryShareCardFields("A");
+  assert.equal(category.title, "Tops");
+  assert.equal(category.eyebrow, undefined);
+});
+
 test("unknown mã is never rendered on a share card", () => {
   const plan = productSharePlan(undefined);
   assert.deepEqual(plan, { status: 404 });
@@ -76,7 +88,7 @@ test("share description uses the catalog price and never invents one", () => {
   });
   assert.equal(
     priced,
-    "$23 · Heather knit top, grey floral. · Message Sassy Closet on Messenger",
+    "$23 · Heather knit top, grey floral · Message Sassy Closet on Messenger",
   );
   const local = productShareDescription({
     titleEn: "Heather knit top",
@@ -91,7 +103,7 @@ test("share description uses the catalog price and never invents one", () => {
   });
   assert.equal(
     held,
-    "Inbox for price · Heather knit top, grey floral. · Message Sassy Closet on Messenger",
+    "Inbox for price · Heather knit top, grey floral · Message Sassy Closet on Messenger",
   );
   assert.equal(held.includes("$"), false);
   assert.equal(HOLD_PRICE_LABEL, "Inbox for price");

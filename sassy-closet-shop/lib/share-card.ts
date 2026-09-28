@@ -5,7 +5,6 @@ import { formatUsd } from "@/lib/format";
 import type { MaLetter } from "@/lib/ma";
 import { loadSharePhoto, type SharePhoto } from "@/lib/share-photo";
 import { SITE } from "@/lib/site";
-import { FULFILL_LINE_SHORT } from "@/lib/trust-copy";
 import type { ShopLook } from "@/lib/shop-look";
 
 export const SHARE_CARD_CTA = "Message us on Messenger";
@@ -37,7 +36,6 @@ export function homeShareCardFields(): ShareCardFields {
   return {
     kicker: "SASSY CLOSET",
     title: SITE.name,
-    detail: FULFILL_LINE_SHORT,
     cta: SHARE_CARD_CTA,
   };
 }
@@ -52,10 +50,9 @@ export function productShareCardCopy(product: PricedLook): ShareCardFields {
   };
 }
 
-export function categoryShareCardFields(type: MaLetter, look?: PricedLook): ShareCardFields {
+export function categoryShareCardFields(type: MaLetter): ShareCardFields {
   return {
     kicker: "SASSY CLOSET",
-    eyebrow: look?.ma,
     title: categoryCopy(type).label,
     cta: SHARE_CARD_CTA,
   };
@@ -72,13 +69,12 @@ export function productSharePlan(
 
 export function categorySharePlan(
   slug: string,
-  look?: PricedLook,
 ): { status: 404 } | { status: 200; fields: ShareCardFields } {
   const type = categoryFromSlug(slug);
   if (!type) {
     return { status: 404 };
   }
-  return { status: 200, fields: categoryShareCardFields(type, look) };
+  return { status: 200, fields: categoryShareCardFields(type) };
 }
 
 export async function cardWithPhoto(

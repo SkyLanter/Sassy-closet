@@ -28,7 +28,7 @@ export function LookPhoto({
   width?: number;
   height?: number;
 }) {
-  const imagePriority = fetchPriority ?? (priority ? "high" : "auto");
+  const imagePriority = fetchPriority ?? "auto";
   if (!shouldOptimizeImage(src)) {
     return (
       <NativeLookPhoto
