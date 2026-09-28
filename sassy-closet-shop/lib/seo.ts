@@ -97,11 +97,27 @@ export function rootSeo(): Metadata {
   };
 }
 
+function productShareImages(product: ShopLook): NonNullable<Metadata["openGraph"]>["images"] {
+  const alt = productOgAlt(product);
+  const cover = coverSrc(product);
+  if (!cover) {
+    return shareImage(`/share/m/${product.ma}`, alt);
+  }
+  return [
+    {
+      url: absoluteMedia(cover),
+      width: 1200,
+      height: 1600,
+      alt,
+    },
+  ];
+}
+
 export function productSeo(product: ShopLook): Metadata {
   const title = productShareTitle(product);
   const description = productShareDescription(product);
   const canonical = shopCanonical(`/m/${product.ma}`);
-  const images = shareImage(`/share/m/${product.ma}`, productOgAlt(product));
+  const images = productShareImages(product);
   return {
     title,
     description,

@@ -97,7 +97,7 @@ export function SizeNameChips({
               data-size-letter={letter}
               aria-label={letter}
               onClick={() => onSelect(letter)}
-              className={`ky-color-chip liquid-glass-chip relative inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center touch-manipulation select-none whitespace-nowrap px-3 text-[11px] font-medium uppercase tracking-[0.16em] ${
+              className={`ky-color-chip liquid-glass-chip sc-press relative inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center touch-manipulation select-none whitespace-nowrap px-3 text-[11px] font-medium uppercase tracking-[0.16em] ${
                 selected ? "text-ink" : "text-muted hover-hover:hover:text-ink"
               }`}
               translate="no"

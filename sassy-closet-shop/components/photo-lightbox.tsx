@@ -1,8 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useId, useLayoutEffect, useRef, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { motion, useReducedMotion } from "framer-motion";
+import { LookPhoto } from "@/components/look-photo";
+import { ZoomLayer } from "@/components/zoom-layer";
 import { cacheBustMediaSrc } from "@/lib/catalog-sha";
 import {
   animateGalleryScrollTo,
@@ -83,6 +85,9 @@ export function PhotoLightbox({
       ? cacheBustMediaSrc(current.src, version)
       : current.src
     : undefined;
+  const zoomKey = `${safeIndex}:${src ?? ""}`;
+  const [zoomFor, setZoomFor] = useState<string | null>(null);
+  const zoomed = zoomFor === zoomKey;
   const peeking = slides.length > 1;
   const canPrev = peeking && safeIndex > 0;
   const canNext = peeking && safeIndex < slides.length - 1;
@@ -281,15 +286,26 @@ export function PhotoLightbox({
               {colorLabel} · {safeIndex + 1} / {slides.length}
             </p>
           </div>
-          <button
-            ref={closeRef}
-            type="button"
-            onClick={close}
-            aria-label="Đóng"
-            className="flex h-11 w-11 touch-manipulation items-center justify-center rounded-full border border-gold/45 text-ink hover-hover:hover:border-gold"
-          >
-            <span aria-hidden>✕</span>
-          </button>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              data-testid="photo-zoom-open"
+              onClick={() => setZoomFor(zoomKey)}
+              className="sc-press inline-flex min-h-11 touch-manipulation items-center rounded-full border border-gold/45 px-4 text-[11px] uppercase tracking-[0.16em] text-ink"
+              aria-label="Phóng to · Zoom"
+            >
+              Phóng to
+            </button>
+            <button
+              ref={closeRef}
+              type="button"
+              onClick={close}
+              aria-label="Đóng"
+              className="flex h-11 w-11 touch-manipulation items-center justify-center rounded-full border border-gold/45 text-ink hover-hover:hover:border-gold"
+            >
+              <span aria-hidden>✕</span>
+            </button>
+          </div>
         </div>
         <div className="relative">
           <div
@@ -312,21 +328,33 @@ export function PhotoLightbox({
                   }}
                   className="pdp-slide"
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={slideSrc}
-                    alt={`${title} · ${colorLabel} · ${photoIndexLabel(slideIndex + 1)}`}
-                    draggable={false}
-                    decoding={slideIndex === safeIndex ? "sync" : "async"}
-                    fetchPriority={slideIndex === safeIndex ? "high" : "low"}
-                    sizes="(min-width: 768px) 48rem, 100vw"
-                    className="max-h-[88dvh] w-full select-none rounded-sm object-contain ring-1 ring-gold/40"
-                  />
+                  <div
+                    className="relative aspect-[3/4] w-full"
+                    onDoubleClick={() => {
+                      if (slideIndex === safeIndex) {
+                        setZoomFor(zoomKey);
+                      }
+                    }}
+                    onTouchStart={(event) => {
+                      if (event.touches.length === 2 && slideIndex === safeIndex) {
+                        setZoomFor(zoomKey);
+                      }
+                    }}
+                  >
+                    <LookPhoto
+                      src={slideSrc}
+                      alt={`${title}, ${colorLabel}, photo ${slideIndex + 1}`}
+                      priority={slideIndex === safeIndex}
+                      sizes="(min-width: 768px) 48rem, 100vw"
+                      className="object-contain"
+                    />
+                  </div>
                 </div>
               );
             })}
           </div>
         </div>
+        {zoomed && src ? <ZoomLayer src={src} alt={`${title}, ${colorLabel}`} onClose={() => setZoomFor(null)} /> : null}
         {peeking ? (
           <div className="ky-gallery-dock mt-3">
             <GalleryNavButton
@@ -379,12 +407,11 @@ export function PhotoLightbox({
                   aria-posinset={slideIndex + 1}
                   aria-setsize={slides.length}
                   onClick={() => onIndex(slideIndex)}
-                  className={`ky-thumb-shot min-h-11 min-w-11 shrink-0 touch-manipulation overflow-hidden border ${
+                  className={`ky-thumb-shot relative h-20 w-14 min-h-11 min-w-11 shrink-0 touch-manipulation overflow-hidden border ${
                     slideIndex === safeIndex ? "border-gold" : "border-gold/35 hover-hover:hover:border-gold"
                   }`}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={thumb} alt="" draggable={false} decoding="async" width={56} height={80} sizes="56px" className="h-20 w-14 select-none object-cover" />
+                  <LookPhoto src={thumb} alt="" sizes="56px" className="object-cover object-top" />
                 </button>
               );
             })}

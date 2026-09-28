@@ -10,10 +10,12 @@ export function ProductGrid({
   products,
   replay = false,
   namedCovers = true,
+  eagerCount = 2,
 }: {
   products: ShopLook[];
   replay?: boolean;
   namedCovers?: boolean;
+  eagerCount?: number;
 }) {
   const reduced = useReducedMotion();
 
@@ -37,7 +39,7 @@ export function ProductGrid({
         <ProductCard
           key={product.ma}
           product={product}
-          priority={index < 4}
+          priority={index < eagerCount}
           namedCover={namedCovers}
         />
       ))}

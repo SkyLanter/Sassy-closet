@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { MessengerCta } from "@/components/messenger-cta";
+import { TrustStrip } from "@/components/trust-strip";
 import { onShopHomeClick, useShopSearch } from "@/components/shop-search";
 import { SITE } from "@/lib/site";
 
@@ -30,6 +31,7 @@ export function Footer() {
         </Link>
         <MessengerCta variant="ghost" />
       </div>
+      <TrustStrip />
       {aboveBuyBar ? (
         <div
           aria-hidden

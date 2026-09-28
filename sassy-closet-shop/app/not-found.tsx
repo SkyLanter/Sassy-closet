@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function NotFound() {
   return (
-    <div className="mx-auto max-w-xl ky-gutter py-24">
+    <div className="mx-auto max-w-xl ky-gutter py-24" data-testid="shop-not-found">
       <ShopEmpty
         title="Không tìm thấy · Not found"
         body="Không tìm thấy look trên lookbook · Not found."

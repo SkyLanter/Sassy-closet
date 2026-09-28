@@ -6,7 +6,15 @@ import { ProductPrice } from "@/components/product-price";
 import { displayName } from "@/lib/copy";
 import type { ShopLook } from "@/lib/shop-look";
 
-export function BuyBar({ product }: { product: ShopLook }) {
+export function BuyBar({
+  product,
+  sizeLabel = null,
+  colorLabel = null,
+}: {
+  product: ShopLook;
+  sizeLabel?: string | null;
+  colorLabel?: string | null;
+}) {
   const name = displayName(product);
 
   return (
@@ -22,11 +30,12 @@ export function BuyBar({ product }: { product: ShopLook }) {
         <div className="pt-2.5">
           <div className="mx-auto flex max-w-6xl items-center gap-3">
             <div className="min-w-0 flex-1">
-              <p className="flex min-w-0 items-center gap-x-1.5">
-                <MaMark ma={product.ma} className="shrink-0 text-[10px] tracking-[0.16em] text-muted" />
-                <span className="min-w-0 flex-1 select-none overflow-hidden text-ellipsis whitespace-nowrap font-display text-[15px] font-medium leading-[1.15] tracking-[0.01em] text-ink" title={name} translate="no">
-                  {name}
-                </span>
+              <p className="text-[10px] uppercase tracking-[0.16em] text-muted">
+                <span translate="no">Mã </span>
+                <MaMark ma={product.ma} className="text-ink" />
+              </p>
+              <p className="sc-title line-clamp-2 font-display text-[15px] font-medium leading-[1.15] tracking-[0.01em] text-ink" title={name} translate="no">
+                {name}
               </p>
               <ProductPrice
                 product={product}
@@ -35,6 +44,8 @@ export function BuyBar({ product }: { product: ShopLook }) {
             </div>
             <MessengerCta
               ma={product.ma}
+              sizeLabel={sizeLabel}
+              colorLabel={colorLabel}
               askPrice={product.priceUsd === null}
               className="min-h-11 shrink-0 whitespace-nowrap"
             />

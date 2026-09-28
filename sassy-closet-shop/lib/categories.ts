@@ -45,6 +45,40 @@ export function categoryAriaLabel(type: MaLetter): string {
   return `${labels.vn} · ${labels.nav}`;
 }
 
+/** Short Vietnamese names for the on-page filter chips. */
+export function categoryFilterLabel(type: MaLetter): string {
+  switch (type) {
+    case "A":
+      return "Áo";
+    case "Q":
+      return "Quần";
+    case "V":
+      return "Váy";
+    case "D":
+      return "Đầm";
+    case "S":
+      return "Set";
+    case "K":
+      return "Khoác";
+    case "P":
+      return "Phụ kiện";
+    case "G":
+      return TYPE_LABELS.G.vn;
+    case "B":
+      return TYPE_LABELS.B.vn;
+    case "H":
+      return TYPE_LABELS.H.vn;
+    case "J":
+      return TYPE_LABELS.J.vn;
+    case "O":
+      return TYPE_LABELS.O.vn;
+    default: {
+      const _exhaustive: never = type;
+      return _exhaustive;
+    }
+  }
+}
+
 export function categoryTileSrc(type: MaLetter): string {
   return `/editorial/${categorySlug(type)}.jpg`;
 }

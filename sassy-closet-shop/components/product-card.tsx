@@ -8,7 +8,9 @@ import { MaMark } from "@/components/ma-mark";
 import { MessengerCta } from "@/components/messenger-cta";
 import { ProductImage } from "@/components/product-image";
 import { ProductPrice } from "@/components/product-price";
+import { colorShopLabel } from "@/lib/colors";
 import { displayDescription, displayName } from "@/lib/copy";
+import { lookPhotoAlt } from "@/lib/photo-alt";
 import { clampedReelIndexForColor, productGalleryReel } from "@/lib/gallery-reel";
 import { GALLERY_ROLL_MS } from "@/lib/gallery-snap";
 import { fadeUp, springSoft } from "@/lib/motion";
@@ -34,12 +36,16 @@ export function ProductCard({
     setColorId((current) => (current === id ? null : id));
   }
 
+  const selectedIndex = product.colors.findIndex((color) => color.id === colorId);
+  const selectedColor = selectedIndex >= 0 ? product.colors[selectedIndex] : undefined;
+  const colorLabel = selectedColor ? colorShopLabel(selectedColor, selectedIndex) : null;
+
   return (
     <motion.li
       variants={fadeUp(Boolean(reduced))}
       exit="exit"
       transition={springSoft}
-      className="flex h-full min-w-0 list-none flex-col"
+      className="sc-rise flex h-full min-w-0 list-none flex-col"
     >
       <Link href={`/m/${product.ma}`} className="group block touch-manipulation select-none h-full">
         <div className="flex h-full flex-col">
@@ -53,6 +59,7 @@ export function ProductCard({
               <ProductImage
                 product={product}
                 src={undefined}
+                alt={lookPhotoAlt({ title: name, ma: product.ma })}
                 priority={priority}
                 named={false}
                 coverFallback={false}
@@ -71,6 +78,12 @@ export function ProductCard({
                     <ProductImage
                       product={product}
                       src={slide.src}
+                      alt={lookPhotoAlt({
+                        title: name,
+                        ma: product.ma,
+                        color: slide.colorName,
+                        index: slide.photoIndex + 1,
+                      })}
                       priority={priority && index === 0}
                       named={false}
                       coverFallback={false}
@@ -87,7 +100,7 @@ export function ProductCard({
           <p className="mt-2.5 px-0.5">
             <MaMark ma={product.ma} className="text-[10px] tracking-[0.16em] text-muted" />
           </p>
-          <p className="mt-0.5 line-clamp-2 min-h-[2.6em] px-0.5 font-display text-[1.15rem] font-medium leading-[1.12] tracking-[0.02em] text-balance text-ink sm:text-[1.25rem]" translate="no">
+          <p className="sc-title mt-0.5 line-clamp-2 min-h-[2.6em] px-0.5 font-display text-[1.15rem] font-medium leading-[1.12] tracking-[0.02em] text-ink sm:text-[1.25rem]" translate="no">
             {name}
           </p>
           <p className="mt-1 line-clamp-2 min-h-[2.7em] px-0.5 text-[12.5px] leading-[1.35] text-pretty text-muted" translate="no">
@@ -104,6 +117,7 @@ export function ProductCard({
           ma={product.ma}
           askPrice={shopLookAsksPrice(product)}
           variant="card"
+          colorLabel={colorLabel}
         />
       </div>
       {product.colors.length > 0 ? (

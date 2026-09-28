@@ -11,6 +11,7 @@ import {
   GALLERY_ROLL_MS,
   nearestCenteredIndex,
 } from "@/lib/gallery-snap";
+import { LookPhoto } from "@/components/look-photo";
 import { galleryReelLabel, photoIndexLabel, photoPositionLabel } from "@/lib/pdp-copy";
 
 export type PeekSlide = {
@@ -219,15 +220,12 @@ export function GalleryPeekRoll({
                       : photoIndexLabel(i + 1)
                   }
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <LookPhoto
                     src={slide.src}
                     alt={slide.alt}
-                    draggable={false}
-                    decoding={isCenter ? "sync" : "async"}
-                    fetchPriority={isCenter ? "high" : "low"}
-                    sizes={peeking ? "(min-width: 1024px) 42vw, 100vw" : "(min-width: 1024px) 50vw, 100vw"}
-                    className="absolute inset-0 h-full w-full object-cover"
+                    priority={isCenter}
+                    sizes={peeking ? "(max-width: 1023px) 100vw, 46vw" : "(max-width: 1023px) 100vw, 50vw"}
+                    className="object-cover object-top"
                   />
                 </button>
               </div>
@@ -247,50 +245,28 @@ export function GalleryPeekRoll({
       </div>
 
       {peeking ? (
-        <div className="ky-gallery-dock pointer-events-auto absolute inset-x-0 top-[calc(100%+0.7rem)] z-20">
+        <>
           <button
             type="button"
             onClick={() => go(safeIndex - 1)}
             disabled={!canPrev}
             aria-controls={railId}
-            className="liquid-glass flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center text-[15px] text-ink disabled:opacity-40"
+            className="liquid-glass absolute left-2 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 touch-manipulation items-center justify-center text-[15px] text-paper disabled:opacity-40"
             aria-label="Ảnh trước"
           >
             <span aria-hidden>←</span>
           </button>
-          <div className="flex min-w-0 flex-1 justify-center gap-1">
-            {slides.map((slide, i) => (
-              <button
-                key={`dot-${slide.id}`}
-                type="button"
-                aria-label={photoIndexLabel(i + 1)}
-                aria-current={i === safeIndex}
-                aria-controls={railId}
-                aria-posinset={i + 1}
-                aria-setsize={slideCount}
-                onClick={() => go(i)}
-                className="flex h-11 min-w-11 touch-manipulation items-center justify-center"
-              >
-                <span
-                  className={`block rounded-full ${
-                    i === safeIndex ? "h-2 w-7 bg-gold" : "h-2 w-2 bg-paper ring-1 ring-gold/55"
-                  }`}
-                  aria-hidden
-                />
-              </button>
-            ))}
-          </div>
           <button
             type="button"
             onClick={() => go(safeIndex + 1)}
             disabled={!canNext}
             aria-controls={railId}
-            className="liquid-glass flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center text-[15px] text-ink disabled:opacity-40"
+            className="liquid-glass absolute right-2 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 touch-manipulation items-center justify-center text-[15px] text-paper disabled:opacity-40"
             aria-label="Ảnh sau"
           >
             <span aria-hidden>→</span>
           </button>
-        </div>
+        </>
       ) : null}
 
       {center && slideCount > 0 ? (

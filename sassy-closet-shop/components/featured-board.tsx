@@ -8,13 +8,16 @@ import { ContentWaveLooks, useContentWave } from "@/components/content-wave";
 import { LooksSortChips } from "@/components/looks-sort";
 import { SearchResultsBar } from "@/components/search-results-bar";
 import { ShopEmpty } from "@/components/shop-empty";
+import { SizeFilterChips } from "@/components/size-filter";
 import { useShopSearch } from "@/components/shop-search";
-import { categoryAriaLabel, categoryCopy, TYPE_SLUGS } from "@/lib/categories";
+import type { AsiaSizeLetter } from "@/lib/asia-size";
+import { categoryAriaLabel, categoryFilterLabel, TYPE_SLUGS } from "@/lib/categories";
 import { DEFAULT_SHOP_SORT, sortShopLooks, type ShopSortId } from "@/lib/fb-rank";
 import { scrollChromeChildIntoView } from "@/lib/gallery-snap";
 import { collectionEmptyCopy, FEATURED_ALL_ARIA, lookCountLabel } from "@/lib/look-count";
 import { filterLooksByQuery, LOOK_SEARCH_TAB_EMPTY, shopSearchNeedle } from "@/lib/look-search";
 import { slideDirection, springSoft } from "@/lib/motion";
+import { collectShopSizes } from "@/lib/shop-sizes";
 import type { MaLetter } from "@/lib/ma";
 import type { ShopLook } from "@/lib/shop-look";
 
@@ -34,6 +37,7 @@ export function FeaturedBoard({
   committedQuery?: string;
 }) {
   const [filter, setFilter] = useState<Filter>("all");
+  const [size, setSize] = useState<AsiaSizeLetter | null>(null);
   const [sort, setSort] = useState<ShopSortId>(DEFAULT_SHOP_SORT);
   const [direction, setDir] = useState(1);
   const tabRailRef = useRef<HTMLDivElement>(null);
@@ -43,11 +47,18 @@ export function FeaturedBoard({
   const needle = shopSearchNeedle(draft, committedQuery);
   const order = useMemo(() => ["all" as const, ...types], [types]);
   const searched = useMemo(() => filterLooksByQuery(products, needle), [needle, products]);
+  const inCategory = useMemo(
+    () => (filter === "all" ? searched : searched.filter((product) => product.type === filter)),
+    [filter, searched],
+  );
+  const sizeOptions = useMemo(() => collectShopSizes(inCategory), [inCategory]);
+  const activeSize = size && sizeOptions.includes(size) ? size : null;
   const visible = useMemo(() => {
-    const filtered =
-      filter === "all" ? searched : searched.filter((product) => product.type === filter);
+    const filtered = activeSize
+      ? inCategory.filter((product) => product.sizes.includes(activeSize))
+      : inCategory;
     return sortShopLooks(filtered, sort);
-  }, [filter, searched, sort]);
+  }, [activeSize, inCategory, sort]);
   const counts = useMemo(() => {
     const next: Record<string, number> = { all: searched.length };
     for (const type of types) {
@@ -158,13 +169,14 @@ export function FeaturedBoard({
                   reduced={Boolean(reduced)}
                   ariaName={categoryAriaLabel(type)}
                 >
-                  {categoryCopy(type).label}
+                  {categoryFilterLabel(type)}
                 </FilterTab>
               ))}
             </div>
           </motion.div>
         </LayoutGroup>
         </div>
+        <SizeFilterChips sizes={sizeOptions} selected={activeSize} onChange={setSize} />
         <p
           className="mx-auto mt-3 max-w-full truncate whitespace-nowrap text-left text-[11px] uppercase tracking-[0.16em] text-muted tabular-nums"
           aria-live="polite"
@@ -189,41 +201,61 @@ export function FeaturedBoard({
           role="tabpanel"
           aria-labelledby={tabId(filter)}
           data-shop-sort={sort}
+          data-shop-size={activeSize ?? undefined}
           data-shop-search={needle.trim() || undefined}
           className="mt-8 overflow-hidden"
         >
           <ContentWaveLooks>
             {visible.length === 0 ? (
               <ShopEmpty
-                {...(needle.trim()
+                {...(needle.trim() && searched.length === 0
                   ? {
-                      title: filter === "all" ? "Looks" : categoryCopy(filter).label,
-                      body:
-                        searched.length === 0
-                          ? `Không thấy “${needle.trim().slice(0, 40)}” · No results for “${needle.trim().slice(0, 40)}”.`
-                          : LOOK_SEARCH_TAB_EMPTY,
+                      title: filter === "all" ? "Looks" : categoryFilterLabel(filter),
+                      body: `Không thấy “${needle.trim().slice(0, 40)}” · No results for “${needle.trim().slice(0, 40)}”.`,
                     }
-                  : filter === "all"
+                  : activeSize && inCategory.length > 0
                     ? {
-                        title: "Looks",
-                        body: "Chưa có looks trên lookbook · No looks listed.",
+                        title: filter === "all" ? "Looks" : categoryFilterLabel(filter),
+                        body: `Không có size ${activeSize} · No size ${activeSize} in this view.`,
                       }
-                    : collectionEmptyCopy(categoryCopy(filter).label, TYPE_SLUGS[filter]))}
+                  : needle.trim()
+                    ? {
+                        title: filter === "all" ? "Looks" : categoryFilterLabel(filter),
+                        body: LOOK_SEARCH_TAB_EMPTY,
+                      }
+                    : filter === "all"
+                      ? {
+                          title: "Looks",
+                          body: "Chưa có looks trên lookbook · No looks listed.",
+                        }
+                      : collectionEmptyCopy(categoryFilterLabel(filter), TYPE_SLUGS[filter]))}
                 actions={
-                  needle.trim() ? (
+                  needle.trim() || activeSize ? (
                     <div className="mt-5 flex flex-wrap items-center justify-center gap-2 px-2">
-                      <button
-                        type="button"
-                        className="inline-flex min-h-11 touch-manipulation items-center rounded-full border border-gold/45 px-4 text-[13px] text-ink"
-                        onClick={() => clearSearch()}
-                      >
-                        Xóa tìm · Clear search
-                      </button>
+                      {needle.trim() ? (
+                        <button
+                          type="button"
+                          className="inline-flex min-h-11 touch-manipulation items-center rounded-full border border-gold/45 px-4 text-[13px] text-ink"
+                          onClick={() => clearSearch()}
+                        >
+                          Xóa tìm · Clear search
+                        </button>
+                      ) : null}
+                      {activeSize ? (
+                        <button
+                          type="button"
+                          className="inline-flex min-h-11 touch-manipulation items-center rounded-full border border-gold/45 px-4 text-[13px] text-ink"
+                          onClick={() => setSize(null)}
+                        >
+                          Xóa size · Clear size
+                        </button>
+                      ) : null}
                       <button
                         type="button"
                         className="inline-flex min-h-11 touch-manipulation items-center rounded-full border border-gold/45 px-4 text-[13px] text-ink"
                         onClick={() => {
                           choose("all");
+                          setSize(null);
                           clearSearch();
                         }}
                       >

@@ -745,7 +745,8 @@ summary::-webkit-details-marker {
 
   .announce-fade,
   .shimmer,
-  .content-wave-sheen {
+  .content-wave-sheen,
+  .sc-rise {
     animation: none !important;
   }
 
@@ -774,6 +775,9 @@ summary::-webkit-details-marker {
     mix-blend-mode: normal !important;
   }
 
+  .sc-rise,
+  .sc-press,
+  .sc-press:active,
   .ky-card-reel,
   .liquid-glass,
   .liquid-glass-bar,
@@ -973,9 +977,44 @@ summary::-webkit-details-marker {
 
   [data-testid="pdp-color-chips"],
   [data-testid="pdp-size-chips"],
+  [data-testid="fit-notes"],
   #look-title,
   [data-testid="product-gallery"] > p:not(.sr-only) {
     scroll-margin-bottom: var(--shop-buy-bar-space);
+  }
+}
+
+.sc-title {
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sc-press {
+    transition: transform 160ms var(--sc-ease);
+  }
+
+  .sc-press:active {
+    transform: scale(0.97);
+  }
+
+  @supports (animation-timeline: view()) {
+    .sc-rise {
+      animation: sc-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 20%;
+    }
+  }
+}
+
+@keyframes sc-rise {
+  from {
+    opacity: 0.86;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 

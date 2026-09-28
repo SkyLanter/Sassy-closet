@@ -1,6 +1,14 @@
 import { colorShopLabel } from "@/lib/colors";
+import { lookPhotoAlt } from "@/lib/photo-alt";
 import { ownMaImages, type MaMedia } from "@/lib/product-media";
 import type { ProductImageAsset } from "@/lib/types";
+
+type ReelSource = MaMedia & { titleEn?: string; titleVn?: string };
+
+function reelAlt(product: ReelSource, color: string | null, index: number): string {
+  const title = (product.titleEn?.trim() || product.titleVn?.trim() || product.ma).toUpperCase();
+  return lookPhotoAlt({ title, ma: product.ma, color, index });
+}
 
 export type GalleryReelSlide = {
   id: string;
@@ -17,7 +25,7 @@ function usableImages(product: MaMedia): ProductImageAsset[] {
 }
 
 /** One watery reel of unique photos. Never clone the same JPEG as a fake neighbor. */
-export function productGalleryReel(product: MaMedia): GalleryReelSlide[] {
+export function productGalleryReel(product: ReelSource): GalleryReelSlide[] {
   const usable = usableImages(product);
   if (usable.length === 0) {
     return [];
@@ -27,7 +35,7 @@ export function productGalleryReel(product: MaMedia): GalleryReelSlide[] {
     return usable.map((image, photoIndex) => ({
       id: `all-${photoIndex}-${image.src}`,
       src: image.src,
-      alt: `${product.ma} · photo ${photoIndex + 1}`,
+      alt: reelAlt(product, null, photoIndex + 1),
       role: "photo" as const,
       colorId: null,
       photoIndex,
@@ -48,7 +56,7 @@ export function productGalleryReel(product: MaMedia): GalleryReelSlide[] {
       slides.push({
         id: `${color.id}-${photoIndex}-${image.src}`,
         src: image.src,
-        alt: `${product.ma} · ${name} · photo ${photoIndex + 1}`,
+        alt: reelAlt(product, name, photoIndex + 1),
         role: "photo",
         colorId: color.id,
         colorName: name,
@@ -67,7 +75,7 @@ export function productGalleryReel(product: MaMedia): GalleryReelSlide[] {
       slides.push({
         id: `shared-${photoIndex}-${image.src}`,
         src: image.src,
-        alt: `${product.ma} · photo ${photoIndex + 1}`,
+        alt: reelAlt(product, null, photoIndex + 1),
         role: "photo",
         colorId: null,
         photoIndex,
@@ -82,7 +90,7 @@ export function productGalleryReel(product: MaMedia): GalleryReelSlide[] {
     slides.push({
       id: `rest-${photoIndex}-${image.src}`,
       src: image.src,
-      alt: `${product.ma} · photo ${photoIndex + 1}`,
+      alt: reelAlt(product, null, photoIndex + 1),
       role: "photo",
       colorId: image.colorId,
       photoIndex,

@@ -127,5 +127,9 @@ export function productShareDescription(product: {
 }
 
 export function productOgAlt(product: { ma: string; titleEn: string }): string {
-  return `${product.ma} ${product.titleEn.toLowerCase()} — Sassy Closet`;
+  const title = product.titleEn.trim();
+  if (!title) {
+    return `Mã ${product.ma} — Sassy Closet`;
+  }
+  return `${title}, Mã ${product.ma} — Sassy Closet`;
 }
