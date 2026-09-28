@@ -3,7 +3,8 @@
  *
  * Pipeline rule (Boss-defined):
  *   landed = CNY cost / FX + letter debox
- *   sell   = ceil(landed / 0.7)          // 30% gross margin
+ *   sell   = ceil(landed / 0.75)         // 25% gross margin
+ *   if sell < $10, sell = sell + $2
  *   margin$ = sell - landed
  *   margin% = margin$ / sell
  *
@@ -15,8 +16,15 @@
  */
 import type { KindCode } from "./kinds";
 
-/** Target gross margin baked into the auto price (30%). */
-export const TARGET_MARGIN = 0.3;
+/** Target gross margin baked into the auto price (25%). */
+export const TARGET_MARGIN = 0.25;
+
+/** Sell divisor: 1 - 25% = 0.75. */
+export const MARGIN_DIVISOR = 1 - TARGET_MARGIN;
+
+/** Boss rule: if ceil(landed / 0.75) is under $10, add $2. */
+export const UNDER_TEN_LIMIT_USD = 10;
+export const UNDER_TEN_BUMP_USD = 2;
 
 /** Caption margin floor: below this the price line stays "Inbox giá". */
 export const MARGIN_FLOOR = 0.35;
@@ -54,15 +62,23 @@ export type PriceInputs = {
 export type PriceBreakdown = {  /** Landed cost in USD: CNY/FX + debox. */
   landedUsd: number;
   deboxUsd: number;
-  /** Suggested sell price in USD: ceil(landed / 0.7) at 30% margin. */
+  /** Suggested sell price in USD: ceil(landed / 0.75) at 25% margin, +$2 under $10. */
   sellUsd: number;
   /** USD margin (sell - landed). */
   marginUsd: number;
-  /** Margin as a fraction of sell (0.3-ish before rounding, ceil bumps it up). */
+  /** Margin as a fraction of sell (0.25-ish before rounding, ceil bumps it up). */
   marginPct: number;
   /** Whether this price clears the 35% caption floor. */
   captionEligible: boolean;
 };
+
+export function sellUsdFromLanded(landedUsd: number): number {
+  const quoted = Math.ceil(landedUsd / MARGIN_DIVISOR);
+  if (quoted < UNDER_TEN_LIMIT_USD) {
+    return quoted + UNDER_TEN_BUMP_USD;
+  }
+  return quoted;
+}
 
 export function computeAutoPrice(input: PriceInputs): PriceBreakdown | null {
   const { costCny, fxRate, kind, deboxOverrides } = input;
@@ -70,7 +86,7 @@ export function computeAutoPrice(input: PriceInputs): PriceBreakdown | null {
   if (!Number.isFinite(fxRate) || fxRate <= 0) return null;
   const deboxUsd = deboxFor(kind, deboxOverrides);
   const landedUsd = costCny / fxRate + deboxUsd;
-  const sellUsd = Math.ceil(landedUsd / (1 - TARGET_MARGIN));
+  const sellUsd = sellUsdFromLanded(landedUsd);
   const marginUsd = sellUsd - landedUsd;
   const marginPct = sellUsd > 0 ? marginUsd / sellUsd : 0;
   return {

@@ -200,7 +200,7 @@ const hubOff = renameProductInCatalog(seed.products, "A01", "A03", {
   descriptionEn: seed.products[0]!.descriptionEn,
   descriptionVn: seed.products[0]!.descriptionVn,
   status: "available",
-  priceUsd: 25,
+  priceUsd: 24,
   colors: seed.products[0]!.colors,
   images: seed.products[0]!.images,
 });

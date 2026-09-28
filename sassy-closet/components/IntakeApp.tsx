@@ -21,7 +21,15 @@ import {
   type ListingStatusClient,
 } from "@/lib/listing-status";
 import { normalizeFindCode } from "@/lib/on-hand";
-import { computeAutoPrice, DEBOX_LOCKED, MARGIN_FLOOR, TARGET_MARGIN } from "@/lib/pricing";
+import {
+  computeAutoPrice,
+  DEBOX_LOCKED,
+  MARGIN_DIVISOR,
+  MARGIN_FLOOR,
+  TARGET_MARGIN,
+  UNDER_TEN_BUMP_USD,
+  UNDER_TEN_LIMIT_USD,
+} from "@/lib/pricing";
 import type { PriceBreakdown } from "@/lib/pricing";
 import type { TaobaoItem } from "@/lib/taobao";
 import type { KindCode } from "@/lib/kinds";
@@ -1328,7 +1336,7 @@ function PricePanel({
         {deboxLocked
           ? `Debox ${kind} cố định $7.50 (bảng khoá V/Q/D).`
           : "Debox các loại khác mặc định $0 — sửa được."}{" "}
-        Giá bán = ceil(giá vốn $ ÷ {1 - TARGET_MARGIN}).
+        Giá bán = ceil(giá vốn $ ÷ {MARGIN_DIVISOR}). Dưới ${UNDER_TEN_LIMIT_USD} thì +${UNDER_TEN_BUMP_USD}.
       </p>
       {breakdown ? (
         <div data-testid="price-breakdown" className="mt-2 rounded-xl bg-rose-50 p-2 text-xs text-rose-900 ring-1 ring-rose-100">

@@ -1,4 +1,4 @@
-import { bossRow } from "@/lib/boss-catalog";
+import { bossRow, warnBossPriceLag } from "@/lib/boss-catalog";
 import { KNOWN_SEED_MAS, isKnownSeedMa } from "@/lib/catalog-contract";
 import { isValidMa, normalizeMa } from "@/lib/ma";
 import type { CatalogDocument, Product, ProductStatus } from "@/lib/types";
@@ -72,6 +72,9 @@ export function publicSafeProduct(product: Product): Product {
     case "available": {
       const row = bossRow(product.ma);
       if (row && row.priceUsd !== null) {
+        if (product.priceUsd !== row.priceUsd) {
+          warnBossPriceLag(product.ma, product.priceUsd, row.priceUsd);
+        }
         return { ...product, priceUsd: row.priceUsd };
       }
       return product;
@@ -87,9 +90,9 @@ export function publicSafeProduct(product: Product): Product {
 
 /**
  * Live catalog reads show Boss USD for locked mãs.
- * Stored Blob can still have the previous price until the follow-up catalog write.
- * Admin saves load this view, so the pairing check agrees with BOSS_PRICE_LIST.
- * Writes do not call this — a raw document with a different locked price is still rejected.
+ * Stored Blob can still have the 2026-09-27 price until the merge-time catalog patch.
+ * A lagging price logs a warning and the lock wins. Admin saves still reject a non-lock USD.
+ * Writes do not call this — a raw document with any other locked price is still rejected.
  */
 export function presentLockedBossPrices(document: CatalogDocument): CatalogDocument {
   return {

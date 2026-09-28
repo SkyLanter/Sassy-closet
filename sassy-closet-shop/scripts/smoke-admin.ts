@@ -84,7 +84,7 @@ const titled = saveProductInCatalog(seed, "A01", {
   descriptionEn: "One unique top. Message A01 for real photos and size.",
   descriptionVn: "Áo độc bản — một chiếc.",
   status: "available",
-  priceUsd: 25,
+  priceUsd: 24,
   colors: [],
   images: [{ src: "/products/A01/cover.jpg", colorId: null, order: 1 }],
 });
@@ -101,7 +101,7 @@ const warehouseLie = saveProductInCatalog(seed, "A01", {
   descriptionEn: "One unique top on hand. Message A01.",
   descriptionVn: "Áo độc bản — một chiếc đang có.",
   status: "available",
-  priceUsd: 25,
+  priceUsd: 24,
   colors: [],
   images: [{ src: "/products/A01/cover.jpg", colorId: null, order: 1 }],
 });
@@ -118,7 +118,7 @@ const namedNoPhoto = saveProductInCatalog(titled.products, "A01", {
   descriptionEn: "One unique top. Message A01 for real photos and size.",
   descriptionVn: "Áo độc bản — một chiếc.",
   status: "available",
-  priceUsd: 25,
+  priceUsd: 24,
   colors: [{ id: "cblackcolor01", hex: "#111111", name: "Black", note: "Hoa" }],
   images: [{ src: "/products/A01/cover.jpg", colorId: null, order: 1 }],
 });
@@ -132,7 +132,7 @@ const usSize = saveProductInCatalog(titled.products, "A01", {
   descriptionEn: "desc",
   descriptionVn: "desc",
   status: "available",
-  priceUsd: 25,
+  priceUsd: 24,
   colors: [],
   images: [{ src: "/products/A01/cover.jpg", colorId: null, order: 1 }],
   sizes: ["US" as never],
@@ -175,15 +175,15 @@ const p05Boss = saveProductInCatalog(titled.products, "P05", {
   descriptionEn: "Hold",
   descriptionVn: "Hold",
   status: "available",
-  priceUsd: 23,
+  priceUsd: 22,
   colors: [],
   images: [{ src: "/products/P05/cover.jpg", colorId: null, order: 1 }],
 });
 if (!p05Boss.ok) {
-  fail(`P05 Available must save at $23, got ${p05Boss.error}`);
+  fail(`P05 Available must save at $22, got ${p05Boss.error}`);
 }
-if (p05Boss.products.find((product) => product.ma === "P05")?.priceUsd !== 23) {
-  fail("P05 Available must persist $23");
+if (p05Boss.products.find((product) => product.ma === "P05")?.priceUsd !== 22) {
+  fail("P05 Available must persist $22");
 }
 
 const p05OffList = saveProductInCatalog(titled.products, "P05", {
@@ -219,7 +219,7 @@ const taken = renameProductInCatalog(titled.products, "A01", "A02", {
   descriptionEn: "desc",
   descriptionVn: "desc",
   status: "available",
-  priceUsd: 25,
+  priceUsd: 24,
   colors: [],
   images: [{ src: "/products/A01/cover.jpg", colorId: null, order: 1 }],
 });
@@ -233,7 +233,7 @@ const hubRename = renameProductInCatalog(titled.products, "A01", "A03", {
   descriptionEn: "desc",
   descriptionVn: "desc",
   status: "available",
-  priceUsd: 25,
+  priceUsd: 24,
   colors: [],
   images: [{ src: "/products/A01/cover.jpg", colorId: null, order: 1 }],
 });
@@ -247,7 +247,7 @@ const invalid = renameProductInCatalog(titled.products, "A01", "Z01", {
   descriptionEn: "desc",
   descriptionVn: "desc",
   status: "available",
-  priceUsd: 25,
+  priceUsd: 24,
   colors: [],
   images: [{ src: "/products/A01/cover.jpg", colorId: null, order: 1 }],
 });

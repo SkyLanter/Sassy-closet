@@ -1,13 +1,19 @@
 /**
  * Pricing math for the intake → sell pipeline. Pure functions, no I/O.
  *
- * Pipeline rule (locked): sell = ceil(landed / 0.7) at 30% margin, where
+ * Pipeline rule (locked): sell = ceil(landed / 0.75) at 25% margin, where
  * landed = CNY / FX + debox. FX default 6.723 (Boss-named), settable.
+ * If that ceil is under $10, add $2.
  * Under the 35% margin floor, or a blank sell → caption stays "Inbox giá".
  */
 
 export const FX_DEFAULT = 6.723;
-export const MARGIN_TARGET = 0.3;
+export const MARGIN_TARGET = 0.25;
+/** Sell divisor: 1 - 25% = 0.75. */
+export const MARGIN_DIVISOR = 1 - MARGIN_TARGET;
+/** Boss rule: if ceil(landed / 0.75) is under $10, add $2. */
+export const UNDER_TEN_LIMIT_USD = 10;
+export const UNDER_TEN_BUMP_USD = 2;
 export const MARGIN_FLOOR = 0.35;
 
 /**
@@ -38,7 +44,7 @@ export type PricingInput = {
 export type PricingBreakdown = {
   costUsd: number | null;
   landedUsd: number | null;
-  /** ceil(landed / 0.7) — the 30% margin sell. */
+  /** ceil(landed / 0.75) at 25% margin, +$2 when that ceil is under $10. */
   sellUsd: number | null;
   /** (sell - landed) / sell at the recommended sell. */
   marginAtSellPct: number | null;
@@ -46,6 +52,16 @@ export type PricingBreakdown = {
 
 function finitePositive(value: number | null): value is number {
   return typeof value === "number" && Number.isFinite(value) && value > 0;
+}
+
+export function quoteSellUsd(landedUsd: number): { quotedUsd: number; sellUsd: number } {
+  const quotedUsd = Math.ceil(landedUsd / MARGIN_DIVISOR);
+  const sellUsd = quotedUsd < UNDER_TEN_LIMIT_USD ? quotedUsd + UNDER_TEN_BUMP_USD : quotedUsd;
+  return { quotedUsd, sellUsd };
+}
+
+export function sellUsdFromLanded(landedUsd: number): number {
+  return quoteSellUsd(landedUsd).sellUsd;
 }
 
 export function calcPricing(input: PricingInput): PricingBreakdown {
@@ -68,7 +84,7 @@ export function calcPricing(input: PricingInput): PricingBreakdown {
     return { ...empty, costUsd };
   }
   const landed = costUsd + (input.deboxUsd as number);
-  const sell = Math.ceil(landed / (1 - MARGIN_TARGET));
+  const sell = sellUsdFromLanded(landed);
   return {
     costUsd,
     landedUsd: landed,

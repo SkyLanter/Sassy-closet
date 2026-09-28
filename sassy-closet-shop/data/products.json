@@ -20,7 +20,7 @@
       "type": "A",
       "titleVn": "Áo len puppy",
       "titleEn": "Puppy cardigan",
-      "priceUsd": 25,
+      "priceUsd": 24,
       "qty": 1,
       "status": "available",
       "colors": [
@@ -69,7 +69,7 @@
       "type": "S",
       "titleVn": "Đầm polo",
       "titleEn": "Polo wrap dress",
-      "priceUsd": 39,
+      "priceUsd": 37,
       "qty": 1,
       "status": "available",
       "colors": [],
@@ -176,7 +176,7 @@
       "type": "P",
       "titleVn": "Bình Judy Hopps",
       "titleEn": "Judy Hopps tumbler",
-      "priceUsd": 24,
+      "priceUsd": 22,
       "qty": 1,
       "status": "available",
       "colors": [
@@ -334,7 +334,7 @@
       "type": "P",
       "titleVn": "Bình Sanrio",
       "titleEn": "Sanrio tumbler",
-      "priceUsd": 23,
+      "priceUsd": 22,
       "qty": 1,
       "status": "available",
       "colors": [
@@ -402,7 +402,7 @@
       "type": "K",
       "titleVn": "Áo khoác puppy",
       "titleEn": "Puppy zip jacket",
-      "priceUsd": 36,
+      "priceUsd": 34,
       "qty": 1,
       "status": "available",
       "colors": [
@@ -440,7 +440,7 @@
       "type": "H",
       "titleVn": "Nơ tóc thỏ",
       "titleEn": "Rabbit hair bows",
-      "priceUsd": 8,
+      "priceUsd": 7,
       "qty": 1,
       "status": "available",
       "colors": [
@@ -496,7 +496,7 @@
       "type": "A",
       "titleVn": "Áo chấm bi",
       "titleEn": "Polka-dot dress",
-      "priceUsd": 21,
+      "priceUsd": 20,
       "qty": 1,
       "status": "available",
       "colors": [
