@@ -372,8 +372,8 @@ if (!css.includes(".liquid-glass") || !css.includes(".ky-gallery-port") || !css.
 if (!css.includes(".liquid-glass-bar") || !css.includes(".liquid-glass-sheet") || !css.includes(".liquid-glass-caption")) {
   fail("Header/bar, modal sheet, and photo captions must share the glass language");
 }
-if (!css.includes("--glass-blur: 18px") || !css.includes("--glass-blur-bar: 20px") || !css.includes("--glass-sat: 1.4")) {
-  fail("Glass blur tokens must stay in the 12–20px / 140% saturate range");
+if (!css.includes("--glass-blur: 20px") || !css.includes("--glass-blur-bar: 22px") || !css.includes("--glass-sat: 1.7")) {
+  fail("Glass blur tokens must stay a light bar blur with 170% saturate");
 }
 if (css.includes("var(--paper) 42%") || css.includes("paper) 42%")) {
   fail("Liquid glass must not be a milky paper mix");

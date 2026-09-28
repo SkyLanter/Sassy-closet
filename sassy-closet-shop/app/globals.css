@@ -41,18 +41,23 @@
   --duration-enter: 210ms;
   --duration-move: 400ms;
   --blur-md: 12px;
-  /* One glass set: blush-tinted white, 12–20px blur, ~140% saturate.
-     Bars stay ≤0.75 so photos still read; sheets that carry 11px type go higher for AA. */
-  --glass-blur: 18px;
-  --glass-blur-bar: 20px;
-  --glass-sat: 1.4;
+  /* One glass set. Bars stay ≤0.75 so photos still read; sheets that carry 11px type go higher for AA.
+     Saturate 170% and a slightly deeper bar blur so the page refracts. Near + far blush shadows lift the panel. */
+  --glass-blur: 20px;
+  --glass-blur-bar: 22px;
+  --glass-sat: 1.7;
   --glass-fill: rgb(255 247 244 / 0.68);
   --glass-fill-bar: rgb(255 247 244 / 0.72);
   --glass-fill-sheet: rgb(255 247 244 / 0.84);
   --glass-fill-photo: rgb(17 17 17 / 0.66);
   --glass-line: rgb(255 236 230 / 0.55);
-  --glass-shadow: 0 12px 28px -16px rgb(176 112 98 / 0.32);
+  --glass-shadow:
+    0 1px 2px rgb(176 112 98 / 0.16),
+    0 14px 28px -16px rgb(176 112 98 / 0.34),
+    0 36px 56px -36px rgb(120 62 52 / 0.28);
   --glass-radius: 1rem;
+  --glass-sheen-x: 16%;
+  --glass-sheen-y: 8%;
   --shop-buy-bar-space: calc(4.75rem + env(safe-area-inset-bottom, 0px));
 }
 
@@ -259,9 +264,10 @@ body {
 .liquid-glass-sheet,
 .liquid-glass-caption,
 .liquid-glass-chip {
-  border: 1px solid var(--glass-line);
+  border: 1px solid transparent;
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.62),
+    inset 0 1px 0 rgb(255 255 255 / 0.7),
+    inset 0 -1px 0 rgb(120 72 64 / 0.16),
     var(--glass-shadow);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
@@ -284,7 +290,8 @@ body {
   color: var(--ink);
   text-shadow: 0 0 12px rgb(255 255 255 / 0.88), 0 1px 0 rgb(255 255 255 / 0.55);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.72),
+    inset 0 1px 0 rgb(255 255 255 / 0.7),
+    inset 0 -1px 0 rgb(120 72 64 / 0.16),
     var(--glass-shadow);
   backdrop-filter: blur(var(--glass-blur-bar)) saturate(var(--glass-sat));
   -webkit-backdrop-filter: blur(var(--glass-blur-bar)) saturate(var(--glass-sat));
@@ -292,6 +299,8 @@ body {
 
 .ky-header-film,
 .ky-buy-bar {
+  position: relative;
+  isolation: isolate;
   text-shadow: 0 0 16px rgb(255 255 255 / 0.95), 0 1px 0 rgb(255 255 255 / 0.7);
 }
 
@@ -325,6 +334,8 @@ body {
   border-radius: var(--glass-radius);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  position: relative;
+  isolation: isolate;
 }
 
 /* Suggestions sit under the sticky header. Glass, not a second liquid-glass-sheet class. */
@@ -334,7 +345,10 @@ body {
   opacity: 1;
   isolation: isolate;
   border-bottom: 1px solid var(--glass-line);
-  box-shadow: var(--glass-shadow);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.7),
+    inset 0 -1px 0 rgb(120 72 64 / 0.16),
+    var(--glass-shadow);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
 }
@@ -345,6 +359,74 @@ body {
   background: var(--glass-fill);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  position: relative;
+  isolation: isolate;
+}
+
+/* Lit edge + diagonal sheen. The sheen sits under the type (z-index -1 inside isolation).
+   Shader lenses stay out: Safari drops them and they hole the sticky bar. */
+.ky-header-film::before,
+.ky-buy-bar::before,
+.shop-search-sheet::before,
+.liquid-glass-sheet::before,
+.liquid-glass-chip:not(.sc-chip-hit)::before,
+.sc-chip-face::before,
+.gallery-photo-count::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    155deg,
+    rgb(255 255 255 / 0.92) 0%,
+    rgb(243 196 184 / 0.55) 36%,
+    rgb(255 255 255 / 0.05) 68%,
+    transparent 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+.ky-header-film::after,
+.ky-buy-bar::after,
+.shop-search-sheet::after,
+.liquid-glass-sheet::after,
+.liquid-glass-chip:not(.sc-chip-hit)::after,
+.sc-chip-face::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  background-image: linear-gradient(
+    108deg,
+    rgb(255 255 255 / 0) 38%,
+    rgb(255 255 255 / 0.55) 48%,
+    rgb(255 226 216 / 0.22) 54%,
+    rgb(255 255 255 / 0) 64%
+  );
+  background-size: 160% 160%;
+  background-position: var(--glass-sheen-x) var(--glass-sheen-y);
+}
+
+/* Sheen sits above the fill and under the type. A negative layer disappears behind the blur. */
+.ky-header-film > *,
+.ky-buy-bar > *,
+.shop-search-sheet > *,
+.liquid-glass-sheet > *,
+.sc-chip-face > * {
+  position: relative;
+  z-index: 2;
 }
 
 .liquid-glass-rim {
@@ -683,8 +765,19 @@ body {
 
   .shop-search-sheet,
   .sc-chip-in,
-  .sc-to-top {
-    animation: sc-fade-slide 200ms var(--sc-ease) both;
+  .sc-to-top,
+  .ky-buy-bar {
+    animation: sc-glass-pop 320ms cubic-bezier(0.22, 1.15, 0.36, 1) both;
+  }
+
+  .ky-header-film::after,
+  .ky-buy-bar::after,
+  .shop-search-sheet::after,
+  .liquid-glass-sheet::after,
+  .liquid-glass-chip:not(.sc-chip-hit)::after,
+  .sc-chip-face::after,
+  .gallery-photo-count::after {
+    transition: background-position 180ms linear;
   }
 
   .ky-header-wordmark {
@@ -776,14 +869,27 @@ summary::-webkit-details-marker {
   }
 }
 
-@keyframes sc-fade-slide {
+@keyframes sc-glass-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.012);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes sc-glass-fade {
   from {
     opacity: 0;
-    transform: translateY(6px);
   }
   to {
     opacity: 1;
-    transform: none;
   }
 }
 
@@ -825,11 +931,15 @@ summary::-webkit-details-marker {
   .shimmer,
   .content-wave-sheen,
   .sc-rise,
+  .sc-photo {
+    animation: none !important;
+  }
+
   .shop-search-sheet,
   .sc-chip-in,
   .sc-to-top,
-  .sc-photo {
-    animation: none !important;
+  .ky-buy-bar {
+    animation: sc-glass-fade 160ms ease both !important;
   }
 
   .sc-photo,
@@ -1077,8 +1187,10 @@ summary::-webkit-details-marker {
 }
 
 .ky-header-film[data-scrolled="true"] {
-  background: rgb(255 247 244 / 0.74);
+  background: rgb(255 247 244 / 0.66);
   box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.7),
+    inset 0 -1px 0 rgb(120 72 64 / 0.16),
     0 1px 0 color-mix(in srgb, var(--gold) 40%, var(--sc-line)),
     var(--glass-shadow);
 }
@@ -1107,11 +1219,22 @@ summary::-webkit-details-marker {
 }
 
 /* Phone buy bar keeps the shared bar glass. Message stays solid ink. */
+.ky-buy-bar {
+  transform-origin: center bottom;
+}
+
+.shop-search-sheet {
+  transform-origin: center top;
+}
+
 .ky-buy-bar.liquid-glass-bar {
-  background: var(--glass-fill-bar);
+  background: rgb(255 247 244 / 0.66);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.72),
-    0 -12px 28px -16px rgb(176 112 98 / 0.35);
+    inset 0 1px 0 rgb(255 255 255 / 0.7),
+    inset 0 -1px 0 rgb(120 72 64 / 0.14),
+    0 -1px 2px rgb(176 112 98 / 0.14),
+    0 -18px 36px -18px rgb(176 112 98 / 0.36),
+    0 -40px 64px -40px rgb(120 62 52 / 0.24);
 }
 
 @media (max-width: 767px) {
@@ -1187,10 +1310,14 @@ summary::-webkit-details-marker {
 }
 
 .gallery-photo-count {
+  isolation: isolate;
   background: var(--glass-fill-sheet);
   color: var(--ink);
   border: 1px solid var(--glass-line);
-  box-shadow: var(--glass-shadow);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.7),
+    inset 0 -1px 0 rgb(120 72 64 / 0.14),
+    var(--glass-shadow);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
 }
@@ -1243,11 +1370,16 @@ summary::-webkit-details-marker {
 
 @media (prefers-reduced-motion: no-preference) {
   .sc-press {
-    transition: transform 160ms var(--sc-ease);
+    transition:
+      transform 160ms var(--sc-ease),
+      box-shadow 160ms var(--sc-ease);
   }
 
   .sc-press:active {
     transform: scale(0.97);
+    box-shadow:
+      0 0 0 1px rgb(255 255 255 / 0.72),
+      0 10px 22px -10px rgb(176 112 98 / 0.48);
   }
 
   .sc-rise[data-rise="pending"] {
@@ -1319,6 +1451,7 @@ input.shop-search-field:focus-visible {
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / 0.7),
+      inset 0 -1px 0 rgb(120 72 64 / 0.12),
       var(--glass-shadow);
   }
 }
@@ -1376,10 +1509,13 @@ input.shop-search-field:focus-visible {
 }
 
 .sc-chip-face {
+  position: relative;
+  isolation: isolate;
   background: var(--glass-fill);
   border-color: var(--glass-line);
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.7),
+    inset 0 -1px 0 rgb(120 72 64 / 0.14),
     var(--glass-shadow);
 }
 
@@ -1468,5 +1604,56 @@ button[aria-checked="true"] > .sc-chip-face {
   input.shop-search-field {
     background: rgb(255 255 255 / 0.92) !important;
     text-shadow: none !important;
+  }
+}
+
+/* Standard backdrop-filter lives in its own block. Paired with the prefix in
+   one rule, the build keeps only the prefix, and current Chromium ignores that. */
+@supports (backdrop-filter: blur(1px)) {
+  .liquid-glass,
+  .liquid-glass-sheet,
+  .liquid-glass-caption,
+  .liquid-glass-chip,
+  .ky-color-chip,
+  .shop-search-sheet,
+  .gallery-photo-count,
+  input.shop-search-field {
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  }
+
+  .liquid-glass-bar,
+  .ky-chrome-blur {
+    backdrop-filter: blur(var(--glass-blur-bar)) saturate(var(--glass-sat));
+  }
+
+  .pdp-lightbox-veil {
+    backdrop-filter: blur(var(--blur-md));
+  }
+
+  .sc-chip-hit.ky-color-chip,
+  .sc-chip-hit.liquid-glass-chip,
+  .ky-buy-bar [data-testid="shop-message-cta"],
+  .ky-buy-bar [data-testid="shop-ask-price"] {
+    backdrop-filter: none;
+  }
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  @media (prefers-reduced-transparency: reduce) {
+    .liquid-glass,
+    .liquid-glass-sheet,
+    .liquid-glass-caption,
+    .liquid-glass-chip,
+    .ky-color-chip,
+    .shop-search-sheet,
+    .gallery-photo-count,
+    .liquid-glass-bar,
+    .ky-chrome-blur,
+    .ky-header-film,
+    .ky-buy-bar,
+    .pdp-lightbox-veil,
+    input.shop-search-field {
+      backdrop-filter: none !important;
+    }
   }
 }
