@@ -308,7 +308,6 @@ function FilterTab({
       tabIndex={active ? 0 : -1}
       onClick={onClick}
       data-testid="featured-filter-tab"
-      aria-label={`${ariaName}, ${lookCountLabel(count)}`}
       translate="no"
       className={`relative inline-flex min-h-11 min-w-11 shrink-0 touch-manipulation select-none items-end justify-center whitespace-nowrap px-2.5 pb-2 text-[11px] font-medium uppercase tracking-[0.16em] motion-safe:transition-colors motion-safe:duration-150 ${
         active ? "text-ink" : "text-muted hover-hover:hover:text-ink"
@@ -318,9 +317,10 @@ function FilterTab({
         <span className="liquid-glass-chip pointer-events-none absolute inset-x-0 top-0.5 bottom-1 -z-0 rounded-md" aria-hidden />
       ) : null}
       <span className="relative z-[1]">{children}</span>
-      <span className={`relative z-[1] ml-1.5 tabular-nums tracking-[0.08em] ${active ? "text-gold-deep" : "text-muted/80"}`} aria-hidden>
+      <span className={`relative z-[1] ml-1.5 tabular-nums tracking-[0.08em] ${active ? "text-gold-deep" : "text-muted/80"}`}>
         {count}
       </span>
+      <span className="sr-only">{`, ${ariaName}`}</span>
       {active ? (
         <motion.span
           layoutId={reduced ? undefined : "featured-tab"}

@@ -56,7 +56,7 @@ export function AnnouncementBar({ lines }: { lines: string[] }) {
         key={index}
         aria-live="polite"
         aria-atomic="true"
-        className="announce-fade select-none whitespace-nowrap text-center text-[11px] font-medium uppercase tracking-[0.18em]"
+        className="announce-fade select-none whitespace-nowrap text-center text-[11px] font-medium uppercase tracking-[0.18em] text-paper"
         translate="no"
       >
         {safe[index]}

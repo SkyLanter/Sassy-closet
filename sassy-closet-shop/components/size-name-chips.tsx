@@ -89,10 +89,7 @@ export function SizeNameChips({
               type="button"
               role="radio"
               aria-checked={selected}
-              aria-pressed={selected}
               tabIndex={tabbable ? 0 : -1}
-              aria-posinset={index + 1}
-              aria-setsize={sizes.length}
               data-testid="shop-size-chip"
               data-size-letter={letter}
               aria-label={letter}

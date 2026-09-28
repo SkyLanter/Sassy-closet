@@ -105,10 +105,7 @@ export function ColorNameChips({
               type="button"
               role="radio"
               aria-checked={selected}
-              aria-pressed={selected}
               tabIndex={tabbable ? 0 : -1}
-              aria-posinset={index + 1}
-              aria-setsize={colors.length}
               data-testid="shop-color-chip"
               data-color-id={color.id}
               aria-label={label}

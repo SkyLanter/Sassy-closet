@@ -685,16 +685,8 @@ summary::-webkit-details-marker {
 
 @keyframes announce-fade {
   0%,
-  12% {
-    opacity: 0;
-  }
-  20%,
-  80% {
-    opacity: 1;
-  }
-  92%,
   100% {
-    opacity: 0;
+    opacity: 1;
   }
 }
 
