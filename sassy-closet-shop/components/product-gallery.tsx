@@ -165,6 +165,16 @@ export function ProductGallery({
               </p>
             </div>
           ) : null}
+          {reel.length > 1 && colorHasShots ? (
+            <p
+              className="gallery-photo-count pointer-events-none absolute top-3 right-3 z-[4] max-w-[70%] truncate rounded-full px-2.5 py-1 text-[11px] uppercase tracking-[0.18em] text-muted tabular-nums"
+              data-testid="gallery-photo-count"
+              aria-hidden
+              translate="no"
+            >
+              {safeIndex + 1} / {slides.length}
+            </p>
+          ) : null}
         </div>
       )}
       {slides.length > 0 ? (
@@ -185,8 +195,6 @@ export function ProductGallery({
                 type="button"
                 aria-label={photoIndexLabel(thumbIndex + 1)}
                 aria-current={currentThumb}
-                aria-posinset={thumbIndex + 1}
-                aria-setsize={reel.length}
                 onClick={() => choosePhotoIndex(thumbIndex)}
                 className={`ky-thumb-shot relative h-20 w-16 min-h-11 min-w-11 shrink-0 touch-manipulation select-none overflow-hidden border sm:h-24 sm:w-[4.5rem] ${
                   currentThumb ? "border-gold" : "border-gold/35 hover-hover:hover:border-gold"
@@ -221,16 +229,6 @@ export function ProductGallery({
             </button>
           ) : null}
         </div>
-      ) : null}
-      {reel.length > 1 ? (
-        <p
-          className="gallery-photo-count mt-2 max-w-full truncate whitespace-nowrap text-[11px] uppercase tracking-[0.18em] text-muted tabular-nums"
-          data-testid="gallery-photo-count"
-          aria-hidden
-          translate="no"
-        >
-          {safeIndex + 1} / {slides.length}
-        </p>
       ) : null}
       {showChips && product.colors.length > 0 ? (
         <fieldset className="mt-4 border-0 p-0" data-testid="pdp-color-chips">

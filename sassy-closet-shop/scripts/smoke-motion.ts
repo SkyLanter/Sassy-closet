@@ -1476,8 +1476,8 @@ if (!gallery.includes("select-none\" aria-hidden")) {
 if (!gallery.includes("width={64}")) {
   fail("Gallery thumbs must declare intrinsic size so the rail does not jump");
 }
-if (!gallery.includes("aria-posinset")) {
-  fail("Gallery thumbs must keep APG posinset");
+if (gallery.includes("aria-posinset") || gallery.includes("aria-setsize")) {
+  fail("Gallery thumbs are plain buttons and must not use listbox posinset");
 }
 if (!gallery.includes('sizes="(min-width: 640px) 72px, 64px"')) {
   fail("Gallery thumbs must declare a thumb-sized sizes hint");
@@ -1521,8 +1521,8 @@ if (!lightbox.includes('translate="no"')) {
 if (!lightbox.includes("width={56}")) {
   fail("Lightbox thumbs must declare intrinsic size so the rail does not jump");
 }
-if (!lightbox.includes("aria-posinset") || !lightbox.includes("aria-setsize")) {
-  fail("Lightbox thumbs must keep APG posinset");
+if (lightbox.includes("aria-posinset") || lightbox.includes("aria-setsize")) {
+  fail("Lightbox thumbs are plain buttons and must not use listbox posinset");
 }
 if (!lightbox.includes('sizes="56px"')) {
   fail("Lightbox thumbs must declare a thumb-sized sizes hint");

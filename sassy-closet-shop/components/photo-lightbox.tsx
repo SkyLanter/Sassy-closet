@@ -10,6 +10,7 @@ import {
   animateGalleryScrollTo,
   clampGalleryIndex,
   nearestStartIndex,
+  scrollRailToChild,
 } from "@/lib/gallery-snap";
 import { photoIndexLabel, photoPositionLabel } from "@/lib/pdp-copy";
 import type { ProductImageAsset } from "@/lib/types";
@@ -98,7 +99,7 @@ export function PhotoLightbox({
 
   useEffect(() => {
     if (zoomWasOpen.current && !zoomed) {
-      zoomOpenRef.current?.focus();
+      zoomOpenRef.current?.focus({ preventScroll: true });
     }
     zoomWasOpen.current = zoomed;
   }, [zoomed]);
@@ -140,7 +141,7 @@ export function PhotoLightbox({
     cancelRoll.current?.();
     if (firstOpen || reduced) {
       ignoreScroll.current = false;
-      el.scrollIntoView({ inline: "start", block: "nearest", behavior: "instant" });
+      scrollRailToChild(port, el, "start");
       return;
     }
     ignoreScroll.current = true;
@@ -162,7 +163,7 @@ export function PhotoLightbox({
     }
     previousFocus.current =
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    closeRef.current?.focus();
+    closeRef.current?.focus({ preventScroll: true });
     const overflow = document.body.style.overflow;
     const htmlOverflow = document.documentElement.style.overflow;
     document.body.style.overflow = "hidden";
@@ -235,7 +236,7 @@ export function PhotoLightbox({
       for (const child of inerted) {
         child.inert = false;
       }
-      previousFocus.current?.focus();
+      previousFocus.current?.focus({ preventScroll: true });
     };
   }, [close, mounted, step]);
 
@@ -282,8 +283,10 @@ export function PhotoLightbox({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        initial={false}
-        animate={{ opacity: 1 }}
+        initial={reduced ? false : { opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={reduced ? { opacity: 1, y: 0 } : { opacity: 0, y: 6 }}
+        transition={reduced ? { duration: 0 } : { duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
         className="relative z-[1] flex max-h-full min-h-0 w-full max-w-3xl flex-col overflow-y-auto border border-gold bg-paper p-3 shadow-[0_18px_40px_-24px_rgba(17,17,17,0.45)] sm:p-4"
       >
         <div className="mb-3 flex items-start justify-between gap-3">
@@ -429,8 +432,6 @@ export function PhotoLightbox({
                   aria-label={photoIndexLabel(slideIndex + 1)}
                   aria-current={slideIndex === safeIndex}
                   aria-controls={railId}
-                  aria-posinset={slideIndex + 1}
-                  aria-setsize={slides.length}
                   onClick={() => onIndex(slideIndex)}
                   className={`ky-thumb-shot relative h-20 w-14 min-h-11 min-w-11 shrink-0 touch-manipulation overflow-hidden border ${
                     slideIndex === safeIndex ? "border-gold" : "border-gold/35 hover-hover:hover:border-gold"

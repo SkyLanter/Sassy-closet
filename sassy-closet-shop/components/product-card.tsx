@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { ColorNameChips } from "@/components/color-name-chips";
@@ -26,6 +26,7 @@ export function ProductCard({
   namedCover?: boolean;
 }) {
   const reduced = useReducedMotion();
+  const cardRef = useRef<HTMLLIElement>(null);
   const name = displayName(product);
   const description = displayDescription(product);
   const [colorId, setColorId] = useState<string | null>(null);
@@ -40,8 +41,33 @@ export function ProductCard({
   const selectedColor = selectedIndex >= 0 ? product.colors[selectedIndex] : undefined;
   const colorLabel = selectedColor ? colorShopLabel(selectedColor, selectedIndex) : null;
 
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el || reduced) {
+      return;
+    }
+    const rect = el.getBoundingClientRect();
+    const alreadyVisible = rect.top < window.innerHeight * 0.96 && rect.bottom > 0;
+    if (alreadyVisible) {
+      return;
+    }
+    el.dataset.rise = "pending";
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          el.dataset.rise = "shown";
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "0px 0px -8% 0px", threshold: 0.18 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [reduced]);
+
   return (
     <motion.li
+      ref={cardRef}
       variants={fadeUp(Boolean(reduced))}
       exit="exit"
       transition={springSoft}
@@ -108,7 +134,7 @@ export function ProductCard({
           </p>
           <ProductPrice
             product={product}
-            className="mt-auto block px-0.5 pt-2 text-[13px] font-semibold tracking-tight text-ink tabular-nums"
+            className="sc-price mt-auto block px-0.5 pt-2 text-[13px] font-semibold tracking-tight text-ink tabular-nums"
           />
         </div>
       </Link>

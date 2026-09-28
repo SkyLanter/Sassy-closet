@@ -17,8 +17,10 @@ import {
 } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { CategorySuggestChips } from "@/components/category-suggest-chips";
 import { MaMark } from "@/components/ma-mark";
 import { useShopSearch } from "@/components/shop-search";
+import type { MaLetter } from "@/lib/ma";
 import { displayName } from "@/lib/copy";
 import {
   LOOK_SEARCH_ARIA,
@@ -49,9 +51,12 @@ type HeaderSearchApi = {
   onFocus: () => void;
   pickLook: (look: LookSearchItem) => void;
   closePanel: () => void;
+  types: MaLetter[];
 };
 
 const HeaderSearchContext = createContext<HeaderSearchApi | null>(null);
+const SearchEmptyTypesContext = createContext<MaLetter[]>([]);
+const NO_EMPTY_TYPES: MaLetter[] = [];
 
 function SearchGlyph({ className = "h-4 w-4" }: { className?: string }) {
   return (
@@ -82,10 +87,12 @@ function UrlQueryReader({ onHomeQuery }: { onHomeQuery: (query: string) => void 
 function HeaderSearchState({
   urlQuery,
   onExpandedChange,
+  types,
   children,
 }: {
   urlQuery: string;
   onExpandedChange?: (expanded: boolean) => void;
+  types: MaLetter[];
   children: ReactNode;
 }) {
   const router = useRouter();
@@ -236,9 +243,16 @@ function HeaderSearchState({
     },
     pickLook,
     closePanel,
+    types,
   };
 
-  return <HeaderSearchContext.Provider value={api}>{children}</HeaderSearchContext.Provider>;
+  const emptyTypes = suggestions.length === 0 ? types : NO_EMPTY_TYPES;
+
+  return (
+    <HeaderSearchContext.Provider value={api}>
+      <SearchEmptyTypesContext.Provider value={emptyTypes}>{children}</SearchEmptyTypesContext.Provider>
+    </HeaderSearchContext.Provider>
+  );
 }
 
 function useHeaderSearch(): HeaderSearchApi {
@@ -252,9 +266,11 @@ function useHeaderSearch(): HeaderSearchApi {
 export function HeaderSearchProvider({
   children,
   onExpandedChange,
+  types = [],
 }: {
   children: ReactNode;
   onExpandedChange?: (expanded: boolean) => void;
+  types?: MaLetter[];
 }) {
   const { setDraft } = useShopSearch();
   const [urlQuery, setUrlQuery] = useState("");
@@ -268,7 +284,7 @@ export function HeaderSearchProvider({
   );
 
   return (
-    <HeaderSearchState urlQuery={urlQuery} onExpandedChange={onExpandedChange}>
+    <HeaderSearchState urlQuery={urlQuery} onExpandedChange={onExpandedChange} types={types}>
       <Suspense fallback={null}>
         <UrlQueryReader onHomeQuery={onHomeQuery} />
       </Suspense>
@@ -379,6 +395,18 @@ export function HeaderSearch() {
   );
 }
 
+function SearchEmptyChips() {
+  const types = useContext(SearchEmptyTypesContext);
+  if (types.length === 0) {
+    return null;
+  }
+  return (
+    <div className="px-[max(1.25rem,env(safe-area-inset-left,0px))] pb-4 pr-[max(1.25rem,env(safe-area-inset-right,0px))] sm:px-[max(2rem,env(safe-area-inset-left,0px))] sm:pr-[max(2rem,env(safe-area-inset-right,0px))]">
+      <CategorySuggestChips types={types} />
+    </div>
+  );
+}
+
 export function HeaderSearchSheet() {
   const search = useHeaderSearch();
   if (!search.showPanel) {
@@ -431,6 +459,7 @@ export function HeaderSearchSheet() {
           ))
         )}
       </ul>
+      <SearchEmptyChips />
     </div>
   );
 }

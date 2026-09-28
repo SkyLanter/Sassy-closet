@@ -122,7 +122,7 @@ function AdminGateModal({ onClose }: { onClose: () => void }) {
       for (const node of inerted) {
         node.inert = false;
       }
-      previousFocus.current?.focus();
+      previousFocus.current?.focus({ preventScroll: true });
     };
   }, [onClose]);
 

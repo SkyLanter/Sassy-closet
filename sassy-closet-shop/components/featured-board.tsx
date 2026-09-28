@@ -7,6 +7,8 @@ import { AnimatedProductGrid } from "@/components/animated-product-grid";
 import { ContentWaveLooks, useContentWave } from "@/components/content-wave";
 import { LooksSortChips } from "@/components/looks-sort";
 import { SearchResultsBar } from "@/components/search-results-bar";
+import { CategorySuggestChips } from "@/components/category-suggest-chips";
+import { HScrollCue } from "@/components/h-scroll-cue";
 import { ShopEmpty } from "@/components/shop-empty";
 import { SizeFilterChips } from "@/components/size-filter";
 import { useShopSearch } from "@/components/shop-search";
@@ -16,7 +18,7 @@ import { DEFAULT_SHOP_SORT, sortShopLooks, type ShopSortId } from "@/lib/fb-rank
 import { scrollChromeChildIntoView } from "@/lib/gallery-snap";
 import { collectionEmptyCopy, FEATURED_ALL_ARIA, lookCountLabel } from "@/lib/look-count";
 import { filterLooksByQuery, LOOK_SEARCH_TAB_EMPTY, shopSearchNeedle } from "@/lib/look-search";
-import { slideDirection, springSoft } from "@/lib/motion";
+import { easeOutFast, slideDirection } from "@/lib/motion";
 import { collectShopSizes } from "@/lib/shop-sizes";
 import type { MaLetter } from "@/lib/ma";
 import type { ShopLook } from "@/lib/shop-look";
@@ -131,7 +133,7 @@ export function FeaturedBoard({
           Looks
         </h2>
         <LooksSortChips sort={sort} onChange={setSort} />
-        <div className="ky-h-scroll-cue mt-5">
+        <HScrollCue className="ky-h-scroll-cue mt-5">
         <LayoutGroup id="featured-tabs">
           <motion.div
             ref={tabRailRef}
@@ -175,7 +177,7 @@ export function FeaturedBoard({
             </div>
           </motion.div>
         </LayoutGroup>
-        </div>
+        </HScrollCue>
         <SizeFilterChips sizes={sizeOptions} selected={activeSize} onChange={setSize} />
         <p
           className="mx-auto mt-3 max-w-full truncate whitespace-nowrap text-left text-[11px] uppercase tracking-[0.16em] text-muted tabular-nums"
@@ -195,7 +197,7 @@ export function FeaturedBoard({
             </motion.span>
           </AnimatePresence>
         </p>
-        <SearchResultsBar query={needle} />
+        <SearchResultsBar query={needle} count={visible.length} />
         <div
           id="featured-panel"
           role="tabpanel"
@@ -231,36 +233,41 @@ export function FeaturedBoard({
                       : collectionEmptyCopy(categoryFilterLabel(filter), TYPE_SLUGS[filter]))}
                 actions={
                   needle.trim() || activeSize ? (
-                    <div className="mt-5 flex flex-wrap items-center justify-center gap-2 px-2">
-                      {needle.trim() ? (
+                    <div className="mt-5 px-2">
+                      <div className="flex flex-wrap items-center justify-center gap-2">
+                        {needle.trim() ? (
+                          <button
+                            type="button"
+                            className="inline-flex min-h-11 touch-manipulation items-center rounded-full border border-gold/45 px-4 text-[13px] text-ink"
+                            onClick={() => clearSearch()}
+                          >
+                            Xóa tìm · Clear search
+                          </button>
+                        ) : null}
+                        {activeSize ? (
+                          <button
+                            type="button"
+                            className="inline-flex min-h-11 touch-manipulation items-center rounded-full border border-gold/45 px-4 text-[13px] text-ink"
+                            onClick={() => setSize(null)}
+                          >
+                            Xóa size · Clear size
+                          </button>
+                        ) : null}
                         <button
                           type="button"
                           className="inline-flex min-h-11 touch-manipulation items-center rounded-full border border-gold/45 px-4 text-[13px] text-ink"
-                          onClick={() => clearSearch()}
+                          onClick={() => {
+                            choose("all");
+                            setSize(null);
+                            clearSearch();
+                          }}
                         >
-                          Xóa tìm · Clear search
+                          Xem tất cả · Browse all
                         </button>
+                      </div>
+                      {needle.trim() && searched.length === 0 ? (
+                        <CategorySuggestChips types={types} className="mt-5" />
                       ) : null}
-                      {activeSize ? (
-                        <button
-                          type="button"
-                          className="inline-flex min-h-11 touch-manipulation items-center rounded-full border border-gold/45 px-4 text-[13px] text-ink"
-                          onClick={() => setSize(null)}
-                        >
-                          Xóa size · Clear size
-                        </button>
-                      ) : null}
-                      <button
-                        type="button"
-                        className="inline-flex min-h-11 touch-manipulation items-center rounded-full border border-gold/45 px-4 text-[13px] text-ink"
-                        onClick={() => {
-                          choose("all");
-                          setSize(null);
-                          clearSearch();
-                        }}
-                      >
-                        Xem tất cả · Browse all
-                      </button>
                     </div>
                   ) : null
                 }
@@ -325,7 +332,7 @@ function FilterTab({
         <motion.span
           layoutId={reduced ? undefined : "featured-tab"}
           className="featured-tab-film pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gold"
-          transition={reduced ? { duration: 0 } : springSoft}
+          transition={reduced ? { duration: 0 } : easeOutFast}
           aria-hidden
         />
       ) : null}

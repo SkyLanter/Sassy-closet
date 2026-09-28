@@ -10,6 +10,7 @@ import {
   galleryScrollBehavior,
   GALLERY_ROLL_MS,
   nearestCenteredIndex,
+  scrollRailToChild,
 } from "@/lib/gallery-snap";
 import { FallibleLookPhoto } from "@/components/product-image";
 import { galleryReelLabel, photoIndexLabel, photoPositionLabel } from "@/lib/pdp-copy";
@@ -83,11 +84,7 @@ export function GalleryPeekRoll({
       cancelRoll.current = null;
       if (!port || behavior === "instant" || reduced || !peeking) {
         ignoreScroll.current = false;
-        el.scrollIntoView({
-          inline: peeking ? "center" : "start",
-          block: "nearest",
-          behavior: "instant",
-        });
+        scrollRailToChild(port, el, peeking ? "center" : "start");
         return;
       }
       ignoreScroll.current = true;

@@ -9,7 +9,7 @@ import { FitNotes } from "@/components/fit-notes";
 import { MessengerCta } from "@/components/messenger-cta";
 import { ProductDescription } from "@/components/product-description";
 import { ProductGallery } from "@/components/product-gallery";
-import { ProductPageTitle } from "@/components/product-page-title";
+import { ProductMaLine, ProductPageTitle } from "@/components/product-page-title";
 import { ProductPrice } from "@/components/product-price";
 import { categoryAriaLabel, categoryCopy, categoryHref } from "@/lib/categories";
 import type { ShopLook } from "@/lib/shop-look";
@@ -43,8 +43,9 @@ export function ProductLook({ product }: { product: ShopLook }) {
         <ProductPageTitle product={product} />
         <ProductPrice
           product={product}
-          className="mt-3 block text-[1.125rem] font-medium tracking-tight text-ink sm:text-xl"
+          className="sc-price mt-3 block text-[1.35rem] font-semibold tracking-tight text-ink sm:text-[1.5rem]"
         />
+        <ProductMaLine ma={product.ma} />
         <ProductDescription product={product} />
         <FitNotes measurements={product.measurements} />
         <div className="mt-8 hidden md:block">
