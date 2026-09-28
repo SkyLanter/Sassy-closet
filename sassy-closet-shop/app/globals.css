@@ -970,6 +970,8 @@ summary::-webkit-details-marker {
   [data-testid="pdp-color-chips"],
   [data-testid="pdp-size-chips"],
   [data-testid="fit-notes"],
+  [data-testid="gallery-photo-count"],
+  [data-testid="product-gallery"] .ky-thumb-rail,
   #look-title,
   [data-testid="product-gallery"] > p:not(.sr-only) {
     scroll-margin-bottom: var(--shop-buy-bar-space);
@@ -979,6 +981,47 @@ summary::-webkit-details-marker {
 .sc-title {
   overflow-wrap: break-word;
   text-wrap: pretty;
+}
+
+.sc-look-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 640px) {
+  .sc-look-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .sc-look-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .sc-look-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+.sc-card-title,
+.sc-card-copy {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  overflow-wrap: anywhere;
+  text-wrap: wrap;
+}
+
+.sc-card-title {
+  -webkit-line-clamp: 3;
+  min-height: 3.45em;
+}
+
+.sc-card-copy {
+  -webkit-line-clamp: 2;
+  min-height: 2.7em;
 }
 
 @media (prefers-reduced-motion: no-preference) {

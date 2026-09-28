@@ -30,16 +30,15 @@ export function BuyBar({
         <div className="pt-2.5">
           <div className="mx-auto flex max-w-6xl items-center gap-3">
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] uppercase tracking-[0.16em] text-muted">
-                <span translate="no">Mã </span>
-                <MaMark ma={product.ma} className="text-ink" />
-              </p>
-              <p className="sc-title line-clamp-2 font-display text-[15px] font-medium leading-[1.15] tracking-[0.01em] text-ink" title={name} translate="no">
-                {name}
+              <p className="flex min-w-0 items-center gap-x-1.5">
+                <MaMark ma={product.ma} className="shrink-0 text-[10px] tracking-[0.16em] text-muted" />
+                <span className="min-w-0 flex-1 select-none overflow-hidden text-ellipsis whitespace-nowrap font-display text-[15px] font-medium leading-[1.15] tracking-[0.01em] text-ink" title={name} translate="no">
+                  {name}
+                </span>
               </p>
               <ProductPrice
                 product={product}
-                className="mt-0.5 block text-[13px] font-medium tracking-tight text-ink"
+                className="mt-0.5 block truncate text-[13px] font-medium tracking-tight text-ink"
               />
             </div>
             <MessengerCta

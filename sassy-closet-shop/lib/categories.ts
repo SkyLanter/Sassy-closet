@@ -45,33 +45,33 @@ export function categoryAriaLabel(type: MaLetter): string {
   return `${labels.vn} · ${labels.nav}`;
 }
 
-/** Short Vietnamese names for the on-page filter chips. */
+/** Same English names as the top menu (`TYPE_LABELS.nav`). */
 export function categoryFilterLabel(type: MaLetter): string {
   switch (type) {
     case "A":
-      return "Áo";
+      return TYPE_LABELS.A.nav;
     case "Q":
-      return "Quần";
+      return TYPE_LABELS.Q.nav;
     case "V":
-      return "Váy";
+      return TYPE_LABELS.V.nav;
     case "D":
-      return "Đầm";
+      return TYPE_LABELS.D.nav;
     case "S":
-      return "Set";
+      return TYPE_LABELS.S.nav;
     case "K":
-      return "Khoác";
+      return TYPE_LABELS.K.nav;
     case "P":
-      return "Phụ kiện";
+      return TYPE_LABELS.P.nav;
     case "G":
-      return TYPE_LABELS.G.vn;
+      return TYPE_LABELS.G.nav;
     case "B":
-      return TYPE_LABELS.B.vn;
+      return TYPE_LABELS.B.nav;
     case "H":
-      return TYPE_LABELS.H.vn;
+      return TYPE_LABELS.H.nav;
     case "J":
-      return TYPE_LABELS.J.vn;
+      return TYPE_LABELS.J.nav;
     case "O":
-      return TYPE_LABELS.O.vn;
+      return TYPE_LABELS.O.nav;
     default: {
       const _exhaustive: never = type;
       return _exhaustive;

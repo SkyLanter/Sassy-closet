@@ -251,7 +251,7 @@ export function GalleryPeekRoll({
             onClick={() => go(safeIndex - 1)}
             disabled={!canPrev}
             aria-controls={railId}
-            className="liquid-glass absolute left-2 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 touch-manipulation items-center justify-center text-[15px] text-paper disabled:opacity-40"
+            className="absolute left-3 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 touch-manipulation items-center justify-center rounded-full border border-gold/45 bg-paper/80 text-[15px] text-ink md:flex disabled:opacity-40"
             aria-label="Ảnh trước"
           >
             <span aria-hidden>←</span>
@@ -261,7 +261,7 @@ export function GalleryPeekRoll({
             onClick={() => go(safeIndex + 1)}
             disabled={!canNext}
             aria-controls={railId}
-            className="liquid-glass absolute right-2 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 touch-manipulation items-center justify-center text-[15px] text-paper disabled:opacity-40"
+            className="absolute right-3 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 touch-manipulation items-center justify-center rounded-full border border-gold/45 bg-paper/80 text-[15px] text-ink md:flex disabled:opacity-40"
             aria-label="Ảnh sau"
           >
             <span aria-hidden>→</span>

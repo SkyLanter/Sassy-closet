@@ -221,7 +221,8 @@ export function ProductGallery({
       ) : null}
       {reel.length > 1 ? (
         <p
-          className="mt-2 max-w-full truncate whitespace-nowrap text-[11px] uppercase tracking-[0.18em] text-muted tabular-nums"
+          className="gallery-photo-count mt-2 max-w-full truncate whitespace-nowrap text-[11px] uppercase tracking-[0.18em] text-muted tabular-nums"
+          data-testid="gallery-photo-count"
           aria-hidden
           translate="no"
         >

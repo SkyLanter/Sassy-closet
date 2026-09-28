@@ -7,7 +7,7 @@ export default function ShopLoading() {
       <p className="liquid-glass-chip mx-auto mt-3 flex min-h-11 w-max max-w-full select-none items-center justify-center truncate whitespace-nowrap px-3 py-1.5 text-center text-[11px] uppercase tracking-[0.18em] text-muted" translate="no">
         Đang tải · Loading
       </p>
-      <div className="mt-10 grid min-w-0 grid-cols-2 gap-x-3 gap-y-12 sm:grid-cols-3 sm:gap-x-5 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="sc-look-grid mt-10 grid min-w-0 gap-x-3 gap-y-12 sm:gap-x-5">
         {Array.from({ length: 8 }, (_, index) => (
           <div key={index} aria-hidden>
             <div className="sc-card-well ky-gallery-shell relative aspect-[3/4] overflow-hidden bg-[#f3f1ee]">

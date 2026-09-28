@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { BLUSH_BLUR } from "@/lib/image-placeholder";
+import { shouldOptimizeImage } from "@/lib/image-hosts";
 
 export function LookPhoto({
   src,
@@ -24,6 +25,27 @@ export function LookPhoto({
   width?: number;
   height?: number;
 }) {
+  if (!shouldOptimizeImage(src)) {
+    return (
+      <img
+        src={src}
+        alt={alt}
+        width={fill ? undefined : width}
+        height={fill ? undefined : height}
+        sizes={sizes}
+        draggable={false}
+        loading={priority ? "eager" : "lazy"}
+        fetchPriority={priority ? "high" : "auto"}
+        onError={onError}
+        className={
+          fill
+            ? `absolute inset-0 h-full w-full ${className ?? ""}`
+            : className
+        }
+      />
+    );
+  }
+
   if (fill) {
     return (
       <Image

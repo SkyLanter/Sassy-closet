@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { SHOP_REMOTE_IMAGE_PATTERNS } from "./lib/image-hosts";
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1"],
@@ -13,10 +14,7 @@ const nextConfig: NextConfig = {
       { pathname: "/uploads/**" },
       { pathname: "/editorial/**" },
     ],
-    remotePatterns: [
-      { protocol: "https", hostname: "**.public.blob.vercel-storage.com" },
-      { protocol: "https", hostname: "**.blob.vercel-storage.com" },
-    ],
+    remotePatterns: SHOP_REMOTE_IMAGE_PATTERNS.map((pattern) => ({ ...pattern })),
   },
   experimental: {
     serverActions: {

@@ -100,10 +100,10 @@ export function ProductCard({
           <p className="mt-2.5 px-0.5">
             <MaMark ma={product.ma} className="text-[10px] tracking-[0.16em] text-muted" />
           </p>
-          <p className="sc-title mt-0.5 line-clamp-2 min-h-[2.6em] px-0.5 font-display text-[1.15rem] font-medium leading-[1.12] tracking-[0.02em] text-ink sm:text-[1.25rem]" translate="no">
+          <p className="sc-card-title mt-0.5 px-0.5 font-display text-[1.15rem] font-medium leading-[1.15] tracking-[0.02em] text-ink sm:text-[1.25rem]" translate="no">
             {name}
           </p>
-          <p className="mt-1 line-clamp-2 min-h-[2.7em] px-0.5 text-[12.5px] leading-[1.35] text-pretty text-muted" translate="no">
+          <p className="sc-card-copy mt-1.5 px-0.5 text-[12.5px] leading-[1.35] text-muted" translate="no">
             {description}
           </p>
           <ProductPrice
