@@ -7,17 +7,17 @@ export type BossPriceRow = {
   status: ProductStatus;
 };
 
-/** Boss-locked sell prices (new-shipping, 2026-09-27, $9 floor 23:44 UTC). Do not invent mãs or USD. Hold has no price. */
+/** Boss-locked sell prices (new-shipping, 2026-09-27). Formula under $10 gets +$2 (23:45 UTC). Do not invent mãs or USD. Hold has no price. */
 export const BOSS_PRICE_LIST: readonly BossPriceRow[] = [
   { ma: "A01", priceUsd: 25, status: "available" },
   { ma: "S01", priceUsd: 39, status: "available" },
-  { ma: "P01", priceUsd: 9, status: "available" },
+  { ma: "P01", priceUsd: 5, status: "available" },
   { ma: "P02", priceUsd: 24, status: "available" },
   { ma: "P03", priceUsd: 10, status: "available" },
   { ma: "P04", priceUsd: 9, status: "available" },
   { ma: "P05", priceUsd: 23, status: "available" },
   { ma: "K01", priceUsd: 36, status: "available" },
-  { ma: "H01", priceUsd: 9, status: "available" },
+  { ma: "H01", priceUsd: 8, status: "available" },
   { ma: "A02", priceUsd: 21, status: "available" },
 ] as const;
 
