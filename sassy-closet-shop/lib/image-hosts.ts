@@ -1,7 +1,14 @@
 /**
- * Hosts next/image may optimize. Kept in one place so the config and the
- * catalog test cannot drift. Patterns follow Next's picomatch host rules:
- * `**.example.com` matches a subdomain, not the apex.
+ * Hosts a next/image remotePatterns entry will accept. Kept in one place so
+ * the config and the catalog test cannot drift. Patterns follow Next's
+ * picomatch host rules: `**.example.com` matches a subdomain, not the apex.
+ *
+ * These hosts are not optimized. Blob, Alicdn, and Catbox URLs carry ?v=
+ * that changes on every catalog write; sending them through the Vercel
+ * optimizer would re-encode the whole catalog (and used to do it twice,
+ * AVIF and WebP) and can exhaust the image quota until photos break.
+ * Local /products, /uploads, and /editorial files are the only ones
+ * shouldOptimizeImage sends through, and next.config asks for WebP only.
  *
  * Live catalog (62 mãs, 2026-09-28): *.public.blob.vercel-storage.com,
  * img.alicdn.com, litter.catbox.moe. `**.alicdn.com` also covers gw.alicdn.com
@@ -50,12 +57,9 @@ export function remoteImageAllowed(src: string): boolean {
   );
 }
 
-/** Optimizer for allowed remote URLs and same-origin paths. Anything else uses a plain img. */
+/** Same-origin paths only. Remote catalog URLs stay a plain img. */
 export function shouldOptimizeImage(src: string): boolean {
-  if (src.startsWith("/") && !src.startsWith("//")) {
-    return true;
-  }
-  return remoteImageAllowed(src);
+  return src.startsWith("/") && !src.startsWith("//");
 }
 
 export function hostnameOfImageSrc(src: string): string | null {

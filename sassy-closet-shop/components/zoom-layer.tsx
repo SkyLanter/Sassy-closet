@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
-import { LookPhoto } from "@/components/look-photo";
+import { FallibleLookPhoto } from "@/components/product-image";
 
 const MAX_SCALE = 4;
 const TAP_SCALE = 2.4;
@@ -10,14 +10,19 @@ const TAP_SCALE = 2.4;
 export function ZoomLayer({
   src,
   alt,
+  ma,
+  letter,
   onClose,
 }: {
   src: string;
   alt: string;
+  ma: string;
+  letter: string;
   onClose: () => void;
 }) {
   const reduced = useReducedMotion();
   const closeRef = useRef<HTMLButtonElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
   const scaleRef = useRef(1);
   const [scale, setScale] = useState(1);
@@ -36,10 +41,30 @@ export function ZoomLayer({
   useEffect(() => {
     closeRef.current?.focus();
     function onKey(event: KeyboardEvent) {
-      if (event.key === "Escape" || event.key === "Enter") {
-        if (event.key === "Enter") {
+      if (event.key === "Tab") {
+        const root = rootRef.current;
+        const focusable = root
+          ? [...root.querySelectorAll<HTMLElement>("button, [href], input, textarea, select")].filter(
+              (node) => !node.hasAttribute("disabled") && node.tabIndex >= 0,
+            )
+          : [];
+        event.stopPropagation();
+        if (!root || focusable.length === 0) {
+          event.preventDefault();
           return;
         }
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        const active = document.activeElement;
+        const inside = active instanceof Node && root.contains(active);
+        const atEdge = !inside || (event.shiftKey ? active === first : active === last);
+        if (atEdge) {
+          event.preventDefault();
+          (event.shiftKey ? last : first)?.focus();
+        }
+        return;
+      }
+      if (event.key === "Escape") {
         event.preventDefault();
         event.stopPropagation();
         onClose();
@@ -145,6 +170,7 @@ export function ZoomLayer({
 
   return (
     <div
+      ref={rootRef}
       className="absolute inset-0 z-30 flex flex-col bg-paper"
       role="dialog"
       aria-modal="true"
@@ -178,13 +204,15 @@ export function ZoomLayer({
             transition,
           }}
         >
-          <LookPhoto
+          <FallibleLookPhoto
             src={src}
             alt={alt}
             sizes="100vw"
             fill={false}
             priority
             className="h-auto max-h-[78dvh] w-full select-none object-contain"
+            ma={ma}
+            letter={letter}
           />
         </div>
       </div>

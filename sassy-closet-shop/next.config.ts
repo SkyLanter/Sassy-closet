@@ -4,7 +4,10 @@ import { SHOP_REMOTE_IMAGE_PATTERNS } from "./lib/image-hosts";
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1"],
   images: {
-    formats: ["image/avif", "image/webp"],
+    // WebP only. AVIF plus WebP asks the optimizer for two files per size.
+    // Remote catalog hosts are a plain <img> (shouldOptimizeImage): each
+    // catalog write changes ?v= and would otherwise re-process every photo.
+    formats: ["image/webp"],
     deviceSizes: [375, 430, 640, 768, 1024, 1280, 1536],
     imageSizes: [64, 72, 96, 128, 256, 384],
     // Catalog covers are cache-busted with ?v=. A custom pathname (not the

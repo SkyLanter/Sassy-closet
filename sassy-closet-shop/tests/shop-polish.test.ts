@@ -6,6 +6,7 @@ import { emptyFitCm } from "../lib/asia-size";
 import { messengerAskHref, messengerAskSentence } from "../lib/messenger-ask";
 import { messengerHref } from "../lib/messenger";
 import { lookPhotoAlt } from "../lib/photo-alt";
+import { productSeo } from "../lib/seo";
 import { shopLookPayloadLeak, shopMeasurements, toShopLook } from "../lib/shop-look";
 import { collectShopSizes } from "../lib/shop-sizes";
 import { SHOW_TRUST_STRIP, TRUST_PAY_LINE, TRUST_SHIP_LINE } from "../lib/trust-strip";
@@ -55,6 +56,28 @@ test("product message keeps a direct m.me link and fills the Vietnamese ask", ()
   const url = new URL(href);
   assert.equal(url.origin + url.pathname, "https://m.me/61594312648057");
   assert.equal(url.searchParams.get("text"), "Chị ơi, còn A15 size M màu Đen không ạ?");
+});
+
+test("product share image stays the branded 1200×630 card", () => {
+  const previous = process.env.NEXT_PUBLIC_SHOP_URL;
+  process.env.NEXT_PUBLIC_SHOP_URL = "https://example.test";
+  try {
+    const look = toShopLook({
+      ...sample(),
+      images: [{ src: "https://litter.catbox.moe/dead.jpg", colorId: null, order: 1 }],
+    });
+    const images = productSeo(look).openGraph?.images;
+    const image = Array.isArray(images) ? images[0] : undefined;
+    assert.equal(image && typeof image === "object" && "url" in image ? String(image.url) : "", "https://example.test/share/m/A15");
+    assert.equal(image && typeof image === "object" && "width" in image ? image.width : 0, 1200);
+    assert.equal(image && typeof image === "object" && "height" in image ? image.height : 0, 630);
+  } finally {
+    if (previous === undefined) {
+      delete process.env.NEXT_PUBLIC_SHOP_URL;
+    } else {
+      process.env.NEXT_PUBLIC_SHOP_URL = previous;
+    }
+  }
 });
 
 test("photo alt uses the title, mã, and catalog color only", () => {

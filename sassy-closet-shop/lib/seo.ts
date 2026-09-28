@@ -98,19 +98,7 @@ export function rootSeo(): Metadata {
 }
 
 function productShareImages(product: ShopLook): NonNullable<Metadata["openGraph"]>["images"] {
-  const alt = productOgAlt(product);
-  const cover = coverSrc(product);
-  if (!cover) {
-    return shareImage(`/share/m/${product.ma}`, alt);
-  }
-  return [
-    {
-      url: absoluteMedia(cover),
-      width: 1200,
-      height: 1600,
-      alt,
-    },
-  ];
+  return shareImage(`/share/m/${product.ma}`, productOgAlt(product));
 }
 
 export function productSeo(product: ShopLook): Metadata {

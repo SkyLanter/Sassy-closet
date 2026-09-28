@@ -96,6 +96,50 @@ function ProductImageFrame({
   );
 }
 
+export function FallibleLookPhoto({
+  src,
+  alt,
+  sizes,
+  priority = false,
+  className,
+  fill = true,
+  width,
+  height,
+  ma,
+  letter,
+}: {
+  src: string;
+  alt: string;
+  sizes: string;
+  priority?: boolean;
+  className?: string;
+  fill?: boolean;
+  width?: number;
+  height?: number;
+  ma: string;
+  letter: string;
+}) {
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  if (failedSrc === src) {
+    return <PlaceholderTile ma={ma} letter={letter} decorative />;
+  }
+  return (
+    <LookPhoto
+      src={src}
+      alt={alt}
+      sizes={sizes}
+      priority={priority}
+      className={className}
+      fill={fill}
+      width={width}
+      height={height}
+      onError={() => {
+        setFailedSrc(src);
+      }}
+    />
+  );
+}
+
 export function PlaceholderTile({
   ma,
   letter,

@@ -5,9 +5,8 @@ import { AnimatePresence } from "framer-motion";
 import { useCatalogMediaVersion } from "@/components/catalog-media-version";
 import { ColorNameChips } from "@/components/color-name-chips";
 import { GalleryPeekRoll } from "@/components/gallery-peek-roll";
-import { LookPhoto } from "@/components/look-photo";
 import { PhotoLightbox } from "@/components/photo-lightbox";
-import { PlaceholderTile } from "@/components/product-image";
+import { FallibleLookPhoto, PlaceholderTile } from "@/components/product-image";
 import { SizeNameChips } from "@/components/size-name-chips";
 import type { AsiaSizeLetter } from "@/lib/asia-size";
 import { cacheBustMediaSrc } from "@/lib/catalog-sha";
@@ -152,6 +151,7 @@ export function ProductGallery({
             slides={slides}
             index={safeIndex}
             ma={product.ma}
+            letter={product.type}
             onIndexChange={choosePhotoIndex}
             onCenterClick={colorHasShots ? () => setLightbox(true) : undefined}
           />
@@ -192,11 +192,13 @@ export function ProductGallery({
                   currentThumb ? "border-gold" : "border-gold/35 hover-hover:hover:border-gold"
                 }`}
               >
-                <LookPhoto
+                <FallibleLookPhoto
                   src={src}
-                  alt={thumb.alt}
+                  alt=""
                   sizes="72px"
                   className="object-cover object-top"
+                  ma={product.ma}
+                  letter={product.type}
                 />
               </button>
             );
@@ -274,6 +276,8 @@ export function ProductGallery({
           <PhotoLightbox
             key="gallery-lightbox"
             title={displayTitle(product)}
+            ma={product.ma}
+            letter={product.type}
             colorLabel={colorLabel}
             slides={lightboxSlides}
             index={safeIndex}

@@ -26,6 +26,8 @@ test("every catalog image host is allowed", () => {
   const root = process.cwd();
   const config = readFileSync(path.join(root, "next.config.ts"), "utf8");
   assert.match(config, /SHOP_REMOTE_IMAGE_PATTERNS/);
+  assert.match(config, /formats:\s*\["image\/webp"\]/);
+  assert.equal(config.includes("image/avif"), false);
 
   const doc = JSON.parse(readFileSync(path.join(root, "data/products.json"), "utf8")) as {
     products: Array<{ ma: string; images?: Array<{ src?: string } | string> }>;
@@ -47,6 +49,7 @@ test("every catalog image host is allowed", () => {
 
   for (const src of LIVE_CATALOG_IMAGE_URLS) {
     assert.equal(remoteImageAllowed(src), true, src);
+    assert.equal(shouldOptimizeImage(src), false, src);
   }
 
   assert.equal(remoteImageAllowed("https://evil.example/a.jpg"), false);

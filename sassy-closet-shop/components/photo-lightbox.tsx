@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { motion, useReducedMotion } from "framer-motion";
-import { LookPhoto } from "@/components/look-photo";
+import { FallibleLookPhoto } from "@/components/product-image";
 import { ZoomLayer } from "@/components/zoom-layer";
 import { cacheBustMediaSrc } from "@/lib/catalog-sha";
 import {
@@ -43,6 +43,8 @@ function GalleryNavButton({
 
 export function PhotoLightbox({
   title,
+  ma,
+  letter,
   colorLabel,
   slides,
   index,
@@ -51,6 +53,8 @@ export function PhotoLightbox({
   onIndex,
 }: {
   title: string;
+  ma: string;
+  letter: string;
   colorLabel: string;
   slides: ProductImageAsset[];
   index: number;
@@ -59,6 +63,8 @@ export function PhotoLightbox({
   onIndex: (nextIndex: number) => void;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const zoomOpenRef = useRef<HTMLButtonElement>(null);
+  const zoomWasOpen = useRef(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const railRef = useRef<HTMLDivElement>(null);
   const slideRefs = useRef<Array<HTMLDivElement | null>>([]);
@@ -89,6 +95,14 @@ export function PhotoLightbox({
   const [zoomFor, setZoomFor] = useState<string | null>(null);
   const zoomed = zoomFor === zoomKey;
   const peeking = slides.length > 1;
+
+  useEffect(() => {
+    if (zoomWasOpen.current && !zoomed) {
+      zoomOpenRef.current?.focus();
+    }
+    zoomWasOpen.current = zoomed;
+  }, [zoomed]);
+
   const canPrev = peeking && safeIndex > 0;
   const canNext = peeking && safeIndex < slides.length - 1;
 
@@ -270,7 +284,7 @@ export function PhotoLightbox({
         aria-labelledby={titleId}
         initial={false}
         animate={{ opacity: 1 }}
-        className="relative z-[1] flex max-h-[min(92vh,calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)))] w-full max-w-3xl flex-col border border-gold bg-paper p-3 shadow-[0_18px_40px_-24px_rgba(17,17,17,0.45)] sm:p-4"
+        className="relative z-[1] flex max-h-full min-h-0 w-full max-w-3xl flex-col overflow-y-auto border border-gold bg-paper p-3 shadow-[0_18px_40px_-24px_rgba(17,17,17,0.45)] sm:p-4"
       >
         <div className="mb-3 flex items-start justify-between gap-3">
           <div>
@@ -288,6 +302,7 @@ export function PhotoLightbox({
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <button
+              ref={zoomOpenRef}
               type="button"
               data-testid="photo-zoom-open"
               onClick={() => setZoomFor(zoomKey)}
@@ -329,7 +344,7 @@ export function PhotoLightbox({
                   className="pdp-slide"
                 >
                   <div
-                    className="relative aspect-[3/4] w-full"
+                    className="pdp-lightbox-photo relative"
                     onDoubleClick={() => {
                       if (slideIndex === safeIndex) {
                         setZoomFor(zoomKey);
@@ -341,12 +356,14 @@ export function PhotoLightbox({
                       }
                     }}
                   >
-                    <LookPhoto
+                    <FallibleLookPhoto
                       src={slideSrc}
                       alt={`${title}, ${colorLabel}, photo ${slideIndex + 1}`}
                       priority={slideIndex === safeIndex}
-                      sizes="(min-width: 768px) 48rem, 100vw"
+                      sizes="(min-width: 768px) 28rem, 100vw"
                       className="object-contain"
+                      ma={ma}
+                      letter={letter}
                     />
                   </div>
                 </div>
@@ -354,7 +371,15 @@ export function PhotoLightbox({
             })}
           </div>
         </div>
-        {zoomed && src ? <ZoomLayer src={src} alt={`${title}, ${colorLabel}`} onClose={() => setZoomFor(null)} /> : null}
+        {zoomed && src ? (
+          <ZoomLayer
+            src={src}
+            alt={`${title}, ${colorLabel}`}
+            ma={ma}
+            letter={letter}
+            onClose={() => setZoomFor(null)}
+          />
+        ) : null}
         {peeking ? (
           <div className="ky-gallery-dock mt-3">
             <GalleryNavButton
@@ -411,7 +436,14 @@ export function PhotoLightbox({
                     slideIndex === safeIndex ? "border-gold" : "border-gold/35 hover-hover:hover:border-gold"
                   }`}
                 >
-                  <LookPhoto src={thumb} alt="" sizes="56px" className="object-cover object-top" />
+                  <FallibleLookPhoto
+                    src={thumb}
+                    alt=""
+                    sizes="56px"
+                    className="object-cover object-top"
+                    ma={ma}
+                    letter={letter}
+                  />
                 </button>
               );
             })}

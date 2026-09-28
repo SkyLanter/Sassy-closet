@@ -517,6 +517,15 @@ body {
   scroll-snap-stop: always;
 }
 
+/* 3/4 frame whose height leaves room for the title, prev/next, and thumbs.
+   Width follows the cap so a short laptop (1280×800) keeps the controls on screen. */
+.pdp-lightbox-photo {
+  aspect-ratio: 3 / 4;
+  width: min(100%, calc(min(54dvh, max(12rem, 100dvh - 22rem)) * 0.75));
+  max-height: min(54dvh, max(12rem, 100dvh - 22rem));
+  margin-inline: auto;
+}
+
 .featured-pour-stack {
   display: grid;
   isolation: isolate;

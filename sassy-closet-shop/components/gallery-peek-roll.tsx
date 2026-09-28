@@ -11,7 +11,7 @@ import {
   GALLERY_ROLL_MS,
   nearestCenteredIndex,
 } from "@/lib/gallery-snap";
-import { LookPhoto } from "@/components/look-photo";
+import { FallibleLookPhoto } from "@/components/product-image";
 import { galleryReelLabel, photoIndexLabel, photoPositionLabel } from "@/lib/pdp-copy";
 
 export type PeekSlide = {
@@ -29,6 +29,7 @@ type Props = {
   onIndexChange: (next: number) => void;
   onCenterClick?: () => void;
   ma?: string;
+  letter?: string;
   className?: string;
 };
 
@@ -38,6 +39,7 @@ export function GalleryPeekRoll({
   onIndexChange,
   onCenterClick,
   ma,
+  letter,
   className,
 }: Props) {
   const reduced = useReducedMotion();
@@ -220,12 +222,14 @@ export function GalleryPeekRoll({
                       : photoIndexLabel(i + 1)
                   }
                 >
-                  <LookPhoto
+                  <FallibleLookPhoto
                     src={slide.src}
                     alt={slide.alt}
                     priority={isCenter}
                     sizes={peeking ? "(max-width: 1023px) 100vw, 46vw" : "(max-width: 1023px) 100vw, 50vw"}
                     className="object-cover object-top"
+                    ma={ma ?? "Look"}
+                    letter={letter ?? ma?.slice(0, 1) ?? "S"}
                   />
                 </button>
               </div>
