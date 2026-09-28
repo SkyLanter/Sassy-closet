@@ -10,6 +10,7 @@ export function LookPhoto({
   alt,
   sizes,
   priority = false,
+  fetchPriority,
   className,
   onError,
   fill = true,
@@ -20,12 +21,14 @@ export function LookPhoto({
   alt: string;
   sizes: string;
   priority?: boolean;
+  fetchPriority?: "high" | "low" | "auto";
   className?: string;
   onError?: () => void;
   fill?: boolean;
   width?: number;
   height?: number;
 }) {
+  const imagePriority = fetchPriority ?? (priority ? "high" : "auto");
   if (!shouldOptimizeImage(src)) {
     return (
       <NativeLookPhoto
@@ -33,6 +36,7 @@ export function LookPhoto({
         alt={alt}
         sizes={sizes}
         priority={priority}
+        fetchPriority={imagePriority}
         className={
           fill ? `absolute inset-0 h-full w-full ${className ?? ""}` : className
         }
@@ -52,6 +56,8 @@ export function LookPhoto({
         fill
         sizes={sizes}
         priority={priority}
+        fetchPriority={imagePriority}
+        loading={priority ? "eager" : "lazy"}
         placeholder="blur"
         blurDataURL={BLUSH_BLUR}
         draggable={false}
@@ -69,6 +75,8 @@ export function LookPhoto({
       height={height}
       sizes={sizes}
       priority={priority}
+      fetchPriority={imagePriority}
+      loading={priority ? "eager" : "lazy"}
       placeholder="blur"
       blurDataURL={BLUSH_BLUR}
       draggable={false}
@@ -83,6 +91,7 @@ function NativeLookPhoto({
   alt,
   sizes,
   priority,
+  fetchPriority,
   className,
   fill,
   width,
@@ -93,6 +102,7 @@ function NativeLookPhoto({
   alt: string;
   sizes: string;
   priority: boolean;
+  fetchPriority: "high" | "low" | "auto";
   className?: string;
   fill: boolean;
   width: number;
@@ -121,7 +131,7 @@ function NativeLookPhoto({
       sizes={sizes}
       draggable={false}
       loading={priority ? "eager" : "lazy"}
-      fetchPriority={priority ? "high" : "auto"}
+      fetchPriority={fetchPriority}
       data-loaded={pending ? "false" : "true"}
       onLoad={() => {
         setPending(false);

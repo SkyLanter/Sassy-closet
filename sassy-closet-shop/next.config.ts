@@ -24,6 +24,11 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "8mb",
     },
   },
+  outputFileTracingIncludes: {
+    "/opengraph-image": ["./assets/og-fonts/**/*", "./public/products/**/*"],
+    "/share/m/[ma]": ["./assets/og-fonts/**/*", "./public/products/**/*"],
+    "/share/c/[slug]": ["./assets/og-fonts/**/*", "./public/products/**/*"],
+  },
   async headers() {
     const noStore = [
       { key: "Cache-Control", value: "private, no-store, no-cache, max-age=0, must-revalidate" },

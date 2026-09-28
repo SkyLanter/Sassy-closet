@@ -5,6 +5,7 @@ import Link from "next/link";
 import { BuyBar } from "@/components/buy-bar";
 import { ContentWaveLooks } from "@/components/content-wave";
 import { CopyMa } from "@/components/copy-ma";
+import { ShareLook } from "@/components/share-look";
 import { FitNotes } from "@/components/fit-notes";
 import { MessengerCta } from "@/components/messenger-cta";
 import { ProductDescription } from "@/components/product-description";
@@ -12,6 +13,7 @@ import { ProductGallery } from "@/components/product-gallery";
 import { ProductMaLine, ProductPageTitle } from "@/components/product-page-title";
 import { ProductPrice } from "@/components/product-price";
 import { categoryAriaLabel, categoryCopy, categoryHref } from "@/lib/categories";
+import { productShareTitle } from "@/lib/trust-copy";
 import type { ShopLook } from "@/lib/shop-look";
 
 export function ProductLook({ product }: { product: ShopLook }) {
@@ -39,6 +41,7 @@ export function ProductLook({ product }: { product: ShopLook }) {
           </Link>
           <span aria-hidden>/</span>
           <CopyMa ma={product.ma} />
+          <ShareLook ma={product.ma} title={productShareTitle(product)} />
         </p>
         <ProductPageTitle product={product} />
         <ProductPrice

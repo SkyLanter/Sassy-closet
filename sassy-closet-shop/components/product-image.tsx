@@ -101,6 +101,7 @@ export function FallibleLookPhoto({
   alt,
   sizes,
   priority = false,
+  fetchPriority,
   className,
   fill = true,
   width,
@@ -113,6 +114,7 @@ export function FallibleLookPhoto({
   alt: string;
   sizes: string;
   priority?: boolean;
+  fetchPriority?: "high" | "low" | "auto";
   className?: string;
   fill?: boolean;
   width?: number;
@@ -131,6 +133,7 @@ export function FallibleLookPhoto({
       alt={alt}
       sizes={sizes}
       priority={priority}
+      fetchPriority={fetchPriority}
       className={className}
       fill={fill}
       width={width}

@@ -1,11 +1,9 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { ShopEmpty } from "@/components/shop-empty";
+import { notFoundSeo } from "@/lib/seo";
 import { SITE } from "@/lib/site";
 
-export const metadata: Metadata = {
-  title: "Not found",
-};
+export const metadata = notFoundSeo();
 
 export default function NotFound() {
   return (
