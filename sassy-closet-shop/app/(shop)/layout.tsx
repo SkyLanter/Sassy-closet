@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { AnnouncementBar } from "@/components/announcement-bar";
 import { BackToTop } from "@/components/back-to-top";
 import { CatalogMediaVersionProvider } from "@/components/catalog-media-version";
+import { CategorySpyProvider } from "@/components/category-spy";
 import { Footer } from "@/components/footer";
 import { GlassSheen } from "@/components/glass-sheen";
 import { Header } from "@/components/header";
@@ -41,6 +42,7 @@ export default async function ShopLayout({ children }: { children: ReactNode }) 
           looks={looks}
           initialQuery={decodeShopSearchHeader(requestHeaders.get(SHOP_SEARCH_HEADER))}
         >
+        <CategorySpyProvider>
         <SkipToLooks />
         <GlassSheen />
         <ShopPdpScroll />
@@ -57,6 +59,7 @@ export default async function ShopLayout({ children }: { children: ReactNode }) 
         </main>
         <Footer />
         <BackToTop />
+        </CategorySpyProvider>
         </ShopSearchProvider>
       </CatalogMediaVersionProvider>
       </MessengerDeviceProvider>

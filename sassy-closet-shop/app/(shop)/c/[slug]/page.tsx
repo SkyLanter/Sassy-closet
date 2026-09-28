@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { CategoryLandingScroll } from "@/components/category-landing-scroll";
 import { ContentWaveHost } from "@/components/content-wave";
-import { LooksCatalog } from "@/components/looks-catalog";
-import { ShopEmpty } from "@/components/shop-empty";
-import { categoryAriaLabel, categoryCopy, categoryFromSlug, TYPE_SLUGS } from "@/lib/categories";
-import { collectionEmptyCopy, lookCountLabel } from "@/lib/look-count";
-import { getCatalogTypes, getProductsByType } from "@/lib/products";
+import { FeaturedBoard } from "@/components/featured-board";
+import { categoryAriaLabel, categoryCopy, categoryFromSlug, categorySectionId, TYPE_SLUGS } from "@/lib/categories";
+import { getCatalogTypes, getProducts } from "@/lib/products";
 import { categoryJsonLd, categorySeo, notFoundSeo } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -41,38 +40,26 @@ export default async function CategoryPage({
   }
 
   const labels = categoryCopy(type);
-  const products = await getProductsByType(type);
-  const suggestTypes = await getCatalogTypes();
-  const jsonLd = categoryJsonLd(labels.label, slug, products);
-  const countLabel = lookCountLabel(products.length);
+  const products = await getProducts();
+  const types = await getCatalogTypes();
+  const inCategory = products.filter((product) => product.type === type);
+  const jsonLd = categoryJsonLd(labels.label, slug, inCategory);
 
   return (
-    <ContentWaveHost className="shop-content-layer bg-paper ky-gutter pb-10 pt-4 sm:pb-12 sm:pt-6 scroll-mt-[calc(env(safe-area-inset-top,0px)+8.25rem)] sm:scroll-mt-[calc(env(safe-area-inset-top,0px)+8.75rem)]">
+    <ContentWaveHost className="shop-content-layer bg-paper scroll-mt-[calc(env(safe-area-inset-top,0px)+8.25rem)] sm:scroll-mt-[calc(env(safe-area-inset-top,0px)+8.75rem)]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-end gap-x-3">
-        <h1
-          aria-label={categoryAriaLabel(type)}
-          className="col-start-1 row-start-1 min-w-0 text-left font-display text-[2.15rem] font-medium leading-[1.08] tracking-[0.02em] text-balance text-ink outline-none sm:text-[2.75rem]"
-          translate="no"
-        >
-          {labels.label}
-        </h1>
-        {products.length === 0 ? (
-          <p className="col-start-2 row-start-1 mb-1 max-w-full truncate whitespace-nowrap text-[11px] uppercase tracking-[0.16em] text-muted tabular-nums" translate="no">
-            {countLabel}
-          </p>
-        ) : null}
-        {products.length === 0 ? (
-          <div className="col-span-2 row-start-2 mt-8">
-            <ShopEmpty {...collectionEmptyCopy(labels.label, slug)} />
-          </div>
-        ) : (
-          <LooksCatalog products={products} motionKey={slug} suggestTypes={suggestTypes} />
-        )}
-      </div>
+      <h1
+        aria-label={categoryAriaLabel(type)}
+        className="sr-only truncate whitespace-nowrap text-left font-display text-[2.15rem] font-medium leading-[1.08] tracking-[0.02em] text-balance text-ink outline-none"
+        translate="no"
+      >
+        {labels.label}
+      </h1>
+      <CategoryLandingScroll sectionId={categorySectionId(type)} />
+      <FeaturedBoard products={products} types={types} landingType={type} />
     </ContentWaveHost>
   );
 }

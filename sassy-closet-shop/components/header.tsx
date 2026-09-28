@@ -6,9 +6,10 @@ import { usePathname } from "next/navigation";
 import { LayoutGroup, motion, useReducedMotion } from "framer-motion";
 import { HScrollCue } from "@/components/h-scroll-cue";
 import { HeaderSearch, HeaderSearchProvider, HeaderSearchSheet } from "@/components/header-search";
+import { useCategorySpy } from "@/components/category-spy";
 import { MessengerCta } from "@/components/messenger-cta";
 import { onShopHomeClick, useShopSearch } from "@/components/shop-search";
-import { categoryAriaLabel, categoryCopy, categoryHref } from "@/lib/categories";
+import { categoryAriaLabel, categoryChipHref, categoryCopy, categoryHref } from "@/lib/categories";
 import { scrollChromeChildIntoView } from "@/lib/gallery-snap";
 import type { MaLetter } from "@/lib/ma";
 import { easeOutFast } from "@/lib/motion";
@@ -16,6 +17,7 @@ import { SITE } from "@/lib/site";
 
 export function Header({ types }: { types: MaLetter[] }) {
   const pathname = usePathname();
+  const { active: spyActive } = useCategorySpy();
   const { clearSearch } = useShopSearch();
   const reduced = useReducedMotion();
   const navRef = useRef<HTMLElement | null>(null);
@@ -34,9 +36,11 @@ export function Header({ types }: { types: MaLetter[] }) {
   useLayoutEffect(() => {
     scrollChromeChildIntoView(
       navRef.current,
-      navRef.current?.querySelector<HTMLElement>('[aria-current="page"]') ?? null,
+      navRef.current?.querySelector<HTMLElement>('[aria-current="page"]') ??
+        navRef.current?.querySelector<HTMLElement>('[aria-current="location"]') ??
+        null,
     );
-  }, [pathname]);
+  }, [pathname, spyActive]);
 
   return (
     <HeaderSearchProvider types={types} onExpandedChange={setSearchOpen}>
@@ -78,9 +82,38 @@ export function Header({ types }: { types: MaLetter[] }) {
           aria-label="Danh mục · Categories"
         >
           {types.map((type) => {
-            const href = categoryHref(type);
-            const active = pathname === href || pathname.startsWith(`${href}/`);
+            const href = categoryChipHref(pathname, type);
+            const route = categoryHref(type);
+            const routeActive = pathname === route || pathname.startsWith(`${route}/`);
+            const active = spyActive ? spyActive === type : routeActive;
             const labels = categoryCopy(type);
+            const className = `relative inline-flex min-h-11 min-w-11 shrink-0 touch-manipulation select-none items-end justify-center whitespace-nowrap pb-1.5 text-[11px] font-medium uppercase tracking-[0.16em] ${
+              active ? "text-ink" : "text-muted hover-hover:hover:text-ink"
+            }`;
+            const mark = active ? (
+              <motion.span
+                layoutId={reduced ? undefined : "nav-tab"}
+                className="absolute inset-x-0 bottom-0 h-px bg-gold"
+                initial={false}
+                transition={reduced ? { duration: 0 } : easeOutFast}
+                aria-hidden
+              />
+            ) : null;
+            if (href.startsWith("#")) {
+              return (
+                <a
+                  key={type}
+                  href={href}
+                  aria-current={active ? "location" : undefined}
+                  aria-label={categoryAriaLabel(type)}
+                  translate="no"
+                  className={className}
+                >
+                  {labels.label}
+                  {mark}
+                </a>
+              );
+            }
             return (
               <Link
                 key={type}
@@ -88,20 +121,10 @@ export function Header({ types }: { types: MaLetter[] }) {
                 aria-current={active ? "page" : undefined}
                 aria-label={categoryAriaLabel(type)}
                 translate="no"
-                className={`relative inline-flex min-h-11 min-w-11 shrink-0 touch-manipulation select-none items-end justify-center whitespace-nowrap pb-1.5 text-[11px] font-medium uppercase tracking-[0.16em] ${
-                  active ? "text-ink" : "text-muted hover-hover:hover:text-ink"
-                }`}
+                className={className}
               >
                 {labels.label}
-                {active ? (
-                  <motion.span
-                    layoutId={reduced ? undefined : "nav-tab"}
-                    className="absolute inset-x-0 bottom-0 h-px bg-gold"
-                    initial={false}
-                    transition={reduced ? { duration: 0 } : easeOutFast}
-                    aria-hidden
-                  />
-                ) : null}
+                {mark}
               </Link>
             );
           })}

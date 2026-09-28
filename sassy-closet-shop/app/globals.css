@@ -1279,6 +1279,28 @@ summary::-webkit-details-marker {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+/* Category anchors sit below the sticky glass header and the chip rail. */
+.sc-cat-rail {
+  position: sticky;
+  z-index: 30;
+  top: calc(env(safe-area-inset-top, 0px) + 8.25rem);
+  background: var(--paper);
+}
+
+.sc-cat-section {
+  scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 11.5rem);
+}
+
+@media (min-width: 640px) {
+  .sc-cat-rail {
+    top: calc(env(safe-area-inset-top, 0px) + 8.75rem);
+  }
+
+  .sc-cat-section {
+    scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 12rem);
+  }
+}
+
 @media (min-width: 640px) {
   .sc-look-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));

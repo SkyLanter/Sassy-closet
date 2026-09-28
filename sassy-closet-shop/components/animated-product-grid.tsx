@@ -9,10 +9,12 @@ export function AnimatedProductGrid({
   products,
   motionKey,
   direction = 1,
+  eagerCount = 2,
 }: {
   products: ShopLook[];
   motionKey: string;
   direction?: number;
+  eagerCount?: number;
 }) {
   const reduced = useReducedMotion();
   const slide = filterSlide(Boolean(reduced), direction);
@@ -29,7 +31,7 @@ export function AnimatedProductGrid({
           animate={slide.animate}
           exit={slide.exit}
         >
-          <ProductGrid products={products} replay={false} />
+          <ProductGrid products={products} replay={false} eagerCount={eagerCount} />
         </motion.div>
       </AnimatePresence>
     </div>
