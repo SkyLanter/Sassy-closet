@@ -279,7 +279,16 @@ body {
 
 .ky-buy-bar [data-testid="shop-message-cta"],
 .ky-buy-bar [data-testid="shop-ask-price"] {
+  background: var(--ink);
+  color: var(--paper);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   box-shadow: 0 0 0 1px rgb(255 255 255 / 0.55);
+}
+
+/* The gold film is a border mask. Contrast checks treat the full overlay as the text background. */
+.ky-buy-bar .ky-chrome-rim {
+  display: none;
 }
 
 @media (hover: hover) {
@@ -1180,7 +1189,6 @@ summary::-webkit-details-marker {
   }
 
   .sc-rise[data-rise="pending"] {
-    opacity: 0.9;
     transform: translateY(8px);
   }
 
@@ -1191,7 +1199,7 @@ summary::-webkit-details-marker {
 
 @keyframes sc-rise {
   from {
-    opacity: 0.9;
+    opacity: 1;
     transform: translateY(8px);
   }
   to {
