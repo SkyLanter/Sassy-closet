@@ -23,9 +23,15 @@ export type NewMaWebhookPayload = {
   previous_ma?: string;
 };
 
-/** True only when both URL and token are set. The page receives this boolean, never the values. */
+/**
+ * True only when the token is set and the URL starts with https://.
+ * The page receives this boolean, never the values. An http URL would skip
+ * every send, so the saved card stays on the 15-minute line.
+ */
 export function newMaWebhookConfigured(): boolean {
-  return Boolean(readEnv("NEW_MA_WEBHOOK_URL") && readEnv("NEW_MA_WEBHOOK_TOKEN"));
+  const url = readEnv("NEW_MA_WEBHOOK_URL");
+  const token = readEnv("NEW_MA_WEBHOOK_TOKEN");
+  return Boolean(url && token && isHttpsWebhookUrl(url));
 }
 
 export function buildNewMaWebhookPayload(input: NewMaWebhookInput): NewMaWebhookPayload {
@@ -63,7 +69,7 @@ export async function notifyNewMaWebhook(input: NewMaWebhookInput): Promise<void
     const url = readEnv("NEW_MA_WEBHOOK_URL");
     const token = readEnv("NEW_MA_WEBHOOK_TOKEN");
     if (!url || !token || !ma.trim()) return;
-    if (!url.startsWith("https://")) {
+    if (!isHttpsWebhookUrl(url)) {
       logFailure(event, ma, "skip");
       return;
     }
@@ -117,6 +123,10 @@ export function scheduleNewMaWebhookFromRow(
 
 function readEnv(name: "NEW_MA_WEBHOOK_URL" | "NEW_MA_WEBHOOK_TOKEN"): string {
   return process.env[name]?.trim() ?? "";
+}
+
+function isHttpsWebhookUrl(url: string): boolean {
+  return url.startsWith("https://");
 }
 
 function isOutsideRequestScope(error: unknown): boolean {

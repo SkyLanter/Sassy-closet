@@ -168,11 +168,11 @@ describe("new mã webhook helper", () => {
     assertNoSecret(errors);
   });
 
-  test("http URL is not called and logs skip without the URL", async () => {
+  test("http URL is not configured, is not called, and logs skip without the URL", async () => {
     const httpUrl = "http://example.invalid/new-ma";
     process.env.NEW_MA_WEBHOOK_URL = httpUrl;
     process.env.NEW_MA_WEBHOOK_TOKEN = TEST_TOKEN;
-    assert.equal(newMaWebhookConfigured(), true);
+    assert.equal(newMaWebhookConfigured(), false);
 
     await notifyNewMaWebhook(sampleInput({ previous_ma: "A01" }));
     assert.equal(fetchCalls.length, 0);
@@ -285,6 +285,49 @@ describe("save routes stay 200 when the new-mã webhook fails", { concurrency: 1
     const sameBody = JSON.parse(String(fetchCalls[2].init.body)) as { ma: string; previous_ma?: string };
     assert.equal(sameBody.ma, "A09");
     assert.equal("previous_ma" in sameBody, false);
+    assertNoSecret(errors);
+  });
+
+  test("a lowercase stored mã is not treated as a rename", async () => {
+    process.env.NEW_MA_WEBHOOK_URL = TEST_URL;
+    process.env.NEW_MA_WEBHOOK_TOKEN = TEST_TOKEN;
+
+    const createdRes = await POST(jsonForm("POST", "/api/submissions"));
+    assert.equal(createdRes.status, 200);
+    await flush();
+    fetchCalls.length = 0;
+
+    const file = path.join(tmp, "submissions.json");
+    const disk = JSON.parse(fs.readFileSync(file, "utf8")) as { submissions: { ma: string }[] };
+    disk.submissions[0].ma = "a03";
+    fs.writeFileSync(file, JSON.stringify(disk));
+
+    const sameRes = await PATCH(jsonForm("PATCH", "/api/submissions/A03"), {
+      params: Promise.resolve({ ma: "A03" }),
+    });
+    assert.equal(sameRes.status, 200);
+    const same = (await sameRes.json()) as { submission: { ma: string } };
+    assert.equal(same.submission.ma, "a03");
+    await flush();
+    assert.equal(fetchCalls.length, 1);
+    const sameBody = JSON.parse(String(fetchCalls[0].init.body)) as { ma: string; previous_ma?: string };
+    assert.equal(sameBody.ma, "a03");
+    assert.equal("previous_ma" in sameBody, false);
+
+    const renamedRes = await PATCH(jsonForm("PATCH", "/api/submissions/a03", { new_ma: "A09" }), {
+      params: Promise.resolve({ ma: "a03" }),
+    });
+    assert.equal(renamedRes.status, 200);
+    const renamed = (await renamedRes.json()) as { submission: { ma: string } };
+    assert.equal(renamed.submission.ma, "A09");
+    await flush();
+    assert.equal(fetchCalls.length, 2);
+    const renamedBody = JSON.parse(String(fetchCalls[1].init.body)) as {
+      ma: string;
+      previous_ma?: string;
+    };
+    assert.equal(renamedBody.ma, "A09");
+    assert.equal(renamedBody.previous_ma, "A03");
     assertNoSecret(errors);
   });
 

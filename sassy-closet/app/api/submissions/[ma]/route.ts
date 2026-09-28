@@ -28,11 +28,12 @@ export async function PATCH(
   try {
     const form = await request.formData();
     const submission = await saveFromForm(form, ma);
-    const previousMa = normalizeMa(ma);
+    const urlMa = normalizeMa(ma);
+    const savedMa = normalizeMa(submission.ma);
     scheduleNewMaWebhookFromRow(
       "update",
       submission,
-      previousMa !== submission.ma ? previousMa : undefined,
+      urlMa !== savedMa ? urlMa : undefined,
     );
     return NextResponse.json({ submission });
   } catch (error) {
