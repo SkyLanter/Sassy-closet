@@ -41,9 +41,6 @@ async function main(): Promise<void> {
     if ((ma === "P02" || ma === "P05") && (product.status !== "hold" || product.priceUsd !== null)) {
       fail(`Live ${ma} must stay Hold with no USD`);
     }
-    if (ma === "P05" && product.priceUsd === 23) {
-      fail("P05 must never publish $23");
-    }
   }
 
   const extra = document.products.find((product) => product.ma === "A03");

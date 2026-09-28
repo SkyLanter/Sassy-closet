@@ -95,14 +95,14 @@ async function main(): Promise<void> {
       descriptionEn: p05.descriptionEn,
       descriptionVn: p05.descriptionVn,
       status: "available",
-      priceUsd: 23,
+      priceUsd: 28,
       colors: p05.colors,
       images: p05.images,
       fulfillment: p05.fulfillment,
       sourceLink: p05.sourceLink,
     });
     if (leak.ok) {
-      fail("P05 $23 must not save");
+      fail("P05 off the Boss list must not save");
     }
   }
 
