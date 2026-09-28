@@ -88,7 +88,9 @@ export function ColorNameChips({
     <LayoutGroup id={motionGroupId}>
       <div
         ref={railRef}
-        className={`flex min-w-0 max-w-full flex-nowrap overflow-x-auto tab-scroll scroll-px-2 ${compact ? "gap-1.5" : "gap-2"}`}
+        className={`flex w-full min-w-0 max-w-full scroll-px-2 ${
+          compact ? "flex-wrap gap-1.5" : "flex-nowrap gap-2 overflow-x-auto tab-scroll"
+        }`}
         role="radiogroup"
         aria-orientation="horizontal"
         aria-label={COLOR_FIELD_LEGEND}
@@ -105,10 +107,7 @@ export function ColorNameChips({
               type="button"
               role="radio"
               aria-checked={selected}
-              aria-pressed={selected}
               tabIndex={tabbable ? 0 : -1}
-              aria-posinset={index + 1}
-              aria-setsize={colors.length}
               data-testid="shop-color-chip"
               data-color-id={color.id}
               aria-label={label}
@@ -118,12 +117,14 @@ export function ColorNameChips({
                   wave.play();
                 }
               }}
-              className={`ky-color-chip liquid-glass-chip relative inline-flex min-w-11 shrink-0 items-center justify-center touch-manipulation select-none whitespace-nowrap px-3 font-medium uppercase ${
-                compact ? "min-h-8 max-sm:min-h-11 text-[10px] tracking-[0.12em] max-sm:text-[11px]" : "min-h-11 text-[11px] tracking-[0.16em]"
+              className={`ky-color-chip liquid-glass-chip sc-press relative inline-flex max-w-full min-w-11 items-center justify-center touch-manipulation select-none px-3 font-medium uppercase ${
+                compact
+                  ? "min-h-11 text-[11px] tracking-[0.12em] sm:min-h-8 sm:text-[10px]"
+                  : "min-h-11 shrink-0 whitespace-nowrap text-[11px] tracking-[0.16em]"
               } ${selected ? "text-ink" : "text-muted hover-hover:hover:text-ink"}`}
               translate="no"
             >
-              <span className="relative z-[1]">{label}</span>
+              <span className={`relative z-[1] ${compact ? "max-w-full whitespace-normal break-words text-center" : ""}`}>{label}</span>
               {selected && animateSelection ? (
                 <motion.span
                   layoutId={lineLayoutId}

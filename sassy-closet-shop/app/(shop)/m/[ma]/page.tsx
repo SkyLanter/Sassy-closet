@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { BuyBar } from "@/components/buy-bar";
 import { ContentWaveHost, ContentWaveLooks } from "@/components/content-wave";
 import { ProductLook } from "@/components/product-look";
 import { ProductGrid } from "@/components/product-grid";
@@ -70,7 +69,7 @@ export default async function ProductPage({
               </p>
               <div className="mt-8">
                 <ContentWaveLooks>
-                  <ProductGrid products={related} />
+                  <ProductGrid products={related} eagerCount={0} />
                 </ContentWaveLooks>
               </div>
             </div>
@@ -78,7 +77,6 @@ export default async function ProductPage({
         ) : null}
       </ContentWaveHost>
 
-      <BuyBar product={product} />
     </div>
   );
 }

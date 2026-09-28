@@ -1,8 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useId, useLayoutEffect, useRef, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { motion, useReducedMotion } from "framer-motion";
+import { FallibleLookPhoto } from "@/components/product-image";
+import { ZoomLayer } from "@/components/zoom-layer";
 import { cacheBustMediaSrc } from "@/lib/catalog-sha";
 import {
   animateGalleryScrollTo,
@@ -41,6 +43,8 @@ function GalleryNavButton({
 
 export function PhotoLightbox({
   title,
+  ma,
+  letter,
   colorLabel,
   slides,
   index,
@@ -49,6 +53,8 @@ export function PhotoLightbox({
   onIndex,
 }: {
   title: string;
+  ma: string;
+  letter: string;
   colorLabel: string;
   slides: ProductImageAsset[];
   index: number;
@@ -57,6 +63,8 @@ export function PhotoLightbox({
   onIndex: (nextIndex: number) => void;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const zoomOpenRef = useRef<HTMLButtonElement>(null);
+  const zoomWasOpen = useRef(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const railRef = useRef<HTMLDivElement>(null);
   const slideRefs = useRef<Array<HTMLDivElement | null>>([]);
@@ -83,7 +91,18 @@ export function PhotoLightbox({
       ? cacheBustMediaSrc(current.src, version)
       : current.src
     : undefined;
+  const zoomKey = `${safeIndex}:${src ?? ""}`;
+  const [zoomFor, setZoomFor] = useState<string | null>(null);
+  const zoomed = zoomFor === zoomKey;
   const peeking = slides.length > 1;
+
+  useEffect(() => {
+    if (zoomWasOpen.current && !zoomed) {
+      zoomOpenRef.current?.focus();
+    }
+    zoomWasOpen.current = zoomed;
+  }, [zoomed]);
+
   const canPrev = peeking && safeIndex > 0;
   const canNext = peeking && safeIndex < slides.length - 1;
 
@@ -265,11 +284,11 @@ export function PhotoLightbox({
         aria-labelledby={titleId}
         initial={false}
         animate={{ opacity: 1 }}
-        className="relative z-[1] flex max-h-[min(92vh,calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)))] w-full max-w-3xl flex-col border border-gold bg-paper p-3 shadow-[0_18px_40px_-24px_rgba(17,17,17,0.45)] sm:p-4"
+        className="relative z-[1] flex max-h-full min-h-0 w-full max-w-3xl flex-col overflow-y-auto border border-gold bg-paper p-3 shadow-[0_18px_40px_-24px_rgba(17,17,17,0.45)] sm:p-4"
       >
         <div className="mb-3 flex items-start justify-between gap-3">
           <div>
-            <p id={titleId} className="font-display text-2xl leading-[1.08] tracking-[0.02em] text-balance text-ink" translate="no">
+            <p id={titleId} className="line-clamp-3 font-display text-2xl leading-[1.08] tracking-[0.02em] text-balance text-ink" translate="no">
               {title}
             </p>
             <p
@@ -281,15 +300,27 @@ export function PhotoLightbox({
               {colorLabel} · {safeIndex + 1} / {slides.length}
             </p>
           </div>
-          <button
-            ref={closeRef}
-            type="button"
-            onClick={close}
-            aria-label="Đóng"
-            className="flex h-11 w-11 touch-manipulation items-center justify-center rounded-full border border-gold/45 text-ink hover-hover:hover:border-gold"
-          >
-            <span aria-hidden>✕</span>
-          </button>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              ref={zoomOpenRef}
+              type="button"
+              data-testid="photo-zoom-open"
+              onClick={() => setZoomFor(zoomKey)}
+              className="sc-press inline-flex min-h-11 touch-manipulation items-center rounded-full border border-gold/45 px-4 text-[11px] uppercase tracking-[0.16em] text-ink"
+              aria-label="Phóng to · Zoom"
+            >
+              Phóng to
+            </button>
+            <button
+              ref={closeRef}
+              type="button"
+              onClick={close}
+              aria-label="Đóng"
+              className="flex h-11 w-11 touch-manipulation items-center justify-center rounded-full border border-gold/45 text-ink hover-hover:hover:border-gold"
+            >
+              <span aria-hidden>✕</span>
+            </button>
+          </div>
         </div>
         <div className="relative">
           <div
@@ -312,23 +343,45 @@ export function PhotoLightbox({
                   }}
                   className="pdp-slide"
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={slideSrc}
-                    alt={`${title} · ${colorLabel} · ${photoIndexLabel(slideIndex + 1)}`}
-                    draggable={false}
-                    decoding={slideIndex === safeIndex ? "sync" : "async"}
-                    fetchPriority={slideIndex === safeIndex ? "high" : "low"}
-                    sizes="(min-width: 768px) 48rem, 100vw"
-                    className="max-h-[88dvh] w-full select-none rounded-sm object-contain ring-1 ring-gold/40"
-                  />
+                  <div
+                    className="pdp-lightbox-photo relative"
+                    onDoubleClick={() => {
+                      if (slideIndex === safeIndex) {
+                        setZoomFor(zoomKey);
+                      }
+                    }}
+                    onTouchStart={(event) => {
+                      if (event.touches.length === 2 && slideIndex === safeIndex) {
+                        setZoomFor(zoomKey);
+                      }
+                    }}
+                  >
+                    <FallibleLookPhoto
+                      src={slideSrc}
+                      alt={`${title}, ${colorLabel}, photo ${slideIndex + 1}`}
+                      priority={slideIndex === safeIndex}
+                      sizes="(min-width: 768px) 28rem, 100vw"
+                      className="object-contain"
+                      ma={ma}
+                      letter={letter}
+                    />
+                  </div>
                 </div>
               );
             })}
           </div>
         </div>
+        {zoomed && src ? (
+          <ZoomLayer
+            src={src}
+            alt={`${title}, ${colorLabel}`}
+            ma={ma}
+            letter={letter}
+            onClose={() => setZoomFor(null)}
+          />
+        ) : null}
         {peeking ? (
-          <div className="ky-gallery-dock mt-3">
+          <div className="ky-gallery-dock mt-3 shrink-0">
             <GalleryNavButton
               label="Ảnh trước"
               side="left"
@@ -366,7 +419,7 @@ export function PhotoLightbox({
           </div>
         ) : null}
         {peeking ? (
-          <div className="ky-thumb-rail mt-3 flex flex-nowrap gap-2.5 overflow-x-auto tab-scroll">
+          <div className="ky-thumb-rail mt-3 flex shrink-0 flex-nowrap gap-2.5 overflow-x-auto tab-scroll">
             {slides.map((slideItem, slideIndex) => {
               const thumb = version ? cacheBustMediaSrc(slideItem.src, version) : slideItem.src;
               return (
@@ -379,12 +432,19 @@ export function PhotoLightbox({
                   aria-posinset={slideIndex + 1}
                   aria-setsize={slides.length}
                   onClick={() => onIndex(slideIndex)}
-                  className={`ky-thumb-shot min-h-11 min-w-11 shrink-0 touch-manipulation overflow-hidden border ${
+                  className={`ky-thumb-shot relative h-20 w-14 min-h-11 min-w-11 shrink-0 touch-manipulation overflow-hidden border ${
                     slideIndex === safeIndex ? "border-gold" : "border-gold/35 hover-hover:hover:border-gold"
                   }`}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={thumb} alt="" draggable={false} decoding="async" width={56} height={80} sizes="56px" className="h-20 w-14 select-none object-cover" />
+                  <FallibleLookPhoto
+                    src={thumb}
+                    alt=""
+                    sizes="56px"
+                    className="object-cover object-top"
+                    ma={ma}
+                    letter={letter}
+                    compact
+                  />
                 </button>
               );
             })}

@@ -97,11 +97,15 @@ export function rootSeo(): Metadata {
   };
 }
 
+function productShareImages(product: ShopLook): NonNullable<Metadata["openGraph"]>["images"] {
+  return shareImage(`/share/m/${product.ma}`, productOgAlt(product));
+}
+
 export function productSeo(product: ShopLook): Metadata {
   const title = productShareTitle(product);
   const description = productShareDescription(product);
   const canonical = shopCanonical(`/m/${product.ma}`);
-  const images = shareImage(`/share/m/${product.ma}`, productOgAlt(product));
+  const images = productShareImages(product);
   return {
     title,
     description,

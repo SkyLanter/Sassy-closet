@@ -1,4 +1,10 @@
-import { catalogSizeLetters, parseAsiaSizes, type AsiaSizeLetter } from "@/lib/asia-size";
+import {
+  catalogSizeLetters,
+  hasAnyFitCm,
+  parseAsiaSizes,
+  type AsiaSizeLetter,
+  type FitCm,
+} from "@/lib/asia-size";
 import { ownMaImages } from "@/lib/product-media";
 import { customerStockVoiceHit } from "@/lib/public-safety";
 import { shopSafeProduct } from "@/lib/sell-contract";
@@ -10,6 +16,13 @@ import type { Product, ProductColor, ProductImageAsset } from "@/lib/types";
  * Inbox-price looks are `priceUsd: null` — never stock chrome in the shopper payload.
  * `sizes` are seller/catalog Asia letters already on the row — never invented, never US.
  */
+/** Catalog centimeters. Null when the row stores none. Never guessed from a letter. */
+export type ShopMeasurements = {
+  bustChestCm: number | null;
+  waistCm: number | null;
+  lengthCm: number | null;
+};
+
 export type ShopLook = {
   ma: string;
   type: MaLetter;
@@ -21,7 +34,19 @@ export type ShopLook = {
   images: ProductImageAsset[];
   descriptionVn: string;
   descriptionEn: string;
+  measurements: ShopMeasurements | null;
 };
+
+export function shopMeasurements(fit: FitCm): ShopMeasurements | null {
+  if (!hasAnyFitCm(fit)) {
+    return null;
+  }
+  return {
+    bustChestCm: fit.bustChestCm,
+    waistCm: fit.waistCm,
+    lengthCm: fit.lengthCm,
+  };
+}
 
 export function toShopLook(product: Product): ShopLook {
   const safe = shopSafeProduct(product);
@@ -36,6 +61,7 @@ export function toShopLook(product: Product): ShopLook {
     images: ownMaImages(safe),
     descriptionVn: safe.descriptionVn,
     descriptionEn: safe.descriptionEn,
+    measurements: shopMeasurements(safe.fitCm),
   };
 }
 

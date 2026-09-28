@@ -1,12 +1,12 @@
 "use client";
 
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { useCatalogMediaVersion } from "@/components/catalog-media-version";
 import { ColorNameChips } from "@/components/color-name-chips";
 import { GalleryPeekRoll } from "@/components/gallery-peek-roll";
 import { PhotoLightbox } from "@/components/photo-lightbox";
-import { PlaceholderTile } from "@/components/product-image";
+import { FallibleLookPhoto, PlaceholderTile } from "@/components/product-image";
 import { SizeNameChips } from "@/components/size-name-chips";
 import type { AsiaSizeLetter } from "@/lib/asia-size";
 import { cacheBustMediaSrc } from "@/lib/catalog-sha";
@@ -36,11 +36,13 @@ export function ProductGallery({
   product,
   colorId: colorIdProp,
   onColorId,
+  onAskChange,
   showChips = true,
 }: {
   product: ShopLook;
   colorId?: string | null;
   onColorId?: (id: string | null) => void;
+  onAskChange?: (ask: { size: string | null; color: string | null }) => void;
   showChips?: boolean;
 }) {
   const [uncontrolledColorId, setUncontrolledColorId] = useState<string | null>(null);
@@ -99,6 +101,13 @@ export function ProductGallery({
     scrollCurrentChromeIntoView(thumbRailRef.current);
   }, [safeIndex, thumbs.length, overflowCount]);
 
+  useEffect(() => {
+    onAskChange?.({
+      size: sizeLetter,
+      color: selectedColor ? colorShopLabel(selectedColor, Math.max(0, colorIndex)) : null,
+    });
+  }, [colorIndex, onAskChange, selectedColor, sizeLetter]);
+
   function chooseColor(id: string) {
     const next = colorId === id ? null : id;
     setColorId(next);
@@ -142,6 +151,7 @@ export function ProductGallery({
             slides={slides}
             index={safeIndex}
             ma={product.ma}
+            letter={product.type}
             onIndexChange={choosePhotoIndex}
             onCenterClick={colorHasShots ? () => setLightbox(true) : undefined}
           />
@@ -178,12 +188,19 @@ export function ProductGallery({
                 aria-posinset={thumbIndex + 1}
                 aria-setsize={reel.length}
                 onClick={() => choosePhotoIndex(thumbIndex)}
-                className={`ky-thumb-shot relative min-h-11 min-w-11 shrink-0 touch-manipulation select-none overflow-hidden border ${
+                className={`ky-thumb-shot relative h-20 w-16 min-h-11 min-w-11 shrink-0 touch-manipulation select-none overflow-hidden border sm:h-24 sm:w-[4.5rem] ${
                   currentThumb ? "border-gold" : "border-gold/35 hover-hover:hover:border-gold"
                 }`}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={src} alt="" draggable={false} decoding="async" width={64} height={80} sizes="(min-width: 640px) 72px, 64px" className="h-20 w-16 select-none object-cover object-top sm:h-24 sm:w-[4.5rem]" />
+                <FallibleLookPhoto
+                  src={src}
+                  alt=""
+                  sizes="72px"
+                  className="object-cover object-top"
+                  ma={product.ma}
+                  letter={product.type}
+                  compact
+                />
               </button>
             );
           })}
@@ -207,7 +224,8 @@ export function ProductGallery({
       ) : null}
       {reel.length > 1 ? (
         <p
-          className="mt-2 max-w-full truncate whitespace-nowrap text-[11px] uppercase tracking-[0.18em] text-muted tabular-nums"
+          className="gallery-photo-count mt-2 max-w-full truncate whitespace-nowrap text-[11px] uppercase tracking-[0.18em] text-muted tabular-nums"
+          data-testid="gallery-photo-count"
           aria-hidden
           translate="no"
         >
@@ -259,6 +277,8 @@ export function ProductGallery({
           <PhotoLightbox
             key="gallery-lightbox"
             title={displayTitle(product)}
+            ma={product.ma}
+            letter={product.type}
             colorLabel={colorLabel}
             slides={lightboxSlides}
             index={safeIndex}

@@ -517,6 +517,22 @@ body {
   scroll-snap-stop: always;
 }
 
+/* 3/4 frame. Height leaves room for a wrapping title, prev/next, and thumbs.
+   Phone reserves 21rem; desktop (md) reserves 18rem. Width follows the cap. */
+.pdp-lightbox-photo {
+  aspect-ratio: 3 / 4;
+  width: min(100%, calc((100dvh - 21rem) * 0.75));
+  max-height: calc(100dvh - 21rem);
+  margin-inline: auto;
+}
+
+@media (min-width: 768px) {
+  .pdp-lightbox-photo {
+    width: min(100%, calc((100dvh - 18rem) * 0.75));
+    max-height: calc(100dvh - 18rem);
+  }
+}
+
 .featured-pour-stack {
   display: grid;
   isolation: isolate;
@@ -685,16 +701,8 @@ summary::-webkit-details-marker {
 
 @keyframes announce-fade {
   0%,
-  12% {
-    opacity: 0;
-  }
-  20%,
-  80% {
-    opacity: 1;
-  }
-  92%,
   100% {
-    opacity: 0;
+    opacity: 1;
   }
 }
 
@@ -745,7 +753,8 @@ summary::-webkit-details-marker {
 
   .announce-fade,
   .shimmer,
-  .content-wave-sheen {
+  .content-wave-sheen,
+  .sc-rise {
     animation: none !important;
   }
 
@@ -774,6 +783,9 @@ summary::-webkit-details-marker {
     mix-blend-mode: normal !important;
   }
 
+  .sc-rise,
+  .sc-press,
+  .sc-press:active,
   .ky-card-reel,
   .liquid-glass,
   .liquid-glass-bar,
@@ -950,6 +962,12 @@ summary::-webkit-details-marker {
 .sc-card-well {
   border-radius: var(--sc-radius);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 32%, transparent);
+  /* Beat .ky-gallery-shell { height: 100% } so a taller chip row cannot stretch the photo. */
+  height: auto;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  flex: none;
+  align-self: start;
 }
 
 /* This rule sits after the scroll shadow so reduced motion still wins. */
@@ -973,9 +991,88 @@ summary::-webkit-details-marker {
 
   [data-testid="pdp-color-chips"],
   [data-testid="pdp-size-chips"],
+  [data-testid="fit-notes"],
+  [data-testid="gallery-photo-count"],
+  [data-testid="product-gallery"] .ky-thumb-rail,
   #look-title,
   [data-testid="product-gallery"] > p:not(.sr-only) {
     scroll-margin-bottom: var(--shop-buy-bar-space);
+  }
+}
+
+.sc-title {
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+}
+
+.sc-look-grid {
+  align-items: start;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 640px) {
+  .sc-look-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .sc-look-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .sc-look-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+.sc-card-title,
+.sc-card-copy {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  overflow-wrap: anywhere;
+  text-wrap: wrap;
+}
+
+.sc-card-title {
+  -webkit-line-clamp: 3;
+  min-height: 3.45em;
+}
+
+.sc-card-copy {
+  -webkit-line-clamp: 2;
+  min-height: 2.7em;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sc-press {
+    transition: transform 160ms var(--sc-ease);
+  }
+
+  .sc-press:active {
+    transform: scale(0.97);
+  }
+
+  @supports (animation-timeline: view()) {
+    .sc-rise {
+      animation: sc-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 20%;
+    }
+  }
+}
+
+@keyframes sc-rise {
+  from {
+    opacity: 0.86;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 

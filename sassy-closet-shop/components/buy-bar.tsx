@@ -6,7 +6,15 @@ import { ProductPrice } from "@/components/product-price";
 import { displayName } from "@/lib/copy";
 import type { ShopLook } from "@/lib/shop-look";
 
-export function BuyBar({ product }: { product: ShopLook }) {
+export function BuyBar({
+  product,
+  sizeLabel = null,
+  colorLabel = null,
+}: {
+  product: ShopLook;
+  sizeLabel?: string | null;
+  colorLabel?: string | null;
+}) {
   const name = displayName(product);
 
   return (
@@ -30,11 +38,13 @@ export function BuyBar({ product }: { product: ShopLook }) {
               </p>
               <ProductPrice
                 product={product}
-                className="mt-0.5 block text-[13px] font-medium tracking-tight text-ink"
+                className="mt-0.5 block truncate text-[13px] font-medium tracking-tight text-ink"
               />
             </div>
             <MessengerCta
               ma={product.ma}
+              sizeLabel={sizeLabel}
+              colorLabel={colorLabel}
               askPrice={product.priceUsd === null}
               className="min-h-11 shrink-0 whitespace-nowrap"
             />
