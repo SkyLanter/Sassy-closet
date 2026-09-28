@@ -45,12 +45,12 @@ export function ProductCard({
       variants={fadeUp(Boolean(reduced))}
       exit="exit"
       transition={springSoft}
-      className="sc-rise flex h-full min-w-0 list-none flex-col"
+      className="sc-rise flex min-w-0 list-none flex-col self-start"
     >
-      <Link href={`/m/${product.ma}`} className="group block touch-manipulation select-none h-full">
-        <div className="flex h-full flex-col">
+      <Link href={`/m/${product.ma}`} className="group block touch-manipulation select-none">
+        <div className="flex flex-col">
           <div
-            className="sc-card-well ky-gallery-shell relative aspect-[3/4] overflow-hidden bg-[#f3f1ee] shadow-[0_0_0_0_rgba(17,17,17,0)] motion-safe:transition-[transform,box-shadow] motion-safe:duration-150 motion-safe:ease-[cubic-bezier(0.23,1,0.32,1)] motion-safe:hover-hover:group-hover:-translate-y-1.5 motion-safe:active:scale-[0.98]"
+            className="sc-card-well ky-gallery-shell relative aspect-[3/4] w-full shrink-0 overflow-hidden bg-[#f3f1ee] shadow-[0_0_0_0_rgba(17,17,17,0)] motion-safe:transition-[transform,box-shadow] motion-safe:duration-150 motion-safe:ease-[cubic-bezier(0.23,1,0.32,1)] motion-safe:hover-hover:group-hover:-translate-y-1.5 motion-safe:active:scale-[0.98]"
             data-testid="card-cover-reel"
             data-slide-index={String(slideIndex)}
             style={namedCover ? { viewTransitionName: `product-${product.ma}`, contain: "layout" } : undefined}

@@ -946,6 +946,12 @@ summary::-webkit-details-marker {
 .sc-card-well {
   border-radius: var(--sc-radius);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 32%, transparent);
+  /* Beat .ky-gallery-shell { height: 100% } so a taller chip row cannot stretch the photo. */
+  height: auto;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  flex: none;
+  align-self: start;
 }
 
 /* This rule sits after the scroll shadow so reduced motion still wins. */
@@ -984,6 +990,7 @@ summary::-webkit-details-marker {
 }
 
 .sc-look-grid {
+  align-items: start;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
