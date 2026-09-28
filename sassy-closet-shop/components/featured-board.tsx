@@ -8,6 +8,7 @@ import { ContentWaveLooks, useContentWave } from "@/components/content-wave";
 import { LooksSortChips } from "@/components/looks-sort";
 import { SearchResultsBar } from "@/components/search-results-bar";
 import { CategorySuggestChips } from "@/components/category-suggest-chips";
+import { HScrollCue } from "@/components/h-scroll-cue";
 import { ShopEmpty } from "@/components/shop-empty";
 import { SizeFilterChips } from "@/components/size-filter";
 import { useShopSearch } from "@/components/shop-search";
@@ -132,7 +133,7 @@ export function FeaturedBoard({
           Looks
         </h2>
         <LooksSortChips sort={sort} onChange={setSort} />
-        <div className="ky-h-scroll-cue mt-5">
+        <HScrollCue className="ky-h-scroll-cue mt-5">
         <LayoutGroup id="featured-tabs">
           <motion.div
             ref={tabRailRef}
@@ -176,7 +177,7 @@ export function FeaturedBoard({
             </div>
           </motion.div>
         </LayoutGroup>
-        </div>
+        </HScrollCue>
         <SizeFilterChips sizes={sizeOptions} selected={activeSize} onChange={setSize} />
         <p
           className="mx-auto mt-3 max-w-full truncate whitespace-nowrap text-left text-[11px] uppercase tracking-[0.16em] text-muted tabular-nums"

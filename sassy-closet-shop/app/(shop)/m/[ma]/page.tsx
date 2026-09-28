@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ContentWaveHost, ContentWaveLooks } from "@/components/content-wave";
+import { HScrollCue } from "@/components/h-scroll-cue";
 import { ProductLook } from "@/components/product-look";
 import { ProductGrid } from "@/components/product-grid";
 import { categoryAriaLabel, categoryCopy } from "@/lib/categories";
@@ -70,11 +71,11 @@ export default async function ProductPage({
               <p className="mx-auto mt-1 max-w-full truncate whitespace-nowrap text-left text-[11px] uppercase tracking-[0.16em] text-muted tabular-nums" translate="no">
                 {lookCountLabel(related.length, true)}
               </p>
-              <div className="sc-related-row ky-h-scroll-cue mt-8">
+              <HScrollCue className="sc-related-row ky-h-scroll-cue mt-8">
                 <ContentWaveLooks>
                   <ProductGrid products={related} eagerCount={0} />
                 </ContentWaveLooks>
-              </div>
+              </HScrollCue>
             </div>
           </section>
         ) : null}

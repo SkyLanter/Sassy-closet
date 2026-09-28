@@ -4,6 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutGroup, motion, useReducedMotion } from "framer-motion";
+import { HScrollCue } from "@/components/h-scroll-cue";
 import { HeaderSearch, HeaderSearchProvider, HeaderSearchSheet } from "@/components/header-search";
 import { MessengerCta } from "@/components/messenger-cta";
 import { onShopHomeClick, useShopSearch } from "@/components/shop-search";
@@ -68,7 +69,7 @@ export function Header({ types }: { types: MaLetter[] }) {
           <MessengerCta variant="header" className="shrink-0" />
         </div>
       </div>
-      <div className="ky-h-scroll-cue">
+      <HScrollCue className="ky-h-scroll-cue">
       <LayoutGroup>
         <motion.nav
           ref={navRef}
@@ -106,8 +107,8 @@ export function Header({ types }: { types: MaLetter[] }) {
           })}
         </motion.nav>
       </LayoutGroup>
-      </div>
-    </motion.header>
+      </HScrollCue>
+      </motion.header>
     <HeaderSearchSheet />
     </HeaderSearchProvider>
   );

@@ -669,11 +669,13 @@ body {
     animation: sc-fade-slide 200ms var(--sc-ease) both;
   }
 
-  .ky-header-row,
   .ky-header-wordmark {
-    transition:
-      height 200ms var(--sc-ease),
-      font-size 200ms var(--sc-ease);
+    transition: transform 200ms var(--sc-ease);
+  }
+
+  .ky-h-scroll-cue::before,
+  .ky-h-scroll-cue::after {
+    transition: opacity 200ms var(--sc-ease);
   }
 
   .content-wave-host[data-content-wave="1"] .content-wave-sheen {
@@ -708,6 +710,7 @@ body {
     bottom: 0;
     z-index: 2;
     width: 1.35rem;
+    opacity: 0;
   }
 
   .ky-h-scroll-cue::before {
@@ -719,6 +722,11 @@ body {
     right: 0;
     width: 1.85rem;
     background: linear-gradient(to left, color-mix(in srgb, var(--paper) 94%, transparent), transparent);
+  }
+
+  .ky-h-scroll-cue[data-fade-left="true"]::before,
+  .ky-h-scroll-cue[data-fade-right="true"]::after {
+    opacity: 1;
   }
 }
 
@@ -818,8 +826,9 @@ summary::-webkit-details-marker {
     transform: none !important;
   }
 
-  .ky-header-row,
-  .ky-header-wordmark {
+  .ky-header-wordmark,
+  .ky-h-scroll-cue::before,
+  .ky-h-scroll-cue::after {
     transition: none !important;
   }
 
@@ -1014,21 +1023,21 @@ summary::-webkit-details-marker {
   margin: 12mm;
 }
 
-/* Scroll-aware header: quiet hairline after 4px, then a slimmer wordmark row. */
+/* Scroll-aware header: quiet hairline after 4px. The row keeps its layout height; only the wordmark scales. */
 .ky-header-film {
   transition: box-shadow 200ms var(--sc-ease);
+}
+
+.ky-header-wordmark {
+  transform-origin: left center;
 }
 
 .ky-header-film[data-scrolled="true"] {
   box-shadow: 0 1px 0 color-mix(in srgb, var(--gold) 40%, var(--sc-line));
 }
 
-.ky-header-film[data-scrolled="true"] .ky-header-row {
-  height: 3rem;
-}
-
 .ky-header-film[data-scrolled="true"] .ky-header-wordmark {
-  font-size: 1.45rem;
+  transform: scale(calc(1.45 / 1.65));
 }
 
 /* Product wells: soft radius, hairline, no heavy lift shadow. Pattern 7–8. */

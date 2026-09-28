@@ -10,6 +10,7 @@ import {
   animateGalleryScrollTo,
   clampGalleryIndex,
   nearestStartIndex,
+  scrollRailToChild,
 } from "@/lib/gallery-snap";
 import { photoIndexLabel, photoPositionLabel } from "@/lib/pdp-copy";
 import type { ProductImageAsset } from "@/lib/types";
@@ -140,7 +141,7 @@ export function PhotoLightbox({
     cancelRoll.current?.();
     if (firstOpen || reduced) {
       ignoreScroll.current = false;
-      el.scrollIntoView({ inline: "start", block: "nearest", behavior: "instant" });
+      scrollRailToChild(port, el, "start");
       return;
     }
     ignoreScroll.current = true;
@@ -421,17 +422,15 @@ export function PhotoLightbox({
           </div>
         ) : null}
         {peeking ? (
-          <div role="listbox" aria-label="Ảnh · Photos" className="ky-thumb-rail mt-3 flex shrink-0 flex-nowrap gap-2.5 overflow-x-auto tab-scroll">
+          <div className="ky-thumb-rail mt-3 flex shrink-0 flex-nowrap gap-2.5 overflow-x-auto tab-scroll">
             {slides.map((slideItem, slideIndex) => {
               const thumb = version ? cacheBustMediaSrc(slideItem.src, version) : slideItem.src;
               return (
                 <button
                   key={`${slideItem.src}-${slideIndex}`}
                   type="button"
-                  role="option"
                   aria-label={photoIndexLabel(slideIndex + 1)}
                   aria-current={slideIndex === safeIndex}
-                  aria-selected={slideIndex === safeIndex}
                   aria-controls={railId}
                   aria-posinset={slideIndex + 1}
                   aria-setsize={slides.length}

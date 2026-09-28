@@ -408,24 +408,14 @@ export function HeaderSearchSheet() {
         className="py-1"
       >
         {search.suggestions.length === 0 ? (
-          <>
-            <li
-              className="px-[max(1.25rem,env(safe-area-inset-left,0px))] py-4 pr-[max(1.25rem,env(safe-area-inset-right,0px))] text-left text-[15px] leading-[1.5] text-ink sm:px-[max(2rem,env(safe-area-inset-left,0px))] sm:pr-[max(2rem,env(safe-area-inset-right,0px))]"
-              role="option"
-              aria-selected={false}
-              translate="no"
-            >
-              {LOOK_SEARCH_EMPTY}
-            </li>
-            {search.types.length > 0 ? (
-              <li
-                role="presentation"
-                className="px-[max(1.25rem,env(safe-area-inset-left,0px))] pb-4 pr-[max(1.25rem,env(safe-area-inset-right,0px))] sm:px-[max(2rem,env(safe-area-inset-left,0px))] sm:pr-[max(2rem,env(safe-area-inset-right,0px))]"
-              >
-                <CategorySuggestChips types={search.types} />
-              </li>
-            ) : null}
-          </>
+          <li
+            className="px-[max(1.25rem,env(safe-area-inset-left,0px))] py-4 pr-[max(1.25rem,env(safe-area-inset-right,0px))] text-left text-[15px] leading-[1.5] text-ink sm:px-[max(2rem,env(safe-area-inset-left,0px))] sm:pr-[max(2rem,env(safe-area-inset-right,0px))]"
+            role="option"
+            aria-selected={false}
+            translate="no"
+          >
+            {LOOK_SEARCH_EMPTY}
+          </li>
         ) : (
           search.suggestions.map((look, index) => (
             <li key={look.ma} role="presentation">
@@ -449,6 +439,11 @@ export function HeaderSearchSheet() {
           ))
         )}
       </ul>
+      {search.suggestions.length === 0 && search.types.length > 0 ? (
+        <div className="px-[max(1.25rem,env(safe-area-inset-left,0px))] pb-4 pr-[max(1.25rem,env(safe-area-inset-right,0px))] sm:px-[max(2rem,env(safe-area-inset-left,0px))] sm:pr-[max(2rem,env(safe-area-inset-right,0px))]">
+          <CategorySuggestChips types={search.types} />
+        </div>
+      ) : null}
     </div>
   );
 }
