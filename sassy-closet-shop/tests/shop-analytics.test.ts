@@ -20,6 +20,7 @@ test("product page records product_view with the mã", () => {
   const event = read("components/product-view-event.tsx");
   assert.match(page, /<ProductViewEvent ma=\{product\.ma\} \/>/);
   assert.match(event, /from "@vercel\/analytics"/);
+  assert.match(event, /queueMicrotask/);
   assert.match(event, /track\("product_view", \{ ma \}\)/);
 });
 

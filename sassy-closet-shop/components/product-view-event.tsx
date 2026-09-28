@@ -9,7 +9,17 @@ export function ProductViewEvent({ ma }: { ma: string }) {
     if (!ma) {
       return;
     }
-    track("product_view", { ma });
+    // <Analytics /> installs window.va in a later effect. Track after that flush
+    // so the first open is queued instead of dropped.
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) {
+        track("product_view", { ma });
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [ma]);
 
   return null;
