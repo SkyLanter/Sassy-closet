@@ -306,11 +306,13 @@ body {
 
 .ky-buy-bar [data-testid="shop-message-cta"],
 .ky-buy-bar [data-testid="shop-ask-price"] {
-  background: var(--ink);
-  color: var(--paper);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.55);
+  background: var(--glass-fill-sheet);
+  color: var(--ink);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.7),
+    inset 0 -1px 0 rgb(120 72 64 / 0.16),
+    0 0 0 1px rgb(255 255 255 / 0.55),
+    var(--glass-shadow);
 }
 
 /* The gold film is a border mask. Contrast checks treat the full overlay as the text background. */
@@ -322,8 +324,9 @@ body {
   .ky-buy-bar [data-testid="shop-message-cta"]:hover,
   .ky-buy-bar [data-testid="shop-ask-price"]:hover {
     box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.7),
       0 0 0 1px rgb(255 255 255 / 0.55),
-      0 8px 20px -14px rgb(17 17 17 / 0.28);
+      0 10px 22px -10px rgb(176 112 98 / 0.48);
   }
 }
 
@@ -766,7 +769,8 @@ body {
   .shop-search-sheet,
   .sc-chip-in,
   .sc-to-top,
-  .ky-buy-bar {
+  .ky-buy-bar,
+  .sc-glass-cta {
     animation: sc-glass-pop 320ms cubic-bezier(0.22, 1.15, 0.36, 1) both;
   }
 
@@ -938,7 +942,8 @@ summary::-webkit-details-marker {
   .shop-search-sheet,
   .sc-chip-in,
   .sc-to-top,
-  .ky-buy-bar {
+  .ky-buy-bar,
+  .sc-glass-cta {
     animation: sc-glass-fade 160ms ease both !important;
   }
 
@@ -1535,6 +1540,33 @@ button[aria-checked="true"] > .sc-chip-face {
   text-decoration-color: color-mix(in srgb, var(--gold) 50%, var(--line));
 }
 
+/* Hero Messenger pill. Sheet fill so 11px gold-ink still clears AA over a dark photo.
+   The glyph and label sit above the sheen so the icon stays sharp. */
+.sc-messenger-glass {
+  border-color: transparent;
+  background: var(--glass-fill-sheet);
+  color: var(--ink);
+  text-shadow: none;
+  transform-origin: center;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.7),
+    inset 0 -1px 0 rgb(120 72 64 / 0.16),
+    0 0 0 1px rgb(255 255 255 / 0.55),
+    var(--glass-shadow);
+}
+
+.sc-messenger-glass.sc-card-message {
+  text-decoration: none;
+}
+
+.sc-messenger-glass .ky-chrome-rim {
+  display: none;
+}
+
+.sc-messenger-glass > span[aria-hidden].absolute {
+  display: none;
+}
+
 .sc-photo-fallback {
   background: var(--canvas);
 }
@@ -1631,9 +1663,7 @@ button[aria-checked="true"] > .sc-chip-face {
   }
 
   .sc-chip-hit.ky-color-chip,
-  .sc-chip-hit.liquid-glass-chip,
-  .ky-buy-bar [data-testid="shop-message-cta"],
-  .ky-buy-bar [data-testid="shop-ask-price"] {
+  .sc-chip-hit.liquid-glass-chip {
     backdrop-filter: none;
   }
 }
