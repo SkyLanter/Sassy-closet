@@ -1,22 +1,17 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { useCatalogMediaVersion } from "@/components/catalog-media-version";
-import { ColorNameChips } from "@/components/color-name-chips";
 import { GalleryPeekRoll } from "@/components/gallery-peek-roll";
 import { PhotoLightbox } from "@/components/photo-lightbox";
 import { FallibleLookPhoto, PlaceholderTile } from "@/components/product-image";
-import { SizeNameChips } from "@/components/size-name-chips";
-import type { AsiaSizeLetter } from "@/lib/asia-size";
 import { cacheBustMediaSrc } from "@/lib/catalog-sha";
 import { colorShopLabel } from "@/lib/colors";
 import { displayTitle } from "@/lib/copy";
 import { clampedReelIndexForColor, productGalleryReel } from "@/lib/gallery-reel";
 import { clampGalleryIndex, scrollCurrentChromeIntoView } from "@/lib/gallery-snap";
 import {
-  COLOR_FIELD_LEGEND,
-  SIZE_FIELD_LEGEND,
   ALL_PHOTOS_LABEL,
   emptyGalleryAnnouncement,
   galleryReelLabel,
@@ -24,7 +19,6 @@ import {
   morePhotosLabel,
   photoIndexLabel,
   photoPositionLabel,
-  viewingColorLine,
 } from "@/lib/pdp-copy";
 import { imagesForColor, uniqueImageSrcs } from "@/lib/product-media";
 import type { ShopLook } from "@/lib/shop-look";
@@ -36,18 +30,13 @@ export function ProductGallery({
   product,
   colorId: colorIdProp,
   onColorId,
-  onAskChange,
-  showChips = true,
 }: {
   product: ShopLook;
   colorId?: string | null;
   onColorId?: (id: string | null) => void;
-  onAskChange?: (ask: { size: string | null; color: string | null }) => void;
-  showChips?: boolean;
 }) {
   const [uncontrolledColorId, setUncontrolledColorId] = useState<string | null>(null);
   const colorId = colorIdProp !== undefined ? colorIdProp : uncontrolledColorId;
-  const [sizeLetter, setSizeLetter] = useState<AsiaSizeLetter | null>(null);
   const [index, setIndex] = useState(0);
   const [lightbox, setLightbox] = useState(false);
   const thumbRailRef = useRef<HTMLDivElement>(null);
@@ -81,7 +70,6 @@ export function ProductGallery({
       })),
     [reel],
   );
-  const selectedColor = product.colors.find((color) => color.id === colorId);
   const colorIndex = product.colors.findIndex((color) => color.id === colorId);
   const colorLabel =
     colorIndex >= 0 && product.colors[colorIndex]
@@ -100,22 +88,6 @@ export function ProductGallery({
   useLayoutEffect(() => {
     scrollCurrentChromeIntoView(thumbRailRef.current);
   }, [safeIndex, thumbs.length, overflowCount]);
-
-  useEffect(() => {
-    onAskChange?.({
-      size: sizeLetter,
-      color: selectedColor ? colorShopLabel(selectedColor, Math.max(0, colorIndex)) : null,
-    });
-  }, [colorIndex, onAskChange, selectedColor, sizeLetter]);
-
-  function chooseColor(id: string) {
-    const next = colorId === id ? null : id;
-    setColorId(next);
-  }
-
-  function chooseSize(letter: AsiaSizeLetter) {
-    setSizeLetter((current) => (current === letter ? null : letter));
-  }
 
   function choosePhotoIndex(nextPhoto: number) {
     const clamped = clampGalleryIndex(nextPhoto, slides.length);
@@ -185,7 +157,7 @@ export function ProductGallery({
         </p>
       ) : null}
       {reel.length > 0 ? (
-        <div ref={thumbRailRef} className="ky-thumb-rail mt-3 flex min-w-0 max-w-full flex-nowrap gap-2.5 overflow-x-auto tab-scroll">
+        <div ref={thumbRailRef} className="ky-thumb-rail sc-thumb-rail mt-3 flex min-w-0 max-w-full flex-nowrap gap-2 overflow-x-auto tab-scroll">
           {thumbs.map((thumb, thumbIndex) => {
             const src = version ? cacheBustMediaSrc(thumb.src, version) : thumb.src;
             const currentThumb = thumbIndex === safeIndex;
@@ -194,16 +166,18 @@ export function ProductGallery({
                 key={`${thumb.src}-${thumbIndex}`}
                 type="button"
                 aria-label={photoIndexLabel(thumbIndex + 1)}
-                aria-current={currentThumb}
+                aria-current={currentThumb ? "true" : undefined}
                 onClick={() => choosePhotoIndex(thumbIndex)}
-                className={`ky-thumb-shot relative h-20 w-16 min-h-11 min-w-11 shrink-0 touch-manipulation select-none overflow-hidden border sm:h-24 sm:w-[4.5rem] ${
-                  currentThumb ? "border-gold" : "border-gold/35 hover-hover:hover:border-gold"
+                className={`ky-thumb-shot relative aspect-[3/4] min-h-11 min-w-11 max-w-[4.25rem] flex-1 touch-manipulation select-none overflow-hidden border ${
+                  currentThumb ? "sc-thumb-active border-gold-deep" : "border-gold/35 hover-hover:hover:border-gold"
                 }`}
               >
                 <FallibleLookPhoto
                   src={src}
                   alt=""
-                  sizes="72px"
+                  sizes="(min-width: 640px) 72px, 64px"
+                  width={64}
+                  height={85}
                   className="object-cover object-top"
                   ma={product.ma}
                   letter={product.type}
@@ -217,58 +191,18 @@ export function ProductGallery({
               type="button"
               data-testid="gallery-more"
               aria-label={morePhotosLabel(overflowCount)}
-              aria-current={safeIndex >= THUMB_CAP}
+              aria-current={safeIndex >= THUMB_CAP ? "true" : undefined}
               aria-haspopup="dialog"
               onClick={() => {
                 choosePhotoIndex(Math.min(THUMB_CAP, reel.length - 1));
                 setLightbox(true);
               }}
-              className="flex h-20 min-h-11 w-16 min-w-11 shrink-0 touch-manipulation select-none items-center justify-center whitespace-nowrap border border-gold/35 liquid-glass-chip text-[11px] font-medium uppercase tracking-[0.16em] text-ink hover-hover:hover:border-gold sm:h-24 sm:w-[4.5rem]"
+              className="ky-thumb-shot relative flex aspect-[3/4] min-h-11 min-w-11 max-w-[4.25rem] flex-1 touch-manipulation select-none items-center justify-center whitespace-nowrap border border-gold/35 liquid-glass-chip text-[11px] font-medium uppercase tracking-[0.16em] text-ink hover-hover:hover:border-gold"
             >
               <span aria-hidden>+{overflowCount}</span>
             </button>
           ) : null}
         </div>
-      ) : null}
-      {showChips && product.colors.length > 0 ? (
-        <fieldset className="mt-4 border-0 p-0" data-testid="pdp-color-chips">
-          <legend className="mb-2 max-w-full truncate whitespace-nowrap text-[11px] uppercase tracking-[0.16em] text-muted" translate="no">
-            {COLOR_FIELD_LEGEND}
-          </legend>
-          <ColorNameChips
-            colors={product.colors}
-            selectedId={colorId}
-            onSelect={chooseColor}
-            motionGroupId={`gallery-${product.ma}`}
-            hairlineLayoutId="pdp-color"
-          />
-          {selectedColor ? (
-            <p className="sr-only" data-testid="viewing-color" lang="vi">
-              {colorHasShots
-                ? viewingColorLine(colorShopLabel(selectedColor, Math.max(0, colorIndex)))
-                : emptyGalleryAnnouncement(colorLabel)}
-            </p>
-          ) : null}
-          {selectedColor?.note.trim() ? (
-            <p className="mt-1 text-pretty text-[13px] text-muted" data-testid="color-note" id={`gallery-${product.ma}-color-note`} translate="no">
-              {selectedColor.note.trim()}
-            </p>
-          ) : null}
-        </fieldset>
-      ) : null}
-      {showChips && product.sizes.length > 0 ? (
-        <fieldset className="mt-4 border-0 p-0" data-testid="pdp-size-chips">
-          <legend className="mb-2 max-w-full truncate whitespace-nowrap text-[11px] uppercase tracking-[0.16em] text-muted" translate="no">
-            {SIZE_FIELD_LEGEND}
-          </legend>
-          <SizeNameChips
-            sizes={product.sizes}
-            selectedId={sizeLetter}
-            onSelect={chooseSize}
-            motionGroupId={`gallery-size-${product.ma}`}
-            hairlineLayoutId="pdp-size"
-          />
-        </fieldset>
       ) : null}
       <AnimatePresence>
         {lightbox && lightboxSlides.length > 0 ? (

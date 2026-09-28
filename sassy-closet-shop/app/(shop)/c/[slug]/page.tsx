@@ -47,28 +47,26 @@ export default async function CategoryPage({
   const countLabel = lookCountLabel(products.length);
 
   return (
-    <ContentWaveHost className="shop-content-layer bg-paper ky-gutter py-10 sm:py-12 scroll-mt-[calc(env(safe-area-inset-top,0px)+8.25rem)] sm:scroll-mt-[calc(env(safe-area-inset-top,0px)+8.75rem)]">
+    <ContentWaveHost className="shop-content-layer bg-paper ky-gutter pb-10 pt-4 sm:pb-12 sm:pt-6 scroll-mt-[calc(env(safe-area-inset-top,0px)+8.25rem)] sm:scroll-mt-[calc(env(safe-area-inset-top,0px)+8.75rem)]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-end gap-x-3">
         <h1
           aria-label={categoryAriaLabel(type)}
-          className="text-left font-display text-[2.15rem] font-medium leading-[1.08] tracking-[0.02em] text-balance text-ink outline-none sm:text-[2.75rem]"
+          className="col-start-1 row-start-1 min-w-0 text-left font-display text-[2.15rem] font-medium leading-[1.08] tracking-[0.02em] text-balance text-ink outline-none sm:text-[2.75rem]"
           translate="no"
         >
           {labels.label}
         </h1>
-        <p
-          className="mx-auto mt-3 max-w-full truncate whitespace-nowrap text-left text-[11px] uppercase tracking-[0.16em] text-muted tabular-nums"
-          aria-live="polite"
-          translate="no"
-        >
-          {countLabel}
-        </p>
         {products.length === 0 ? (
-          <div className="mt-10">
+          <p className="col-start-2 row-start-1 mb-1 max-w-full truncate whitespace-nowrap text-[11px] uppercase tracking-[0.16em] text-muted tabular-nums" translate="no">
+            {countLabel}
+          </p>
+        ) : null}
+        {products.length === 0 ? (
+          <div className="col-span-2 row-start-2 mt-8">
             <ShopEmpty {...collectionEmptyCopy(labels.label, slug)} />
           </div>
         ) : (

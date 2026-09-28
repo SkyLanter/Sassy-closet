@@ -120,20 +120,44 @@ export function FeaturedBoard({
     <section
       id="featured-collection"
       aria-labelledby="looks-heading"
-      className="bg-paper ky-gutter py-10 sm:py-12 scroll-mt-[calc(env(safe-area-inset-top,0px)+8.25rem)] sm:scroll-mt-[calc(env(safe-area-inset-top,0px)+8.75rem)]"
+      className="bg-paper ky-gutter pb-10 pt-4 sm:pb-12 sm:pt-6 scroll-mt-[calc(env(safe-area-inset-top,0px)+8.25rem)] sm:scroll-mt-[calc(env(safe-area-inset-top,0px)+8.75rem)]"
     >
       <div className="mx-auto max-w-7xl">
-        <h2
-          id="looks-heading"
-          data-testid="looks-heading"
-          tabIndex={-1}
-          className="text-left font-display text-[2.15rem] font-medium leading-[1.08] tracking-[0.02em] text-balance text-ink outline-none sm:text-[2.75rem]"
-          translate="no"
-        >
-          Looks
-        </h2>
-        <LooksSortChips sort={sort} onChange={setSort} />
-        <HScrollCue className="ky-h-scroll-cue mt-5">
+        <div className="flex items-end justify-between gap-3">
+          <h2
+            id="looks-heading"
+            data-testid="looks-heading"
+            tabIndex={-1}
+            className="text-left font-display text-[2.15rem] font-medium leading-[1.08] tracking-[0.02em] text-balance text-ink outline-none sm:text-[2.75rem]"
+            translate="no"
+          >
+            Looks
+          </h2>
+          <p
+            data-testid="looks-count"
+            className="mb-1 max-w-full shrink-0 truncate whitespace-nowrap text-[11px] uppercase tracking-[0.16em] text-muted tabular-nums"
+            aria-live="polite"
+            translate="no"
+          >
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.span
+                key={countLabel}
+                className="inline-block"
+                initial={reduced ? false : { opacity: 0 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={reduced ? { opacity: 1, y: 0, transition: { duration: 0 } } : { opacity: 0 }}
+                transition={{ duration: reduced ? 0 : 0.18 }}
+              >
+                {countLabel}
+              </motion.span>
+            </AnimatePresence>
+          </p>
+        </div>
+        <div className="mt-2 flex flex-wrap items-center gap-x-1 gap-y-1">
+          <LooksSortChips sort={sort} onChange={setSort} />
+          <SizeFilterChips sizes={sizeOptions} selected={activeSize} onChange={setSize} />
+        </div>
+        <HScrollCue className="ky-h-scroll-cue mt-1">
         <LayoutGroup id="featured-tabs">
           <motion.div
             ref={tabRailRef}
@@ -145,7 +169,7 @@ export function FeaturedBoard({
               aria-orientation="horizontal"
               aria-label="Lọc looks · Filter looks"
               onKeyDown={onTabListKeyDown}
-              className="flex min-w-max flex-nowrap items-center justify-start gap-x-5"
+              className="flex min-w-max flex-nowrap items-center justify-start gap-x-3"
             >
               <FilterTab
                 id={tabId("all")}
@@ -178,26 +202,7 @@ export function FeaturedBoard({
           </motion.div>
         </LayoutGroup>
         </HScrollCue>
-        <SizeFilterChips sizes={sizeOptions} selected={activeSize} onChange={setSize} />
-        <p
-          className="mx-auto mt-3 max-w-full truncate whitespace-nowrap text-left text-[11px] uppercase tracking-[0.16em] text-muted tabular-nums"
-          aria-live="polite"
-          translate="no"
-        >
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.span
-              key={countLabel}
-              className="inline-block"
-              initial={reduced ? false : { opacity: 0 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={reduced ? { opacity: 1, y: 0, transition: { duration: 0 } } : { opacity: 0 }}
-              transition={{ duration: reduced ? 0 : 0.18 }}
-            >
-              {countLabel}
-            </motion.span>
-          </AnimatePresence>
-        </p>
-        <SearchResultsBar query={needle} count={visible.length} />
+        <SearchResultsBar query={needle} />
         <div
           id="featured-panel"
           role="tabpanel"
@@ -205,7 +210,7 @@ export function FeaturedBoard({
           data-shop-sort={sort}
           data-shop-size={activeSize ?? undefined}
           data-shop-search={needle.trim() || undefined}
-          className="mt-8 overflow-hidden"
+          className="mt-4 overflow-hidden"
         >
           <ContentWaveLooks>
             {visible.length === 0 ? (
@@ -324,7 +329,7 @@ function FilterTab({
         <span className="liquid-glass-chip pointer-events-none absolute inset-x-0 top-0.5 bottom-1 -z-0 rounded-md" aria-hidden />
       ) : null}
       <span className="relative z-[1]">{children}</span>
-      <span className={`relative z-[1] ml-1.5 tabular-nums tracking-[0.08em] ${active ? "text-gold-deep" : "text-muted/80"}`}>
+      <span className={`relative z-[1] ml-1.5 tabular-nums tracking-[0.08em] ${active ? "text-gold-ink" : "text-muted"}`} aria-hidden>
         {count}
       </span>
       <span className="sr-only">{`, ${ariaName}`}</span>

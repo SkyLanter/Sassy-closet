@@ -193,12 +193,12 @@ if (pdpPage.includes("AsiaFit") || pdpPage.includes("inboxForFitLine")) {
   fail("Customer PDP must not show Inbox for fit");
 }
 
-const gallerySrc = read("components/product-gallery.tsx");
+const optionsSrc = read("components/product-options.tsx");
 const sizeChips = read("components/size-name-chips.tsx");
-if (!gallerySrc.includes("SizeNameChips") || !gallerySrc.includes('data-testid="pdp-size-chips"')) {
-  fail("PDP must show catalog size chips under the photos when sizes exist");
+if (!optionsSrc.includes("SizeNameChips") || !optionsSrc.includes('data-testid="pdp-size-chips"')) {
+  fail("PDP must show catalog size chips in the info column when sizes exist");
 }
-if (!gallerySrc.includes("product.sizes.length > 0")) {
+if (!optionsSrc.includes("product.sizes.length > 0")) {
   fail("Size chips must hide when the catalog row has no letters");
 }
 if (gallerySrc.includes("ASIA_SIZE_LETTERS") || sizeChips.includes("ASIA_SIZE_LETTERS")) {

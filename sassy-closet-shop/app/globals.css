@@ -12,7 +12,15 @@
   --line: #f3d4cb;
   --gold: #b08968;
   --gold-deep: #8c6a4e;
+  /* Text-only. Decorative gold stays --gold / --gold-deep. */
+  --gold-ink: #6a4e38;
   --blush: #f3eee8;
+  --sc-photo-radius: 0.875rem;
+  --sc-type-eyebrow: 0.6875rem;
+  --sc-type-body: 0.8125rem;
+  --sc-type-card-title: 1rem;
+  --sc-type-pdp-title: 2.05rem;
+  --sc-type-section: 2.15rem;
   --sc-paper: var(--paper);
   --sc-ink: var(--ink);
   --sc-muted: var(--muted);
@@ -33,10 +41,19 @@
   --duration-enter: 210ms;
   --duration-move: 400ms;
   --blur-md: 12px;
-  --glass-blur: 22px;
-  --glass-blur-bar: 32px;
-  --glass-sat: 1.7;
-  --shop-buy-bar-space: max(11rem, calc(5.5rem + env(safe-area-inset-bottom, 0px)));
+  /* One glass set: blush-tinted white, 12–20px blur, ~140% saturate.
+     Bars stay ≤0.75 so photos still read; sheets that carry 11px type go higher for AA. */
+  --glass-blur: 18px;
+  --glass-blur-bar: 20px;
+  --glass-sat: 1.4;
+  --glass-fill: rgb(255 247 244 / 0.68);
+  --glass-fill-bar: rgb(255 247 244 / 0.72);
+  --glass-fill-sheet: rgb(255 247 244 / 0.84);
+  --glass-fill-photo: rgb(17 17 17 / 0.66);
+  --glass-line: rgb(255 236 230 / 0.55);
+  --glass-shadow: 0 12px 28px -16px rgb(176 112 98 / 0.32);
+  --glass-radius: 1rem;
+  --shop-buy-bar-space: calc(4.25rem + env(safe-area-inset-bottom, 0px));
 }
 
 @theme inline {
@@ -48,6 +65,7 @@
   --color-gold: var(--gold);
   --color-deep: var(--gold-deep);
   --color-gold-deep: var(--gold-deep);
+  --color-gold-ink: var(--gold-ink);
   --color-blush: var(--blush);
   --font-sans: var(--font-be-vietnam);
   --font-display: var(--font-cormorant);
@@ -235,16 +253,16 @@ body {
 }
 
 /* Frosted liquid glass for boutique chrome — never a lock-screen keypad,
-   never milky paper wash, never backdrop-filter on the garment itself. */
+   never milky paper wash, never backdrop-filter on the garment itself.
+   Shared tokens: --glass-fill / --glass-line / --glass-shadow / --glass-blur. */
 .liquid-glass,
 .liquid-glass-sheet,
 .liquid-glass-caption,
 .liquid-glass-chip {
-  border: 1px solid color-mix(in srgb, var(--gold) 28%, rgb(255 255 255 / 0.5));
+  border: 1px solid var(--glass-line);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.5),
-    inset 0 -1px 0 rgb(17 17 17 / 0.1),
-    0 10px 28px -18px rgb(17 17 17 / 0.32);
+    inset 0 1px 0 rgb(255 255 255 / 0.62),
+    var(--glass-shadow);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
   transition:
@@ -254,7 +272,7 @@ body {
 
 .liquid-glass,
 .liquid-glass-caption {
-  background: rgb(17 17 17 / 0.32);
+  background: var(--glass-fill-photo);
   color: var(--paper);
   text-shadow: 0 1px 10px rgb(17 17 17 / 0.55);
 }
@@ -262,12 +280,12 @@ body {
 .liquid-glass-bar,
 .ky-chrome-blur {
   --muted: #2e2e2e;
-  background: rgb(255 255 255 / 0.48);
+  background: var(--glass-fill-bar);
   color: var(--ink);
   text-shadow: 0 0 12px rgb(255 255 255 / 0.88), 0 1px 0 rgb(255 255 255 / 0.55);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.5),
-    inset 0 -1px 0 rgb(17 17 17 / 0.08);
+    inset 0 1px 0 rgb(255 255 255 / 0.72),
+    var(--glass-shadow);
   backdrop-filter: blur(var(--glass-blur-bar)) saturate(var(--glass-sat));
   -webkit-backdrop-filter: blur(var(--glass-blur-bar)) saturate(var(--glass-sat));
 }
@@ -302,29 +320,29 @@ body {
 
 .liquid-glass-sheet {
   --muted: #2e2e2e;
-  background: rgb(255 255 255 / 0.48);
+  background: var(--glass-fill-sheet);
   color: var(--ink);
+  border-radius: var(--glass-radius);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
 }
 
-/* Opaque paper so search copy never bleeds through category tabs. */
+/* Suggestions sit under the sticky header. Glass, not a second liquid-glass-sheet class. */
 .shop-search-sheet {
-  background: var(--paper);
+  background: var(--glass-fill-sheet);
   color: var(--ink);
   opacity: 1;
   isolation: isolate;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  box-shadow:
-    0 18px 40px -24px rgb(17 17 17 / 0.28),
-    inset 0 1px 0 rgb(255 255 255 / 0.7);
+  border-bottom: 1px solid var(--glass-line);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
 }
 
 .liquid-glass-chip,
 .ky-color-chip {
   --muted: #2e2e2e;
-  background: rgb(255 255 255 / 0.42);
+  background: var(--glass-fill);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
 }
@@ -344,7 +362,7 @@ body {
 @media (hover: hover) {
   .liquid-glass:hover:not(:disabled) {
     border-color: color-mix(in srgb, var(--gold) 62%, rgb(255 255 255 / 0.5));
-    background: rgb(17 17 17 / 0.4);
+    background: rgb(17 17 17 / 0.74);
   }
 }
 
@@ -700,34 +718,32 @@ body {
   position: relative;
 }
 
-@media (max-width: 639px) {
-  .ky-h-scroll-cue::before,
-  .ky-h-scroll-cue::after {
-    content: "";
-    pointer-events: none;
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    z-index: 2;
-    width: 1.35rem;
-    opacity: 0;
-  }
+.ky-h-scroll-cue::before,
+.ky-h-scroll-cue::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 3;
+  width: 1.5rem;
+  opacity: 0;
+}
 
-  .ky-h-scroll-cue::before {
-    left: 0;
-    background: linear-gradient(to right, color-mix(in srgb, var(--paper) 94%, transparent), transparent);
-  }
+.ky-h-scroll-cue::before {
+  left: 0;
+  background: linear-gradient(to right, var(--paper) 20%, transparent);
+}
 
-  .ky-h-scroll-cue::after {
-    right: 0;
-    width: 1.85rem;
-    background: linear-gradient(to left, color-mix(in srgb, var(--paper) 94%, transparent), transparent);
-  }
+.ky-h-scroll-cue::after {
+  right: 0;
+  width: 2.25rem;
+  background: linear-gradient(to left, var(--paper) 28%, transparent);
+}
 
-  .ky-h-scroll-cue[data-fade-left="true"]::before,
-  .ky-h-scroll-cue[data-fade-right="true"]::after {
-    opacity: 1;
-  }
+.ky-h-scroll-cue[data-fade-left="true"]::before,
+.ky-h-scroll-cue[data-fade-right="true"]::after {
+  opacity: 1;
 }
 
 .ky-thumb-rail {
@@ -895,7 +911,7 @@ summary::-webkit-details-marker {
 
   .liquid-glass,
   .liquid-glass-caption {
-    background: rgb(17 17 17 / 0.82);
+    background: rgb(17 17 17 / 0.88);
     color: var(--paper);
     text-shadow: none;
   }
@@ -906,10 +922,38 @@ summary::-webkit-details-marker {
   .ky-color-chip,
   .ky-chrome-blur,
   .ky-buy-bar,
-  .shop-search-sheet {
+  .shop-search-sheet,
+  .sc-chip-face,
+  .gallery-photo-count,
+  .sc-to-top,
+  input.shop-search-field {
     background: var(--paper);
     color: var(--ink);
     text-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .liquid-glass,
+  .liquid-glass-caption {
+    background: rgb(17 17 17 / 0.88);
+  }
+
+  .liquid-glass-bar,
+  .liquid-glass-sheet,
+  .liquid-glass-chip,
+  .ky-color-chip,
+  .ky-chrome-blur,
+  .ky-buy-bar,
+  .shop-search-sheet,
+  .sc-chip-face,
+  .gallery-photo-count,
+  .sc-to-top {
+    background: var(--paper);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 }
 
@@ -1033,7 +1077,10 @@ summary::-webkit-details-marker {
 }
 
 .ky-header-film[data-scrolled="true"] {
-  box-shadow: 0 1px 0 color-mix(in srgb, var(--gold) 40%, var(--sc-line));
+  background: rgb(255 247 244 / 0.74);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--gold) 40%, var(--sc-line)),
+    var(--glass-shadow);
 }
 
 .ky-header-film[data-scrolled="true"] .ky-header-wordmark {
@@ -1042,7 +1089,7 @@ summary::-webkit-details-marker {
 
 /* Product wells: soft radius, hairline, no heavy lift shadow. Pattern 7–8. */
 .sc-card-well {
-  border-radius: var(--sc-radius);
+  border-radius: var(--sc-photo-radius);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 32%, transparent);
   /* Beat .ky-gallery-shell { height: 100% } so a taller chip row cannot stretch the photo. */
   height: auto;
@@ -1059,11 +1106,12 @@ summary::-webkit-details-marker {
   }
 }
 
-/* Phone buy bar is a solid sheet so color chips and the heading cannot show through. */
+/* Phone buy bar keeps the shared bar glass. Message stays solid ink. */
 .ky-buy-bar.liquid-glass-bar {
-  background-color: #ffffff;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  background: var(--glass-fill-bar);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.72),
+    0 -12px 28px -16px rgb(176 112 98 / 0.35);
 }
 
 @media (max-width: 767px) {
@@ -1088,7 +1136,7 @@ summary::-webkit-details-marker {
 }
 
 .sc-look-grid {
-  align-items: start;
+  align-items: stretch;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
@@ -1120,26 +1168,31 @@ summary::-webkit-details-marker {
 }
 
 .sc-card-title {
-  -webkit-line-clamp: 3;
-  min-height: 3.45em;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  min-height: 0;
 }
 
 .sc-card-copy {
   -webkit-line-clamp: 2;
-  min-height: 2.7em;
+  line-clamp: 2;
+  min-height: 0;
+  text-wrap: pretty;
 }
 
 @media (hover: hover) {
   .group:hover .sc-card-well {
-    box-shadow:
-      0 16px 28px -18px rgb(17 17 17 / 0.38),
-      inset 0 0 0 1px color-mix(in srgb, var(--gold) 48%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 48%, transparent);
   }
 }
 
 .gallery-photo-count {
-  background: color-mix(in srgb, var(--paper) 88%, white);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 40%, transparent);
+  background: var(--glass-fill-sheet);
+  color: var(--ink);
+  border: 1px solid var(--glass-line);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
 }
 
 .sc-related-row .sc-look-grid {
@@ -1259,6 +1312,17 @@ input.shop-search-field:focus-visible {
     0 8px 16px -12px rgb(120 40 60 / 0.45);
 }
 
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  input.shop-search-field {
+    background-color: rgb(255 247 244 / 0.78);
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.7),
+      var(--glass-shadow);
+  }
+}
+
 .shop-search-icon {
   color: #5c3140;
 }
@@ -1267,8 +1331,136 @@ input.shop-search-field:focus-visible {
   color: #111111;
 }
 
+/* Hero side bands match the paper page. The 1px divider is the grid gap. */
+.hero-editorial {
+  background-color: var(--paper);
+}
+
+.hero-editorial .grid {
+  background-color: transparent;
+  gap: 0;
+}
+
+.ky-gallery-frame,
+.ky-thumb-shot {
+  border-radius: var(--sc-photo-radius);
+}
+
+.sc-thumb-rail > .ky-thumb-shot {
+  flex: 1 1 0;
+  width: auto;
+  min-width: 2.75rem;
+  max-width: 4.25rem;
+  height: auto;
+  aspect-ratio: 3 / 4;
+}
+
+.ky-thumb-shot.sc-thumb-active {
+  box-shadow: inset 0 0 0 1.5px var(--gold-deep);
+}
+
+/* The 44px hit target stays clear. The visible pill carries the glass. */
+.sc-chip-hit.ky-color-chip,
+.sc-chip-hit.liquid-glass-chip {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.sc-chip-face {
+  background: var(--glass-fill);
+  border-color: var(--glass-line);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.7),
+    var(--glass-shadow);
+}
+
+button[aria-checked="true"] > .sc-chip-face {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.liquid-glass-chip.border-gold {
+  border-color: var(--gold);
+}
+
+.sc-card-message {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 5px;
+  text-decoration-color: color-mix(in srgb, var(--gold) 50%, var(--line));
+}
+
+.sc-photo-fallback {
+  background: var(--canvas);
+}
+
 @media (hover: hover) {
   .shop-search-clear:hover {
     color: #a33d58;
+  }
+}
+
+/* Later glass rules must not beat these fallbacks. */
+@media (prefers-reduced-transparency: reduce) {
+  .ky-header-film,
+  .ky-header-film[data-scrolled="true"],
+  .ky-buy-bar.liquid-glass-bar,
+  .shop-search-sheet,
+  .gallery-photo-count,
+  .liquid-glass-sheet,
+  .liquid-glass-chip,
+  .sc-chip-face,
+  .sc-to-top,
+  input.shop-search-field {
+    background: var(--paper) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .liquid-glass,
+  .liquid-glass-caption {
+    background: rgb(17 17 17 / 0.88) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .ky-header-film,
+  .ky-header-film[data-scrolled="true"],
+  .ky-buy-bar.liquid-glass-bar,
+  .shop-search-sheet,
+  .gallery-photo-count,
+  .liquid-glass-sheet,
+  .liquid-glass-chip,
+  .sc-to-top {
+    background: var(--paper) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  input.shop-search-field {
+    background-color: #ffffff !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .ky-header-film,
+  .ky-header-film[data-scrolled="true"],
+  .ky-buy-bar.liquid-glass-bar,
+  .liquid-glass-bar,
+  .liquid-glass-sheet,
+  .liquid-glass-chip,
+  .shop-search-sheet,
+  .sc-chip-face,
+  .gallery-photo-count,
+  input.shop-search-field {
+    background: rgb(255 255 255 / 0.92) !important;
+    text-shadow: none !important;
   }
 }

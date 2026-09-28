@@ -73,12 +73,12 @@ if (css.includes("translateX(520%)") || css.includes("--wave-mask") || css.inclu
 if (css.includes("animation-duration: 480ms") && css.includes("animation-timing-function: linear")) {
   fail("Linear 480ms glass wave travel must stay gone");
 }
-if (!css.includes("rgb(255 255 255 / 0.48)") || !css.includes("rgb(17 17 17 / 0.32)")) {
-  fail("Boutique frost must stay see-through Regular 48% and Clear 32%");
+if (!css.includes("--glass-fill: rgb(255 247 244 / 0.68)") || !css.includes("--glass-fill-photo: rgb(17 17 17 / 0.66)")) {
+  fail("Boutique frost must stay blush glass and a dark photo frost");
 }
 const sheetRule = css.split(".liquid-glass-sheet {")[1]?.split("}")[0] ?? "";
-if (!sheetRule.includes("background: rgb(255 255 255 / 0.48)") || !sheetRule.includes("var(--glass-blur)") || !sheetRule.includes("var(--glass-sat)")) {
-  fail("Modal sheets must share Regular 48% frost and --glass-blur so photos show through");
+if (!sheetRule.includes("background: var(--glass-fill-sheet)") || !sheetRule.includes("var(--glass-blur)") || !sheetRule.includes("var(--glass-sat)")) {
+  fail("Modal sheets must share the blush glass fill and --glass-blur so photos show through");
 }
 if (!sheetRule.includes("--muted: #2e2e2e")) {
   fail("Modal sheets must darken muted ink for contrast on frost");
@@ -90,8 +90,8 @@ if (css.includes("blur(40px)")) {
   fail("Modal sheets must use --glass-blur, not a 40px milk");
 }
 const chipRule = css.split(".liquid-glass-chip,\n.ky-color-chip {")[1]?.split("}")[0] ?? "";
-if (!chipRule.includes("background: rgb(255 255 255 / 0.42)") || !chipRule.includes("var(--glass-blur)") || !chipRule.includes("var(--glass-sat)")) {
-  fail("Color chips must share Regular glass blur, not a 16px fog disc");
+if (!chipRule.includes("background: var(--glass-fill)") || !chipRule.includes("var(--glass-blur)") || !chipRule.includes("var(--glass-sat)")) {
+  fail("Color chips must share the blush glass fill and --glass-blur");
 }
 if (!chipRule.includes("--muted: #2e2e2e")) {
   fail("Color chips must darken muted ink for contrast on frost");
@@ -177,7 +177,7 @@ if (!card.includes("touch-manipulation") || !card.includes("min-w-0")) {
 if (!card.includes("mt-2 min-w-0 px-0.5")) {
   fail("Look-card color rails must shrink inside the card instead of blowing the grid");
 }
-if (!card.includes("group block touch-manipulation select-none")) {
+if (!card.includes("touch-manipulation select-none")) {
   fail("Look card links must not select names on tap");
 }
 if (css.includes("@keyframes gallery-water-roll") || css.includes('[data-water-roll="1"]')) {
@@ -236,6 +236,7 @@ if (card.includes("color-glass-film")) {
 }
 
 const gallery = read("components/product-gallery.tsx");
+const options = read("components/product-options.tsx");
 if (!gallery.includes("PhotoLightbox") || !gallery.includes("GalleryPeekRoll")) {
   fail("PDP hero must open the ink/gold lightbox from the peek roll");
 }
@@ -275,17 +276,17 @@ if (!gallery.includes("useState<string | null>(null)")) {
 if (!gallery.includes("current === target ? current : target")) {
   fail("Color tap must roll this mã’s reel by index, not remount a JPEG");
 }
-if (!gallery.includes("product.colors.length > 0")) {
+if (!options.includes("product.colors.length > 0")) {
   fail("PDP chips only when colors[] exist");
 }
-if (!gallery.includes("product.sizes.length > 0") || !gallery.includes('data-testid="pdp-size-chips"')) {
+if (!options.includes("product.sizes.length > 0") || !options.includes('data-testid="pdp-size-chips"')) {
   fail("PDP size chips only when catalog sizes[] exist");
 }
-if (!gallery.includes('hairlineLayoutId="pdp-size"')) {
+if (!options.includes('hairlineLayoutId="pdp-size"')) {
   fail("PDP size chips must use the gold hairline layoutId pdp-size");
 }
 const look = read("components/product-look.tsx");
-if (!look.includes('hairlineLayoutId="pdp-color"') && !gallery.includes('hairlineLayoutId="pdp-color"')) {
+if (!options.includes('hairlineLayoutId="pdp-color"')) {
   fail("PDP chips must use the gold hairline layoutId pdp-color");
 }
 if (!look.includes("ContentWaveLooks") || !look.includes("ProductGallery")) {
@@ -371,14 +372,14 @@ if (!css.includes(".liquid-glass") || !css.includes(".ky-gallery-port") || !css.
 if (!css.includes(".liquid-glass-bar") || !css.includes(".liquid-glass-sheet") || !css.includes(".liquid-glass-caption")) {
   fail("Header/bar, modal sheet, and photo captions must share the glass language");
 }
-if (!css.includes("--glass-blur: 22px") || !css.includes("--glass-blur-bar: 32px") || !css.includes("--glass-sat: 1.7")) {
-  fail("Glass blur tokens must stay see-through (not a paper wash)");
+if (!css.includes("--glass-blur: 18px") || !css.includes("--glass-blur-bar: 20px") || !css.includes("--glass-sat: 1.4")) {
+  fail("Glass blur tokens must stay in the 12–20px / 140% saturate range");
 }
 if (css.includes("var(--paper) 42%") || css.includes("paper) 42%")) {
   fail("Liquid glass must not be a milky paper mix");
 }
-if (!css.includes("background: rgb(255 255 255 / 0.48)")) {
-  fail("Regular glass bars must be 48% frost for ink contrast, not a 26% wash");
+if (!css.includes("background: var(--glass-fill-bar)") || !css.includes("--glass-fill-bar: rgb(255 247 244 / 0.72)")) {
+  fail("Regular glass bars must use the shared blush fill, not a 26% wash");
 }
 if (css.includes("rgb(255 255 255 / 0.26)")) {
   fail("Regular glass bars must not stay at 26% wash");
@@ -386,7 +387,7 @@ if (css.includes("rgb(255 255 255 / 0.26)")) {
 if (css.includes("background: rgb(255 255 255 / 0.38)")) {
   fail("Regular glass bars must not stay at 38% wash");
 }
-if (!css.includes("rgb(17 17 17 / 0.32)")) {
+if (!css.includes("var(--glass-fill-photo)")) {
   fail("Clear glass over photos must stay a dark frost, not milky paper");
 }
 if (!css.includes("--muted: #2e2e2e")) {
@@ -568,7 +569,7 @@ if (!buyBar.includes("displayName") || !buyBar.includes("text-ellipsis") || !buy
 if (buyBar.includes("line-clamp-2")) {
   fail("Phone buy bar title must stay one line");
 }
-if (!buyBar.includes("<MaMark") || !buyBar.includes("text-[10px] tracking-[0.16em] text-muted")) {
+if (!buyBar.includes("<MaMark") || !buyBar.includes("text-[11px] tracking-[0.16em] text-muted")) {
   fail("Phone buy bar must keep mã as a quiet kicker beside the look name");
 }
 if (!buyBar.includes("select-none") || !buyBar.includes("overscroll-contain")) {
@@ -833,10 +834,10 @@ if (!adminEntry.includes("hover-hover:hover:opacity-90")) {
 if (look.includes("showChips={false}")) {
   fail("PDP color chips must sit under the gallery thumbs, not be hidden from the photos");
 }
-if (!gallery.includes('data-testid="pdp-color-chips"')) {
-  fail("Màu / Color chips must sit on the gallery, just below the pictures");
+if (!options.includes('data-testid="pdp-color-chips"')) {
+  fail("Màu / Color chips must sit in the info column");
 }
-if (!gallery.includes("mb-2 max-w-full truncate whitespace-nowrap")) {
+if (!options.includes("mb-2 max-w-full truncate whitespace-nowrap")) {
   fail("Màu / Color legend must stay one KY line");
 }
 if (!chipsShop.includes("ky-color-chip") || !css.includes(".ky-color-chip") || !chipsShop.includes("liquid-glass-chip")) {
@@ -1092,7 +1093,7 @@ if (!look.includes("categoryAriaLabel")) {
 if (!gallery.includes("text-pretty")) {
   fail("Color notes must wrap pretty");
 }
-if (!gallery.includes("-color-note")) {
+if (!options.includes("-color-note")) {
   fail("Color notes must be labelled for the chip radiogroup");
 }
 const desc = read("components/product-description.tsx");
@@ -1108,7 +1109,7 @@ if (!desc.includes("[orphans:2]") || !desc.includes("[widows:2]")) {
 if (!desc.includes('translate="no"')) {
   fail("Recorded look copy must not be auto-translated");
 }
-if (!gallery.includes('data-testid="viewing-color" lang="vi"')) {
+if (!options.includes('data-testid="viewing-color" lang="vi"')) {
   fail("Viewing-color live region must stay marked Vietnamese");
 }
 const hero = read("components/hero-mesh.tsx");
@@ -1316,7 +1317,7 @@ if (!featured.includes("filterLooksByQuery") || !featured.includes("committedQue
 if (!shopLayout.includes("ShopSearchProvider") || !shopLayout.includes("<Header")) {
   fail("Shop layout must feed live looks to header search on every page including PDP");
 }
-if (!header.includes("hover-hover:hover:text-gold-deep")) {
+if (!header.includes("hover-hover:hover:text-gold-ink")) {
   fail("Header wordmark must gold-up on hover pointers");
 }
 if (!header.includes("safe-area-inset-left") || !header.includes("safe-area-inset-right")) {
@@ -1386,7 +1387,7 @@ if (!footer.includes("select-none")) {
 if (!footer.includes("whitespace-nowrap") || !footer.includes("truncate")) {
   fail("Footer wordmark must stay one KY line");
 }
-if (!footer.includes("hover-hover:hover:text-gold-deep")) {
+if (!footer.includes("hover-hover:hover:text-gold-ink")) {
   fail("Footer wordmark must gold-up on hover pointers");
 }
 if (!footer.includes("pt-10 sm:pt-12")) {
@@ -1677,8 +1678,8 @@ if (!featured.includes("min-w-0 max-w-full overflow-x-auto pb-1 tab-scroll")) {
 if (!featured.includes("leading-[1.08]")) {
   fail("Looks heading must not clip serif descenders");
 }
-if (!featured.includes("py-10")) {
-  fail("Phone Looks section must stay compact after the collection peek");
+if (!featured.includes("pt-4") || !featured.includes("pb-10")) {
+  fail("Phone Looks section must stay compact under the hero");
 }
 if (!featured.includes("uppercase tracking-[0.16em]")) {
   fail("Featured tabs stay quieter 0.16em vs header 0.18em");
@@ -1686,8 +1687,8 @@ if (!featured.includes("uppercase tracking-[0.16em]")) {
 if (!featured.includes("select-none")) {
   fail("Featured tabs must not select on tap");
 }
-if (!featured.includes("mx-auto mt-3 max-w-full truncate whitespace-nowrap")) {
-  fail("Looks count must stay one KY line");
+if (!featured.includes("truncate whitespace-nowrap") || !featured.includes("uppercase tracking-[0.16em]")) {
+  fail("Looks count must stay one KY line beside the Looks title");
 }
 if (!featured.includes("text-muted tabular-nums")) {
   fail("Look counts must stay tabular");
@@ -1701,8 +1702,8 @@ if (!featured.includes('aria-label="Lọc looks · Filter looks"')) {
 if (!css.includes(".ky-gutter") || !css.includes(".ky-gutter-bleed")) {
   fail("Shop gutters must pad landscape safe-area");
 }
-if (!css.includes("--shop-buy-bar-space") || !css.includes("5.5rem + env(safe-area-inset-bottom, 0px)")) {
-  fail("Phone buy-bar clearance must use a shared space token that still clears 5.5rem + home indicator");
+if (!css.includes("--shop-buy-bar-space") || !css.includes("4.25rem + env(safe-area-inset-bottom, 0px)")) {
+  fail("Phone buy-bar clearance must match the bar plus the home indicator");
 }
 if (!css.includes("@custom-variant hover-hover") || !css.includes("@media (hover: hover)")) {
   fail("Hover lift/scale must live under hover-hover so touch stays tap-only");
@@ -1800,7 +1801,7 @@ if (!featured.includes('id="featured-tabs"')) {
 if (!featured.includes("lookCountLabel(count)")) {
   fail("Featured tabs must name looks in the accessible label (not pieces)");
 }
-if (!featured.includes('text-muted/80"}`} aria-hidden')) {
+if (!featured.includes('text-muted"}`} aria-hidden')) {
   fail("Featured tab counts must stay visual-only inside the bilingual aria-label");
 }
 if (!featured.includes("FEATURED_ALL_ARIA") || !featured.includes("categoryAriaLabel")) {
@@ -1867,8 +1868,11 @@ const pdpPage = read("app/(shop)/m/[ma]/page.tsx");
 if (!pdpPage.includes("ProductLook") || pdpPage.includes("namedCovers={false}")) {
   fail("Related tiles keep product-{their mã}; the hero 3/4 frame is product-THIS");
 }
-if (!pdpPage.includes("--shop-buy-bar-space") || !pdpPage.includes("md:pb-0")) {
-  fail("PDP page must clear the phone buy bar the same way the footer does");
+if (pdpPage.includes("pb-[var(--shop-buy-bar-space)]")) {
+  fail("PDP page must not stack a second buy-bar spacer on the footer spacer");
+}
+if (!read("components/footer.tsx").includes("--shop-buy-bar-space")) {
+  fail("PDP footer spacer must clear the phone buy bar");
 }
 if (!pdpPage.includes("ky-section-film") || !pdpPage.includes("related-heading")) {
   fail("Related looks must sit under a gold section hairline");

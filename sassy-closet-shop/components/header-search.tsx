@@ -317,7 +317,7 @@ export function HeaderSearch() {
           }}
           className={`${
             search.expanded ? "hidden" : "inline-flex"
-          } min-h-11 min-w-11 shrink-0 touch-manipulation select-none items-center justify-center text-ink hover-hover:hover:text-gold-deep sm:hidden`}
+          } min-h-11 min-w-11 shrink-0 touch-manipulation select-none items-center justify-center text-ink hover-hover:hover:text-gold-ink sm:hidden`}
         >
           {search.expanded ? (
             <span className="text-lg leading-none" aria-hidden>
@@ -452,7 +452,7 @@ export function HeaderSearchSheet() {
                   index === search.active ? "bg-blush text-ink" : "text-ink hover-hover:hover:bg-blush"
                 }`}
               >
-                <MaMark ma={look.ma} className="text-[11px] tracking-[0.14em] text-gold-deep" />
+                <MaMark ma={look.ma} className="text-[11px] tracking-[0.14em] text-gold-ink" />
                 <span className="min-w-0 truncate">{displayName(look)}</span>
               </Link>
             </li>

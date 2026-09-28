@@ -374,9 +374,9 @@ if (
 ) {
   fail("Customer PDP must be name, price, description, colors, catalog sizes, Message");
 }
-const gallerySrc = readFileSync(path.join(process.cwd(), "components/product-gallery.tsx"), "utf8");
-if (!lookSrc.includes("ProductPageTitle") || !lookSrc.includes("ProductPrice") || !lookSrc.includes("ProductDescription") || !gallerySrc.includes("ColorNameChips") || !gallerySrc.includes("SizeNameChips") || !lookSrc.includes("MessengerCta")) {
-  fail("PDP must be name, price, description, colors and catalog sizes under photos, Message");
+const optionsSrc = readFileSync(path.join(process.cwd(), "components/product-options.tsx"), "utf8");
+if (!lookSrc.includes("ProductPageTitle") || !lookSrc.includes("ProductPrice") || !lookSrc.includes("ProductDescription") || !lookSrc.includes("ProductOptions") || !optionsSrc.includes("ColorNameChips") || !optionsSrc.includes("SizeNameChips") || !lookSrc.includes("MessengerCta")) {
+  fail("PDP must be name, price, description, colors and catalog sizes, Message");
 }
 if (!cardSrc.includes("displayDescription") || cardSrc.includes("ProductBuyHint")) {
   fail("Cards must show garment copy when present, never Message-to-buy ops hints");

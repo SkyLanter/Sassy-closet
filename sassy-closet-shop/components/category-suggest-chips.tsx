@@ -27,7 +27,7 @@ export function CategorySuggestChips({
               href={categoryHref(type)}
               aria-label={categoryAriaLabel(type)}
               translate="no"
-              className="inline-flex min-h-11 touch-manipulation select-none items-center rounded-full border border-gold/45 bg-white/80 px-3 text-[11px] font-medium uppercase tracking-[0.16em] text-ink"
+              className="sc-chip-face inline-flex min-h-11 touch-manipulation select-none items-center rounded-full border border-line bg-transparent px-3 text-[11px] font-medium uppercase tracking-[0.16em] text-ink"
             >
               {labels.label}
             </Link>

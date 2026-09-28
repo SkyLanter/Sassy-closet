@@ -25,7 +25,7 @@ export function Footer() {
           aria-current={pathname === "/" ? "page" : undefined}
           translate="no"
           onClick={(event) => onShopHomeClick(event, clearSearch)}
-          className="inline-flex min-h-11 max-w-full touch-manipulation select-none items-center truncate whitespace-nowrap font-display text-lg leading-[1.12] tracking-[0.02em] text-balance text-ink hover-hover:hover:text-gold-deep"
+          className="inline-flex min-h-11 max-w-full touch-manipulation select-none items-center truncate whitespace-nowrap font-display text-lg leading-[1.12] tracking-[0.02em] text-balance text-ink hover-hover:hover:text-gold-ink"
         >
           {SITE.name}
         </Link>

@@ -4,6 +4,7 @@ import type { KeyboardEvent } from "react";
 import { useLayoutEffect, useRef } from "react";
 import { LayoutGroup, motion, useReducedMotion } from "framer-motion";
 import { useContentWave } from "@/components/content-wave";
+import { HScrollCue } from "@/components/h-scroll-cue";
 import { colorShopLabel } from "@/lib/colors";
 import { scrollChromeChildIntoView } from "@/lib/gallery-snap";
 import { easeOutFast } from "@/lib/motion";
@@ -86,60 +87,64 @@ export function ColorNameChips({
 
   return (
     <LayoutGroup id={motionGroupId}>
-      <div
-        ref={railRef}
-        className={`flex w-full min-w-0 max-w-full scroll-px-2 ${
-          compact ? "flex-wrap gap-1.5" : "flex-nowrap gap-2 overflow-x-auto tab-scroll"
-        }`}
-        role="radiogroup"
-        aria-orientation="horizontal"
-        aria-label={COLOR_FIELD_LEGEND}
-        aria-describedby={noteId}
-        onKeyDown={onGroupKeyDown}
-      >
-        {colors.map((color, index) => {
-          const selected = selectedId === color.id;
-          const label = colorShopLabel(color, index);
-          const tabbable = selected || (selectedId === null && index === 0);
-          return (
-            <button
-              key={color.id}
-              type="button"
-              role="radio"
-              aria-checked={selected}
-              tabIndex={tabbable ? 0 : -1}
-              data-testid="shop-color-chip"
-              data-color-id={color.id}
-              aria-label={label}
-              onClick={() => {
-                onSelect(color.id);
-                if (color.id !== selectedId) {
-                  wave.play();
-                }
-              }}
-              className={`ky-color-chip liquid-glass-chip sc-press relative inline-flex max-w-full min-w-11 items-center justify-center touch-manipulation select-none px-3 font-medium uppercase ${
-                compact
-                  ? "min-h-11 text-[11px] tracking-[0.12em]"
-                  : "min-h-11 shrink-0 whitespace-nowrap text-[11px] tracking-[0.16em]"
-              } ${selected ? "text-ink" : "text-muted hover-hover:hover:text-ink"}`}
-              translate="no"
-            >
-              <span className={`relative z-[1] ${compact ? "max-w-full whitespace-normal break-words text-center" : ""}`}>{label}</span>
-              {selected && animateSelection ? (
-                <motion.span
-                  layoutId={lineLayoutId}
-                  className="absolute inset-x-0 bottom-0 h-px bg-gold"
-                  transition={easeOutFast}
-                  aria-hidden
-                />
-              ) : null}
-              {selected && !animateSelection ? (
-                <span className="absolute inset-x-0 bottom-0 h-px bg-gold" aria-hidden />
-              ) : null}
-            </button>
-          );
-        })}
-      </div>
+      <HScrollCue className="ky-h-scroll-cue min-w-0 max-w-full">
+        <div
+          ref={railRef}
+          className="flex w-full min-w-0 max-w-full flex-nowrap gap-1 scroll-px-2 overflow-x-auto tab-scroll"
+          role="radiogroup"
+          aria-orientation="horizontal"
+          aria-label={COLOR_FIELD_LEGEND}
+          aria-describedby={noteId}
+          onKeyDown={onGroupKeyDown}
+        >
+          {colors.map((color, index) => {
+            const selected = selectedId === color.id;
+            const label = colorShopLabel(color, index);
+            const tabbable = selected || (selectedId === null && index === 0);
+            return (
+              <button
+                key={color.id}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                tabIndex={tabbable ? 0 : -1}
+                data-testid="shop-color-chip"
+                data-color-id={color.id}
+                aria-label={label}
+                onClick={() => {
+                  onSelect(color.id);
+                  if (color.id !== selectedId) {
+                    wave.play();
+                  }
+                }}
+                className={`sc-chip-hit ky-color-chip liquid-glass-chip sc-press relative inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center touch-manipulation select-none px-0.5 font-medium uppercase ${
+                  compact ? "text-[11px] tracking-[0.12em]" : "text-[11px] tracking-[0.16em]"
+                } ${selected ? "text-ink" : "text-muted hover-hover:hover:text-ink"}`}
+                translate="no"
+              >
+                <span
+                  className={`sc-chip-face relative z-[1] inline-flex min-h-8 max-w-full items-center rounded-full border px-3 ${
+                    selected ? "border-ink text-ink" : "border-line text-muted"
+                  }`}
+                >
+                  <span className="truncate whitespace-nowrap">{label}</span>
+                </span>
+                {selected && animateSelection ? (
+                  <motion.span
+                    layoutId={lineLayoutId}
+                    className="pointer-events-none absolute inset-x-3 bottom-1.5 h-px bg-gold"
+                    transition={easeOutFast}
+                    aria-hidden
+                  />
+                ) : null}
+                {selected && !animateSelection ? (
+                  <span className="pointer-events-none absolute inset-x-3 bottom-1.5 h-px bg-gold" aria-hidden />
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+      </HScrollCue>
     </LayoutGroup>
   );
 }

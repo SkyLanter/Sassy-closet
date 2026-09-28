@@ -10,7 +10,7 @@ export function HowToBuy({
   return (
     <p className="mt-3 text-sm text-muted" data-testid="shop-how-to-buy">
       Message {product ? <MaMark ma={product.ma} className="text-[13px] tracking-[0.12em] text-ink" /> : "us"} on{" "}
-      <Link href="/" className="text-gold-deep hover-hover:hover:text-ink">
+      <Link href="/" className="text-gold-ink hover-hover:hover:text-ink">
         Messenger
       </Link>
       .

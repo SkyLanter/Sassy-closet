@@ -51,7 +51,7 @@ export function SizeFilterChips({
   }
 
   return (
-    <div className="mt-3" data-testid="size-filter" data-active={selected ?? "all"} data-open={open ? "true" : "false"}>
+    <div className="contents" data-testid="size-filter" data-active={selected ?? "all"} data-open={open ? "true" : "false"}>
       <button
         type="button"
         aria-expanded={open}
@@ -74,7 +74,7 @@ export function SizeFilterChips({
           role="radiogroup"
           aria-label="Filter by size"
           onKeyDown={onGroupKeyDown}
-          className="sc-chip-in mt-2 flex min-w-0 flex-wrap items-center gap-2"
+          className="sc-chip-in mt-1 flex min-w-0 basis-full flex-wrap items-center gap-2"
         >
           {options.map((option) => {
             const active = option === selected;

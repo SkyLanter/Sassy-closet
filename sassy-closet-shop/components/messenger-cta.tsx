@@ -44,7 +44,7 @@ function variantStyles(variant: MessengerVariant): string {
     case "ghost":
       return "min-h-11 border border-gold/45 px-4 py-1.5 text-xs text-ink hover-hover:hover:border-gold";
     case "card":
-      return "min-h-11 px-0 py-0 text-[11px] uppercase tracking-[0.16em] text-ink hover-hover:hover:text-gold-deep";
+      return "sc-card-message min-h-11 px-0 py-0 text-[11px] uppercase tracking-[0.16em] text-ink hover-hover:hover:text-gold-ink";
     default: {
       const _exhaustive: never = variant;
       return _exhaustive;
@@ -119,7 +119,7 @@ export function MessengerCta({
           </span>
         )}
       </span>
-      {isHeader || isCard ? (
+      {isHeader ? (
         <span className="absolute bottom-0 left-0 h-px w-full bg-gold/45" aria-hidden />
       ) : null}
     </motion.a>

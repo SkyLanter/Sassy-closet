@@ -51,7 +51,7 @@ export function Header({ types }: { types: MaLetter[] }) {
           data-testid="shop-logo"
           aria-current={pathname === "/" ? "page" : undefined}
           translate="no"
-          className={`ky-header-wordmark inline-flex min-h-11 min-w-0 touch-manipulation select-none items-center truncate whitespace-nowrap font-display text-[1.65rem] font-medium leading-[1.12] tracking-[0.02em] text-balance text-ink hover-hover:hover:text-gold-deep ${
+          className={`ky-header-wordmark inline-flex min-h-11 min-w-0 touch-manipulation select-none items-center truncate whitespace-nowrap font-display text-[1.65rem] font-medium leading-[1.12] tracking-[0.02em] text-balance text-ink hover-hover:hover:text-gold-ink ${
             searchOpen ? "max-sm:hidden" : ""
           }`}
           onClick={(event) => {
@@ -69,7 +69,7 @@ export function Header({ types }: { types: MaLetter[] }) {
           <MessengerCta variant="header" className="shrink-0" />
         </div>
       </div>
-      <HScrollCue className="ky-h-scroll-cue">
+      <HScrollCue className="ky-h-scroll-cue min-w-0">
       <LayoutGroup>
         <motion.nav
           ref={navRef}
