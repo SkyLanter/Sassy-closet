@@ -99,7 +99,7 @@ export function PhotoLightbox({
 
   useEffect(() => {
     if (zoomWasOpen.current && !zoomed) {
-      zoomOpenRef.current?.focus();
+      zoomOpenRef.current?.focus({ preventScroll: true });
     }
     zoomWasOpen.current = zoomed;
   }, [zoomed]);
@@ -163,7 +163,7 @@ export function PhotoLightbox({
     }
     previousFocus.current =
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    closeRef.current?.focus();
+    closeRef.current?.focus({ preventScroll: true });
     const overflow = document.body.style.overflow;
     const htmlOverflow = document.documentElement.style.overflow;
     document.body.style.overflow = "hidden";
@@ -236,7 +236,7 @@ export function PhotoLightbox({
       for (const child of inerted) {
         child.inert = false;
       }
-      previousFocus.current?.focus();
+      previousFocus.current?.focus({ preventScroll: true });
     };
   }, [close, mounted, step]);
 
@@ -432,8 +432,6 @@ export function PhotoLightbox({
                   aria-label={photoIndexLabel(slideIndex + 1)}
                   aria-current={slideIndex === safeIndex}
                   aria-controls={railId}
-                  aria-posinset={slideIndex + 1}
-                  aria-setsize={slides.length}
                   onClick={() => onIndex(slideIndex)}
                   className={`ky-thumb-shot relative h-20 w-14 min-h-11 min-w-11 shrink-0 touch-manipulation overflow-hidden border ${
                     slideIndex === safeIndex ? "border-gold" : "border-gold/35 hover-hover:hover:border-gold"

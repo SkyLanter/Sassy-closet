@@ -195,8 +195,6 @@ export function ProductGallery({
                 type="button"
                 aria-label={photoIndexLabel(thumbIndex + 1)}
                 aria-current={currentThumb}
-                aria-posinset={thumbIndex + 1}
-                aria-setsize={reel.length}
                 onClick={() => choosePhotoIndex(thumbIndex)}
                 className={`ky-thumb-shot relative h-20 w-16 min-h-11 min-w-11 shrink-0 touch-manipulation select-none overflow-hidden border sm:h-24 sm:w-[4.5rem] ${
                   currentThumb ? "border-gold" : "border-gold/35 hover-hover:hover:border-gold"
