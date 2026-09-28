@@ -12,7 +12,7 @@ export function HeroEditorial() {
       >
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-px bg-ink/10">
           <Image
-            src="/products/D02/photo-4.jpg"
+            src="/products/D02/cover.jpg"
             alt=""
             draggable={false}
             priority
