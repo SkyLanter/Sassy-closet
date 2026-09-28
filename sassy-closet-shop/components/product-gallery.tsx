@@ -199,6 +199,7 @@ export function ProductGallery({
                   className="object-cover object-top"
                   ma={product.ma}
                   letter={product.type}
+                  compact
                 />
               </button>
             );

@@ -517,13 +517,20 @@ body {
   scroll-snap-stop: always;
 }
 
-/* 3/4 frame whose height leaves room for the title, prev/next, and thumbs.
-   Width follows the cap so a short laptop (1280×800) keeps the controls on screen. */
+/* 3/4 frame. Height leaves room for a wrapping title, prev/next, and thumbs.
+   Phone reserves 21rem; desktop (md) reserves 18rem. Width follows the cap. */
 .pdp-lightbox-photo {
   aspect-ratio: 3 / 4;
-  width: min(100%, calc(min(54dvh, max(12rem, 100dvh - 22rem)) * 0.75));
-  max-height: min(54dvh, max(12rem, 100dvh - 22rem));
+  width: min(100%, calc((100dvh - 21rem) * 0.75));
+  max-height: calc(100dvh - 21rem);
   margin-inline: auto;
+}
+
+@media (min-width: 768px) {
+  .pdp-lightbox-photo {
+    width: min(100%, calc((100dvh - 18rem) * 0.75));
+    max-height: calc(100dvh - 18rem);
+  }
 }
 
 .featured-pour-stack {

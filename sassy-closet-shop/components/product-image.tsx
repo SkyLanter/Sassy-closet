@@ -107,6 +107,7 @@ export function FallibleLookPhoto({
   height,
   ma,
   letter,
+  compact = false,
 }: {
   src: string;
   alt: string;
@@ -118,10 +119,11 @@ export function FallibleLookPhoto({
   height?: number;
   ma: string;
   letter: string;
+  compact?: boolean;
 }) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   if (failedSrc === src) {
-    return <PlaceholderTile ma={ma} letter={letter} decorative />;
+    return <PlaceholderTile ma={ma} letter={letter} decorative compact={compact} />;
   }
   return (
     <LookPhoto
@@ -144,20 +146,28 @@ export function PlaceholderTile({
   ma,
   letter,
   decorative = false,
+  compact = false,
 }: {
   ma: string;
   letter: string;
   decorative?: boolean;
+  compact?: boolean;
 }) {
   return (
     <div
       className="relative z-0 flex h-full w-full select-none flex-col items-center justify-center bg-[#f4f1ec]"
       aria-hidden={decorative || undefined}
     >
-      <span className="font-display text-6xl font-medium leading-[1.08] text-gold/80">{letter}</span>
-      <span className="mt-2 text-gold-deep">
-        <MaMark ma={ma} className="text-[11px] tracking-[0.16em]" />
+      <span
+        className={`font-display font-medium text-gold/80 ${compact ? "text-2xl leading-none" : "text-6xl leading-[1.08]"}`}
+      >
+        {letter}
       </span>
+      {compact ? null : (
+        <span className="mt-2 text-gold-deep">
+          <MaMark ma={ma} className="text-[11px] tracking-[0.16em]" />
+        </span>
+      )}
     </div>
   );
 }

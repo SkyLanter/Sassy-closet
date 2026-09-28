@@ -443,6 +443,7 @@ export function PhotoLightbox({
                     className="object-cover object-top"
                     ma={ma}
                     letter={letter}
+                    compact
                   />
                 </button>
               );
