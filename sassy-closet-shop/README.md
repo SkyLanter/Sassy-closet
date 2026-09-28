@@ -81,13 +81,13 @@ Official clone (new Vercel + Blob, same code): [docs/OFFICIAL_CLONE.md](./docs/O
 | --- | --- | --- |
 | A01 | 25 | Tops |
 | S01 | 39 | Sets |
-| P01 | 3 | Accessories |
+| P01 | 9 | Accessories |
 | P02 | 24 | Accessories |
 | P03 | 10 | Accessories |
-| P04 | 7 | Accessories |
+| P04 | 9 | Accessories |
 | P05 | 23 | Accessories |
 | K01 | 36 | Jackets |
-| H01 | 6 | Hair accessories |
+| H01 | 9 | Hair accessories |
 | A02 | 21 | Tops |
 
 The hub ten stay on the catalog. **Add next mãs (A03+)** Saves to the live catalog (Blob on Vercel, `data/live-catalog.json` locally) and the piece appears on the shop. Official alphabet (`AO001`) is still rejected. Qty is always 1. Hold ⇔ `priceUsd` null. Excel / OneDrive / intake are read-only — copy colors, empty sizes, staff `source_link`, and Message-first dropship copy into this sell catalog only.
