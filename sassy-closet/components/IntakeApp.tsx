@@ -11,6 +11,14 @@ import { SavedCard } from "@/components/SavedCard";
 import { convertCnyToUsd, convertUsdToCny } from "@/lib/fx";
 import { COLORS, KINDS, assertNever, keepSizesForKind, sizeScaleForKind, sizesForKind } from "@/lib/kinds";
 import { nextMa, parseHubMa } from "@/lib/mint";
+import {
+  listingChip,
+  listingItemForMa,
+  listingStatusFromApi,
+  listingWebView,
+  type ListingItem,
+  type ListingStatusClient,
+} from "@/lib/listing-status";
 import { normalizeFindCode } from "@/lib/on-hand";
 import { computeAutoPrice, DEBOX_LOCKED, MARGIN_FLOOR, TARGET_MARGIN } from "@/lib/pricing";
 import type { PriceBreakdown } from "@/lib/pricing";
@@ -24,12 +32,16 @@ type PhotoDraft = {
   url: string;
 };
 
+const LISTING_REFRESH_AFTER_SAVE_MS = 1500;
+
 export function IntakeApp({
   initialFxRate,
   initialFxLabel,
+  newMaWebhookOn,
 }: {
   initialFxRate: number;
   initialFxLabel: string;
+  newMaWebhookOn: boolean;
 }) {
   const [tab, setTab] = useState<TabId>("create");
   const [kind, setKind] = useState<KindCode>("A");
@@ -70,7 +82,10 @@ export function IntakeApp({
   const [findCard, setFindCard] = useState<MaLookup | null>(null);
   const [findMiss, setFindMiss] = useState(false);
   const [savedRows, setSavedRows] = useState<Submission[]>([]);
+  const [listing, setListing] = useState<ListingStatusClient>({ enabled: false, items: {} });
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const listingTimer = useRef<number | null>(null);
+  const loadListingRef = useRef<() => void>(() => {});
   const [confirm, setConfirm] = useState<null | { kind: "rename" | "overwrite"; ma: string; next: string | null }>(null);
   const toastSeq = useRef(0);
 
@@ -86,6 +101,13 @@ export function IntakeApp({
     setTab("edit");
     setLookupMa(ma);
     void loadMa(ma);
+  }, []);
+
+  useEffect(() => {
+    loadListingRef.current();
+    return () => {
+      if (listingTimer.current !== null) window.clearTimeout(listingTimer.current);
+    };
   }, []);
 
   const colorLine = useMemo(() => [...colors, ...sellerColors].join(", "), [colors, sellerColors]);
@@ -216,6 +238,29 @@ export function IntakeApp({
     }
   }
 
+  async function loadListingStatus() {
+    try {
+      const response = await fetch("/api/listing-status", { cache: "no-store" });
+      if (!response.ok) return;
+      const payload: unknown = await response.json();
+      setListing(listingStatusFromApi(payload));
+    } catch {
+      // Keep the last snapshot. A down status route must not change the save UI.
+    }
+  }
+
+  loadListingRef.current = () => {
+    void loadListingStatus();
+  };
+
+  function scheduleListingRefresh() {
+    if (listingTimer.current !== null) window.clearTimeout(listingTimer.current);
+    listingTimer.current = window.setTimeout(() => {
+      listingTimer.current = null;
+      loadListingRef.current();
+    }, LISTING_REFRESH_AFTER_SAVE_MS);
+  }
+
   async function refreshMas(): Promise<string[]> {
     try {
       const response = await fetch("/api/submissions");
@@ -328,6 +373,7 @@ export function IntakeApp({
       if (tab === "create") resetForm();
       else applySubmission(data.submission);
       await refreshMas();
+      scheduleListingRefresh();
       return true;
     } catch {
       setError("Chưa gửi được. Kiểm tra mạng rồi thử lại 💕");
@@ -534,6 +580,7 @@ export function IntakeApp({
       </section>
       <SavedList
         rows={savedRows}
+        listing={listing}
         onOpen={(ma) => {
           setTab("edit");
           setLookupMa(ma);
@@ -567,8 +614,16 @@ export function IntakeApp({
         </a>
         <span className="mx-1">· Boss one-pager trong README / BOSS.md</span>
       </p>
-      <SavedCard result={saved} onClose={() => setSaved(null)} />
-      <FindMaCard result={findCard} onClose={() => setFindCard(null)} />
+      <SavedCard result={saved} newMaWebhookOn={newMaWebhookOn} onClose={() => setSaved(null)} />
+      <FindMaCard
+        result={findCard}
+        web={
+          findCard && listing.enabled
+            ? listingWebView(listingItemForMa(listing.items, findCard.staged.ma))
+            : null
+        }
+        onClose={() => setFindCard(null)}
+      />
     </main>
   );
 }
@@ -1431,12 +1486,31 @@ function StatusChips({
   );
 }
 
+function ListingChip({ item, ma }: { item: ListingItem | undefined; ma: string }) {
+  const chip = listingChip(item);
+  const toneClass = {
+    ok: "bg-[#e7f4ec] text-[#246044]",
+    warn: "bg-[#fbf3e4] text-[#8a5a12]",
+    muted: "bg-[#f3e6e2] text-[#5c3d48]",
+  } as const;
+  return (
+    <span
+      data-testid={`listing-chip-${ma}`}
+      className={`rounded-full px-2 py-0.5 text-[11px] font-semibold tracking-[0.08em] ${toneClass[chip.tone]}`}
+    >
+      {chip.label}
+    </span>
+  );
+}
+
 function SavedList({
   rows,
+  listing,
   onOpen,
   onCreate,
 }: {
   rows: Submission[];
+  listing: ListingStatusClient;
   onOpen: (ma: string) => void;
   onCreate: () => void;
 }) {
@@ -1496,6 +1570,7 @@ function SavedList({
                           Cần xem tay
                         </span>
                       ) : null}
+                      {listing.enabled ? <ListingChip item={listingItemForMa(listing.items, row.ma)} ma={row.ma} /> : null}
                     </span>
                   </span>
                   <span className="shrink-0 text-[13.5px] font-semibold tabular text-[#3c2a2e]">{price}</span>

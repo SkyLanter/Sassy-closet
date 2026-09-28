@@ -9,15 +9,18 @@ import {
   moneyLine,
   onHandStatusLabel,
 } from "@/lib/on-hand";
+import type { ListingWebView } from "@/lib/listing-status";
 import type { MaLookup, OnHandRow } from "@/lib/types";
 
 type CopyKind = "ma" | "link" | "caption" | null;
 
 export function FindMaCard({
   result,
+  web,
   onClose,
 }: {
   result: MaLookup | null;
+  web: ListingWebView | null;
   onClose: () => void;
 }) {
   const [copied, setCopied] = useState<CopyKind>(null);
@@ -102,7 +105,9 @@ export function FindMaCard({
           <Field testId="find-card-notes" label="Notes" value={dashIfEmpty(notes)} />
           <Field testId="find-card-photo-folder" label="Photos folder" value={dashIfEmpty(staged.photo_link)} />
           <Field testId="find-card-status" label="Status" value={`${staged.status} · ${staged.square}`} />
+          {web ? <WebField web={web} /> : null}
         </dl>
+        {web && web.notes.length > 0 ? <WebNotes notes={web.notes} /> : null}
 
         <PhotoThumbs
           photos={staged.photo_paths}
@@ -166,6 +171,46 @@ export function FindMaCard({
         </button>
       </section>
     </div>
+  );
+}
+
+function WebField({ web }: { web: ListingWebView }) {
+  return (
+    <div className="flex min-h-11 items-center justify-between gap-3 rounded-2xl bg-white px-3 py-2 ring-1 ring-rose-100">
+      <dt className="shrink-0 text-xs font-semibold uppercase tracking-wide text-rose-600">Web</dt>
+      <dd data-testid="find-card-web" className="text-right font-semibold text-rose-900">
+        {web.summary}
+        {web.href ? (
+          <>
+            {" · "}
+            <a
+              data-testid="find-card-web-link"
+              className="inline-flex min-h-11 items-center underline-offset-2 hover:underline"
+              href={web.href}
+              target="_blank"
+              rel="noreferrer"
+            >
+              link
+            </a>
+          </>
+        ) : null}
+      </dd>
+    </div>
+  );
+}
+
+function WebNotes({ notes }: { notes: string[] }) {
+  return (
+    <ul data-testid="find-card-web-notes" className="mt-2 space-y-1 text-sm">
+      {notes.map((vi, index) => (
+        <li
+          key={`${index}:${vi.slice(0, 32)}`}
+          className="rounded-2xl bg-white px-3 py-2 font-medium text-rose-900 ring-1 ring-rose-100"
+        >
+          {vi}
+        </li>
+      ))}
+    </ul>
   );
 }
 
