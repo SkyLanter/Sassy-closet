@@ -1,0 +1,176 @@
+{
+  "siteId": "sassy-closet-shop",
+  "blobPath": "sassy-closet-shop/catalog.v1.json",
+  "purpose": "Photo list only. Do not change prices, sizes, colors, or titles. Land after Boss approves the before/after sheets.",
+  "products": {
+    "V01": {
+      "images": [
+        {
+          "src": "/products/V01/cover.jpg",
+          "colorId": null,
+          "order": 1
+        }
+      ]
+    },
+    "V02": {
+      "images": [
+        {
+          "src": "/products/V02/cover.jpg",
+          "colorId": null,
+          "order": 1
+        }
+      ]
+    },
+    "A04": {
+      "images": [
+        {
+          "src": "/products/A04/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/A04/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        }
+      ]
+    },
+    "A09": {
+      "images": [
+        {
+          "src": "/products/A09/cover.jpg",
+          "colorId": "ca0900",
+          "order": 1
+        },
+        {
+          "src": "/products/A09/photo-3.jpg",
+          "colorId": "ca0900",
+          "order": 2
+        },
+        {
+          "src": "/products/A09/photo-4.jpg",
+          "colorId": "ca0900",
+          "order": 3
+        }
+      ]
+    },
+    "A12": {
+      "images": [
+        {
+          "src": "/products/A12/cover.jpg",
+          "colorId": "ca1200",
+          "order": 1
+        },
+        {
+          "src": "/products/A12/photo-2.jpg",
+          "colorId": "ca1200",
+          "order": 2
+        },
+        {
+          "src": "/products/A12/photo-4.jpg",
+          "colorId": "ca1200",
+          "order": 3
+        }
+      ]
+    },
+    "B03": {
+      "images": [
+        {
+          "src": "/products/B03/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/B03/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        },
+        {
+          "src": "/products/B03/photo-4.jpg",
+          "colorId": null,
+          "order": 3
+        }
+      ]
+    },
+    "D01": {
+      "images": [
+        {
+          "src": "/products/D01/cover.jpg",
+          "colorId": "cd0100",
+          "order": 1
+        },
+        {
+          "src": "/products/D01/photo-2.jpg",
+          "colorId": "cd0100",
+          "order": 2
+        },
+        {
+          "src": "/products/D01/photo-4.jpg",
+          "colorId": "cd0100",
+          "order": 3
+        }
+      ]
+    },
+    "D02": {
+      "images": [
+        {
+          "src": "/products/D02/cover.jpg",
+          "colorId": "cd0200",
+          "order": 1
+        },
+        {
+          "src": "/products/D02/photo-2.jpg",
+          "colorId": "cd0200",
+          "order": 2
+        }
+      ]
+    },
+    "D03": {
+      "images": [
+        {
+          "src": "/products/D03/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/D03/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        }
+      ]
+    },
+    "J02": {
+      "images": [
+        {
+          "src": "/products/J02/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/J02/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        }
+      ]
+    },
+    "O05": {
+      "images": [
+        {
+          "src": "/products/O05/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/O05/photo-3.jpg",
+          "colorId": null,
+          "order": 2
+        },
+        {
+          "src": "/products/O05/photo-4.jpg",
+          "colorId": null,
+          "order": 3
+        }
+      ]
+    }
+  }
+}

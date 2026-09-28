@@ -13,7 +13,7 @@ export function HeroEditorial() {
           {/* Front */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/products/D02/photo-4.jpg"
+            src="/products/D02/cover.jpg"
             alt=""
             draggable={false}
             decoding="async"

@@ -155,10 +155,10 @@ export function overlayCustomerStockVoice(document: CatalogDocument): CatalogDoc
   };
 }
 
-const CLEANED_LOCAL_COVERS = ["A16", "D04", "S09"] as const;
+const CLEANED_LOCAL_COVERS = ["A16", "D04", "S09", "V01", "V02"] as const;
 
 /**
- * These three extras live on Blob covers. The cleaned JPEGs are in
+ * These extras live on Blob covers. The cleaned JPEGs are in
  * public/products, so the shop src becomes that local cover only.
  */
 export function overlayCleanedExtraCovers(document: CatalogDocument): CatalogDocument {
@@ -193,10 +193,42 @@ export function overlayCleanedExtraCovers(document: CatalogDocument): CatalogDoc
   };
 }
 
+/** Drop /products/mã/file slides whose file is gone, so a removed duplicate does not 404. */
+function omitMissingLocalPhotos(document: CatalogDocument): CatalogDocument {
+  return {
+    ...document,
+    products: document.products.map((product) => {
+      const images = product.images.filter((image) => localProductFileExists(image.src));
+      if (images.length === product.images.length) {
+        return product;
+      }
+      return {
+        ...product,
+        images: images.map((image, index) => ({ ...image, order: index + 1 })),
+      };
+    }),
+  };
+}
+
+function localProductFileExists(src: string): boolean {
+  const pathOnly = (src.split("?")[0] ?? "").trim();
+  const match = pathOnly.match(/^\/products\/([^/]+)\/([^/]+)$/);
+  if (!match) {
+    return true;
+  }
+  const folder = match[1] ?? "";
+  const file = match[2] ?? "";
+  if (folder.includes("..") || file.includes("..") || file !== path.basename(file)) {
+    return true;
+  }
+  return existsSync(path.join(process.cwd(), "public", "products", folder, file));
+}
+
 function hydrateLiveCatalog(document: CatalogDocument): CatalogDocument {
   const withSeedPhotos = overlaySeedHubGalleries(document);
   const withLocalCovers = overlayCleanedExtraCovers(withSeedPhotos);
-  const withSeedCopy = overlayCustomerStockVoice(withLocalCovers);
+  const withFiles = omitMissingLocalPhotos(withLocalCovers);
+  const withSeedCopy = overlayCustomerStockVoice(withFiles);
   return parseCatalogDocument({
     ...withSeedCopy,
     products: applyHubColorNames(withSeedCopy.products).map(applyRecordedHubSourceLink),
