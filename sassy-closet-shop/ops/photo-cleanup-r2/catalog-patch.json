@@ -12,15 +12,6 @@
         }
       ]
     },
-    "V02": {
-      "images": [
-        {
-          "src": "/products/V02/cover.jpg",
-          "colorId": null,
-          "order": 1
-        }
-      ]
-    },
     "A04": {
       "images": [
         {
@@ -169,6 +160,29 @@
           "src": "/products/O05/photo-4.jpg",
           "colorId": null,
           "order": 3
+        }
+      ]
+    },
+    "S03": {
+      "images": [
+        {
+          "src": "/products/S03/cover.jpg",
+          "colorId": null,
+          "order": 1
+        }
+      ]
+    },
+    "O03": {
+      "images": [
+        {
+          "src": "/products/O03/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/O03/photo-3.jpg",
+          "colorId": null,
+          "order": 2
         }
       ]
     }

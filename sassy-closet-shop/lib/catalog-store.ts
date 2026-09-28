@@ -155,7 +155,7 @@ export function overlayCustomerStockVoice(document: CatalogDocument): CatalogDoc
   };
 }
 
-const CLEANED_LOCAL_COVERS = ["A16", "D04", "S09", "V01", "V02"] as const;
+const CLEANED_LOCAL_COVERS = ["A16", "D04", "S09", "V01"] as const;
 
 /**
  * These extras live on Blob covers. The cleaned JPEGs are in
