@@ -202,12 +202,12 @@
       "images": [
         {
           "src": "/products/P02/cover.jpg",
-          "colorId": null,
+          "colorId": "cp0201",
           "order": 1
         },
         {
           "src": "/products/P02/photo-2.jpg",
-          "colorId": null,
+          "colorId": "cp0200",
           "order": 2
         }
       ],
@@ -265,17 +265,17 @@
       "images": [
         {
           "src": "/products/P03/cover.jpg",
-          "colorId": null,
+          "colorId": "cp0304",
           "order": 1
         },
         {
           "src": "/products/P03/photo-2.jpg",
-          "colorId": null,
+          "colorId": "cp0303",
           "order": 2
         },
         {
           "src": "/products/P03/photo-3.jpg",
-          "colorId": null,
+          "colorId": "cp0300",
           "order": 3
         }
       ],
@@ -372,17 +372,17 @@
       "images": [
         {
           "src": "/products/P05/cover.jpg",
-          "colorId": null,
+          "colorId": "cp0502",
           "order": 1
         },
         {
           "src": "/products/P05/photo-2.jpg",
-          "colorId": null,
+          "colorId": "cp0500",
           "order": 2
         },
         {
           "src": "/products/P05/photo-3.jpg",
-          "colorId": null,
+          "colorId": "cp0504",
           "order": 3
         }
       ],
@@ -1195,7 +1195,7 @@
       "images": [
         {
           "src": "/products/B01/cover.jpg",
-          "colorId": "cb0101",
+          "colorId": "cb0100",
           "order": 1
         },
         {
@@ -1210,7 +1210,7 @@
         },
         {
           "src": "/products/B01/photo-4.jpg",
-          "colorId": "cb0100",
+          "colorId": "cb0101",
           "order": 4
         }
       ],
