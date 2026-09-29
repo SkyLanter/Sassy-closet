@@ -1181,8 +1181,10 @@ summary::-webkit-details-marker {
   margin: 12mm;
 }
 
-/* Scroll-aware header: quiet hairline after 4px. The row keeps its layout height; only the wordmark scales. */
+/* Scroll-aware header: quiet hairline after 4px. The row keeps its layout height; only the wordmark scales.
+   r6: the top film is see-through again (r4). The shared --glass-fill-bar token stays opaque for the buy bar. */
 .ky-header-film {
+  background: rgb(255 247 244 / 0.72);
   transition: box-shadow 200ms var(--sc-ease);
 }
 
@@ -1191,13 +1193,12 @@ summary::-webkit-details-marker {
 }
 
 .ky-header-film[data-scrolled="true"] {
-  background: var(--glass-fill-bar);
+  background: rgb(255 247 244 / 0.74);
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.75),
     inset 0 -1px 0 rgb(255 255 255 / 0.92),
     0 1px 0 rgb(255 255 255 / 0.7),
-    0 22px 18px -8px #fdece6,
-    0 12px 28px -16px rgb(176 112 98 / 0.28),
+    0 12px 28px -16px rgb(176 112 98 / 0.4),
     var(--glass-shadow);
 }
 
@@ -1206,7 +1207,7 @@ summary::-webkit-details-marker {
 @media (min-width: 768px) {
   .ky-header-film,
   .ky-header-film[data-scrolled="true"] {
-    background: var(--glass-fill-bar);
+    background: rgb(255 247 244 / 0.78);
     -webkit-backdrop-filter: blur(var(--glass-blur-bar)) saturate(var(--glass-sat));
   }
 }
@@ -1829,15 +1830,6 @@ button[aria-checked="true"] > .sc-chip-face {
   }
 }
 
-/* r5: paper fade on the header's inner edge, still frosted. */
-.ky-header-film {
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.75),
-    inset 0 -1px 0 rgb(120 72 64 / 0.16),
-    0 22px 18px -8px #fdece6,
-    var(--glass-shadow);
-}
-
 /* r5: one sticky category row on a phone. The in-page rail keeps its counts
    and stops sticking so it never stacks under the header chips. */
 @media (max-width: 767px) {
@@ -1858,19 +1850,31 @@ button[aria-checked="true"] > .sc-chip-face {
   }
 }
 
-/* r5: chips, card messages, and the photo count sit on flat paper.
-   Sticky header and buy bar keep the real blur. */
+/* r5: chips, card messages, the photo count, and the buy bar sit on flat paper.
+   r6: the sticky header is not in this list, so it keeps the r4 blur. */
 @supports (backdrop-filter: blur(1px)) {
   .ky-color-chip,
   .sc-chip-face,
   .sc-card-message,
   .featured-tab-rule .liquid-glass-chip,
   .gallery-photo-count,
-  .ky-header-film,
-  .ky-header-film[data-scrolled="true"],
   .ky-buy-bar,
   .ky-buy-bar.liquid-glass-bar {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
+  }
+}
+
+/* r6: header blur is explicit so a later flat-paper rule cannot turn the top panel solid.
+   Prefix and standard filter stay in separate rules; pairing them drops the standard one at build. */
+.ky-header-film,
+.ky-header-film[data-scrolled="true"] {
+  -webkit-backdrop-filter: blur(var(--glass-blur-bar)) saturate(var(--glass-sat));
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .ky-header-film,
+  .ky-header-film[data-scrolled="true"] {
+    backdrop-filter: blur(var(--glass-blur-bar)) saturate(var(--glass-sat));
   }
 }
