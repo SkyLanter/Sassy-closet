@@ -378,7 +378,7 @@ if (!css.includes("--glass-blur: 20px") || !css.includes("--glass-blur-bar: 22px
 if (css.includes("var(--paper) 42%") || css.includes("paper) 42%")) {
   fail("Liquid glass must not be a milky paper mix");
 }
-if (!css.includes("background: var(--glass-fill-bar)") || !css.includes("--glass-fill-bar: rgb(255 247 244 / 0.72)")) {
+if (!css.includes("background: var(--glass-fill-bar)") || !css.includes("--glass-fill-bar: rgb(253 236 230 / 1)")) {
   fail("Regular glass bars must use the shared blush fill, not a 26% wash");
 }
 if (css.includes("rgb(255 255 255 / 0.26)")) {

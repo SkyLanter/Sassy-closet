@@ -11,7 +11,7 @@ import {
 import { isColorId } from "../lib/colors";
 import { parseCatalogDocument } from "../lib/product-parse";
 import { assignSlideColor, moveLinkedSlide } from "../lib/image-order";
-import { overlayCleanedExtraCovers, overlaySeedHubGalleries } from "../lib/catalog-store";
+import { overlayCleanedExtraCovers, overlaySeedHubGalleries, overlaySeedPhotoColorTags } from "../lib/catalog-store";
 import { applyHubColorNames } from "../lib/hub-import";
 import { firstReelIndexForColor, productGalleryReel } from "../lib/gallery-reel";
 import { coverSrcForColor, hasOwnShopPhotos, imagesForColor, srcBelongsToMa } from "../lib/product-media";
@@ -406,6 +406,46 @@ if (taggedReel.map((slide) => slide.colorId).join(",") !== "kem,xanh,") {
 }
 if (firstReelIndexForColor(taggedReel, "xanh") !== 1) {
   fail("Color pick must roll to that color’s first tagged slide");
+}
+
+const b01Seed = seed.products.find((product) => product.ma === "B01");
+if (!b01Seed) {
+  fail("Seed must include B01");
+}
+const b01Swapped = overlaySeedPhotoColorTags({
+  ...seed,
+  products: seed.products.map((product) =>
+    product.ma === "B01"
+      ? {
+          ...product,
+          priceUsd: 46,
+          images: product.images.map((image) => ({
+            ...image,
+            colorId: image.src.endsWith("/cover.jpg")
+              ? "cb0101"
+              : image.src.endsWith("/photo-4.jpg")
+                ? "cb0100"
+                : image.colorId,
+          })),
+        }
+      : product,
+  ),
+});
+const b01Tagged = b01Swapped.products.find((product) => product.ma === "B01");
+if (!b01Tagged || b01Tagged.priceUsd !== 46) {
+  fail("B01 photo-tag overlay must leave the live price");
+}
+if (b01Tagged.colors.map((color) => color.name).join(",") !== b01Seed.colors.map((color) => color.name).join(",")) {
+  fail("B01 photo-tag overlay must leave color names");
+}
+if (b01Tagged.images.find((image) => image.src.endsWith("/cover.jpg"))?.colorId !== "cb0100") {
+  fail("B01 cover tag must follow seed Pink");
+}
+if (b01Tagged.images.find((image) => image.src.endsWith("/photo-4.jpg"))?.colorId !== "cb0101") {
+  fail("B01 photo-4 tag must follow seed Blue");
+}
+if (b01Tagged.images.some((image) => image.src.includes("photo-5"))) {
+  fail("B01 photo-tag overlay must not bring photo-5 back");
 }
 
 const adminColors = readFileSync(path.join(process.cwd(), "components/admin-colors.tsx"), "utf8");

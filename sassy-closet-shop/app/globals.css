@@ -47,7 +47,7 @@
   --glass-blur-bar: 22px;
   --glass-sat: 1.7;
   --glass-fill: rgb(255 247 244 / 0.68);
-  --glass-fill-bar: rgb(255 247 244 / 0.72);
+  --glass-fill-bar: rgb(253 236 230 / 1);
   --glass-fill-sheet: rgb(255 247 244 / 0.84);
   --glass-fill-photo: rgb(17 17 17 / 0.66);
   --glass-line: rgb(255 236 230 / 0.55);
@@ -373,8 +373,7 @@ body {
 .shop-search-sheet::before,
 .liquid-glass-sheet::before,
 .liquid-glass-chip:not(.sc-chip-hit)::before,
-.sc-chip-face::before,
-.gallery-photo-count::before {
+.sc-chip-face::before {
   content: "";
   pointer-events: none;
   position: absolute;
@@ -1192,12 +1191,13 @@ summary::-webkit-details-marker {
 }
 
 .ky-header-film[data-scrolled="true"] {
-  background: rgb(255 247 244 / 0.74);
+  background: var(--glass-fill-bar);
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.75),
     inset 0 -1px 0 rgb(255 255 255 / 0.92),
     0 1px 0 rgb(255 255 255 / 0.7),
-    0 12px 28px -16px rgb(176 112 98 / 0.4),
+    0 22px 18px -8px #fdece6,
+    0 12px 28px -16px rgb(176 112 98 / 0.28),
     var(--glass-shadow);
 }
 
@@ -1206,7 +1206,7 @@ summary::-webkit-details-marker {
 @media (min-width: 768px) {
   .ky-header-film,
   .ky-header-film[data-scrolled="true"] {
-    background: rgb(255 247 244 / 0.78);
+    background: var(--glass-fill-bar);
     -webkit-backdrop-filter: blur(var(--glass-blur-bar)) saturate(var(--glass-sat));
   }
 }
@@ -1244,13 +1244,13 @@ summary::-webkit-details-marker {
 }
 
 .ky-buy-bar.liquid-glass-bar {
-  background: rgb(255 247 244 / 0.66);
+  background: var(--glass-fill-bar);
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.7),
     inset 0 -1px 0 rgb(120 72 64 / 0.14),
+    0 -22px 18px -8px #fdece6,
     0 -1px 2px rgb(176 112 98 / 0.14),
-    0 -18px 36px -18px rgb(176 112 98 / 0.36),
-    0 -40px 64px -40px rgb(120 62 52 / 0.24);
+    0 -18px 36px -18px rgb(176 112 98 / 0.22);
 }
 
 @media (max-width: 767px) {
@@ -1348,16 +1348,12 @@ summary::-webkit-details-marker {
 }
 
 .gallery-photo-count {
-  isolation: isolate;
-  background: var(--glass-fill-sheet);
-  color: var(--ink);
-  border: 1px solid var(--glass-line);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.7),
-    inset 0 -1px 0 rgb(120 72 64 / 0.14),
-    var(--glass-shadow);
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  background: var(--paper);
+  color: var(--muted);
+  border: 1px solid color-mix(in srgb, var(--gold) 40%, var(--line));
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .sc-related-row .sc-look-grid {
@@ -1732,5 +1728,149 @@ button[aria-checked="true"] > .sc-chip-face {
     input.shop-search-field {
       backdrop-filter: none !important;
     }
+  }
+}
+
+/* r5: phone PDP moves only the color row under the thumbnails.
+   The photo gives that row's height back, so the breadcrumb and the name
+   stay where they were. 3:4, never cropped. A 260px floor keeps a short
+   window from squeezing the photo; on that window the floor wins. */
+@media (max-width: 1023px) {
+  .ky-pdp {
+    --pdp-photo-budget: calc(
+      100svh - 8.25rem - 0.25rem - 4rem - 0.25rem - 2.75rem - 0.25rem - 2.75rem - 0.25rem - 2.75rem - 0.5rem - 4.75rem
+    );
+    row-gap: 0.25rem;
+  }
+
+  .ky-pdp-copy,
+  .ky-pdp-options {
+    display: contents;
+  }
+
+  .ky-pdp-media {
+    order: 1;
+  }
+
+  .ky-pdp-colors {
+    order: 2;
+  }
+
+  .ky-pdp-meta {
+    order: 3;
+  }
+
+  .ky-pdp-title {
+    order: 4;
+  }
+
+  .ky-pdp-price {
+    order: 5;
+  }
+
+  .ky-pdp-sizes {
+    order: 6;
+  }
+
+  .ky-pdp-rest {
+    order: 7;
+  }
+
+  .ky-pdp-media,
+  .ky-pdp-colors,
+  .ky-pdp-meta,
+  .ky-pdp-title,
+  .ky-pdp-price,
+  .ky-pdp-sizes,
+  .ky-pdp-rest {
+    min-width: 0;
+  }
+
+  .ky-pdp-media {
+    width: 100%;
+  }
+
+  .ky-pdp-media .ky-gallery-frame {
+    width: min(100%, max(16.25rem, calc(var(--pdp-photo-budget) * 3 / 4)));
+    height: auto;
+    max-height: none;
+    aspect-ratio: 3 / 4;
+    margin-inline: auto;
+  }
+
+  /* No color row: nothing was inserted, so the photo stays full width. */
+  .ky-pdp:not(:has(.ky-pdp-colors)) .ky-gallery-frame {
+    width: 100%;
+  }
+
+  .ky-pdp-colors {
+    position: relative;
+    display: block;
+    width: 100%;
+    margin-top: 0;
+    min-height: 2.75rem;
+    padding-left: 6.5rem;
+  }
+
+  .ky-pdp-colors > legend {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: auto;
+    max-width: 6.15rem;
+    height: 2.75rem;
+    margin: 0;
+    padding: 0;
+    line-height: 2.75rem;
+  }
+
+  .ky-pdp-colors > p {
+    margin-top: 0.15rem;
+  }
+}
+
+/* r5: paper fade on the header's inner edge, still frosted. */
+.ky-header-film {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.75),
+    inset 0 -1px 0 rgb(120 72 64 / 0.16),
+    0 22px 18px -8px #fdece6,
+    var(--glass-shadow);
+}
+
+/* r5: one sticky category row on a phone. The in-page rail keeps its counts
+   and stops sticking so it never stacks under the header chips. */
+@media (max-width: 767px) {
+  .sc-cat-rail {
+    position: static;
+    top: auto;
+    z-index: auto;
+  }
+
+  .sc-cat-section {
+    scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 8.25rem);
+  }
+}
+
+@media (min-width: 640px) and (max-width: 767px) {
+  .sc-cat-section {
+    scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 8.75rem);
+  }
+}
+
+/* r5: chips, card messages, and the photo count sit on flat paper.
+   Sticky header and buy bar keep the real blur. */
+@supports (backdrop-filter: blur(1px)) {
+  .ky-color-chip,
+  .sc-chip-face,
+  .sc-card-message,
+  .featured-tab-rule .liquid-glass-chip,
+  .gallery-photo-count,
+  .ky-header-film,
+  .ky-header-film[data-scrolled="true"],
+  .ky-buy-bar,
+  .ky-buy-bar.liquid-glass-bar {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 }

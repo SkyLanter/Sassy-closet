@@ -2,6 +2,7 @@ import { categoryCopy, categoryFromSlug } from "@/lib/categories";
 import { displayName } from "@/lib/copy";
 import { HOLD_PRICE_LABEL } from "@/lib/dropship-copy";
 import { formatUsd } from "@/lib/format";
+import { lookCountLabel } from "@/lib/look-count";
 import type { MaLetter } from "@/lib/ma";
 import { loadSharePhoto, type SharePhoto } from "@/lib/share-photo";
 import { SITE } from "@/lib/site";
@@ -50,10 +51,11 @@ export function productShareCardCopy(product: PricedLook): ShareCardFields {
   };
 }
 
-export function categoryShareCardFields(type: MaLetter): ShareCardFields {
+export function categoryShareCardFields(type: MaLetter, count?: number): ShareCardFields {
   return {
     kicker: "SASSY CLOSET",
     title: categoryCopy(type).label,
+    detail: typeof count === "number" ? lookCountLabel(count) : undefined,
     cta: SHARE_CARD_CTA,
   };
 }

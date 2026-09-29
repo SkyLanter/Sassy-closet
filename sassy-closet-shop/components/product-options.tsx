@@ -2,10 +2,13 @@
 
 import { ColorNameChips } from "@/components/color-name-chips";
 import { SizeNameChips } from "@/components/size-name-chips";
+import { useSiteSettings } from "@/components/site-settings";
 import type { AsiaSizeLetter } from "@/lib/asia-size";
 import { colorShopLabel } from "@/lib/colors";
+import { messengerSizeAskHref } from "@/lib/messenger-ask";
 import {
   COLOR_FIELD_LEGEND,
+  SIZE_ASK_LABEL,
   SIZE_FIELD_LEGEND,
   emptyGalleryAnnouncement,
   viewingColorLine,
@@ -33,11 +36,18 @@ export function ProductOptions({
     colorIndex >= 0 && product.colors[colorIndex]
       ? colorShopLabel(product.colors[colorIndex], colorIndex)
       : "";
+  const { facebookPageUrl } = useSiteSettings();
+  const sizeAskHref = messengerSizeAskHref(
+    facebookPageUrl,
+    product.ma,
+    sizeLetter,
+    colorLabel || null,
+  );
 
   return (
-    <div data-testid="pdp-options">
+    <div className="ky-pdp-options" data-testid="pdp-options">
       {product.colors.length > 0 ? (
-        <fieldset className="mt-4 border-0 p-0" data-testid="pdp-color-chips">
+        <fieldset className="ky-pdp-colors mt-4 border-0 p-0" data-testid="pdp-color-chips">
           <legend className="mb-2 max-w-full truncate whitespace-nowrap text-[11px] uppercase tracking-[0.16em] text-muted" translate="no">
             {COLOR_FIELD_LEGEND}
           </legend>
@@ -63,7 +73,7 @@ export function ProductOptions({
         </fieldset>
       ) : null}
       {product.sizes.length > 0 ? (
-        <fieldset className="mt-4 border-0 p-0" data-testid="pdp-size-chips">
+        <fieldset className="ky-pdp-sizes mt-4 border-0 p-0" data-testid="pdp-size-chips">
           <legend className="mb-2 max-w-full truncate whitespace-nowrap text-[11px] uppercase tracking-[0.16em] text-muted" translate="no">
             {SIZE_FIELD_LEGEND}
           </legend>
@@ -74,6 +84,19 @@ export function ProductOptions({
             motionGroupId={`gallery-size-${product.ma}`}
             hairlineLayoutId="pdp-size"
           />
+          {sizeAskHref ? (
+            <a
+              href={sizeAskHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              referrerPolicy="no-referrer"
+              data-testid="size-ask"
+              className="mt-1 inline-flex min-h-11 items-center text-[12px] leading-snug text-muted underline decoration-gold/50 underline-offset-4 hover-hover:hover:text-ink"
+              translate="no"
+            >
+              {SIZE_ASK_LABEL}
+            </a>
+          ) : null}
         </fieldset>
       ) : null}
     </div>

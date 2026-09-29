@@ -226,8 +226,8 @@ export function GalleryPeekRoll({
                     fetchPriority={isCenter ? "high" : "low"}
                     sizes={
                       peeking
-                        ? "(max-width: 1023px) calc(100vw - 40px), 46vw"
-                        : "(max-width: 1023px) calc(100vw - 40px), 50vw"
+                        ? "(max-width: 1023px) and (max-height: 800px) 280px, (max-width: 1023px) calc(100vw - 40px), 46vw"
+                        : "(max-width: 1023px) and (max-height: 800px) 280px, (max-width: 1023px) calc(100vw - 40px), 50vw"
                     }
                     className="object-cover object-top"
                     ma={ma ?? "Look"}

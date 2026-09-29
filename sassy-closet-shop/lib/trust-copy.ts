@@ -1,11 +1,13 @@
 import { categoryCopy } from "@/lib/categories";
 import { HOLD_PRICE_LABEL } from "@/lib/dropship-copy";
 import { formatUsd } from "@/lib/format";
+import { lookCountLabel } from "@/lib/look-count";
 import type { MaLetter } from "@/lib/ma";
 
 export const HOME_TITLE = "Sassy Closet";
 export const HOME_OG_TITLE = "Sassy Closet";
-export const HOME_DESCRIPTION = "Sassy Closet. Message on Messenger.";
+export const HOME_DESCRIPTION =
+  "Sassy Closet · Nhắn Messenger để đặt hàng · Message us on Messenger to order";
 
 export const FULFILL_LINE = "Message on Messenger.";
 export const FULFILL_LINE_SHORT = "Message on Messenger";
@@ -92,8 +94,9 @@ export function howToBuySteps(ma?: string): HowToBuyStep[] {
   ];
 }
 
-export function categoryShareDescription(type: MaLetter): string {
+export function categoryShareDescription(type: MaLetter, count?: number): string {
   const { label } = categoryCopy(type);
+  const countBit = typeof count === "number" ? `${lookCountLabel(count)} · ` : "";
   switch (type) {
     case "A":
     case "Q":
@@ -107,7 +110,7 @@ export function categoryShareDescription(type: MaLetter): string {
     case "S":
     case "O":
     case "D":
-      return `${label} · Sassy Closet`;
+      return `${label} · ${countBit}Sassy Closet · Nhắn Messenger để đặt hàng · Message us on Messenger to order`;
     default: {
       const _exhaustive: never = type;
       return _exhaustive;

@@ -6,7 +6,7 @@ import { loadSharePhoto } from "@/lib/share-photo";
 
 export const alt = "Sassy Closet lookbook";
 export const size = { width: 1200, height: 630 };
-export const contentType = "image/png";
+export const contentType = "image/jpeg";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 

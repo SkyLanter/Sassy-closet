@@ -199,6 +199,56 @@ export function overlayCleanedExtraCovers(document: CatalogDocument): CatalogDoc
   };
 }
 
+/**
+ * B01 is not a hub mã, so the live record keeps its price, names, and files.
+ * Seed color tags still win on the same filename (cover Pink, photo-4 Blue).
+ */
+const SEED_PHOTO_COLOR_TAG_MAS = ["B01"] as const;
+
+export function overlaySeedPhotoColorTags(document: CatalogDocument): CatalogDocument {
+  const seedByMa = new Map(getSeedDocument().products.map((product) => [product.ma, product]));
+  return {
+    ...document,
+    products: document.products.map((product) => {
+      if (!(SEED_PHOTO_COLOR_TAG_MAS as readonly string[]).includes(product.ma)) {
+        return product;
+      }
+      const seed = seedByMa.get(product.ma);
+      if (!seed) {
+        return product;
+      }
+      const allowed = new Set(product.colors.map((color) => color.id));
+      const seedColorByFile = new Map(
+        seed.images.map((image) => [imageFileName(image.src), image.colorId]),
+      );
+      let changed = false;
+      const images = product.images.map((image) => {
+        const seedColorId = seedColorByFile.get(imageFileName(image.src));
+        if (seedColorId === undefined) {
+          return image;
+        }
+        if (seedColorId !== null && !allowed.has(seedColorId)) {
+          return image;
+        }
+        if (image.colorId === seedColorId) {
+          return image;
+        }
+        changed = true;
+        return { ...image, colorId: seedColorId };
+      });
+      if (!changed) {
+        return product;
+      }
+      return { ...product, images };
+    }),
+  };
+}
+
+function imageFileName(src: string): string {
+  const pathOnly = (src.split("?")[0] ?? src).trim();
+  return pathOnly.split("/").pop() ?? pathOnly;
+}
+
 /** Drop /products/mã/file slides missing from the build-time file list, so a removed duplicate does not 404. */
 function omitMissingLocalPhotos(document: CatalogDocument): CatalogDocument {
   return {
@@ -234,7 +284,8 @@ function hydrateLiveCatalog(document: CatalogDocument): CatalogDocument {
   const withSeedPhotos = overlaySeedHubGalleries(document);
   const withLocalCovers = overlayCleanedExtraCovers(withSeedPhotos);
   const withFiles = omitMissingLocalPhotos(withLocalCovers);
-  const withSeedCopy = overlayCustomerStockVoice(withFiles);
+  const withPhotoTags = overlaySeedPhotoColorTags(withFiles);
+  const withSeedCopy = overlayCustomerStockVoice(withPhotoTags);
   return parseCatalogDocument({
     ...withSeedCopy,
     products: applyHubColorNames(withSeedCopy.products).map(applyRecordedHubSourceLink),

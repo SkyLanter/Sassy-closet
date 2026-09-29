@@ -25,7 +25,8 @@ export async function generateMetadata({
   if (!type) {
     return notFoundSeo();
   }
-  return categorySeo(type);
+  const products = await getProducts();
+  return categorySeo(type, products.filter((product) => product.type === type).length);
 }
 
 export default async function CategoryPage({

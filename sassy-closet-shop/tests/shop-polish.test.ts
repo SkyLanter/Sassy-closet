@@ -3,7 +3,12 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { emptyFitCm } from "../lib/asia-size";
-import { messengerAskHref, messengerAskSentence } from "../lib/messenger-ask";
+import {
+  messengerAskHref,
+  messengerAskSentence,
+  messengerSizeAskHref,
+  messengerSizeAskSentence,
+} from "../lib/messenger-ask";
 import { messengerHref } from "../lib/messenger";
 import { lookPhotoAlt } from "../lib/photo-alt";
 import { productSeo } from "../lib/seo";
@@ -56,6 +61,29 @@ test("product message keeps a direct m.me link and fills the Vietnamese ask", ()
   const url = new URL(href);
   assert.equal(url.origin + url.pathname, "https://m.me/61594312648057");
   assert.equal(url.searchParams.get("text"), "Chị ơi, còn A15 size M màu Đen không ạ?");
+});
+
+test("size ask leaves the measurements blank and names a selected size", () => {
+  const page = "https://m.me/61594312648057";
+  assert.equal(
+    messengerSizeAskSentence("A01", null, null),
+    "Chị ơi, em cao ___ cm, nặng ___ kg. A01 em nên lấy size nào ạ?",
+  );
+  assert.equal(
+    messengerSizeAskSentence("A01", "M", null),
+    "Chị ơi, em cao ___ cm, nặng ___ kg. A01 em nên lấy size nào ạ? Size M.",
+  );
+  assert.equal(
+    messengerSizeAskSentence("A01", "M", "Purple"),
+    "Chị ơi, em cao ___ cm, nặng ___ kg. A01 em nên lấy size nào ạ? Size M. Màu Purple.",
+  );
+  const href = messengerSizeAskHref(page, "A01", null, null);
+  const url = new URL(href);
+  assert.equal(url.origin + url.pathname, "https://m.me/61594312648057");
+  assert.equal(
+    url.searchParams.get("text"),
+    "Chị ơi, em cao ___ cm, nặng ___ kg. A01 em nên lấy size nào ạ?",
+  );
 });
 
 test("product share image stays the branded 1200×630 card", () => {

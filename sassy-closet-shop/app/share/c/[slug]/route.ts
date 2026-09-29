@@ -27,7 +27,7 @@ export async function GET(
       ? await loadSharePhoto(coverSrc(first), { requestUrl: request.url })
       : null;
     return await renderShareCard({
-      ...categoryShareCardFields(type),
+      ...categoryShareCardFields(type, products.length),
       photo,
     });
   } catch (error) {

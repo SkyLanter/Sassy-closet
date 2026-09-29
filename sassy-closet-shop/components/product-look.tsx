@@ -17,6 +17,7 @@ import type { AsiaSizeLetter } from "@/lib/asia-size";
 import { categoryAriaLabel, categoryCopy, categoryHref } from "@/lib/categories";
 import { colorShopLabel } from "@/lib/colors";
 import { imagesForColor, uniqueImageSrcs } from "@/lib/product-media";
+import { ORDER_VIA_MESSENGER } from "@/lib/pdp-copy";
 import { productShareTitle } from "@/lib/trust-copy";
 import type { ShopLook } from "@/lib/shop-look";
 
@@ -39,14 +40,14 @@ export function ProductLook({ product }: { product: ShopLook }) {
 
   return (
     <>
-    <article aria-labelledby="look-title" className="mx-auto grid max-w-7xl items-start gap-1 ky-gutter py-1 lg:grid-cols-2 lg:gap-14 lg:py-12">
-      <div className="min-w-0 lg:sticky lg:top-[calc(env(safe-area-inset-top,0px)+8.75rem)] lg:self-start">
+    <article aria-labelledby="look-title" className="ky-pdp mx-auto grid max-w-7xl items-start gap-1 ky-gutter py-1 lg:grid-cols-2 lg:gap-14 lg:py-12">
+      <div className="ky-pdp-media min-w-0 lg:sticky lg:top-[calc(env(safe-area-inset-top,0px)+8.75rem)] lg:self-start">
         <ContentWaveLooks>
           <ProductGallery product={product} colorId={colorId} onColorId={setColorId} />
         </ContentWaveLooks>
       </div>
-      <div className="flex min-w-0 flex-col">
-        <p className="flex min-w-0 flex-nowrap items-center gap-x-2 overflow-x-auto tab-scroll text-[11px] uppercase tracking-[0.18em] text-muted">
+      <div className="ky-pdp-copy flex min-w-0 flex-col">
+        <p className="ky-pdp-meta flex min-w-0 flex-nowrap items-center gap-x-2 overflow-x-auto tab-scroll text-[11px] uppercase tracking-[0.18em] text-muted">
           <Link
             href={categoryHref(product.type)}
             aria-label={categoryAriaLabel(product.type)}
@@ -62,7 +63,7 @@ export function ProductLook({ product }: { product: ShopLook }) {
         <ProductPageTitle product={product} />
         <ProductPrice
           product={product}
-          className="sc-price mt-2 block text-[1.35rem] font-semibold tracking-tight text-ink sm:text-[1.5rem]"
+          className="ky-pdp-price sc-price mt-2 block text-[1.35rem] font-semibold tracking-tight text-ink sm:text-[1.5rem]"
         />
         <ProductOptions
           product={product}
@@ -72,6 +73,7 @@ export function ProductLook({ product }: { product: ShopLook }) {
           onSize={chooseSize}
           colorHasShots={colorHasShots}
         />
+        <div className="ky-pdp-rest">
         <ProductDescription product={product} />
         <FitNotes measurements={product.measurements} />
         <div className="mt-6 hidden md:block">
@@ -81,6 +83,10 @@ export function ProductLook({ product }: { product: ShopLook }) {
             colorLabel={colorLabel}
             askPrice={product.priceUsd === null}
           />
+          <p className="mt-2 text-[11px] uppercase tracking-[0.14em] text-muted" translate="no">
+            {ORDER_VIA_MESSENGER}
+          </p>
+        </div>
         </div>
       </div>
     </article>
