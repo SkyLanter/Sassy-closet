@@ -158,7 +158,7 @@ test("share photos accept jpeg and png and skip self-fetches", async () => {
   assert.ok((photo?.data.byteLength ?? 0) > 8);
 });
 
-test("product og image is a versioned png and json-ld lists every photo", () => {
+test("product og image is a versioned jpeg and json-ld lists every photo", () => {
   const look = toShopLook(sample());
   const seo = withShopUrl("https://sassycloset.vercel.app", () => productSeo(look, "ver123"));
   const images = seo.openGraph?.images;
@@ -167,7 +167,7 @@ test("product og image is a versioned png and json-ld lists every photo", () => 
     image && typeof image === "object" && "url" in image ? String(image.url) : "",
     "https://sassycloset.vercel.app/share/m/A15?v=ver123",
   );
-  assert.equal(image && typeof image === "object" && "type" in image ? image.type : "", "image/png");
+  assert.equal(image && typeof image === "object" && "type" in image ? image.type : "", "image/jpeg");
   assert.equal(image && typeof image === "object" && "width" in image ? image.width : 0, 1200);
   assert.equal(image && typeof image === "object" && "height" in image ? image.height : 0, 630);
   assert.match(seo.description ?? "", /^\$23 · Heather knit top, grey floral/);
@@ -182,16 +182,16 @@ test("product og image is a versioned png and json-ld lists every photo", () => 
   assert.deepEqual(missing.alternates, { canonical: null });
 });
 
-test("text share card renders a png", async () => {
+test("text share card renders a jpeg", async () => {
   const response = await renderShareCard({
     ...productShareCardCopy(sample()),
     photo: null,
   });
   assert.equal(response.status, 200);
-  assert.match(response.headers.get("content-type") ?? "", /image\/png/);
+  assert.match(response.headers.get("content-type") ?? "", /image\/jpeg/);
   const bytes = new Uint8Array(await response.arrayBuffer());
-  assert.equal(bytes[0], 0x89);
-  assert.equal(bytes[1], 0x50);
+  assert.equal(bytes[0], 0xff);
+  assert.equal(bytes[1], 0xd8);
 });
 
 test("pdp gallery and share chip match the r3 contract", () => {

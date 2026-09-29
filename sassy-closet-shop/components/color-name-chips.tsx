@@ -111,6 +111,8 @@ export function ColorNameChips({
                 data-testid="shop-color-chip"
                 data-color-id={color.id}
                 aria-label={label}
+              aria-posinset={index + 1}
+              aria-setsize={colors.length}
                 onClick={() => {
                   onSelect(color.id);
                   if (color.id !== selectedId) {

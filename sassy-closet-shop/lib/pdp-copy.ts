@@ -34,12 +34,15 @@ export const SHARE_LOOK_LABEL = "Chia sẻ · Share";
 export const SHARE_LOOK_DONE = "Đã chép · Copied";
 
 export function shareLookAria(ma: string): string {
-  return `Chia sẻ ${ma} · Share ${ma}`;
+  return `${SHARE_LOOK_LABEL} ${ma}`;
 }
 
 export function shareLookDoneAria(ma: string): string {
-  return `Đã sao chép liên kết ${ma} · Copied ${ma} link`;
+  return `${SHARE_LOOK_DONE} ${ma}`;
 }
+
+export const ORDER_VIA_MESSENGER = "Đặt hàng qua Messenger · Order via Messenger";
+export const SIZE_ASK_LABEL = "Chưa chắc size? Hỏi shop · Not sure of your size? Ask us";
 
 export function photoIndexLabel(n: number): string {
   return `Xem ảnh ${n} · Photo ${n}`;

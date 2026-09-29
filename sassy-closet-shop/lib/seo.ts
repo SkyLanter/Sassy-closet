@@ -47,6 +47,11 @@ export function absoluteMedia(src: string): string {
   return `${origin}${src.startsWith("/") ? src : `/${src}`}`;
 }
 
+const OG_LOCALE = {
+  locale: "vi_VN",
+  alternateLocale: "en_US",
+} as const;
+
 function shareImage(path: string, alt: string): NonNullable<Metadata["openGraph"]>["images"] {
   return [
     {
@@ -54,7 +59,7 @@ function shareImage(path: string, alt: string): NonNullable<Metadata["openGraph"
       width: 1200,
       height: 630,
       alt,
-      type: "image/png",
+      type: "image/jpeg",
     },
   ];
 }
@@ -74,7 +79,7 @@ export function rootSeo(): Metadata {
     alternates: canonical ? { canonical } : undefined,
     openGraph: {
       type: "website",
-      locale: "en_US",
+      ...OG_LOCALE,
       siteName: SITE.name,
       title: HOME_OG_TITLE,
       description: HOME_DESCRIPTION,
@@ -120,7 +125,7 @@ export function productSeo(product: ShopLook, version?: string): Metadata {
     alternates: canonical ? { canonical } : undefined,
     openGraph: {
       type: "website",
-      locale: "en_US",
+      ...OG_LOCALE,
       siteName: SITE.name,
       title,
       description,
@@ -136,10 +141,10 @@ export function productSeo(product: ShopLook, version?: string): Metadata {
   };
 }
 
-export function categorySeo(type: MaLetter): Metadata {
+export function categorySeo(type: MaLetter, lookCount?: number): Metadata {
   const { label } = categoryCopy(type);
   const slug = categorySlug(type);
-  const description = categoryShareDescription(type);
+  const description = categoryShareDescription(type, lookCount);
   const canonical = shopCanonical(`/c/${slug}`);
   const ogTitle = `${label} · ${SITE.name}`;
   const images = shareImage(`/share/c/${slug}`, ogTitle);
@@ -150,7 +155,7 @@ export function categorySeo(type: MaLetter): Metadata {
     alternates: canonical ? { canonical } : undefined,
     openGraph: {
       type: "website",
-      locale: "en_US",
+      ...OG_LOCALE,
       siteName: SITE.name,
       title: ogTitle,
       description,
@@ -176,7 +181,7 @@ export function trustPageSeo(title: string, description: string, path: string): 
     alternates: canonical ? { canonical } : undefined,
     openGraph: {
       type: "website",
-      locale: "en_US",
+      ...OG_LOCALE,
       siteName: SITE.name,
       title,
       description,

@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { ImageResponse } from "next/og";
+import sharp from "sharp";
 import type { ShareCardModel } from "@/lib/share-card";
 import type { SharePhoto } from "@/lib/share-photo";
 
@@ -55,8 +56,12 @@ function titleSize(title: string, withPhoto: boolean): number {
   return withPhoto ? 72 : 88;
 }
 
-function photoDataUrl(photo: SharePhoto): string {
-  return `data:${photo.mime};base64,${Buffer.from(photo.data).toString("base64")}`;
+async function photoDataUrl(photo: SharePhoto): Promise<string> {
+  const fitted = await sharp(Buffer.from(photo.data))
+    .resize({ width: PHOTO_WIDTH, height: SHARE_CARD_SIZE.height, fit: "cover", position: "top" })
+    .jpeg({ quality: 72, mozjpeg: true })
+    .toBuffer();
+  return `data:image/jpeg;base64,${fitted.toString("base64")}`;
 }
 
 function CardCopy({ model, withPhoto }: { model: ShareCardModel; withPhoto: boolean }) {
@@ -159,7 +164,7 @@ function CardCopy({ model, withPhoto }: { model: ShareCardModel; withPhoto: bool
 
 async function paintShareCard(model: ShareCardModel): Promise<ImageResponse> {
   const fonts = await loadOgFonts();
-  const photo = model.photo;
+  const photo = model.photo ? await photoDataUrl(model.photo) : null;
   return new ImageResponse(
     (
       <div
@@ -176,7 +181,7 @@ async function paintShareCard(model: ShareCardModel): Promise<ImageResponse> {
             {/* Satori paints <img>; next/image is not available in ImageResponse. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={photoDataUrl(photo)}
+              src={photo}
               width={PHOTO_WIDTH}
               height={SHARE_CARD_SIZE.height}
               alt=""
@@ -206,9 +211,29 @@ const BLUSH_PNG = Buffer.from(
   "base64",
 );
 
+function jpegResponse(bytes: Buffer): Response {
+  return new Response(new Uint8Array(bytes), {
+    status: 200,
+    headers: {
+      "content-type": "image/jpeg",
+      "cache-control": "public, max-age=86400",
+    },
+  });
+}
+
+async function cardJpeg(png: Buffer): Promise<Buffer> {
+  const first = await sharp(png).jpeg({ quality: 68, mozjpeg: true }).toBuffer();
+  if (first.byteLength <= 300_000) {
+    return first;
+  }
+  return sharp(png).jpeg({ quality: 48, mozjpeg: true }).toBuffer();
+}
+
 export async function renderShareCard(model: ShareCardModel): Promise<Response> {
   try {
-    return await paintShareCard(model);
+    const painted = await paintShareCard(model);
+    const png = Buffer.from(await painted.arrayBuffer());
+    return jpegResponse(await cardJpeg(png));
   } catch (error) {
     console.error("share card paint failed", error instanceof Error ? error.message : "error");
     if (model.photo) {

@@ -6,7 +6,7 @@ export function ProductPageTitle({ product }: { product: ShopLook }) {
   return (
     <h1
       id="look-title"
-      className="mt-1 min-w-0 scroll-mt-[calc(env(safe-area-inset-top,0px)+8.25rem)] text-ink outline-none sm:scroll-mt-[calc(env(safe-area-inset-top,0px)+8.75rem)]"
+      className="ky-pdp-title mt-1 min-w-0 scroll-mt-[calc(env(safe-area-inset-top,0px)+8.25rem)] text-ink outline-none sm:scroll-mt-[calc(env(safe-area-inset-top,0px)+8.75rem)]"
     >
       <span className="flex min-h-0 items-center uppercase text-[11px] tracking-[0.16em] text-muted">
         <MaMark ma={product.ma} className="select-all text-[11px] tracking-[0.16em]" />

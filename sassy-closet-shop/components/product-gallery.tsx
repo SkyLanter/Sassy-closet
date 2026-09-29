@@ -137,16 +137,6 @@ export function ProductGallery({
               </p>
             </div>
           ) : null}
-          {reel.length > 1 && colorHasShots ? (
-            <p
-              className="gallery-photo-count pointer-events-none absolute top-3 right-3 z-[4] max-w-[70%] truncate rounded-full px-2.5 py-1 text-[11px] uppercase tracking-[0.18em] text-muted tabular-nums"
-              data-testid="gallery-photo-count"
-              aria-hidden
-              translate="no"
-            >
-              {safeIndex + 1} / {slides.length}
-            </p>
-          ) : null}
         </div>
       )}
       {slides.length > 0 ? (
@@ -157,7 +147,8 @@ export function ProductGallery({
         </p>
       ) : null}
       {reel.length > 0 ? (
-        <div ref={thumbRailRef} className="ky-thumb-rail sc-thumb-rail mt-0 flex min-w-0 max-w-full flex-nowrap gap-2 overflow-x-auto tab-scroll">
+        <div className="mt-1 flex min-w-0 items-center gap-2">
+        <div ref={thumbRailRef} className="ky-thumb-rail sc-thumb-rail flex min-w-0 max-w-full flex-1 flex-nowrap gap-2 overflow-x-auto tab-scroll">
           {thumbs.map((thumb, thumbIndex) => {
             const src = version ? cacheBustMediaSrc(thumb.src, version) : thumb.src;
             const currentThumb = thumbIndex === safeIndex;
@@ -202,6 +193,17 @@ export function ProductGallery({
               <span aria-hidden>+{overflowCount}</span>
             </button>
           ) : null}
+        </div>
+        {reel.length > 1 && colorHasShots ? (
+          <p
+            className="gallery-photo-count pointer-events-none shrink-0 rounded-full px-2 py-1 text-[11px] uppercase tracking-[0.14em] text-muted tabular-nums"
+            data-testid="gallery-photo-count"
+            translate="no"
+          >
+            <span className="sr-only">{photoPositionLabel(safeIndex + 1, slides.length)}</span>
+            <span aria-hidden>{safeIndex + 1} / {slides.length}</span>
+          </p>
+        ) : null}
         </div>
       ) : null}
       <AnimatePresence>

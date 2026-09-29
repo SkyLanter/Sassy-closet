@@ -32,11 +32,28 @@ export function ProductCard({
   const name = displayName(product);
   const description = displayDescription(product);
   const [colorId, setColorId] = useState<string | null>(null);
+  const [openSlides, setOpenSlides] = useState<ReadonlySet<number>>(() => new Set([0]));
   const reel = useMemo(() => productGalleryReel(product), [product]);
   const slideIndex = clampedReelIndexForColor(reel, colorId);
 
+  function openSlide(index: number) {
+    setOpenSlides((current) => {
+      if (current.has(index)) {
+        return current;
+      }
+      const next = new Set(current);
+      next.add(index);
+      return next;
+    });
+  }
+
   function pickColor(id: string) {
     setColorId((current) => (current === id ? null : id));
+  }
+
+  function preloadColor(id: string) {
+    const next = colorId === id ? null : id;
+    openSlide(clampedReelIndexForColor(reel, next));
   }
 
   const selectedIndex = product.colors.findIndex((color) => color.id === colorId);
@@ -106,20 +123,22 @@ export function ProductCard({
               >
                 {reel.map((slide, index) => (
                   <div key={slide.id} className="ky-card-reel-slide">
-                    <ProductImage
-                      product={product}
-                      src={slide.src}
-                      alt={lookPhotoAlt({
-                        title: name,
-                        ma: product.ma,
-                        color: slide.colorName,
-                        index: slide.photoIndex + 1,
-                      })}
-                      priority={priority && index === 0}
-                      named={false}
-                      coverFallback={false}
-                      className="h-full w-full"
-                    />
+                    {index === slideIndex || openSlides.has(index) ? (
+                      <ProductImage
+                        product={product}
+                        src={slide.src}
+                        alt={lookPhotoAlt({
+                          title: name,
+                          ma: product.ma,
+                          color: slide.colorName,
+                          index: slide.photoIndex + 1,
+                        })}
+                        priority={priority && index === 0}
+                        named={false}
+                        coverFallback={false}
+                        className="h-full w-full"
+                      />
+                    ) : null}
                   </div>
                 ))}
               </div>
@@ -156,7 +175,21 @@ export function ProductCard({
             />
           </div>
           {product.colors.length > 0 ? (
-            <div className="mt-2 min-w-0 px-0.5">
+            <div
+              className="mt-2 min-w-0 px-0.5"
+              onPointerEnter={(event) => {
+                const id = (event.target as HTMLElement).closest<HTMLElement>("[data-color-id]")?.dataset.colorId;
+                if (id) {
+                  preloadColor(id);
+                }
+              }}
+              onPointerDown={(event) => {
+                const id = (event.target as HTMLElement).closest<HTMLElement>("[data-color-id]")?.dataset.colorId;
+                if (id) {
+                  preloadColor(id);
+                }
+              }}
+            >
               <ColorNameChips
                 colors={product.colors}
                 selectedId={colorId}
