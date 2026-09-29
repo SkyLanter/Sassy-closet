@@ -40,14 +40,7 @@ export function ProductLook({ product }: { product: ShopLook }) {
 
   return (
     <>
-    <article aria-labelledby="look-title" className="ky-pdp mx-auto grid max-w-7xl items-start gap-1 ky-gutter py-1 lg:grid-cols-2 lg:gap-x-14 lg:gap-y-5 lg:py-8">
-      <div className="ky-pdp-heading flex min-w-0 items-baseline justify-between gap-x-3 lg:col-span-2">
-        <ProductPageTitle product={product} />
-        <ProductPrice
-          product={product}
-          className="ky-pdp-price sc-price shrink-0 text-[1.15rem] font-semibold tracking-tight text-ink sm:text-[1.5rem]"
-        />
-      </div>
+    <article aria-labelledby="look-title" className="ky-pdp mx-auto grid max-w-7xl items-start gap-1 ky-gutter py-1 lg:grid-cols-2 lg:gap-14 lg:py-12">
       <div className="ky-pdp-media min-w-0 lg:sticky lg:top-[calc(env(safe-area-inset-top,0px)+8.75rem)] lg:self-start">
         <ContentWaveLooks>
           <ProductGallery product={product} colorId={colorId} onColorId={setColorId} />
@@ -67,6 +60,11 @@ export function ProductLook({ product }: { product: ShopLook }) {
           <CopyMa ma={product.ma} />
           <ShareLook ma={product.ma} title={productShareTitle(product)} />
         </p>
+        <ProductPageTitle product={product} />
+        <ProductPrice
+          product={product}
+          className="ky-pdp-price sc-price mt-2 block text-[1.35rem] font-semibold tracking-tight text-ink sm:text-[1.5rem]"
+        />
         <ProductOptions
           product={product}
           colorId={colorId}
