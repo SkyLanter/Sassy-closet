@@ -1731,12 +1731,14 @@ button[aria-checked="true"] > .sc-chip-face {
   }
 }
 
-/* r5: phone PDP puts colors under the thumbnails. svh budget keeps 3:4,
-   with a 260px floor so a short Safari window never squeezes the photo. */
+/* r5: phone PDP moves only the color row under the thumbnails.
+   The photo gives that row's height back, so the breadcrumb and the name
+   stay where they were. 3:4, never cropped. A 260px floor keeps a short
+   window from squeezing the photo; on that window the floor wins. */
 @media (max-width: 1023px) {
   .ky-pdp {
     --pdp-photo-budget: calc(
-      100svh - 8.25rem - 0.25rem - 0.25rem - 4rem - 0.25rem - 2.75rem - 0.5rem - 4.75rem
+      100svh - 8.25rem - 0.25rem - 4rem - 0.25rem - 2.75rem - 0.25rem - 2.75rem - 0.25rem - 2.75rem - 0.5rem - 4.75rem
     );
     row-gap: 0.25rem;
   }
@@ -1784,23 +1786,27 @@ button[aria-checked="true"] > .sc-chip-face {
     min-width: 0;
   }
 
-  .ky-pdp-media,
-  .ky-pdp-colors {
-    width: min(100%, max(16.25rem, calc(var(--pdp-photo-budget) * 3 / 4)));
-    justify-self: center;
+  .ky-pdp-media {
+    width: 100%;
   }
 
   .ky-pdp-media .ky-gallery-frame {
-    width: 100%;
+    width: min(100%, max(16.25rem, calc(var(--pdp-photo-budget) * 3 / 4)));
     height: auto;
     max-height: none;
     aspect-ratio: 3 / 4;
     margin-inline: auto;
   }
 
+  /* No color row: nothing was inserted, so the photo stays full width. */
+  .ky-pdp:not(:has(.ky-pdp-colors)) .ky-gallery-frame {
+    width: 100%;
+  }
+
   .ky-pdp-colors {
     position: relative;
     display: block;
+    width: 100%;
     margin-top: 0;
     min-height: 2.75rem;
     padding-left: 6.5rem;
@@ -1820,10 +1826,6 @@ button[aria-checked="true"] > .sc-chip-face {
 
   .ky-pdp-colors > p {
     margin-top: 0.15rem;
-  }
-
-  .ky-pdp-sizes {
-    margin-top: 0.75rem;
   }
 }
 
