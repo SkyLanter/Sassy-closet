@@ -1956,22 +1956,6 @@
           "chartish": false
         },
         {
-          "file": "B01_do_05.jpg",
-          "path": "photos/B01/B01_do_05.jpg",
-          "stage_path": "stage-photos/B01/B01_do_05.jpg",
-          "color_vi": "Đỏ",
-          "color_cn": "",
-          "confidence": 0.179,
-          "rgb": [
-            160,
-            96,
-            96
-          ],
-          "included_default": false,
-          "primary_default": false,
-          "chartish": false
-        },
-        {
           "file": "B01_hoa-print_03.jpg",
           "path": "photos/B01/B01_hoa-print_03.jpg",
           "stage_path": "stage-photos/B01/B01_hoa-print_03.jpg",
