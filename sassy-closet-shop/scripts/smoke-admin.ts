@@ -151,8 +151,11 @@ const wrongUsd = saveProductInCatalog(titled.products, "A01", {
   colors: [],
   images: [{ src: "/products/A01/cover.jpg", colorId: null, order: 1 }],
 });
-if (wrongUsd.ok) {
-  fail("A01 Available must reject non-Boss USD");
+if (!wrongUsd.ok) {
+  fail(`A01 Available must save catalog USD, got ${wrongUsd.error}`);
+}
+if (wrongUsd.products.find((product) => product.ma === "A01")?.priceUsd !== 26) {
+  fail("A01 Available must persist the saved USD");
 }
 
 const holdWithUsd = saveProductInCatalog(titled.products, "P02", {
@@ -196,8 +199,11 @@ const p05OffList = saveProductInCatalog(titled.products, "P05", {
   colors: [],
   images: [{ src: "/products/P05/cover.jpg", colorId: null, order: 1 }],
 });
-if (p05OffList.ok) {
-  fail("P05 Available must reject non-Boss USD");
+if (!p05OffList.ok) {
+  fail(`P05 Available must save a catalog USD, got ${p05OffList.error}`);
+}
+if (p05OffList.products.find((product) => product.ma === "P05")?.priceUsd !== 28) {
+  fail("P05 Available must persist the saved USD");
 }
 
 const invent = saveProductInCatalog(titled.products, "A03", holdFields());

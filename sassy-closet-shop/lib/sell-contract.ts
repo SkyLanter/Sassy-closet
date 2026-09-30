@@ -1,4 +1,3 @@
-import { bossRow, warnBossPriceLag } from "@/lib/boss-catalog";
 import { KNOWN_SEED_MAS, isKnownSeedMa } from "@/lib/catalog-contract";
 import { isValidMa, normalizeMa } from "@/lib/ma";
 import type { CatalogDocument, Product, ProductStatus } from "@/lib/types";
@@ -27,7 +26,7 @@ export function isSellableMa(ma: string): boolean {
   return isValidMa(normalized) && !isOfficialAlphabetMa(normalized);
 }
 
-/** Hold ⇔ priceUsd null. Available allowlist ⇔ Boss USD. */
+/** Hold ⇔ priceUsd null. Available needs the catalog USD. Sold may keep a price. */
 export function assertHoldPricePairing(
   ma: string,
   status: ProductStatus,
@@ -40,21 +39,11 @@ export function assertHoldPricePairing(
         throw new Error(`Hold ${normalized} cannot have a USD price.`);
       }
       return;
-    case "available": {
+    case "available":
       if (priceUsd === null) {
         throw new Error(`Available ${normalized} needs a USD price.`);
       }
-      const row = bossRow(normalized);
-      if (row) {
-        if (row.priceUsd === null) {
-          throw new Error(`${normalized} is Hold-only on the Boss list — cannot Save as Available.`);
-        }
-        if (priceUsd !== row.priceUsd) {
-          throw new Error(`${normalized} Available price must be $${row.priceUsd} (Boss list).`);
-        }
-      }
       return;
-    }
     case "sold":
       return;
     default: {
@@ -64,21 +53,12 @@ export function assertHoldPricePairing(
   }
 }
 
-/** Price lock for shop + staff export. Keeps a recorded staff `sourceLink`. */
+/** Shop + staff export. Hold clears USD. Available and sold keep catalog priceUsd. */
 export function publicSafeProduct(product: Product): Product {
   switch (product.status) {
     case "hold":
       return { ...product, priceUsd: null };
-    case "available": {
-      const row = bossRow(product.ma);
-      if (row && row.priceUsd !== null) {
-        if (product.priceUsd !== row.priceUsd) {
-          warnBossPriceLag(product.ma, product.priceUsd, row.priceUsd);
-        }
-        return { ...product, priceUsd: row.priceUsd };
-      }
-      return product;
-    }
+    case "available":
     case "sold":
       return product;
     default: {
@@ -89,10 +69,9 @@ export function publicSafeProduct(product: Product): Product {
 }
 
 /**
- * Live catalog reads show Boss USD for locked mãs.
- * Stored Blob can still have the 2026-09-27 price until the merge-time catalog patch.
- * A lagging price logs a warning and the lock wins. Admin saves still reject a non-lock USD.
- * Writes do not call this — a raw document with any other locked price is still rejected.
+ * Live catalog reads publish stored priceUsd.
+ * Hold is forced to null. Available dollars stay whatever Blob (or seed) stored.
+ * Writes do not call this.
  */
 export function presentLockedBossPrices(document: CatalogDocument): CatalogDocument {
   return {

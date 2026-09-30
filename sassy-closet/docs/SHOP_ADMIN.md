@@ -14,7 +14,7 @@ Five failures from the same IP in 10 minutes return 429. A wrong password waits 
 
 Reads and writes Vercel Blob pathname `sassy-closet-shop/catalog.v1.json` with `SHOP_BLOB_READ_WRITE_TOKEN` passed as the Blob SDK `token`. That token is the **shop** store’s read-write token. The intake store’s `BLOB_READ_WRITE_TOKEN` / `BLOB_STORE_ID` are not used for this file.
 
-The desk lists products already in that file. It can edit titles, descriptions, existing color names, and (for mãs that are not on the Boss lock list) status and USD price. It does not mint mãs, add colors, or change sizes or photos. Locked mãs (`A01`, `S01`, `P01`–`P05`, `K01`, `H01`, `A02`) reject a price or status change. The shop still applies `presentLockedBossPrices` on its own reads.
+The desk lists products already in that file. It can edit titles, descriptions, existing color names, status, and USD price. It does not mint mãs, add colors, or change sizes or photos. Available USD is the catalog `priceUsd` in Blob. Hold still saves with no USD. The shop publishes that stored price on read.
 
 After a successful write, intake POSTs the shop revalidate URL with header `x-shop-revalidate-secret`.
 

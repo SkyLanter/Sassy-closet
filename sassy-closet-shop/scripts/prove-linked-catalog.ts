@@ -86,8 +86,11 @@ async function main(): Promise<void> {
       fulfillment: p05.fulfillment,
       sourceLink: p05.sourceLink,
     });
-    if (leak.ok) {
-      fail("P05 off the Boss list must not save");
+    if (!leak.ok) {
+      fail(`P05 catalog USD must save, got ${leak.error}`);
+    }
+    if (leak.products.find((product) => product.ma === "P05")?.priceUsd !== 28) {
+      fail("P05 must keep the saved catalog USD");
     }
   }
   console.log("customer admin surface ok (no catalog write)");

@@ -8,4 +8,4 @@ Customers do not get a shop desk.
 
 Catalog edits are on the intake app (`/admin/shop`), which writes Blob `sassy-closet-shop/catalog.v1.json` and then calls this revalidate endpoint. See `sassy-closet/docs/SHOP_ADMIN.md`.
 
-`presentLockedBossPrices` / `BOSS_PRICE_LIST` are unchanged. The shop still shows those USD prices on read.
+Shop reads publish catalog `priceUsd`. Hold still clears USD. There is no separate hub price list.

@@ -3,7 +3,6 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { NextRequest } from "next/server";
-import { BOSS_PRICE_LIST } from "../lib/boss-catalog";
 import { customerAdminApiClosed, customerAdminProxyDecision } from "../lib/customer-admin-closed";
 import { SHOP_REVALIDATE_HEADER, revalidateSecretMatches } from "../lib/revalidate-secret";
 import { proxy } from "../proxy";
@@ -169,12 +168,10 @@ test("revalidate requires the shared secret header", async () => {
   }
 });
 
-test("intake locked prices match BOSS_PRICE_LIST", () => {
-  const text = readFileSync(path.join(process.cwd(), "../sassy-closet/lib/shop-catalog-lock.ts"), "utf8");
-  for (const row of BOSS_PRICE_LIST) {
-    assert.match(
-      text,
-      new RegExp(`\\{ ma: "${row.ma}", priceUsd: ${String(row.priceUsd)}, status: "${row.status}" \\}`),
-    );
-  }
+test("intake desk does not freeze hub USD", () => {
+  const catalog = readFileSync(path.join(process.cwd(), "../sassy-closet/lib/shop-catalog.ts"), "utf8");
+  assert.equal(catalog.includes("lockedBossPrice"), false);
+  assert.equal(catalog.includes("price and status are locked"), false);
+  const lockPath = path.join(process.cwd(), "../sassy-closet/lib/shop-catalog-lock.ts");
+  assert.throws(() => readFileSync(lockPath, "utf8"));
 });

@@ -1,4 +1,3 @@
-import { lockedBossPrice } from "@/lib/shop-catalog-lock";
 import { callShopRevalidate, readShopRevalidateConfig } from "@/lib/shop-revalidate";
 
 export const SHOP_CATALOG_BLOB_PATH = "sassy-closet-shop/catalog.v1.json";
@@ -159,7 +158,6 @@ export function listShopCatalog(document: unknown): ShopCatalogList {
       }
       colors.push({ id: color.id, name: color.name });
     }
-    const locked = lockedBossPrice(ma);
     const titleVn = typeof raw.titleVn === "string" ? raw.titleVn : "";
     const titleEn = typeof raw.titleEn === "string" ? raw.titleEn : "";
     const descriptionVn = typeof raw.descriptionVn === "string" ? raw.descriptionVn : "";
@@ -172,8 +170,8 @@ export function listShopCatalog(document: unknown): ShopCatalogList {
       descriptionEn,
       priceUsd,
       status,
-      locked: Boolean(locked),
-      shopPriceUsd: locked ? locked.priceUsd : priceUsd,
+      locked: false,
+      shopPriceUsd: priceUsd,
       colors,
     });
   }
@@ -246,44 +244,29 @@ export function applyShopCatalogPatch(
 
   let status = storedStatus;
   let priceUsd = storedPrice;
-  const locked = lockedBossPrice(ma);
-  if (locked && ("priceUsd" in patch || "status" in patch)) {
-    const nextPrice = "priceUsd" in patch ? readPrice(patch.priceUsd, ma) : storedPrice;
-    const nextStatus = "status" in patch ? readStatus(patch.status, ma) : storedStatus;
-    if (typeof nextPrice === "string") {
-      return { ok: false, error: nextPrice };
-    }
+  if ("status" in patch) {
+    const nextStatus = readStatus(patch.status, ma);
     if (!isStatus(nextStatus)) {
       return { ok: false, error: nextStatus };
     }
-    if (nextPrice !== storedPrice || nextStatus !== storedStatus) {
-      return { ok: false, error: `${ma} price and status are locked.` };
-    }
-  } else {
-    if ("status" in patch) {
-      const nextStatus = readStatus(patch.status, ma);
-      if (!isStatus(nextStatus)) {
-        return { ok: false, error: nextStatus };
-      }
-      status = nextStatus;
-    }
-    if ("priceUsd" in patch) {
-      const nextPrice = readPrice(patch.priceUsd, ma);
-      if (typeof nextPrice === "string") {
-        return { ok: false, error: nextPrice };
-      }
-      priceUsd = nextPrice;
-    }
-    if (status === "hold") {
-      priceUsd = null;
-    }
-    const paired = pairingError(status, priceUsd, ma);
-    if (paired) {
-      return { ok: false, error: paired };
-    }
-    product.status = status;
-    product.priceUsd = priceUsd;
+    status = nextStatus;
   }
+  if ("priceUsd" in patch) {
+    const nextPrice = readPrice(patch.priceUsd, ma);
+    if (typeof nextPrice === "string") {
+      return { ok: false, error: nextPrice };
+    }
+    priceUsd = nextPrice;
+  }
+  if (status === "hold") {
+    priceUsd = null;
+  }
+  const paired = pairingError(status, priceUsd, ma);
+  if (paired) {
+    return { ok: false, error: paired };
+  }
+  product.status = status;
+  product.priceUsd = priceUsd;
 
   if ("colors" in patch) {
     if (!Array.isArray(patch.colors) || !Array.isArray(product.colors)) {

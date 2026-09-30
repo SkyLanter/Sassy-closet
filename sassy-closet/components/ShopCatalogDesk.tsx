@@ -39,15 +39,13 @@ export function ShopCatalogDesk({ initial }: { initial: ShopCatalogList }) {
       descriptionEn: String(form.get("descriptionEn") ?? ""),
       colors,
     };
-    if (!selected.locked) {
-      const status = String(form.get("status") ?? selected.status);
-      patch.status = status;
-      if (status === "hold") {
-        patch.priceUsd = null;
-      } else {
-        const raw = String(form.get("priceUsd") ?? "").trim();
-        patch.priceUsd = raw === "" ? null : Number(raw);
-      }
+    const status = String(form.get("status") ?? selected.status);
+    patch.status = status;
+    if (status === "hold") {
+      patch.priceUsd = null;
+    } else {
+      const raw = String(form.get("priceUsd") ?? "").trim();
+      patch.priceUsd = raw === "" ? null : Number(raw);
     }
     setBusy(true);
     setNotice(null);
@@ -92,7 +90,7 @@ export function ShopCatalogDesk({ initial }: { initial: ShopCatalogList }) {
       </div>
       <p className="mt-2 text-[13.5px] leading-relaxed text-[#7d5360]">
         Edits the sell catalog in Blob <span className="font-semibold">sassy-closet-shop/catalog.v1.json</span>, then
-        asks the shop to revalidate. Locked mã prices stay as they are.
+        asks the shop to revalidate. Available USD is the catalog price.
       </p>
       <p className="mt-3 text-sm">
         <a className="underline-offset-2 hover:underline" href="/">
@@ -155,15 +153,7 @@ function Editor({
       <Field label="Title EN" name="titleEn" defaultValue={product.titleEn} />
       <Area label="Description VN" name="descriptionVn" defaultValue={product.descriptionVn} />
       <Area label="Description EN" name="descriptionEn" defaultValue={product.descriptionEn} />
-      {product.locked ? (
-        <p className="rounded-2xl bg-white px-3 py-3 text-sm ring-1 ring-[#eadfdc]">
-          Locked shop price {product.shopPriceUsd === null ? "Hold" : `$${product.shopPriceUsd}`} · stored{" "}
-          {product.priceUsd === null ? "no USD" : `$${product.priceUsd}`} · {product.status}. This save does not change
-          price or status.
-        </p>
-      ) : (
-        <UnlockedPrice product={product} />
-      )}
+      <UnlockedPrice product={product} />
       {product.colors.length > 0 ? (
         <fieldset className="grid gap-2">
           <legend className="text-sm font-semibold text-[#3c2a2e]">Colors</legend>
