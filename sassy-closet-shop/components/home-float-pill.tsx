@@ -1,20 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { MessengerCta } from "@/components/messenger-cta";
 import { useCategorySpy } from "@/components/category-spy";
 import { categoryFilterLabel, categorySectionId } from "@/lib/categories";
 import { LOOK_SEARCH_TOGGLE } from "@/lib/look-search";
-import {
-  editorialTitle,
-  LOOK_STORY_EVENT,
-  type LookStoryDetail,
-} from "@/lib/look-story";
 import { requestShopSearch } from "@/lib/open-shop-search";
-import type { ShopLook } from "@/lib/shop-look";
 
-type PillZone = "hidden" | "story" | "looks";
+type PillZone = "hidden" | "cards" | "looks";
 
 function SearchGlyph() {
   return (
@@ -27,27 +20,9 @@ function SearchGlyph() {
   );
 }
 
-export function HomeFloatPill({ looks }: { looks: ShopLook[] }) {
-  const first = looks[0];
+export function HomeFloatPill() {
   const { active } = useCategorySpy();
   const [zone, setZone] = useState<PillZone>("hidden");
-  const [story, setStory] = useState<LookStoryDetail>(() => ({
-    ma: first?.ma ?? "",
-    title: first ? editorialTitle(first) : "",
-    index: 0,
-  }));
-
-  useEffect(() => {
-    const onStory = (event: Event) => {
-      const detail = (event as CustomEvent<LookStoryDetail>).detail;
-      if (!detail?.ma) {
-        return;
-      }
-      setStory(detail);
-    };
-    window.addEventListener(LOOK_STORY_EVENT, onStory);
-    return () => window.removeEventListener(LOOK_STORY_EVENT, onStory);
-  }, []);
 
   useEffect(() => {
     let frame = 0;
@@ -55,22 +30,20 @@ export function HomeFloatPill({ looks }: { looks: ShopLook[] }) {
       frame = 0;
       const chromeBottom =
         document.querySelector("[data-testid='shop-chrome']")?.getBoundingClientRect().bottom ?? 0;
-      const storyRect = document.getElementById("look-story")?.getBoundingClientRect();
-      const looksRect = document.getElementById("featured-collection")?.getBoundingClientRect();
+      const cards = document.querySelector("[data-testid='home-feature-cards']")?.getBoundingClientRect();
+      const looks = document.getElementById("featured-collection")?.getBoundingClientRect();
       const view = window.innerHeight;
-      const storyOn = Boolean(
-        storyRect && storyRect.top < view * 0.78 && storyRect.bottom > chromeBottom + 48,
-      );
-      const looksOn = Boolean(
-        looksRect && looksRect.top < view * 0.62 && looksRect.bottom > chromeBottom + 96,
-      );
+      const cardsOn = Boolean(cards && cards.top < view * 0.82 && cards.bottom > chromeBottom + 32);
+      const looksOn = Boolean(looks && looks.top < view * 0.62 && looks.bottom > chromeBottom + 80);
       let next: PillZone = "hidden";
-      if (storyOn && (!looksOn || (storyRect?.top ?? 0) < view * 0.42)) {
-        next = "story";
+      if (window.scrollY < 64) {
+        next = "hidden";
+      } else if (looksOn && (looks?.top ?? view) < view * 0.42) {
+        next = "looks";
+      } else if (cardsOn) {
+        next = "cards";
       } else if (looksOn) {
         next = "looks";
-      } else if (storyOn) {
-        next = "story";
       }
       setZone((current) => (current === next ? current : next));
     };
@@ -92,16 +65,10 @@ export function HomeFloatPill({ looks }: { looks: ShopLook[] }) {
     };
   }, []);
 
-  if (!first) {
-    return null;
-  }
-
   const open = zone !== "hidden";
-  const category =
-    active && active !== "all" ? categoryFilterLabel(active) : "Looks";
+  const category = active && active !== "all" ? categoryFilterLabel(active) : "Looks";
   const categoryHref =
     active && active !== "all" ? `#${categorySectionId(active)}` : "#featured-collection";
-  const storyLook = looks.find((look) => look.ma === story.ma) ?? first;
 
   return (
     <div
@@ -117,52 +84,39 @@ export function HomeFloatPill({ looks }: { looks: ShopLook[] }) {
         aria-label={LOOK_SEARCH_TOGGLE}
         translate="no"
         onClick={() => requestShopSearch()}
-        className="inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-full text-ink"
+        className="home-float-search inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-full text-ink"
       >
         <SearchGlyph />
       </button>
-      <div className="home-float-label min-w-0 flex-1">
-        <PillLabel
-          zone={zone}
-          story={story}
-          category={category}
-          categoryHref={categoryHref}
-        />
+      <div className="min-w-0 flex-1">
+        <PillLabel zone={zone} category={category} categoryHref={categoryHref} />
       </div>
-      <MessengerCta
-        ma={zone === "story" ? storyLook.ma : undefined}
-        variant="header"
-        className="shrink-0"
-      />
+      <MessengerCta variant="header" className="shrink-0" />
     </div>
   );
 }
 
 function PillLabel({
   zone,
-  story,
   category,
   categoryHref,
 }: {
   zone: PillZone;
-  story: LookStoryDetail;
   category: string;
   categoryHref: string;
 }) {
   switch (zone) {
     case "hidden":
-    case "story":
+    case "cards":
       return (
-        <Link
-          href={`/m/${story.ma}`}
-          data-testid="home-float-story"
+        <a
+          href="#home-categories-heading"
+          data-testid="home-float-category"
           translate="no"
-          className="block min-h-11 truncate py-3 text-left text-[13px] leading-none text-ink"
+          className="block min-h-11 truncate py-3 text-left text-[13px] leading-none tracking-[0.01em] text-ink"
         >
-          <span className="text-gold-ink">{story.ma}</span>
-          <span className="text-muted"> · </span>
-          {story.title}
-        </Link>
+          Categories
+        </a>
       );
     case "looks":
       return (
@@ -170,7 +124,7 @@ function PillLabel({
           href={categoryHref}
           data-testid="home-float-category"
           translate="no"
-          className="block min-h-11 truncate py-3 text-left text-[13px] leading-none text-ink"
+          className="block min-h-11 truncate py-3 text-left text-[13px] leading-none tracking-[0.01em] text-ink"
         >
           {category}
         </a>

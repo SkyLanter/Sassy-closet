@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ProductImage } from "@/components/product-image";
 import { useQuietRise } from "@/components/use-quiet-rise";
 import { categoryAriaLabel, categoryFilterLabel, categorySectionId } from "@/lib/categories";
-import { editorialTitle, type FeatureCardLook } from "@/lib/look-story";
+import { editorialTitle, type FeatureCardLook } from "@/lib/home-features";
 import { lookPhotoAlt } from "@/lib/photo-alt";
 
 export function HomeFeatureCards({ cards }: { cards: FeatureCardLook[] }) {
@@ -55,7 +55,7 @@ function FeatureCard({ card, index }: { card: FeatureCardLook; index: number }) 
         aria-label={categoryAriaLabel(card.type)}
         className="group grid grid-cols-[7.25rem_minmax(0,1fr)] items-center gap-4 touch-manipulation select-none sm:grid-cols-1 sm:items-stretch sm:gap-0"
       >
-        <div className="sc-card-well relative overflow-hidden rounded-[1.35rem] shadow-[0_18px_40px_-28px_rgb(176_112_98/0.55)] sm:rounded-[1.6rem]">
+        <div className="sc-card-well home-feature-photo relative overflow-hidden">
           <ProductImage
             product={card.look}
             alt={lookPhotoAlt({ title, ma: card.look.ma })}
@@ -63,7 +63,6 @@ function FeatureCard({ card, index }: { card: FeatureCardLook; index: number }) 
             className="h-full w-full"
             sizes="(max-width: 639px) 30vw, 28vw"
           />
-          <span className="liquid-glass-rim pointer-events-none absolute inset-0 z-[2]" aria-hidden />
         </div>
         <div className="min-w-0 sm:mt-4 sm:px-0.5">
           <p
