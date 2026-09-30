@@ -1,5 +1,5 @@
 import { listShopCatalog } from "@/lib/shop-catalog";
-import { loadShopCatalogForAdmin } from "@/lib/shop-catalog-store";
+import { shopCatalogPortFromEnv } from "@/lib/shop-catalog-store";
 import {
   isAllowedShopOrigin,
   publicCatalogUrlFromSitemap,
@@ -47,7 +47,8 @@ export async function shopDatasetFromPublicShop(
   const body = await fetchText(fetchImpl, catalogUrl, timeoutMs);
   if (!body) return null;
   try {
-    return rowsFromShopCatalog(listShopCatalog(JSON.parse(body) as unknown));
+    const document = JSON.parse(body) as unknown;
+    return rowsFromShopCatalog(listShopCatalog(document), document);
   } catch {
     return null;
   }
@@ -55,7 +56,11 @@ export async function shopDatasetFromPublicShop(
 
 async function readTokenRows(): Promise<ShopDatasetRow[] | null> {
   try {
-    return rowsFromShopCatalog(await loadShopCatalogForAdmin());
+    const selected = shopCatalogPortFromEnv();
+    if (!selected.ok) return null;
+    const document = await selected.port.read();
+    if (document === null) return null;
+    return rowsFromShopCatalog(listShopCatalog(document), document);
   } catch {
     return null;
   }

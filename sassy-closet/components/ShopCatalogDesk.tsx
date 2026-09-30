@@ -159,7 +159,7 @@ function DatasetSummary({ rows, intakeMas }: { rows: ShopDatasetRow[]; intakeMas
         Held · chưa xong: {dataset.heldMas.length > 0 ? formatMaList(dataset.heldMas, 24) : "không có"}
       </p>
       <p className="mt-1 text-[#7d5360]">
-        Trên shop, chưa có form intake:{" "}
+        Trên shop, hiện trên list từ catalog (chưa lưu form):{" "}
         {dataset.shopOnlyLive.length > 0 ? formatMaList(dataset.shopOnlyLive.map((entry) => entry.ma), 24) : "không có"}
       </p>
     </section>

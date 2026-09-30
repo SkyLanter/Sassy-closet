@@ -1,12 +1,19 @@
-import { assertNever } from "@/lib/kinds";
+import { assertNever, isKindCode } from "@/lib/kinds";
+import { formatUsd } from "@/lib/listing-status";
 import type { ShopCatalogList, ShopCatalogStatus } from "@/lib/shop-catalog";
 
 export type DatasetLane = "live" | "held" | "sold";
+
+const SIZE_ORDER = ["2XS", "XS", "S", "M", "L", "XL", "2XL"] as const;
 
 export type ShopDatasetRow = {
   ma: string;
   status: ShopCatalogStatus;
   priceUsd: number | null;
+  /** Catalog type letter. Empty when the catalog row has none. */
+  kind: string;
+  /** Catalog sizes in sell-site order. Empty when the catalog row has none. */
+  sizes: string[];
 };
 
 export type DatasetEntry = {
@@ -45,15 +52,65 @@ export function datasetLaneLabel(lane: DatasetLane): string {
   }
 }
 
-export function rowsFromShopCatalog(list: ShopCatalogList): ShopDatasetRow[] | null {
+export function rowsFromShopCatalog(list: ShopCatalogList, source?: unknown): ShopDatasetRow[] | null {
   if (!list.ok) return null;
+  const extra = catalogExtras(source);
   const rows: ShopDatasetRow[] = [];
   for (const product of list.products) {
     const ma = cleanMa(product.ma);
     if (!ma) continue;
-    rows.push({ ma, status: product.status, priceUsd: product.priceUsd });
+    const more = extra.get(ma);
+    rows.push({
+      ma,
+      status: product.status,
+      priceUsd: product.priceUsd,
+      kind: more?.kind ?? "",
+      sizes: more?.sizes ?? [],
+    });
   }
   return rows;
+}
+
+/** Dollar amount for an available catalog row, without a $ sign. Null when Blob has no live price. */
+export function catalogSellAmount(rows: readonly ShopDatasetRow[] | null, ma: string): string | null {
+  if (!rows) return null;
+  const key = cleanMa(ma);
+  if (!key) return null;
+  const row = rows.find((item) => item.ma === key);
+  if (!row || row.status !== "available" || row.priceUsd === null) return null;
+  const labeled = formatUsd(row.priceUsd);
+  return labeled ? labeled.slice(1) : null;
+}
+
+/**
+ * Live mãs show the Blob USD. Held / chưa xong keep the intake sell field.
+ * A missing Blob price does not invent a dollar.
+ */
+export function intakeListPrice(input: {
+  lane: DatasetLane | null;
+  shopPriceUsd: number | null;
+  sellUsd: string;
+  sellCny: string;
+}): string {
+  if (input.lane === "live") {
+    const labeled = formatUsd(input.shopPriceUsd ?? undefined);
+    if (labeled) return labeled;
+  }
+  const usd = input.sellUsd.trim();
+  if (usd) return `$${usd}`;
+  const cny = input.sellCny.trim();
+  if (cny) return `¥${cny}`;
+  return "Thiếu giá";
+}
+
+/** Live mãs show catalog sizes. Held keep the intake size string. */
+export function intakeListSize(
+  lane: DatasetLane | null,
+  shopSizes: readonly string[] | null,
+  intakeSize: string,
+): string {
+  if (lane === "live" && shopSizes) return shopSizes.join(" ");
+  return intakeSize.trim();
 }
 
 /**
@@ -100,7 +157,13 @@ export function buildIntakeDataset(
   for (const row of shop) {
     const ma = cleanMa(row.ma);
     if (!ma || shopByMa.has(ma)) continue;
-    shopByMa.set(ma, { ma, status: row.status, priceUsd: row.priceUsd });
+    shopByMa.set(ma, {
+      ma,
+      status: row.status,
+      priceUsd: row.priceUsd,
+      kind: row.kind,
+      sizes: row.sizes,
+    });
   }
 
   const intakeOrder: string[] = [];
@@ -160,4 +223,32 @@ function laneForStatus(status: ShopCatalogStatus): DatasetLane {
 function cleanMa(ma: string): string | null {
   const key = ma.trim().toUpperCase();
   return MA_CODE.test(key) ? key : null;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function catalogExtras(source: unknown): Map<string, { kind: string; sizes: string[] }> {
+  const map = new Map<string, { kind: string; sizes: string[] }>();
+  if (!isRecord(source) || !Array.isArray(source.products)) return map;
+  for (const raw of source.products) {
+    if (!isRecord(raw) || typeof raw.ma !== "string") continue;
+    const ma = cleanMa(raw.ma);
+    if (!ma) continue;
+    const type = typeof raw.type === "string" ? raw.type.trim().toUpperCase() : "";
+    map.set(ma, { kind: isKindCode(type) ? type : "", sizes: orderedSellSizes(raw.sizes) });
+  }
+  return map;
+}
+
+function orderedSellSizes(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  const found = new Set<string>();
+  for (const item of raw) {
+    if (typeof item !== "string") continue;
+    const letter = item.trim().toUpperCase();
+    if ((SIZE_ORDER as readonly string[]).includes(letter)) found.add(letter);
+  }
+  return SIZE_ORDER.filter((letter) => found.has(letter));
 }

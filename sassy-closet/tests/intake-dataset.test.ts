@@ -2,8 +2,11 @@ import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import {
   buildIntakeDataset,
+  catalogSellAmount,
   datasetEntryForMa,
   datasetLaneLabel,
+  intakeListPrice,
+  intakeListSize,
   isAllowedShopOrigin,
   formatMaList,
   publicCatalogUrlFromSitemap,
@@ -13,11 +16,11 @@ import {
 import { shopDatasetFromPublicShop } from "../lib/shop-dataset-read";
 
 const shop: ShopDatasetRow[] = [
-  { ma: "A01", status: "available", priceUsd: 27 },
-  { ma: "D05", status: "available", priceUsd: 32 },
-  { ma: "V03", status: "available", priceUsd: 28 },
-  { ma: "P02", status: "hold", priceUsd: null },
-  { ma: "Q09", status: "sold", priceUsd: 10 },
+  { ma: "A01", status: "available", priceUsd: 27, kind: "A", sizes: ["S", "M", "L"] },
+  { ma: "D05", status: "available", priceUsd: 26, kind: "D", sizes: ["S", "M", "L"] },
+  { ma: "V03", status: "available", priceUsd: 21, kind: "V", sizes: ["S", "M", "L", "XL"] },
+  { ma: "P02", status: "hold", priceUsd: null, kind: "P", sizes: [] },
+  { ma: "Q09", status: "sold", priceUsd: 10, kind: "Q", sizes: [] },
 ];
 
 describe("intake dataset vs shop catalog", () => {
@@ -41,6 +44,19 @@ describe("intake dataset vs shop catalog", () => {
     assert.equal(datasetLaneLabel("held"), "Held · chưa xong");
     assert.equal(datasetLaneLabel("live"), "Live");
     assert.equal(formatMaList(["D05", "V03"]), "D05, V03");
+    assert.equal(catalogSellAmount(shop, "a01"), "27");
+    assert.equal(catalogSellAmount(shop, "S14"), null);
+    assert.equal(catalogSellAmount(shop, "P02"), null);
+    assert.equal(
+      intakeListPrice({ lane: "live", shopPriceUsd: 27, sellUsd: "25", sellCny: "167.75" }),
+      "$27",
+    );
+    assert.equal(intakeListPrice({ lane: "live", shopPriceUsd: 26, sellUsd: "", sellCny: "" }), "$26");
+    assert.equal(intakeListPrice({ lane: "held", shopPriceUsd: 27, sellUsd: "", sellCny: "" }), "Thiếu giá");
+    assert.equal(intakeListPrice({ lane: "held", shopPriceUsd: null, sellUsd: "", sellCny: "" }), "Thiếu giá");
+    assert.equal(intakeListSize("live", ["S", "M", "L"], "L S M"), "S M L");
+    assert.equal(intakeListSize("live", [], "S M L"), "");
+    assert.equal(intakeListSize("held", null, "M L XL"), "M L XL");
     assert.equal(formatMaList(["A01", "A02", "A03"], 2), "A01, A02 +1");
     assert.equal(view.entries.some((entry) => entry.ma === "B99"), false);
   });
@@ -74,7 +90,34 @@ describe("intake dataset vs shop catalog", () => {
         },
       ],
     });
-    assert.deepEqual(rows, [{ ma: "D05", status: "available", priceUsd: 32 }]);
+    assert.deepEqual(rows, [{ ma: "D05", status: "available", priceUsd: 32, kind: "", sizes: [] }]);
+    const withSource = rowsFromShopCatalog(
+      {
+        ok: true,
+        updatedAt: null,
+        siteId: "sassy-closet-shop",
+        products: [
+          {
+            ma: "D05",
+            titleVn: "",
+            titleEn: "",
+            descriptionVn: "",
+            descriptionEn: "",
+            priceUsd: 26,
+            status: "available",
+            locked: false,
+            shopPriceUsd: 26,
+            colors: [],
+          },
+        ],
+      },
+      {
+        products: [{ ma: "d05", type: "D", sizes: ["L", "S", "M"], priceUsd: 99 }],
+      },
+    );
+    assert.deepEqual(withSource, [
+      { ma: "D05", status: "available", priceUsd: 26, kind: "D", sizes: ["S", "M", "L"] },
+    ]);
   });
 
   test("public catalog URL comes from the shop sitemap blob host", () => {
@@ -117,7 +160,8 @@ describe("intake dataset vs shop catalog", () => {
               priceUsd: 27,
               status: "available",
               colors: [],
-              sizes: ["S"],
+              sizes: ["L", "S"],
+              type: "A",
               images: [],
             },
           ],
@@ -128,7 +172,7 @@ describe("intake dataset vs shop catalog", () => {
     assert.equal(blocked, null);
     assert.equal(calls, 0);
     const rows = await shopDatasetFromPublicShop(fetchImpl, "https://sassycloset.vercel.app");
-    assert.deepEqual(rows, [{ ma: "A01", status: "available", priceUsd: 27 }]);
+    assert.deepEqual(rows, [{ ma: "A01", status: "available", priceUsd: 27, kind: "A", sizes: ["S", "L"] }]);
     assert.equal(calls, 2);
   });
 });
