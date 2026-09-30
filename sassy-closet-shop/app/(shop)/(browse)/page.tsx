@@ -1,6 +1,7 @@
 import { ContentWaveHost } from "@/components/content-wave";
 import { FeaturedBoard } from "@/components/featured-board";
 import { HeroEditorial } from "@/components/hero-mesh";
+import { HomeEditorial } from "@/components/home-editorial";
 import { firstSearchQueryParam } from "@/lib/look-search";
 import { getCatalogTypes, getProducts, getSiteSettings } from "@/lib/products";
 import { organizationJsonLd } from "@/lib/seo";
@@ -27,6 +28,7 @@ export default async function HomePage({
       />
       <h1 className="sr-only">{SITE.tagline === SITE.name ? SITE.name : `${SITE.name}. ${SITE.tagline}`}</h1>
       {committedQuery ? null : <HeroEditorial />}
+      {committedQuery ? null : <HomeEditorial products={products} types={types} />}
       <ContentWaveHost className="shop-content-layer bg-paper">
         <FeaturedBoard products={products} types={types} committedQuery={committedQuery} />
       </ContentWaveHost>

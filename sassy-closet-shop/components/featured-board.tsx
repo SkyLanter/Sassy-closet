@@ -10,6 +10,7 @@ import { LooksSortChips } from "@/components/looks-sort";
 import { SearchResultsBar } from "@/components/search-results-bar";
 import { CategorySuggestChips } from "@/components/category-suggest-chips";
 import { HScrollCue } from "@/components/h-scroll-cue";
+import { RisingSection } from "@/components/rising-section";
 import { ShopEmpty } from "@/components/shop-empty";
 import { SizeFilterChips } from "@/components/size-filter";
 import { useShopSearch } from "@/components/shop-search";
@@ -366,7 +367,7 @@ export function FeaturedBoard({
                 const id = categorySectionId(type);
                 const label = categoryFilterLabel(type);
                 return (
-                  <section
+                  <RisingSection
                     key={type}
                     id={id}
                     aria-labelledby={`${id}-title`}
@@ -397,7 +398,7 @@ export function FeaturedBoard({
                         eagerCount={index === 0 ? 2 : 0}
                       />
                     )}
-                  </section>
+                  </RisingSection>
                 );
               })}
             </ContentWaveLooks>
