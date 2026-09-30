@@ -12,6 +12,14 @@ import { convertCnyToUsd, convertUsdToCny } from "@/lib/fx";
 import { COLORS, KINDS, assertNever, keepSizesForKind, sizeScaleForKind, sizesForKind } from "@/lib/kinds";
 import { nextMa, parseHubMa } from "@/lib/mint";
 import {
+  buildIntakeDataset,
+  datasetEntryForMa,
+  datasetLaneLabel,
+  formatMaList,
+  type DatasetLane,
+  type ShopDatasetRow,
+} from "@/lib/intake-dataset";
+import {
   listingChip,
   listingItemForMa,
   listingPollIntervalMs,
@@ -91,6 +99,8 @@ export function IntakeApp({
   const [findCard, setFindCard] = useState<MaLookup | null>(null);
   const [findMiss, setFindMiss] = useState(false);
   const [savedRows, setSavedRows] = useState<Submission[]>([]);
+  const [rowsReady, setRowsReady] = useState(false);
+  const [shopRows, setShopRows] = useState<ShopDatasetRow[] | null>(null);
   const [listing, setListing] = useState<ListingStatusClient>({ enabled: false, items: {} });
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const listingTimer = useRef<number | null>(null);
@@ -105,6 +115,7 @@ export function IntakeApp({
 
   useEffect(() => {
     void refreshMas();
+    void loadShopRows();
     const ma = new URLSearchParams(window.location.search).get("ma");
     if (!ma) return;
     setTab("edit");
@@ -300,12 +311,25 @@ export function IntakeApp({
     }, LISTING_REFRESH_AFTER_SAVE_MS);
   }
 
+  async function loadShopRows() {
+    try {
+      const response = await fetch("/api/shop-dataset", { cache: "no-store" });
+      if (!response.ok) return;
+      const data = (await response.json()) as { rows?: ShopDatasetRow[] | null };
+      setShopRows(Array.isArray(data.rows) ? data.rows : null);
+    } catch {
+      // Leave lanes off. A missed catalog read must not mark mãs Live.
+    }
+  }
+
   async function refreshMas(): Promise<string[]> {
     try {
       const response = await fetch("/api/submissions");
+      if (!response.ok) return knownMas;
       const data = (await response.json()) as { submissions?: Submission[] };
       const rows = data.submissions ?? [];
       setSavedRows(rows);
+      setRowsReady(true);
       const mas = rows.map((row) => String(row.ma ?? "")).filter(Boolean);
       setKnownMas(mas);
       return mas;
@@ -619,6 +643,8 @@ export function IntakeApp({
       </section>
       <SavedList
         rows={savedRows}
+        rowsReady={rowsReady}
+        shopRows={shopRows}
         listing={listing}
         onOpen={(ma) => {
           setTab("edit");
@@ -646,10 +672,6 @@ export function IntakeApp({
       <p className="mt-4 text-center text-xs text-rose-700/70">
         <a className="inline-flex min-h-11 items-center underline-offset-2 hover:underline" href="/admin">
           Kit export CSV
-        </a>
-        <span className="mx-1">·</span>
-        <a className="inline-flex min-h-11 items-center underline-offset-2 hover:underline" href="/admin/shop">
-          Shop tools
         </a>
         <span className="mx-1">· Boss one-pager trong README / BOSS.md</span>
       </p>
@@ -1525,6 +1547,31 @@ function StatusChips({
   );
 }
 
+function DatasetLaneChip({ lane, ma }: { lane: DatasetLane; ma: string }) {
+  const toneClass = laneTone(lane);
+  return (
+    <span
+      data-testid={`dataset-lane-${ma}`}
+      className={`rounded-full px-2 py-0.5 text-[11px] font-semibold tracking-[0.08em] ${toneClass}`}
+    >
+      {datasetLaneLabel(lane)}
+    </span>
+  );
+}
+
+function laneTone(lane: DatasetLane): string {
+  switch (lane) {
+    case "live":
+      return "bg-[#e7f4ec] text-[#246044]";
+    case "held":
+      return "bg-[#fbf3e4] text-[#8a5a12]";
+    case "sold":
+      return "bg-[#f3e6e2] text-[#5c3d48]";
+    default:
+      return assertNever(lane, "unknown dataset lane");
+  }
+}
+
 function ListingChip({ item, ma }: { item: ListingItem | undefined; ma: string }) {
   const chip = listingChip(item);
   const toneClass = {
@@ -1544,21 +1591,36 @@ function ListingChip({ item, ma }: { item: ListingItem | undefined; ma: string }
 
 function SavedList({
   rows,
+  rowsReady,
+  shopRows,
   listing,
   onOpen,
   onCreate,
 }: {
   rows: Submission[];
+  rowsReady: boolean;
+  shopRows: ShopDatasetRow[] | null;
   listing: ListingStatusClient;
   onOpen: (ma: string) => void;
   onCreate: () => void;
 }) {
+  const dataset = buildIntakeDataset(
+    rows.map((row) => row.ma),
+    rowsReady ? shopRows : null,
+  );
   return (
     <section className="mt-6" aria-labelledby="saved-list-title">
       <h2 id="saved-list-title" className="text-[21px] leading-tight text-[#3c2a2e]">
         Đã lưu
       </h2>
       <p className="mt-1 text-[12.5px] text-[#7d5360]">Món đã bấm lưu trên máy này.</p>
+      {dataset.ready ? (
+        <p data-testid="dataset-summary" className="mt-1 text-[12.5px] text-[#7d5360]">
+          Live {dataset.liveCount} trên shop
+          {dataset.heldMas.length > 0 ? ` · Held ${dataset.heldMas.length} chưa xong` : ""}
+          {dataset.shopOnlyLive.length > 0 ? ` · Chưa có form: ${formatMaList(dataset.shopOnlyLive.map((entry) => entry.ma))}` : ""}
+        </p>
+      ) : null}
       {rows.length === 0 ? (
         <div className="mt-3 rounded-2xl bg-white px-4 py-5 ring-1 ring-[#eadfdc]">
           <p className="text-[13.5px] text-[#3c2a2e]">Chưa có món.</p>
@@ -1609,7 +1671,11 @@ function SavedList({
                           Cần xem tay
                         </span>
                       ) : null}
-                      {listing.enabled ? <ListingChip item={listingItemForMa(listing.items, row.ma)} ma={row.ma} /> : null}
+                      {dataset.ready ? (
+                        <DatasetLaneChip lane={datasetEntryForMa(dataset, row.ma)?.lane ?? "held"} ma={row.ma} />
+                      ) : listing.enabled ? (
+                        <ListingChip item={listingItemForMa(listing.items, row.ma)} ma={row.ma} />
+                      ) : null}
                     </span>
                   </span>
                   <span className="shrink-0 text-[13.5px] font-semibold tabular text-[#3c2a2e]">{price}</span>

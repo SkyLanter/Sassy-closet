@@ -2,7 +2,9 @@
 
 The customer shop (`sassy-closet-shop`, https://sassycloset.vercel.app and https://sassy-closet-shop.vercel.app) has no `/admin` page and no Shop tools button. Catalog edits live here, on the intake app, at `/admin/shop`.
 
-Nhung’s intake tabs stay **Món mới**, **Sửa theo mã**, **Tìm mã**, **Hỏi Mini Boss**. Shop tools is a separate password page linked from the intake footer and from the CSV export page. `/admin` CSV export stays open.
+Nhung’s intake tabs stay **Món mới**, **Sửa theo mã**, **Tìm mã**, **Hỏi Mini Boss**. Shop tools is a separate password page at `/admin/shop`, linked from the CSV export page, not from the intake form. `/admin` CSV export stays open.
+
+The intake saved list and this desk read the shop catalog to label **Live** (status `available`) and **Held · chưa xong** (status `hold`, or an intake mã that is not in the catalog). That read does not write prices, photos, or mãs.
 
 ## Password
 
