@@ -1,4 +1,3 @@
-import { bossRow, previousBossPriceUsd, warnBossPriceLag } from "@/lib/boss-catalog";
 import { KNOWN_SEED_MAS, isKnownSeedMa } from "@/lib/catalog-contract";
 import { normalizeMa } from "@/lib/ma";
 import { assertHoldPricePairing } from "@/lib/sell-contract";
@@ -86,11 +85,7 @@ export function assertNoOfficialAlphabet(products: Product[]): void {
 /**
  * Live document: all ten must exist, unique, no Official alphabet.
  * Leftover extras may remain until Remove.
- *
- * The seven repriced locks may still be stored at the previous USD until the
- * merge-time catalog patch. That lag warns and does not fail the shop.
- * Any other mismatch still throws. Saves keep using assertHoldPricePairing,
- * which accepts only the current lock.
+ * Hub Available keeps the stored USD. Hold still means priceUsd null.
  */
 export function assertLiveCatalogIntegrity(products: Product[]): void {
   assertUniqueNormalizedMas(products);
@@ -99,20 +94,6 @@ export function assertLiveCatalogIntegrity(products: Product[]): void {
   for (const product of products) {
     const ma = normalizeMa(product.ma);
     if (!isKnownSeedMa(ma)) {
-      continue;
-    }
-    const row = bossRow(ma);
-    const previous = previousBossPriceUsd(ma);
-    if (
-      row &&
-      row.priceUsd !== null &&
-      product.status === row.status &&
-      product.status === "available" &&
-      previous !== undefined &&
-      product.priceUsd === previous &&
-      product.priceUsd !== row.priceUsd
-    ) {
-      warnBossPriceLag(ma, product.priceUsd, row.priceUsd);
       continue;
     }
     assertHoldPricePairing(product.ma, product.status, product.priceUsd);

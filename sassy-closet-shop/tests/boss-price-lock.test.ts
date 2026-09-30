@@ -3,7 +3,6 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { emptyFitCm } from "../lib/asia-size";
-import { BOSS_PRICE_LIST, previousBossPriceUsd, resetBossPriceLagWarnings } from "../lib/boss-catalog";
 import { assertLiveCatalogIntegrity } from "../lib/catalog-integrity";
 import { maLetter } from "../lib/ma";
 import {
@@ -13,47 +12,21 @@ import {
 } from "../lib/sell-contract";
 import type { CatalogDocument, Product } from "../lib/types";
 
-const NEW_SHIPPING = {
-  A01: 24,
-  A02: 20,
-  S01: 37,
-  K01: 34,
-  H01: 7,
-  P01: 5,
-  P02: 22,
-  P03: 10,
-  P04: 9,
-  P05: 22,
-} as const;
-
-/** Still on the live Blob until the merge-time catalog patch. */
-const PRE_PATCH = {
-  A01: 25,
-  A02: 21,
+/** Current Blob catalog USD for the hub ten (2026-09-30 tiered margin). */
+const CATALOG_USD = {
+  A01: 27,
+  A02: 23,
   S01: 39,
   K01: 36,
   H01: 8,
   P01: 5,
-  P02: 24,
-  P03: 10,
-  P04: 9,
-  P05: 23,
+  P02: 25,
+  P03: 11,
+  P04: 10,
+  P05: 25,
 } as const;
 
-const PREVIOUS_LOCK = {
-  A01: 30,
-  A02: 26,
-  S01: 45,
-  K01: 40,
-  H01: 10,
-  P01: 8,
-  P02: 28,
-  P03: 15,
-  P04: 12,
-  P05: 28,
-} as const;
-
-function product(ma: keyof typeof NEW_SHIPPING, priceUsd: number): Product {
+function product(ma: keyof typeof CATALOG_USD, priceUsd: number | null, status: Product["status"] = "available"): Product {
   const type = maLetter(ma);
   if (type === null) {
     throw new Error(`Invalid mã ${ma}`);
@@ -65,7 +38,7 @@ function product(ma: keyof typeof NEW_SHIPPING, priceUsd: number): Product {
     titleEn: ma,
     priceUsd,
     qty: 1,
-    status: "available",
+    status,
     colors: [],
     images: [],
     sizes: [],
@@ -87,60 +60,58 @@ function document(products: Product[]): CatalogDocument {
   };
 }
 
-test("Boss list is the new-shipping price for each locked mã", () => {
-  assert.deepEqual(
-    BOSS_PRICE_LIST.map((row) => row.ma).sort(),
-    Object.keys(NEW_SHIPPING).sort(),
-  );
-  for (const row of BOSS_PRICE_LIST) {
-    assert.equal(row.status, "available");
-    assert.equal(row.priceUsd, NEW_SHIPPING[row.ma]);
-  }
-});
-
-test("seed catalog stores the same locked prices", () => {
+test("seed hub prices match the Blob catalog USD", () => {
   const seed = JSON.parse(readFileSync(path.join(process.cwd(), "data", "products.json"), "utf8")) as {
-    products: { ma: string; priceUsd: number }[];
+    products: { ma: string; priceUsd: number; status: string }[];
   };
-  for (const [ma, priceUsd] of Object.entries(NEW_SHIPPING)) {
-    const row = seed.products.find((product) => product.ma === ma);
+  for (const [ma, priceUsd] of Object.entries(CATALOG_USD)) {
+    const row = seed.products.find((item) => item.ma === ma);
+    assert.equal(row?.status, "available", ma);
     assert.equal(row?.priceUsd, priceUsd, ma);
   }
 });
 
-test("P05 $22 is the Boss price and a different USD is rejected", () => {
+test("hub Available accepts the catalog USD and a later reprice", () => {
+  assert.doesNotThrow(() => assertHoldPricePairing("P05", "available", 25));
   assert.doesNotThrow(() => assertHoldPricePairing("P05", "available", 22));
-  assert.throws(() => assertHoldPricePairing("P05", "available", 23), /\$22/);
-  assert.throws(() => assertHoldPricePairing("P05", "available", 28), /\$22/);
-  assert.throws(() => assertHoldPricePairing("P05", "hold", 22), /cannot have a USD price/);
+  assert.doesNotThrow(() => assertHoldPricePairing("A01", "available", 27));
+  assert.doesNotThrow(() => assertHoldPricePairing("A03", "available", 50));
+  assert.throws(() => assertHoldPricePairing("P05", "available", null), /needs a USD price/);
+  assert.throws(() => assertHoldPricePairing("P05", "hold", 25), /cannot have a USD price/);
   const source = readFileSync(path.join(process.cwd(), "lib", "sell-contract.ts"), "utf8");
-  assert.equal(source.includes("P05 must never publish $23"), false);
+  assert.equal(source.includes("Boss list"), false);
+  assert.equal(source.includes("bossRow"), false);
 });
 
-test("customer override and live read show Boss USD while a raw stale catalog is still rejected", () => {
-  const stale = Object.entries(PREVIOUS_LOCK).map(([ma, priceUsd]) =>
-    product(ma as keyof typeof NEW_SHIPPING, priceUsd),
+test("shop reads publish catalog USD and do not substitute a lock", () => {
+  const rows = Object.entries(CATALOG_USD).map(([ma, priceUsd]) =>
+    product(ma as keyof typeof CATALOG_USD, priceUsd),
   );
   const extra: Product = {
-    ...product("A01", 30),
+    ...product("A01", 27),
     ma: "A03",
     titleEn: "Extra",
     titleVn: "Extra",
     priceUsd: 50,
   };
-  const staleDoc = document([...stale, extra]);
+  const catalog = document([...rows, extra]);
+  assert.doesNotThrow(() => assertLiveCatalogIntegrity(catalog.products));
 
-  assert.throws(() => assertLiveCatalogIntegrity(staleDoc.products), /A01 Available price must be \$24/);
-  for (const row of stale) {
-    assert.equal(publicSafeProduct(row).priceUsd, NEW_SHIPPING[row.ma as keyof typeof NEW_SHIPPING]);
+  for (const row of rows) {
+    assert.equal(publicSafeProduct(row).priceUsd, row.priceUsd);
   }
+  const held = publicSafeProduct({ ...product("A01", 27), status: "hold", priceUsd: 27 });
+  assert.equal(held.priceUsd, null);
 
-  const presented = presentLockedBossPrices(staleDoc);
-  assert.doesNotThrow(() => assertLiveCatalogIntegrity(presented.products));
-  for (const [ma, priceUsd] of Object.entries(NEW_SHIPPING)) {
+  const presented = presentLockedBossPrices(catalog);
+  for (const [ma, priceUsd] of Object.entries(CATALOG_USD)) {
     assert.equal(presented.products.find((row) => row.ma === ma)?.priceUsd, priceUsd);
   }
   assert.equal(presented.products.find((row) => row.ma === "A03")?.priceUsd, 50);
+
+  const oldLock = document([product("A01", 24), ...rows.slice(1)]);
+  assert.equal(publicSafeProduct(oldLock.products[0]!).priceUsd, 24);
+  assert.doesNotThrow(() => assertLiveCatalogIntegrity(oldLock.products));
 
   const store = readFileSync(path.join(process.cwd(), "lib", "catalog-store.ts"), "utf8");
   const writeStart = store.indexOf("export async function writeLiveCatalogDocument");
@@ -148,48 +119,7 @@ test("customer override and live read show Boss USD while a raw stale catalog is
   const writeBody = store.slice(writeStart, writeEnd);
   assert.equal(writeBody.includes("presentLockedBossPrices"), false);
   assert.equal(store.includes("presentLockedBossPrices(hydrateLiveCatalog"), true);
-});
-
-test("pre-patch Blob prices warn and the lock wins without failing integrity", () => {
-  resetBossPriceLagWarnings();
-  assert.equal(previousBossPriceUsd("A01"), PRE_PATCH.A01);
-  assert.equal(previousBossPriceUsd("A02"), PRE_PATCH.A02);
-  assert.equal(previousBossPriceUsd("S01"), PRE_PATCH.S01);
-  assert.equal(previousBossPriceUsd("K01"), PRE_PATCH.K01);
-  assert.equal(previousBossPriceUsd("H01"), PRE_PATCH.H01);
-  assert.equal(previousBossPriceUsd("P02"), PRE_PATCH.P02);
-  assert.equal(previousBossPriceUsd("P05"), PRE_PATCH.P05);
-  assert.equal(previousBossPriceUsd("P01"), undefined);
-  assert.equal(previousBossPriceUsd("P03"), undefined);
-  assert.equal(previousBossPriceUsd("P04"), undefined);
-
-  const lagging = Object.entries(PRE_PATCH).map(([ma, priceUsd]) =>
-    product(ma as keyof typeof NEW_SHIPPING, priceUsd),
-  );
-  const warnings: string[] = [];
-  const original = console.warn;
-  console.warn = ((...args: unknown[]) => {
-    warnings.push(args.map((part) => String(part)).join(" "));
-  }) as typeof console.warn;
-  try {
-    assert.doesNotThrow(() => assertLiveCatalogIntegrity(lagging));
-    const presented = presentLockedBossPrices(document(lagging));
-    for (const [ma, priceUsd] of Object.entries(NEW_SHIPPING)) {
-      assert.equal(presented.products.find((row) => row.ma === ma)?.priceUsd, priceUsd);
-    }
-  } finally {
-    console.warn = original;
-  }
-
-  const text = warnings.join("\n");
-  for (const ma of ["A01", "A02", "S01", "K01", "H01", "P02", "P05"] as const) {
-    assert.match(
-      text,
-      new RegExp(`Mã ${ma} catalog price \\$${PRE_PATCH[ma]} differs from Boss lock \\$${NEW_SHIPPING[ma]}`),
-    );
-  }
-  assert.doesNotMatch(text, /Mã P01/);
-  assert.doesNotMatch(text, /Mã P03/);
-  assert.doesNotMatch(text, /Mã P04/);
-  assert.throws(() => assertHoldPricePairing("A01", "available", PRE_PATCH.A01), /\$24/);
+  const boss = readFileSync(path.join(process.cwd(), "lib", "boss-catalog.ts"), "utf8");
+  assert.equal(boss.includes("PREVIOUS_BOSS_PRICE_USD"), false);
+  assert.equal(boss.includes("BOSS_PRICE_LIST"), false);
 });

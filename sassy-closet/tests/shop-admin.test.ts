@@ -193,7 +193,7 @@ test("middleware locks shop tools and leaves intake admin export open", async ()
   assert.equal(signed.status, 200);
 });
 
-test("catalog save edits an existing mã, keeps locked prices, and revalidates with the secret", async () => {
+test("catalog save edits an existing mã, writes its USD, and revalidates with the secret", async () => {
   delete process.env.SHOP_BLOB_READ_WRITE_TOKEN;
   delete process.env.BLOB_READ_WRITE_TOKEN;
   delete process.env.VERCEL;
@@ -216,10 +216,9 @@ test("catalog save edits an existing mã, keeps locked prices, and revalidates w
   process.env.SHOP_REVALIDATE_SECRET = REVALIDATE_SECRET;
   process.env.SHOP_REVALIDATE_URL = `http://127.0.0.1:${portNumber}/api/admin/revalidate`;
   try {
-    const rejected = await saveShopCatalogProduct(port, { ma: "A01", priceUsd: 99 });
-    assert.equal(rejected.ok, false);
-    assert.match(rejected.error ?? "", /locked/);
-    assert.match(port.snapshot() ?? "", /"priceUsd": 20/);
+    const repriced = await saveShopCatalogProduct(port, { ma: "A01", priceUsd: 27 });
+    assert.equal(repriced.ok, true);
+    assert.match(port.snapshot() ?? "", /"priceUsd": 27/);
 
     const invented = await saveShopCatalogProduct(port, { ma: "B99", titleEn: "New" });
     assert.equal(invented.status, 400);
@@ -238,7 +237,7 @@ test("catalog save edits an existing mã, keeps locked prices, and revalidates w
     assert.equal(seen, REVALIDATE_SECRET);
     const written = port.snapshot() ?? "";
     assert.match(written, /Puppy cardigan edited/);
-    assert.match(written, /"priceUsd": 20/);
+    assert.match(written, /"priceUsd": 27/);
     assert.match(written, /https:\/\/e\.tb\.cn\/example/);
     assert.match(written, /keep-me/);
     assert.match(written, /Yellow gold/);
