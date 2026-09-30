@@ -94,6 +94,17 @@ export function pickCatalogBlob(blobs: BlobObject[], pathname = catalogBlobPath(
   );
 }
 
+function isUnreadableJson(error: unknown): boolean {
+  return error instanceof SyntaxError || (error instanceof Error && error.name === "SyntaxError");
+}
+
+function corruptBlobCatalog(pathname: string, error: unknown): CatalogCorruptError {
+  const detail = error instanceof Error ? error.message : "invalid JSON";
+  return new CatalogCorruptError(
+    `Blob catalog at ${pathname} is corrupt and will not fall back to seed. ${detail}`,
+  );
+}
+
 export async function readJsonFromBlobPort(
   port: BlobCatalogPort,
   pathname: string,
@@ -103,7 +114,10 @@ export async function readJsonFromBlobPort(
     if (direct !== null) {
       return direct;
     }
-  } catch {
+  } catch (error) {
+    if (isUnreadableJson(error)) {
+      throw corruptBlobCatalog(pathname, error);
+    }
     // Fall through to list + URL fetch (older stores / list-only ports).
   }
   const blobs = await port.list(pathname);
@@ -111,7 +125,14 @@ export async function readJsonFromBlobPort(
   if (!match) {
     return null;
   }
-  return port.fetchJson(match.url);
+  try {
+    return await port.fetchJson(match.url);
+  } catch (error) {
+    if (isUnreadableJson(error)) {
+      throw corruptBlobCatalog(match.pathname, error);
+    }
+    throw error;
+  }
 }
 
 export async function readCatalogFromBlobPort(
