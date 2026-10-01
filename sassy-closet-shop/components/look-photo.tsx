@@ -4,6 +4,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { BLUSH_BLUR } from "@/lib/image-placeholder";
 import { shouldOptimizeImage } from "@/lib/image-hosts";
+import { lookCardFetchPriority } from "@/lib/look-card-photo";
 
 export function LookPhoto({
   src,
@@ -16,6 +17,7 @@ export function LookPhoto({
   fill = true,
   width = 1200,
   height = 1600,
+  fadeIn = false,
 }: {
   src: string;
   alt: string;
@@ -27,8 +29,10 @@ export function LookPhoto({
   fill?: boolean;
   width?: number;
   height?: number;
+  /** Card covers only. Fades the photo in over the blush plate. Does not gate the card shell. */
+  fadeIn?: boolean;
 }) {
-  const imagePriority = fetchPriority ?? "auto";
+  const imagePriority = lookCardFetchPriority(priority, fetchPriority);
   if (!shouldOptimizeImage(src)) {
     return (
       <NativeLookPhoto
@@ -37,6 +41,7 @@ export function LookPhoto({
         sizes={sizes}
         priority={priority}
         fetchPriority={imagePriority}
+        fadeIn={fadeIn}
         className={
           fill ? `absolute inset-0 h-full w-full ${className ?? ""}` : className
         }
@@ -57,6 +62,7 @@ export function LookPhoto({
         sizes={sizes}
         priority={priority}
         fetchPriority={imagePriority}
+        decoding="async"
         loading={priority ? "eager" : "lazy"}
         placeholder="blur"
         blurDataURL={BLUSH_BLUR}
@@ -76,6 +82,7 @@ export function LookPhoto({
       sizes={sizes}
       priority={priority}
       fetchPriority={imagePriority}
+      decoding="async"
       loading={priority ? "eager" : "lazy"}
       placeholder="blur"
       blurDataURL={BLUSH_BLUR}
@@ -92,6 +99,7 @@ function NativeLookPhoto({
   sizes,
   priority,
   fetchPriority,
+  fadeIn,
   className,
   fill,
   width,
@@ -103,6 +111,7 @@ function NativeLookPhoto({
   sizes: string;
   priority: boolean;
   fetchPriority: "high" | "low" | "auto";
+  fadeIn: boolean;
   className?: string;
   fill: boolean;
   width: number;
@@ -114,12 +123,13 @@ function NativeLookPhoto({
 
   useLayoutEffect(() => {
     const img = imgRef.current;
-    if (priority || !img || (img.complete && img.naturalWidth > 0)) {
+    const cached = Boolean(img && img.complete && img.naturalWidth > 0);
+    if (cached || !img || (!fadeIn && priority)) {
       setPending(false);
       return;
     }
     setPending(true);
-  }, [priority, src]);
+  }, [fadeIn, priority, src]);
 
   return (
     <img
@@ -130,6 +140,7 @@ function NativeLookPhoto({
       height={fill ? undefined : height}
       sizes={sizes}
       draggable={false}
+      decoding="async"
       loading={priority ? "eager" : "lazy"}
       fetchPriority={fetchPriority}
       data-loaded={pending ? "false" : "true"}

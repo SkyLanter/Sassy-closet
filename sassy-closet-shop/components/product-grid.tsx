@@ -3,6 +3,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { ProductCard } from "@/components/product-card";
 import { ShopEmpty } from "@/components/shop-empty";
+import { LOOK_GRID_SIZES, RELATED_LOOK_SIZES } from "@/lib/look-card-photo";
 import { staggerContainer } from "@/lib/motion";
 import type { ShopLook } from "@/lib/shop-look";
 
@@ -20,6 +21,7 @@ export function ProductGrid({
   variant?: "full" | "compact";
 }) {
   const reduced = useReducedMotion();
+  const sizes = variant === "compact" ? RELATED_LOOK_SIZES : LOOK_GRID_SIZES;
 
   if (products.length === 0) {
     return (
@@ -44,6 +46,7 @@ export function ProductGrid({
           priority={index < eagerCount}
           namedCover={namedCovers}
           variant={variant}
+          sizes={sizes}
         />
       ))}
     </motion.ul>
