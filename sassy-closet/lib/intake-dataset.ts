@@ -1,3 +1,4 @@
+import { isHeldIncompleteMa } from "@/lib/held-incomplete";
 import { assertNever, isKindCode } from "@/lib/kinds";
 import { formatUsd } from "@/lib/listing-status";
 import type { ShopCatalogList, ShopCatalogStatus } from "@/lib/shop-catalog";
@@ -71,11 +72,14 @@ export function rowsFromShopCatalog(list: ShopCatalogList, source?: unknown): Sh
   return rows;
 }
 
-/** Dollar amount for an available catalog row, without a $ sign. Null when Blob has no live price. */
+/**
+ * Dollar amount for an available catalog row, without a $ sign.
+ * Null when Blob has no live price, and null for `HELD_INCOMPLETE_MAS`.
+ */
 export function catalogSellAmount(rows: readonly ShopDatasetRow[] | null, ma: string): string | null {
   if (!rows) return null;
   const key = cleanMa(ma);
-  if (!key) return null;
+  if (!key || isHeldIncompleteMa(key)) return null;
   const row = rows.find((item) => item.ma === key);
   if (!row || row.status !== "available" || row.priceUsd === null) return null;
   const labeled = formatUsd(row.priceUsd);
@@ -141,9 +145,10 @@ export function isAllowedShopOrigin(origin: string): boolean {
 }
 
 /**
- * Live = shop catalog status available.
- * Held = catalog hold, or an intake mã that is not in the catalog (not finished, not on the sell site).
+ * Live = shop catalog status available, except the never-publish set.
+ * Held = `HELD_INCOMPLETE_MAS`, catalog hold, or an intake mã that is not in the catalog.
  * Sold stays sold. Mãs that are in neither list are not added.
+ * A held incomplete mã stays held even when a catalog row says available. Its Blob dollar is not a live price.
  */
 export function buildIntakeDataset(
   intakeMas: readonly string[],
@@ -201,7 +206,7 @@ export function datasetEntryForMa(view: DatasetView, ma: string): DatasetEntry |
 }
 
 function entryFor(ma: string, row: ShopDatasetRow | undefined, inIntake: boolean): DatasetEntry {
-  if (!row) {
+  if (isHeldIncompleteMa(ma) || !row) {
     return { ma, lane: "held", priceUsd: null, inIntake };
   }
   return { ma, lane: laneForStatus(row.status), priceUsd: row.priceUsd, inIntake };
