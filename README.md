@@ -23,6 +23,7 @@ Boss yes/no stays in Slack `#shop-decisions`. Facebook inbox is the store.
 - **Official Excel** (`Sassy_Closet_SoT.xlsx`) is the ONE desktop working copy / mã index / captions — **not** a second inventory.
 - **Photos** live in `Documents/Sassy Closet/Photos/` named `#001.jpg` / `AO001.jpg`. Excel stores `photo_link` only — **never embed images**.
 - **Mã** = `AO` / `QU` / `VA` / `AK` / `GI` / `PK` / `SET` + 3 digits. Never invent stock. Never reuse a Sold mã. Ask Stock (Dashboard `B21:B27`).
+- Incomplete Taobao mãs stay off the sell catalog: S14, A24, A25, S15, A26, K02. Dataset and admin only.
 - **Bots draft only.** The owner posts on Facebook, sends the message, takes Zelle, and taps Save in Square.
 - **Cursor Cloud Agents** change kit code in this repo. **Kit** syncs generated workbooks to OneDrive.
 

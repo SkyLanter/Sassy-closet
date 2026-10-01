@@ -115,3 +115,5 @@ Two boxes on the same tab (do not drop either):
 `GET /api/ma/{code}` is read-only `{ staged, on_hand, staged_only }`. Empty `on_hand` → **Staged only — not on Square On_Hand yet**. Never invent stock, $, storage, or mã.
 
 Hard stops: no invent mã / qty / $, no Square Save, no Facebook Post/Send.
+
+Incomplete Taobao mãs stay off the sell catalog: S14, A24, A25, S15, A26, K02. Dataset and admin only (`lib/held-incomplete.ts`).
