@@ -24,6 +24,7 @@ test("stale hair slug redirects to toc and accessories stay put", () => {
   assert.equal(canonicalCategoryPath("/c/tops"), null);
 });
 
+/** Next rewrites the request host, so compare path and query only. */
 function redirectTarget(response: Response): URL {
   const location = response.headers.get("location");
   assert.ok(location);
