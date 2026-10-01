@@ -63,7 +63,7 @@ export function ProductLook({ product }: { product: ShopLook }) {
         <ProductPageTitle product={product} />
         <ProductPrice
           product={product}
-          className="ky-pdp-price sc-price mt-2 block text-[1.35rem] font-semibold tracking-tight text-ink sm:text-[1.5rem]"
+          className="ky-pdp-price sc-price sc-price-in mt-2 block text-[1.35rem] font-semibold tracking-tight text-ink sm:text-[1.5rem]"
         />
         <ProductOptions
           product={product}

@@ -73,7 +73,7 @@ export function Header({ types }: { types: MaLetter[] }) {
           <MessengerCta variant="header" className="shrink-0" />
         </div>
       </div>
-      <HScrollCue className="ky-h-scroll-cue min-w-0">
+      <HScrollCue className="ky-h-scroll-cue sc-nav-reveal min-w-0">
       <LayoutGroup>
         <motion.nav
           ref={navRef}

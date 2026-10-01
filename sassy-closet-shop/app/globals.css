@@ -934,6 +934,9 @@ summary::-webkit-details-marker {
   .shimmer,
   .content-wave-sheen,
   .sc-rise,
+  .sc-tab-pop,
+  .sc-price-in,
+  .sc-nav-reveal,
   .sc-photo {
     animation: none !important;
   }
@@ -950,7 +953,10 @@ summary::-webkit-details-marker {
   .sc-photo[data-loaded="false"],
   .sc-rise,
   .sc-rise[data-rise="pending"],
-  .sc-rise[data-rise="shown"] {
+  .sc-rise[data-rise="shown"],
+  .sc-tab-pop,
+  .sc-price-in,
+  .sc-nav-reveal {
     opacity: 1 !important;
     filter: none !important;
     transform: none !important;
@@ -1164,6 +1170,17 @@ summary::-webkit-details-marker {
 
   .ky-footer-film {
     padding-bottom: 0 !important;
+  }
+
+  .sc-rise,
+  .sc-rise[data-rise="pending"],
+  .sc-rise[data-rise="shown"],
+  .sc-tab-pop,
+  .sc-price-in,
+  .sc-nav-reveal {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 
   img {
@@ -1403,6 +1420,13 @@ summary::-webkit-details-marker {
   letter-spacing: -0.01em;
 }
 
+.sc-rise,
+.sc-tab-pop,
+.sc-price-in,
+.sc-nav-reveal {
+  transform-origin: center center;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .sc-press {
     transition:
@@ -1418,18 +1442,64 @@ summary::-webkit-details-marker {
   }
 
   .sc-rise[data-rise="pending"] {
-    transform: translateY(8px);
+    opacity: 0;
+    transform: translateY(12px) scale(0.965);
   }
 
   .sc-rise[data-rise="shown"] {
-    animation: sc-rise 200ms var(--sc-ease) both;
+    animation: sc-rise 460ms var(--sc-ease) both;
+  }
+
+  .sc-tab-pop {
+    animation: sc-tab-pop 280ms var(--sc-ease) both;
+  }
+
+  .sc-price-in {
+    animation: sc-price-in 420ms var(--sc-ease) both;
+  }
+
+  .sc-nav-reveal {
+    animation: sc-nav-reveal 440ms var(--sc-ease) both;
   }
 }
 
 @keyframes sc-rise {
   from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.965);
+  }
+  to {
     opacity: 1;
-    transform: translateY(8px);
+    transform: none;
+  }
+}
+
+@keyframes sc-tab-pop {
+  from {
+    opacity: 0.4;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes sc-price-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes sc-nav-reveal {
+  from {
+    opacity: 0.72;
+    transform: translateY(6px);
   }
   to {
     opacity: 1;

@@ -517,7 +517,7 @@ function FilterTab({
   const body = (
     <>
       {active ? (
-        <span className="liquid-glass-chip pointer-events-none absolute inset-x-0 top-0.5 bottom-1 -z-0 rounded-md" aria-hidden />
+        <span className="sc-tab-pop liquid-glass-chip pointer-events-none absolute inset-x-0 top-0.5 bottom-1 -z-0 rounded-md" aria-hidden />
       ) : null}
       <span className="relative z-[1]">{children}</span>
       <span className={`relative z-[1] ml-1.5 tabular-nums tracking-[0.08em] ${active ? "text-gold-ink" : "text-muted"}`} aria-hidden>
