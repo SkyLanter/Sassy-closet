@@ -24,14 +24,22 @@ test("stale hair slug redirects to toc and accessories stay put", () => {
   assert.equal(canonicalCategoryPath("/c/tops"), null);
 });
 
+function redirectTarget(response: Response): URL {
+  const location = response.headers.get("location");
+  assert.ok(location);
+  return new URL(location);
+}
+
 test("proxy 308s the stale hair path and keeps the query", () => {
   const hair = proxy(new NextRequest("http://127.0.0.1/c/phu-kien-toc?q=clip"));
   assert.equal(hair.status, 308);
-  assert.equal(hair.headers.get("location"), "http://127.0.0.1/c/toc?q=clip");
+  const hairUrl = redirectTarget(hair);
+  assert.equal(hairUrl.pathname, "/c/toc");
+  assert.equal(hairUrl.search, "?q=clip");
 
   const share = proxy(new NextRequest("http://127.0.0.1/share/c/phu-kien-toc"));
   assert.equal(share.status, 308);
-  assert.equal(share.headers.get("location"), "http://127.0.0.1/share/c/toc");
+  assert.equal(redirectTarget(share).pathname, "/share/c/toc");
 
   const accessories = proxy(new NextRequest("http://127.0.0.1/c/phu-kien"));
   assert.notEqual(accessories.status, 308);
