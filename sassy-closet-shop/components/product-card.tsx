@@ -71,6 +71,14 @@ export function ProductCard({
       return;
     }
     el.dataset.rise = "pending";
+    const settle = (event: AnimationEvent) => {
+      if (event.target !== el || event.animationName !== "sc-rise") {
+        return;
+      }
+      el.dataset.rise = "done";
+      el.removeEventListener("animationend", settle);
+    };
+    el.addEventListener("animationend", settle);
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries.some((entry) => entry.isIntersecting)) {
@@ -78,10 +86,13 @@ export function ProductCard({
           observer.disconnect();
         }
       },
-      { rootMargin: "0px 0px -8% 0px", threshold: 0.18 },
+      { rootMargin: "0px 0px -8% 0px", threshold: 0.12 },
     );
     observer.observe(el);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      el.removeEventListener("animationend", settle);
+    };
   }, [reduced]);
 
   const compact = variant === "compact";
@@ -98,7 +109,7 @@ export function ProductCard({
       <Link href={`/m/${product.ma}`} className="group flex min-h-0 flex-1 flex-col touch-manipulation select-none">
         <div className="flex min-h-0 flex-1 flex-col">
           <div
-            className="sc-card-well ky-gallery-shell relative aspect-[3/4] w-full shrink-0 overflow-hidden bg-[#f3f1ee] shadow-[0_0_0_0_rgba(17,17,17,0)] motion-safe:transition-[transform,box-shadow] motion-safe:duration-150 motion-safe:ease-[cubic-bezier(0.23,1,0.32,1)] motion-safe:hover-hover:group-hover:-translate-y-1.5 motion-safe:active:scale-[0.98]"
+            className="sc-card-well sc-card-plate ky-gallery-shell relative aspect-[3/4] w-full shrink-0 overflow-hidden shadow-[0_0_0_0_rgba(17,17,17,0)] motion-safe:transition-[transform,box-shadow] motion-safe:duration-150 motion-safe:ease-[cubic-bezier(0.23,1,0.32,1)] motion-safe:hover-hover:group-hover:-translate-y-1.5 motion-safe:active:scale-[0.98]"
             data-testid="card-cover-reel"
             data-slide-index={String(slideIndex)}
             style={namedCover ? { viewTransitionName: `product-${product.ma}`, contain: "layout" } : undefined}

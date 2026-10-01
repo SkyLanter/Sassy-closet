@@ -14,17 +14,23 @@ test("look cards scale and fade in only after they enter the viewport", () => {
   assert.equal(card.includes('el.dataset.rise = "pending"'), true);
   assert.equal(card.includes('el.dataset.rise = "shown"'), true);
   assert.equal(card.includes("if (!el || reduced)"), true);
+  assert.equal(card.includes("new IntersectionObserver"), true);
+  assert.equal(card.includes("onload"), false);
+  assert.equal(card.includes("sc-card-plate"), true);
   assert.equal(
     css.includes(`.sc-rise[data-rise="pending"] {
     opacity: 0;
-    transform: translateY(12px) scale(0.965);
+    transform: translateY(10px) scale(0.975);
   }`),
     true,
   );
-  assert.equal(css.includes("animation: sc-rise 460ms var(--sc-ease) both;"), true);
+  assert.equal(css.includes("will-change: transform, opacity;"), true);
+  assert.equal(css.includes("animation: sc-rise 380ms var(--sc-ease) both;"), true);
+  assert.equal(css.includes(".sc-card-plate"), true);
+  assert.match(css, /\.sc-rise \.sc-photo\[data-loaded="false"\][\s\S]*?transform:\s*none/);
   assert.match(
     css,
-    /@keyframes sc-rise\s*\{[\s\S]*opacity:\s*0[\s\S]*scale\(0\.965\)[\s\S]*opacity:\s*1/,
+    /@keyframes sc-rise\s*\{[\s\S]*opacity:\s*0[\s\S]*scale\(0\.975\)[\s\S]*opacity:\s*1/,
   );
 });
 

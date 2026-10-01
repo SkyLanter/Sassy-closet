@@ -75,7 +75,7 @@ function ProductImageFrame({
 
   return (
     <div
-      className={`relative overflow-hidden bg-[#f3f1ee] ${className ?? "aspect-[3/4]"}`}
+      className={`sc-card-plate relative overflow-hidden ${className ?? "aspect-[3/4]"}`}
       style={named ? { viewTransitionName: `product-${product.ma}` } : undefined}
     >
       <div className="shimmer pointer-events-none absolute inset-0 z-[2]" aria-hidden />

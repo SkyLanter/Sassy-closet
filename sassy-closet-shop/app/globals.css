@@ -765,6 +765,14 @@ body {
     transform: scale(1.035);
   }
 
+  /* Look-card photos fade onto the blush plate. They do not scale, so the
+     scroll entrance stays the shell and not a late image pop. */
+  .sc-rise .sc-photo[data-loaded="false"] {
+    opacity: 0;
+    filter: none;
+    transform: none;
+  }
+
   .shop-search-sheet,
   .sc-chip-in,
   .sc-to-top,
@@ -1427,6 +1435,10 @@ summary::-webkit-details-marker {
   transform-origin: center center;
 }
 
+.sc-card-plate {
+  background-color: var(--canvas);
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .sc-press {
     transition:
@@ -1441,13 +1453,26 @@ summary::-webkit-details-marker {
       0 10px 22px -10px rgb(176 112 98 / 0.48);
   }
 
+  .sc-rise[data-rise="pending"],
+  .sc-rise[data-rise="shown"] {
+    will-change: transform, opacity;
+  }
+
   .sc-rise[data-rise="pending"] {
     opacity: 0;
-    transform: translateY(12px) scale(0.965);
+    transform: translateY(10px) scale(0.975);
   }
 
   .sc-rise[data-rise="shown"] {
-    animation: sc-rise 460ms var(--sc-ease) both;
+    animation: sc-rise 380ms var(--sc-ease) both;
+  }
+
+  .sc-look-grid > .sc-rise[data-rise="shown"]:nth-child(3n + 2) {
+    animation-delay: 40ms;
+  }
+
+  .sc-look-grid > .sc-rise[data-rise="shown"]:nth-child(3n) {
+    animation-delay: 75ms;
   }
 
   .sc-tab-pop {
@@ -1466,7 +1491,7 @@ summary::-webkit-details-marker {
 @keyframes sc-rise {
   from {
     opacity: 0;
-    transform: translateY(12px) scale(0.965);
+    transform: translateY(10px) scale(0.975);
   }
   to {
     opacity: 1;
