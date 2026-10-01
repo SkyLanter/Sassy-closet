@@ -3,10 +3,10 @@ import test from "node:test";
 import { sortShopLooks } from "../lib/fb-rank";
 import { sortByPopular } from "../lib/popular-rank";
 
-const META_HEAD = ["A05", "A01", "S05", "S03", "A06", "S07", "A15", "S02"];
+const META_HEAD = ["A05", "S05", "A01", "O05", "A06", "O04", "S03", "S07"];
 
 test("Looks Popular follows Meta popular-order, not the 90-day FB views table", () => {
-  const shuffled = ["A01", "A11", "S03", "S02", "A05", "S05", "A06", "S07", "O04", "A15", "Z99"].map(
+  const shuffled = ["A01", "A11", "S03", "S02", "A05", "S05", "A06", "S07", "O04", "A15", "O05", "Z99"].map(
     (ma) => ({ ma }),
   );
   const popular = sortShopLooks(shuffled, "popular").map((item) => item.ma);
