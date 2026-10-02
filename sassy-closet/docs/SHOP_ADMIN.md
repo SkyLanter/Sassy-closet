@@ -2,7 +2,9 @@
 
 The customer shop (`sassy-closet-shop`, https://sassycloset.vercel.app and https://sassy-closet-shop.vercel.app) has no `/admin` page and no Shop tools button. Catalog edits live here, on the intake app, at `/admin/shop`.
 
-Nhung’s intake tabs stay **Món mới**, **Sửa theo mã**, **Tìm mã**, **Hỏi Mini Boss**. Shop tools is a separate password page linked from the intake footer and from the CSV export page. `/admin` CSV export stays open.
+Nhung’s intake tabs stay **Món mới**, **Sửa theo mã**, **Tìm mã**, **Hỏi Mini Boss**. Shop tools is a separate password page at `/admin/shop`, linked from the CSV export page, not from the intake form. `/admin` CSV export stays open.
+
+The intake saved list and this desk read the shop catalog to label **Live** (status `available`) and **Held · chưa xong** (status `hold`, or an intake mã that is not in the catalog). The never-publish set `HELD_INCOMPLETE_MAS` (S14, A24, A25, S15, A26, K02, K03, K04, K05, V04) is never Live, including when a catalog row says available. That read does not write prices, photos, or mãs.
 
 ## Password
 
@@ -18,7 +20,7 @@ The desk lists products already in that file. It can edit titles, descriptions, 
 
 After a successful write, intake POSTs the shop revalidate URL with header `x-shop-revalidate-secret`.
 
-Incomplete Taobao mãs stay unfinished. They remain dataset and admin only, and they stay off the sell catalog: S14, A24, A25, S15, A26, K02. The same set is `HELD_INCOMPLETE_MAS` in `lib/held-incomplete.ts`. Shop tools does not add them to Blob.
+Incomplete Taobao mãs stay unfinished. They remain dataset and admin only, and they stay off the sell catalog: S14, A24, A25, S15, A26, K02, K03, K04, K05, V04. The same set is `HELD_INCOMPLETE_MAS` in `lib/held-incomplete.ts`. Shop tools does not add them to Blob.
 
 Local only: if the shop token is unset and `VERCEL` is not `1`, `SHOP_CATALOG_FILE` can point at a JSON file. Production ignores that name.
 

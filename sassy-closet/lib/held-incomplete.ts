@@ -3,7 +3,7 @@
  * Standing never-publish set. This module does not write the sell catalog,
  * change a price, or publish a mã.
  */
-export const HELD_INCOMPLETE_MAS = ["S14", "A24", "A25", "S15", "A26", "K02"] as const;
+export const HELD_INCOMPLETE_MAS = ["S14", "A24", "A25", "S15", "A26", "K02", "K03", "K04", "K05", "V04"] as const;
 
 export type HeldIncompleteMa = (typeof HELD_INCOMPLETE_MAS)[number];
 

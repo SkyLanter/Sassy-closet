@@ -33,7 +33,7 @@ export default async function ShopToolsLoginPage({
 
   return (
     <main className="mx-auto max-w-md px-4 py-10 text-[#5c3d48]">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#a85d74]">Intake · Shop tools</p>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#a85d74]">Admin · Shop tools</p>
       <h1 className="mt-1 text-[21px] font-semibold text-[#3c2a2e]">Sign in</h1>
       <p className="mt-2 text-[13.5px] leading-relaxed text-[#7d5360]">
         Password stays on the server. The session cookie is HttpOnly.
