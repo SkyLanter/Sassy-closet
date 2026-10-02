@@ -123,11 +123,13 @@ export function productShareTitle(product: { ma: string; titleEn: string }): str
 }
 
 export function productShareDescription(product: {
+  ma: string;
   titleEn: string;
   descriptionEn: string;
   priceUsd: number | null;
 }): string {
-  const body = (product.descriptionEn.trim() || product.titleEn.trim()).replace(/\.+$/, "");
+  const garment = (product.descriptionEn.trim() || product.titleEn.trim()).replace(/\.+$/, "");
+  const body = garment ? `${product.ma} · ${garment}` : product.ma;
   const price = product.priceUsd !== null ? formatUsd(product.priceUsd) : HOLD_PRICE_LABEL;
   return `${price} · ${body} · Message Sassy Closet on Messenger`;
 }
