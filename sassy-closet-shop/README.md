@@ -90,7 +90,7 @@ Official clone (new Vercel + Blob, same code): [docs/OFFICIAL_CLONE.md](./docs/O
 | H01 | 8 | Hair accessories |
 | A02 | 21 | Tops |
 
-The hub ten stay on the catalog. Incomplete Taobao mãs stay off this catalog: S14, A24, A25, S15, A26, K02. **Add next mãs (A03+)** Saves to the live catalog (Blob on Vercel, `data/live-catalog.json` locally) and the piece appears on the shop. Official alphabet (`AO001`) is still rejected. Qty is always 1. Hold ⇔ `priceUsd` null. Excel / OneDrive / intake are read-only — copy colors, empty sizes, staff `source_link`, and Message-first dropship copy into this sell catalog only.
+The hub ten stay on the catalog. Incomplete Taobao mãs stay off this catalog: S14, A24, A25, S15, A26, K02, K03, K04, K05, V04. **Add next mãs (A03+)** Saves to the live catalog (Blob on Vercel, `data/live-catalog.json` locally) and the piece appears on the shop. Official alphabet (`AO001`) is still rejected. Qty is always 1. Hold ⇔ `priceUsd` null. Excel / OneDrive / intake are read-only — copy colors, empty sizes, staff `source_link`, and Message-first dropship copy into this sell catalog only.
 
 ## Admin
 
