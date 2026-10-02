@@ -18,7 +18,7 @@ The desk lists products already in that file. It can edit titles, descriptions, 
 
 After a successful write, intake POSTs the shop revalidate URL with header `x-shop-revalidate-secret`.
 
-Incomplete Taobao mãs stay unfinished. They remain dataset and admin only, and they stay off the sell catalog: S14, A24, A25, S15, A26, K02. The same set is `HELD_INCOMPLETE_MAS` in `lib/held-incomplete.ts`. Shop tools does not add them to Blob.
+Incomplete Taobao mãs stay unfinished. They remain dataset and admin only, and they stay off the sell catalog: S14, A24, A25, S15, A26, K02, K03, K04, K05, V04. The same set is `HELD_INCOMPLETE_MAS` in `lib/held-incomplete.ts`. Shop tools does not add them to Blob.
 
 Local only: if the shop token is unset and `VERCEL` is not `1`, `SHOP_CATALOG_FILE` can point at a JSON file. Production ignores that name.
 
