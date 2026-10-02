@@ -29,7 +29,10 @@ const shop: ShopDatasetRow[] = [
 
 describe("intake dataset vs shop catalog", () => {
   test("live is available catalog rows; incomplete intake mãs stay held", () => {
-    const view = buildIntakeDataset(["A01", "S06", "S14", "A24", "p02", "A25", "S15", "A26", "K02"], shop);
+    const view = buildIntakeDataset(
+      ["A01", "S06", "S14", "A24", "p02", "A25", "S15", "A26", "K02", "K03", "K04", "K05", "V04"],
+      shop,
+    );
     assert.equal(view.ready, true);
     assert.equal(view.liveCount, 4);
     assert.deepEqual(view.liveCount, view.entries.filter((entry) => entry.lane === "live").length);
@@ -37,7 +40,7 @@ describe("intake dataset vs shop catalog", () => {
       view.entries.filter((entry) => entry.lane === "live").map((entry) => entry.ma),
       ["A01", "S06", "D05", "V03"],
     );
-    assert.deepEqual(view.heldMas, ["S14", "A24", "P02", "A25", "S15", "A26", "K02"]);
+    assert.deepEqual(view.heldMas, ["S14", "A24", "P02", "A25", "S15", "A26", "K02", "K03", "K04", "K05", "V04"]);
     assert.deepEqual(
       view.shopOnlyLive.map((entry) => entry.ma),
       ["D05", "V03"],
