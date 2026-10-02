@@ -95,27 +95,68 @@ if (!a01Desc.includes("A01") || !/puppy/i.test(a01Desc) || /Taobao/i.test(a01Des
 if (/\bon hand\b/i.test(a01Desc) || /đang có/i.test(a01Desc)) {
   fail("A01 share/meta still pretends warehouse stock");
 }
-if (/\$23/.test(p02Desc) || /\$23/.test(productShareDescription(p05))) {
-  fail("Inbox-price share copy must not invent $23");
+if (p02.status !== "available" || p02.priceUsd !== 25 || p05.status !== "available" || p05.priceUsd !== 25) {
+  fail("P02 and P05 must stay available at $25");
+}
+const p05Desc = productShareDescription(p05);
+if (/\$23/.test(p02Desc) || /\$23/.test(p05Desc)) {
+  fail("P02 and P05 share copy must not invent $23");
+}
+if (!p02Desc.startsWith("$25 ·") || !p05Desc.startsWith("$25 ·")) {
+  fail("P02 and P05 share descriptions must show the live $25");
+}
+if (/inbox for price/i.test(p02Desc) || /inbox for price/i.test(p05Desc)) {
+  fail("Priced P02 and P05 share copy must not say Inbox for price");
 }
 if (/photo-check/i.test(p02Desc) || /not reserved/i.test(p02Desc) || /Taobao/i.test(p02Desc)) {
-  fail("Inbox-price share copy must stay a clothes description");
+  fail("Share copy must stay a clothes description");
 }
-if (/\bHold\b/.test(p02Desc) || /\bHold\b/.test(productShareDescription(p05))) {
+if (/\bHold\b/.test(p02Desc) || /\bHold\b/.test(p05Desc)) {
   fail("Customer share copy must not say Hold");
 }
-const p02Card = productShareCardCopy(p02, "P02");
-const p05Card = productShareCardCopy(p05, "P05");
-if (/\bHold\b/.test(p02Card.subtitle) || /\bHold\b/.test(p05Card.subtitle)) {
+const p02Card = productShareCardCopy(p02);
+const p05Card = productShareCardCopy(p05);
+if (p02Card.detail !== "$25" || p05Card.detail !== "$25") {
+  fail("P02 and P05 share cards must show the live $25");
+}
+if (/\bHold\b/.test(p02Card.detail ?? "") || /\bHold\b/.test(p05Card.detail ?? "")) {
   fail("Share-card OG must not print Hold");
 }
-if (!/inbox for price/i.test(p02Card.subtitle) || !/inbox for price/i.test(p05Card.subtitle)) {
+if (/inbox for price/i.test(p02Card.detail ?? "") || /inbox for price/i.test(p05Card.detail ?? "")) {
+  fail("Priced P02 and P05 share cards must not say Inbox for price");
+}
+const inboxCard = productShareCardCopy({
+  ma: "HX",
+  titleEn: "No price look",
+  titleVn: "",
+  priceUsd: null,
+});
+const inboxDesc = productShareDescription({
+  ma: "HX",
+  titleEn: "No price look",
+  descriptionEn: "No price look",
+  priceUsd: null,
+});
+if (inboxCard.detail !== "Inbox for price" || !inboxDesc.startsWith("Inbox for price ·")) {
   fail("Inbox-price share cards must stay Inbox for price");
 }
-if (p02.status !== "hold" || p02.priceUsd !== null || p05.status !== "hold" || p05.priceUsd !== null) {
-  fail("P02 and P05 must stay Hold with no USD");
+if (/\$\d/.test(inboxCard.detail ?? "") || /\$\d/.test(inboxDesc) || /\bHold\b/.test(inboxDesc)) {
+  fail("A no-USD share card must not show a dollar or say Hold");
 }
-if (customerStockVoiceHit(p02Desc) || customerStockVoiceHit(productShareDescription(p05))) {
+for (const product of seed.products) {
+  if (product.status !== "hold" && product.priceUsd !== null) {
+    continue;
+  }
+  const card = productShareCardCopy(product);
+  const description = productShareDescription(product);
+  if (card.detail !== "Inbox for price" || !description.startsWith("Inbox for price ·")) {
+    fail(`${product.ma} share card must stay Inbox for price`);
+  }
+  if (/\$\d/.test(card.detail ?? "") || /\$\d/.test(description)) {
+    fail(`${product.ma} Hold share card must not show a dollar`);
+  }
+}
+if (customerStockVoiceHit(p02Desc) || customerStockVoiceHit(p05Desc)) {
   fail("Share copy must not say Hold / Available / on hand");
 }
 
@@ -194,11 +235,18 @@ if (org.logo && !String(org.logo).includes("/opengraph-image")) {
   fail("Organization JSON-LD logo must stay the lookbook share card");
 }
 
-const holdLd = productJsonLd(p02);
-if (JSON.stringify(holdLd).includes("shippingRate") || JSON.stringify(holdLd).includes("shippingDetails")) {
+const p02Ld = productJsonLd(p02);
+if (JSON.stringify(p02Ld).includes("shippingRate") || JSON.stringify(p02Ld).includes("shippingDetails")) {
   fail("Product JSON-LD must not invent shippingRate");
 }
-if ((holdLd.offers as { price?: string }).price) {
+if ((p02Ld.offers as { price?: string }).price !== "25.00") {
+  fail("P02 JSON-LD must show the live $25");
+}
+const inboxLd = productJsonLd({ ...p02, priceUsd: null });
+if (JSON.stringify(inboxLd).includes("shippingRate") || JSON.stringify(inboxLd).includes("shippingDetails")) {
+  fail("Product JSON-LD must not invent shippingRate");
+}
+if ((inboxLd.offers as { price?: string }).price) {
   fail("Hold JSON-LD must not invent USD");
 }
 
