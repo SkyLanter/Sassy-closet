@@ -4,6 +4,7 @@ import path from "node:path";
 import test from "node:test";
 import { emptyFitCm } from "../lib/asia-size";
 import { formatUsd } from "../lib/format";
+import { parseCatalogDocument } from "../lib/product-parse";
 import { HOLD_PRICE_LABEL } from "../lib/dropship-copy";
 import { renderShareCard } from "../lib/og-card";
 import { productJsonLd, productSeo, notFoundSeo } from "../lib/seo";
@@ -82,28 +83,31 @@ test("unknown mã is never rendered on a share card", () => {
 
 test("share description uses the catalog price and never invents one", () => {
   const priced = productShareDescription({
+    ma: "A15",
     titleEn: "Heather knit top",
     descriptionEn: "Heather knit top, grey floral.",
     priceUsd: 23,
   });
   assert.equal(
     priced,
-    "$23 · Heather knit top, grey floral · Message Sassy Closet on Messenger",
+    "$23 · A15 · Heather knit top, grey floral · Message Sassy Closet on Messenger",
   );
   const local = productShareDescription({
+    ma: "A15",
     titleEn: "Heather knit top",
     descriptionEn: "Heather knit top, grey floral.",
     priceUsd: 27,
   });
-  assert.equal(local.startsWith("$27 ·"), true);
+  assert.equal(local.startsWith("$27 · A15 ·"), true);
   const held = productShareDescription({
+    ma: "A15",
     titleEn: "Heather knit top",
     descriptionEn: "Heather knit top, grey floral.",
     priceUsd: null,
   });
   assert.equal(
     held,
-    "Inbox for price · Heather knit top, grey floral · Message Sassy Closet on Messenger",
+    "Inbox for price · A15 · Heather knit top, grey floral · Message Sassy Closet on Messenger",
   );
   assert.equal(held.includes("$"), false);
   assert.equal(HOLD_PRICE_LABEL, "Inbox for price");
@@ -115,13 +119,53 @@ test("seed A15 share copy follows the seed price", () => {
   assert.ok(seed);
   assert.equal(seed.priceUsd, 27);
   const description = productShareDescription(seed);
-  assert.equal(description.startsWith(`${formatUsd(seed.priceUsd ?? 0)} ·`), true);
+  assert.equal(description.startsWith(`${formatUsd(seed.priceUsd ?? 0)} · ${seed.ma} ·`), true);
+  assert.match(description, new RegExp(seed.titleEn, "i"));
   const card = productShareCardCopy(seed);
   assert.equal(card.detail, formatUsd(seed.priceUsd ?? 0));
   assert.equal(card.eyebrow, "A15");
   assert.equal(card.title, "HEATHER KNIT TOP");
   const held = productShareCardCopy({ ...seed, priceUsd: null });
   assert.equal(held.detail, HOLD_PRICE_LABEL);
+});
+
+const HELD_OFF_SELL = ["S14", "A24", "A25", "S15", "A26", "K02", "K03", "K04", "K05", "V04"] as const;
+
+test("available share cards keep catalog USD and held mãs stay off the seed", () => {
+  const document = parseCatalogDocument(JSON.parse(read("data/products.json")));
+  const mas = new Set(document.products.map((product) => product.ma));
+  assert.equal(mas.has("Q02"), false);
+  for (const ma of HELD_OFF_SELL) {
+    assert.equal(mas.has(ma), false);
+  }
+  const s06 = document.products.find((product) => product.ma === "S06");
+  if (s06) {
+    assert.equal(s06.status, "available");
+    assert.equal(s06.priceUsd, 25);
+  }
+  for (const ma of ["P02", "P05"] as const) {
+    const product = document.products.find((row) => row.ma === ma);
+    assert.ok(product);
+    assert.equal(product.status, "available");
+    assert.equal(product.priceUsd, 25);
+    assert.equal(productShareCardCopy(product).detail, "$25");
+    assert.equal(productShareDescription(product).startsWith(`$25 · ${ma} ·`), true);
+  }
+  for (const product of document.products) {
+    const card = productShareCardCopy(product);
+    const description = productShareDescription(product);
+    if (product.status !== "hold" && product.priceUsd !== null) {
+      const dollars = formatUsd(product.priceUsd);
+      assert.equal(card.detail, dollars);
+      assert.equal(description.startsWith(`${dollars} · ${product.ma} ·`), true);
+      assert.equal(/inbox for price/i.test(description), false);
+      const offer = productJsonLd(toShopLook(product)).offers as { price?: string };
+      assert.equal(offer.price, product.priceUsd.toFixed(2));
+      continue;
+    }
+    assert.equal(card.detail, HOLD_PRICE_LABEL);
+    assert.equal(/\$\d/.test(description), false);
+  }
 });
 
 test("a failed photo falls back to a text card", async () => {
@@ -170,7 +214,7 @@ test("product og image is a versioned jpeg and json-ld lists every photo", () =>
   assert.equal(image && typeof image === "object" && "type" in image ? image.type : "", "image/jpeg");
   assert.equal(image && typeof image === "object" && "width" in image ? image.width : 0, 1200);
   assert.equal(image && typeof image === "object" && "height" in image ? image.height : 0, 630);
-  assert.match(seo.description ?? "", /^\$23 · Heather knit top, grey floral/);
+  assert.match(seo.description ?? "", /^\$23 · A15 · Heather knit top, grey floral/);
   const jsonLd = withShopUrl("https://sassycloset.vercel.app", () => productJsonLd(look));
   assert.deepEqual(jsonLd.image, [
     "https://sassycloset.vercel.app/products/A15/cover.jpg",
