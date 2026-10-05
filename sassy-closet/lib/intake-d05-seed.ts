@@ -192,6 +192,9 @@ export async function persistD05IntakeSeed(input: {
   };
 
   for (const file of fetched) {
+    if (!/^D05\/\d{3}\.(jpg|png|webp)$/.test(file.photo.rel)) {
+      throw new Error("D05 photo path is not an intake photo path.");
+    }
     await input.writePhoto(file.photo.rel, file.bytes, file.contentType);
   }
   await input.writeStore(next);
@@ -266,6 +269,9 @@ function readImages(
     if (!isRecord(item) || typeof item.src !== "string" || typeof item.order !== "number") {
       return { ok: false, reason: "D05 catalog photo is missing src or order." };
     }
+    if (!Number.isInteger(item.order) || item.order < 1 || item.order > 99) {
+      return { ok: false, reason: "D05 catalog photo order is not a photo index." };
+    }
     if (!isBlobPhotoUrl(item.src)) {
       return { ok: false, reason: "D05 catalog photo is not a Blob https URL." };
     }
@@ -319,10 +325,9 @@ function isBlobPhotoUrl(src: string): boolean {
 }
 
 function isImage(file: D05PhotoBytes): boolean {
-  if (file.contentType.toLowerCase().startsWith("image/")) return true;
   const bytes = file.bytes;
   if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return true;
-  if (bytes.length >= 4 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
+  if (bytes.length >= 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
     return true;
   }
   return bytes.length >= 12 && bytes.subarray(0, 4).toString() === "RIFF" && bytes.subarray(8, 12).toString() === "WEBP";

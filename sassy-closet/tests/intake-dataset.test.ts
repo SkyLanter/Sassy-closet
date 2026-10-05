@@ -25,12 +25,13 @@ const shop: ShopDatasetRow[] = [
   { ma: "Q09", status: "sold", priceUsd: 10, kind: "Q", sizes: [] },
   // Catalog-shaped fixture only. This dollar must not become a Live price.
   { ma: "K02", status: "available", priceUsd: 1, kind: "K", sizes: ["M"] },
+  { ma: "Q02", status: "available", priceUsd: 50, kind: "Q", sizes: ["S"] },
 ];
 
 describe("intake dataset vs shop catalog", () => {
   test("live is available catalog rows; incomplete intake mãs stay held", () => {
     const view = buildIntakeDataset(
-      ["A01", "S06", "S14", "A24", "p02", "A25", "S15", "A26", "K02", "K03", "K04", "K05", "V04"],
+      ["A01", "S06", "S14", "A24", "p02", "A25", "S15", "A26", "K02", "K03", "K04", "K05", "V04", "Q02"],
       shop,
     );
     assert.equal(view.ready, true);
@@ -59,7 +60,9 @@ describe("intake dataset vs shop catalog", () => {
     assert.equal(catalogSellAmount(shop, "S06"), "25");
     assert.equal(catalogSellAmount(shop, "S14"), null);
     assert.equal(catalogSellAmount(shop, "K02"), null);
+    assert.equal(catalogSellAmount(shop, "Q02"), null);
     assert.equal(catalogSellAmount(shop, "P02"), null);
+    assert.equal(view.heldMas.includes("Q02"), false);
     assert.equal(
       intakeListPrice({ lane: "live", shopPriceUsd: 27, sellUsd: "25", sellCny: "167.75" }),
       "$27",
@@ -130,6 +133,18 @@ describe("intake dataset vs shop catalog", () => {
           status: "available",
           locked: false,
           shopPriceUsd: 32,
+          colors: [],
+        },
+        {
+          ma: "Q02",
+          titleVn: "",
+          titleEn: "",
+          descriptionVn: "",
+          descriptionEn: "",
+          priceUsd: 50,
+          status: "available",
+          locked: false,
+          shopPriceUsd: 50,
           colors: [],
         },
       ],

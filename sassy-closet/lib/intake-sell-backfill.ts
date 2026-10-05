@@ -1,5 +1,5 @@
 import { assertNever } from "./kinds";
-import { isHeldIncompleteMa } from "./held-incomplete";
+import { isHeldIncompleteMa, UNLISTED_MAS } from "./held-incomplete";
 import { normalizeMa } from "./mint";
 import type { StoreFile } from "./store-backend";
 
@@ -10,6 +10,7 @@ import type { StoreFile } from "./store-backend";
  *
  * The 13-row rewrite changes `sell_usd` only. `price` and every other field
  * stay as stored. S06, held incomplete mãs, and Q02 are not in the map.
+ * A stored S06 sell_usd other than blank or 25 blocks the dry-run plan.
  */
 
 export const BOSS_CONFIRM_SELL_USD = "Boss says: apply the 13 intake sell_usd backfill";
@@ -19,7 +20,7 @@ export const PUBLIC_CATALOG_URL =
 
 export const S06_LOCKED_PRICE_USD = 25;
 
-export const NEVER_LIST_MAS = ["Q02"] as const;
+export const NEVER_LIST_MAS = UNLISTED_MAS;
 
 export const SELL_USD_BACKFILL = [
   { ma: "A01", storedSellUsd: "25", blobPriceUsd: 27 },
@@ -127,7 +128,12 @@ export function planSellUsdBackfill(
   const changes = rows.flatMap((row) =>
     row.action === "change" ? [{ ma: row.ma, from: row.from, to: row.to }] : [],
   );
-  const blockReason = planBlockReason(rows, s06CatalogPriceUsd, changes.length);
+  const blockReason = planBlockReason(
+    rows,
+    s06CatalogPriceUsd,
+    changes.length,
+    s06StoredBlockReason(submissions),
+  );
   return {
     mode: "dry-run",
     rows,
@@ -221,10 +227,12 @@ function planBlockReason(
   rows: readonly SellUsdRowDecision[],
   s06CatalogPriceUsd: number | null,
   changeCount: number,
+  s06StoredBlock: string | null,
 ): string | null {
   if (s06CatalogPriceUsd !== S06_LOCKED_PRICE_USD) {
     return "S06 catalog price must be $25 before any sell_usd write.";
   }
+  if (s06StoredBlock) return s06StoredBlock;
   for (const row of rows) {
     switch (row.action) {
       case "change":
@@ -300,6 +308,17 @@ function emptyPlan(
     s06CatalogPriceUsd,
     blockedPresent,
   };
+}
+
+function s06StoredBlockReason(submissions: readonly SellRow[]): string | null {
+  const rows = submissions.filter((row) => normalizeMa(row.ma) === "S06");
+  if (rows.length > 1) return "Duplicate intake mã S06.";
+  const row = rows[0];
+  if (!row) return null;
+  if (typeof row.sell_usd !== "string") return "S06 sell_usd must stay blank or $25.";
+  const stored = row.sell_usd.trim();
+  if (stored === "" || stored === String(S06_LOCKED_PRICE_USD)) return null;
+  return "S06 sell_usd must stay blank or $25.";
 }
 
 function blockedMasPresent(submissions: readonly SellRow[]): string[] {

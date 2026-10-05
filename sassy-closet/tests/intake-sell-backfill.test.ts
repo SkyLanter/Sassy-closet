@@ -25,7 +25,7 @@ import {
   sellRewriteBlockReason,
 } from "../lib/intake-sell-backfill";
 import { isKindCode, type KindCode } from "../lib/kinds";
-import { parseBackfillArgs } from "../scripts/intake-sell-backfill";
+import { fetchBlobPhoto, parseBackfillArgs } from "../scripts/intake-sell-backfill";
 import type { StoreFile } from "../lib/store-backend";
 import type { Submission } from "../lib/types";
 
@@ -35,6 +35,8 @@ const D05_TITLE_VN = "Đầm ren nhún apricot";
 const D05_TITLE_EN = "Apricot ruched lace mini dress";
 const D05_SOURCE = "https://item.taobao.com/item.htm?id=1039727293632";
 const D05_DESCRIPTION = "Đầm ren nhún apricot, hai dây đen, nơ nhỏ.";
+const JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xd9]);
+
 const D05_PHOTOS = [
   "https://efsi0jejsfy7j058.public.blob.vercel-storage.com/sassy-closet-shop/products/D05/cover.jpg",
   "https://efsi0jejsfy7j058.public.blob.vercel-storage.com/sassy-closet-shop/products/D05/photo-2.jpg",
@@ -309,6 +311,9 @@ describe("intake sell_usd backfill", () => {
     );
 
     const dirtyS06 = storeOf(laggingRows().map((row) => (row.ma === "S06" ? { ...row, sell_usd: "30" } : row)));
+    const dirtyPlan = planSellUsdBackfill(dirtyS06.submissions, prices());
+    assert.equal(dirtyPlan.applyAllowed, false);
+    assert.match(dirtyPlan.blockReason ?? "", /S06 sell_usd must stay blank or \$25/);
     await assert.rejects(
       persistSellUsdBackfill({
         mode: "apply",
@@ -334,6 +339,11 @@ describe("intake sell_usd backfill", () => {
     });
     assert.equal(result.store.submissions.find((row) => row.ma === "S06")?.sell_usd, "25");
     assert.equal(result.plan.changes.some((change) => change.ma === "S06"), false);
+    const padded = planSellUsdBackfill(
+      laggingRows().map((row) => (row.ma === "S06" ? { ...row, sell_usd: " 25 " } : row)),
+      prices(),
+    );
+    assert.equal(padded.applyAllowed, true);
   });
 });
 
@@ -389,7 +399,7 @@ describe("D05 intake seed", () => {
 
   test("apply builds one D05 form and leaves S06, held mãs, and Q02 untouched", async () => {
     const store = storeOf(laggingRows());
-    const bytes = Buffer.from("d05-photo");
+    const bytes = JPEG;
     const photos: string[] = [];
     const result = await persistD05IntakeSeed({
       mode: "apply",
@@ -462,6 +472,31 @@ describe("D05 intake seed", () => {
     const priced = planD05IntakeSeed(d05Catalog({ priceUsd: 27 }), []);
     assert.equal(priced.ok, false);
     assert.match(priced.reason ?? "", /\$26/);
+    const fractional = planD05IntakeSeed(
+      d05Catalog({ images: [{ src: D05_PHOTOS[0], order: 1.5 }] }),
+      [],
+    );
+    assert.equal(fractional.ok, false);
+    assert.match(fractional.reason ?? "", /photo index/);
+    let photoWrites = 0;
+    await assert.rejects(
+      persistD05IntakeSeed({
+        mode: "apply",
+        confirmation: BOSS_CONFIRM_D05_FORM,
+        store,
+        catalog: d05Catalog(),
+        now: "2026-10-02T00:00:00.000Z",
+        fetchPhoto: async () => ({ bytes: Buffer.from("not-an-image"), contentType: "image/jpeg" }),
+        writePhoto: async () => {
+          photoWrites += 1;
+        },
+        writeStore: async () => {
+          photoWrites += 1;
+        },
+      }),
+      /not an image/,
+    );
+    assert.equal(photoWrites, 0);
     const missing = planD05IntakeSeed({ products: [{ ma: "Q02", priceUsd: 9 }] }, ["Q02", ...HELD]);
     assert.equal(missing.ok, false);
     assert.match(missing.reason ?? "", /D05 is not in the catalog/);
@@ -511,9 +546,43 @@ describe("backfill command", () => {
     assert.equal(result.status, 0, result.stderr);
     assert.match(result.stdout, /persisted: false/);
     assert.match(result.stdout, /applyAllowed: true/);
+    assert.match(result.stdout, /S06 catalog: \$25/);
     assert.match(result.stdout, /A01 25->27/);
+    assert.match(result.stdout, /D05 form: blocked/);
+    assert.match(result.stdout, /D05 persisted: false/);
     assert.deepEqual(fs.readFileSync(storePath), before);
     fs.rmSync(tmp, { recursive: true, force: true });
+  });
+
+  test("a bare array snapshot is refused and left unchanged", () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "sassy-backfill-"));
+    const storePath = path.join(tmp, "store.json");
+    const catalogPath = path.join(tmp, "catalog.json");
+    fs.writeFileSync(storePath, JSON.stringify([{ ma: "A01", sell_usd: "25" }]));
+    fs.writeFileSync(catalogPath, JSON.stringify(catalogDocument()));
+    const before = fs.readFileSync(storePath);
+    const result = runScript(["--store", storePath, "--catalog", catalogPath]);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /submissions/);
+    assert.deepEqual(fs.readFileSync(storePath), before);
+    fs.rmSync(tmp, { recursive: true, force: true });
+  });
+
+  test("D05 photo fetch stays on public Blob and does not follow redirects", async () => {
+    await assert.rejects(() => fetchBlobPhoto("http://evil.example/a.jpg"), /not public Blob/);
+    const previous = globalThis.fetch;
+    let redirect: RequestRedirect | undefined;
+    globalThis.fetch = async (_input, init) => {
+      redirect = init?.redirect;
+      return new Response(JPEG, { status: 200, headers: { "content-type": "image/jpeg" } });
+    };
+    try {
+      const file = await fetchBlobPhoto(D05_PHOTOS[0] ?? "");
+      assert.equal(redirect, "error");
+      assert.equal(file.bytes[0], 0xff);
+    } finally {
+      globalThis.fetch = previous;
+    }
   });
 
   test("parser stays on dry-run unless one apply flag and the matching phrase are both present", () => {

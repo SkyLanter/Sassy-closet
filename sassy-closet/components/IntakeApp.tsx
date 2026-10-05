@@ -9,6 +9,7 @@ import { PhotoLightbox } from "@/components/PhotoLightbox";
 import { PhotoThumbs } from "@/components/PhotoThumbs";
 import { SavedCard } from "@/components/SavedCard";
 import { convertCnyToUsd, convertUsdToCny } from "@/lib/fx";
+import { isUnlistedMa } from "@/lib/held-incomplete";
 import { COLORS, KINDS, assertNever, isKindCode, keepSizesForKind, sizeScaleForKind, sizesForKind } from "@/lib/kinds";
 import { nextMa, parseHubMa } from "@/lib/mint";
 import {
@@ -1711,8 +1712,9 @@ function SavedList({
   onOpenCatalog: (row: ShopDatasetRow) => void;
   onCreate: () => void;
 }) {
+  const listedRows = rows.filter((row) => !isUnlistedMa(row.ma));
   const dataset = buildIntakeDataset(
-    rows.map((row) => row.ma),
+    listedRows.map((row) => row.ma),
     rowsReady ? shopRows : null,
   );
   const shopByMa = new Map((shopRows ?? []).map((row) => [row.ma, row]));
@@ -1733,7 +1735,7 @@ function SavedList({
           {shopOnly.length > 0 ? ` · Từ shop, chưa lưu form: ${formatMaList(shopOnly.map((row) => row.ma))}` : ""}
         </p>
       ) : null}
-      {rows.length === 0 && shopOnly.length === 0 ? (
+      {listedRows.length === 0 && shopOnly.length === 0 ? (
         <div className="mt-3 rounded-2xl bg-white px-4 py-5 ring-1 ring-[#eadfdc]">
           <p className="text-[13.5px] text-[#3c2a2e]">Chưa có món.</p>
           <button
@@ -1746,7 +1748,7 @@ function SavedList({
         </div>
       ) : (
         <ul className="mt-3 divide-y divide-[#eadfdc] overflow-hidden rounded-2xl bg-white ring-1 ring-[#eadfdc]">
-          {rows.map((row) => {
+          {listedRows.map((row) => {
             const lane = dataset.ready ? (datasetEntryForMa(dataset, row.ma)?.lane ?? "held") : null;
             const shop = shopByMa.get(row.ma.trim().toUpperCase());
             const price = intakeListPrice({

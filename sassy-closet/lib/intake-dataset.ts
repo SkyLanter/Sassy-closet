@@ -1,4 +1,4 @@
-import { isHeldIncompleteMa } from "@/lib/held-incomplete";
+import { isHeldIncompleteMa, isUnlistedMa } from "@/lib/held-incomplete";
 import { assertNever, isKindCode } from "@/lib/kinds";
 import { formatUsd } from "@/lib/listing-status";
 import type { ShopCatalogList, ShopCatalogStatus } from "@/lib/shop-catalog";
@@ -59,7 +59,7 @@ export function rowsFromShopCatalog(list: ShopCatalogList, source?: unknown): Sh
   const rows: ShopDatasetRow[] = [];
   for (const product of list.products) {
     const ma = cleanMa(product.ma);
-    if (!ma) continue;
+    if (!ma || isUnlistedMa(ma)) continue;
     const more = extra.get(ma);
     rows.push({
       ma,
@@ -74,12 +74,12 @@ export function rowsFromShopCatalog(list: ShopCatalogList, source?: unknown): Sh
 
 /**
  * Dollar amount for an available catalog row, without a $ sign.
- * Null when Blob has no live price, and null for `HELD_INCOMPLETE_MAS`.
+ * Null when Blob has no live price, for `HELD_INCOMPLETE_MAS`, and for unlisted Q02.
  */
 export function catalogSellAmount(rows: readonly ShopDatasetRow[] | null, ma: string): string | null {
   if (!rows) return null;
   const key = cleanMa(ma);
-  if (!key || isHeldIncompleteMa(key)) return null;
+  if (!key || isHeldIncompleteMa(key) || isUnlistedMa(key)) return null;
   const row = rows.find((item) => item.ma === key);
   if (!row || row.status !== "available" || row.priceUsd === null) return null;
   const labeled = formatUsd(row.priceUsd);
@@ -149,6 +149,7 @@ export function isAllowedShopOrigin(origin: string): boolean {
  * Held = `HELD_INCOMPLETE_MAS`, catalog hold, or an intake mã that is not in the catalog.
  * Sold stays sold. Mãs that are in neither list are not added.
  * A held incomplete mã stays held even when a catalog row says available. Its Blob dollar is not a live price.
+ * Q02 is unlisted: it is not Live, not Held, and not added from the catalog.
  */
 export function buildIntakeDataset(
   intakeMas: readonly string[],
@@ -161,7 +162,7 @@ export function buildIntakeDataset(
   const shopByMa = new Map<string, ShopDatasetRow>();
   for (const row of shop) {
     const ma = cleanMa(row.ma);
-    if (!ma || shopByMa.has(ma)) continue;
+    if (!ma || isUnlistedMa(ma) || shopByMa.has(ma)) continue;
     shopByMa.set(ma, {
       ma,
       status: row.status,
@@ -177,6 +178,7 @@ export function buildIntakeDataset(
     const ma = cleanMa(raw);
     if (!ma || seenIntake.has(ma)) continue;
     seenIntake.add(ma);
+    if (isUnlistedMa(ma)) continue;
     intakeOrder.push(ma);
   }
 
@@ -188,7 +190,7 @@ export function buildIntakeDataset(
 
   const shopOnlyLive: DatasetEntry[] = [];
   for (const row of shopByMa.values()) {
-    if (seenIntake.has(row.ma)) continue;
+    if (seenIntake.has(row.ma) || isUnlistedMa(row.ma)) continue;
     const entry = entryFor(row.ma, row, false);
     entries.push(entry);
     if (entry.lane === "live") shopOnlyLive.push(entry);
@@ -201,7 +203,7 @@ export function buildIntakeDataset(
 
 export function datasetEntryForMa(view: DatasetView, ma: string): DatasetEntry | null {
   const key = cleanMa(ma);
-  if (!key) return null;
+  if (!key || isUnlistedMa(key)) return null;
   return view.entries.find((entry) => entry.ma === key) ?? null;
 }
 

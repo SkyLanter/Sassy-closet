@@ -25,6 +25,7 @@ import {
   BOSS_CONFIRM_D05_FORM,
   D05_LOCKED_PRICE_USD,
   persistD05IntakeSeed,
+  planD05IntakeSeed,
 } from "../lib/intake-d05-seed";
 import {
   BOSS_CONFIRM_SELL_USD,
@@ -127,11 +128,24 @@ function runDry(invocation: Invocation): void {
     throw new Error("Dry-run against rows needs both --store and --catalog. Neither file is written.");
   }
   const store = readStoreFile(invocation.storePath);
-  const prices = catalogPriceIndex(readJson(invocation.catalogPath));
+  const catalog = readJson(invocation.catalogPath);
+  const prices = catalogPriceIndex(catalog);
   const plan = planSellUsdBackfill(store.submissions, prices);
+  const d05 = planD05IntakeSeed(
+    catalog,
+    store.submissions.map((row) => row.ma),
+  );
+  const s06Catalog = plan.s06CatalogPriceUsd === null ? "missing" : `$${String(plan.s06CatalogPriceUsd)}`;
   console.log(`applyAllowed: ${String(plan.applyAllowed)}`);
   console.log(`blockReason: ${plan.blockReason ?? ""}`);
-  console.log(`changes: ${plan.changes.map((change) => `${change.ma} ${change.from}->${change.to}`).join(", ")}`);
+  console.log(`S06 catalog: ${s06Catalog}`);
+  const changeLine = plan.applyAllowed
+    ? plan.changes.map((change) => `${change.ma} ${change.from}->${change.to}`).join(", ")
+    : "";
+  console.log(`changes: ${changeLine}`);
+  console.log(`D05 form: ${d05.ok ? "ready" : "blocked"}`);
+  console.log(`D05 reason: ${d05.reason ?? ""}`);
+  console.log("D05 persisted: false");
   console.log("persisted: false");
 }
 
@@ -187,12 +201,12 @@ async function openDurable(catalogPath: string): Promise<{
   return { store, catalog, prices, backend };
 }
 
-async function fetchBlobPhoto(url: string): Promise<{ bytes: Buffer; contentType: string }> {
+export async function fetchBlobPhoto(url: string): Promise<{ bytes: Buffer; contentType: string }> {
   const parsed = new URL(url);
   if (parsed.protocol !== "https:" || !parsed.hostname.endsWith(".public.blob.vercel-storage.com")) {
     throw new Error("D05 photo URL is not public Blob.");
   }
-  const response = await fetch(parsed);
+  const response = await fetch(parsed, { redirect: "error" });
   if (!response.ok) throw new Error(`D05 photo fetch failed (${String(response.status)}).`);
   const bytes = Buffer.from(await response.arrayBuffer());
   const contentType = response.headers.get("content-type") || photoContentType(parsed.pathname);
@@ -201,9 +215,6 @@ async function fetchBlobPhoto(url: string): Promise<{ bytes: Buffer; contentType
 
 function readStoreFile(filePath: string): StoreFile {
   const parsed = readJson(filePath);
-  if (Array.isArray(parsed)) {
-    return { nextId: 1, submissions: parsed, fx: { usd_cny: 6.71, updated: "2026-09-07" } };
-  }
   if (!isRecord(parsed) || !Array.isArray(parsed.submissions)) {
     throw new Error("Store JSON has no submissions array.");
   }

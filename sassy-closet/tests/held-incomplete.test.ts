@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { HELD_INCOMPLETE_MAS, isHeldIncompleteMa } from "../lib/held-incomplete";
+import { HELD_INCOMPLETE_MAS, isHeldIncompleteMa, isUnlistedMa, UNLISTED_MAS } from "../lib/held-incomplete";
 
 const EXPECTED = ["S14", "A24", "A25", "S15", "A26", "K02", "K03", "K04", "K05", "V04"] as const;
 const LIST_LINE = EXPECTED.join(", ");
@@ -26,6 +26,11 @@ test("held incomplete config names all ten unfinished mãs", () => {
   assert.equal(isHeldIncompleteMa("V04"), true);
   assert.equal(isHeldIncompleteMa("S06"), false);
   assert.equal(isHeldIncompleteMa("Q02"), false);
+  assert.deepEqual([...UNLISTED_MAS], ["Q02"]);
+  assert.equal(isUnlistedMa("Q02"), true);
+  assert.equal(isUnlistedMa("q02"), true);
+  assert.equal(isUnlistedMa("S06"), false);
+  for (const ma of EXPECTED) assert.equal(isUnlistedMa(ma), false);
 });
 
 test("docs and config lists enumerate every held incomplete mã", () => {
