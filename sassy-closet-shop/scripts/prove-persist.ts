@@ -274,8 +274,8 @@ async function proveLocalFile(seed: CatalogDocument): Promise<void> {
       fail(`Local live-catalog.json did not round-trip: ${diffs.join("; ")}`);
     }
     const a01 = roundtrip.products.find((product) => product.ma === "A01");
-    if (!a01 || a01.titleEn === "Top — persist-probe") {
-      fail("Hub overlay must restore seed A01 title on write (extras keep Edit identity)");
+    if (!a01 || a01.titleEn !== "Top — persist-probe") {
+      fail("Live write must keep a stored hub title; seed copy must not replace it");
     }
     const a03 = roundtrip.products.find((product) => product.ma === "A03");
     if (!a03 || a03.titleEn !== "Kit prove top" || a03.titleVn !== "Áo") {
