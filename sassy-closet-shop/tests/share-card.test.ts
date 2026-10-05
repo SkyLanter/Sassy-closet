@@ -4,6 +4,7 @@ import path from "node:path";
 import test from "node:test";
 import { emptyFitCm } from "../lib/asia-size";
 import { formatUsd } from "../lib/format";
+import { parseCatalogDocument } from "../lib/product-parse";
 import { HOLD_PRICE_LABEL } from "../lib/dropship-copy";
 import { renderShareCard } from "../lib/og-card";
 import { productJsonLd, productSeo, notFoundSeo } from "../lib/seo";
@@ -126,6 +127,45 @@ test("seed A15 share copy follows the seed price", () => {
   assert.equal(card.title, "HEATHER KNIT TOP");
   const held = productShareCardCopy({ ...seed, priceUsd: null });
   assert.equal(held.detail, HOLD_PRICE_LABEL);
+});
+
+const HELD_OFF_SELL = ["S14", "A24", "A25", "S15", "A26", "K02", "K03", "K04", "K05", "V04"] as const;
+
+test("available share cards keep catalog USD and held mãs stay off the seed", () => {
+  const document = parseCatalogDocument(JSON.parse(read("data/products.json")));
+  const mas = new Set(document.products.map((product) => product.ma));
+  assert.equal(mas.has("Q02"), false);
+  for (const ma of HELD_OFF_SELL) {
+    assert.equal(mas.has(ma), false);
+  }
+  const s06 = document.products.find((product) => product.ma === "S06");
+  if (s06) {
+    assert.equal(s06.status, "available");
+    assert.equal(s06.priceUsd, 25);
+  }
+  for (const ma of ["P02", "P05"] as const) {
+    const product = document.products.find((row) => row.ma === ma);
+    assert.ok(product);
+    assert.equal(product.status, "available");
+    assert.equal(product.priceUsd, 25);
+    assert.equal(productShareCardCopy(product).detail, "$25");
+    assert.equal(productShareDescription(product).startsWith(`$25 · ${ma} ·`), true);
+  }
+  for (const product of document.products) {
+    const card = productShareCardCopy(product);
+    const description = productShareDescription(product);
+    if (product.status !== "hold" && product.priceUsd !== null) {
+      const dollars = formatUsd(product.priceUsd);
+      assert.equal(card.detail, dollars);
+      assert.equal(description.startsWith(`${dollars} · ${product.ma} ·`), true);
+      assert.equal(/inbox for price/i.test(description), false);
+      const offer = productJsonLd(product).offers as { price?: string };
+      assert.equal(offer.price, product.priceUsd.toFixed(2));
+      continue;
+    }
+    assert.equal(card.detail, HOLD_PRICE_LABEL);
+    assert.equal(/\$\d/.test(description), false);
+  }
 });
 
 test("a failed photo falls back to a text card", async () => {

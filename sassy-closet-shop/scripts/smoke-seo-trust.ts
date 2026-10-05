@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import robots from "../app/robots";
+import { formatUsd } from "../lib/format";
 import { parseCatalogDocument } from "../lib/product-parse";
 import { PUBLIC_FORBIDDEN_PHRASES, customerStockVoiceHit } from "../lib/public-safety";
 import {
@@ -102,8 +103,8 @@ const p05Desc = productShareDescription(p05);
 if (/\$23/.test(p02Desc) || /\$23/.test(p05Desc)) {
   fail("P02 and P05 share copy must not invent $23");
 }
-if (!p02Desc.startsWith("$25 ·") || !p05Desc.startsWith("$25 ·")) {
-  fail("P02 and P05 share descriptions must show the live $25");
+if (!p02Desc.startsWith("$25 · P02 ·") || !p05Desc.startsWith("$25 · P05 ·")) {
+  fail("P02 and P05 share descriptions must show the live $25 and the mã");
 }
 if (/inbox for price/i.test(p02Desc) || /inbox for price/i.test(p05Desc)) {
   fail("Priced P02 and P05 share copy must not say Inbox for price");
@@ -143,17 +144,41 @@ if (inboxCard.detail !== "Inbox for price" || !inboxDesc.startsWith("Inbox for p
 if (/\$\d/.test(inboxCard.detail ?? "") || /\$\d/.test(inboxDesc) || /\bHold\b/.test(inboxDesc)) {
   fail("A no-USD share card must not show a dollar or say Hold");
 }
-for (const product of seed.products) {
-  if (product.status !== "hold" && product.priceUsd !== null) {
-    continue;
+const HELD_OFF_SELL = ["S14", "A24", "A25", "S15", "A26", "K02", "K03", "K04", "K05", "V04"] as const;
+if (seed.products.some((product) => product.ma === "Q02")) {
+  fail("Q02 must stay unlisted");
+}
+for (const ma of HELD_OFF_SELL) {
+  if (seed.products.some((product) => product.ma === ma)) {
+    fail(`${ma} must stay off sell`);
   }
+}
+const s06 = seed.products.find((product) => product.ma === "S06");
+if (s06 && (s06.status !== "available" || s06.priceUsd !== 25)) {
+  fail("S06 must stay available at $25");
+}
+for (const product of seed.products) {
   const card = productShareCardCopy(product);
   const description = productShareDescription(product);
+  if (product.status !== "hold" && product.priceUsd !== null) {
+    const dollars = formatUsd(product.priceUsd);
+    if (card.detail !== dollars || !description.startsWith(`${dollars} · ${product.ma} ·`)) {
+      fail(`${product.ma} share card must keep ${dollars}`);
+    }
+    if (/inbox for price/i.test(`${card.detail ?? ""} ${description}`)) {
+      fail(`${product.ma} share card must not say Inbox for price`);
+    }
+    const price = (productJsonLd(product).offers as { price?: string }).price;
+    if (price !== product.priceUsd.toFixed(2)) {
+      fail(`${product.ma} JSON-LD must keep the catalog USD`);
+    }
+    continue;
+  }
   if (card.detail !== "Inbox for price" || !description.startsWith("Inbox for price ·")) {
     fail(`${product.ma} share card must stay Inbox for price`);
   }
   if (/\$\d/.test(card.detail ?? "") || /\$\d/.test(description)) {
-    fail(`${product.ma} Hold share card must not show a dollar`);
+    fail(`${product.ma} share card must not show a dollar`);
   }
 }
 if (customerStockVoiceHit(p02Desc) || customerStockVoiceHit(p05Desc)) {
@@ -213,6 +238,9 @@ if (canonicalCategoryPath("/share/c/phu-kien-toc") !== "/share/c/toc") {
 }
 if (canonicalCategoryPath("/c/toc") !== null) {
   fail("Canonical /c/toc must not redirect");
+}
+if (canonicalCategoryPath("/c/phu-kien") !== null || canonicalCategoryPath("/share/c/phu-kien") !== null) {
+  fail("Accessories must stay on /c/phu-kien");
 }
 
 const rules = robots();
