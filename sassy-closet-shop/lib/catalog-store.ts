@@ -126,7 +126,15 @@ function extraDescriptionIsPlaceholder(product: Product): boolean {
   return false;
 }
 
-/** Hub ten pick up seed garment copy. Extra mãs drop ops / filler — blank if nothing real. */
+/** A stored title or description wins. Seed copy fills a blank field only. */
+function storedCopyOrSeed(stored: string, seedCopy: string): string {
+  if (stored.trim()) {
+    return stored;
+  }
+  return seedCopy;
+}
+
+/** Known seed mãs keep Blob title and description. Seed fills a blank. Extra mãs drop ops / filler — blank if nothing real. */
 export function overlayCustomerStockVoice(document: CatalogDocument): CatalogDocument {
   const seedByMa = new Map(getSeedDocument().products.map((product) => [product.ma, product]));
   return {
@@ -134,12 +142,24 @@ export function overlayCustomerStockVoice(document: CatalogDocument): CatalogDoc
     products: document.products.map((product) => {
       const seed = seedByMa.get(product.ma);
       if (seed && isKnownSeedMa(product.ma)) {
+        const titleEn = storedCopyOrSeed(product.titleEn, seed.titleEn);
+        const titleVn = storedCopyOrSeed(product.titleVn, seed.titleVn);
+        const descriptionEn = storedCopyOrSeed(product.descriptionEn, seed.descriptionEn);
+        const descriptionVn = storedCopyOrSeed(product.descriptionVn, seed.descriptionVn);
+        if (
+          titleEn === product.titleEn &&
+          titleVn === product.titleVn &&
+          descriptionEn === product.descriptionEn &&
+          descriptionVn === product.descriptionVn
+        ) {
+          return product;
+        }
         return {
           ...product,
-          titleEn: seed.titleEn,
-          titleVn: seed.titleVn,
-          descriptionEn: seed.descriptionEn,
-          descriptionVn: seed.descriptionVn,
+          titleEn,
+          titleVn,
+          descriptionEn,
+          descriptionVn,
         };
       }
       const liveCopy = `${product.titleEn} ${product.titleVn} ${product.descriptionEn} ${product.descriptionVn}`;

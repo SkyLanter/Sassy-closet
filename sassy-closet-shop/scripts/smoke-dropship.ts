@@ -106,8 +106,12 @@ const dirtyHold = overlayCustomerStockVoice({
   ),
 });
 const cleanedP02 = dirtyHold.products.find((product) => product.ma === "P02");
-if (!cleanedP02 || customerOpsVoiceHit(`${cleanedP02.descriptionEn} ${cleanedP02.descriptionVn}`)) {
-  fail("Stale Blob ops copy on P02 must overlay garment seed copy");
+if (
+  !cleanedP02 ||
+  cleanedP02.descriptionEn !== "Thermos on Hold (photo-check)." ||
+  cleanedP02.descriptionVn !== "Bình đang Hold."
+) {
+  fail("Stored hub description must stay; seed copy fills a blank and does not replace Blob");
 }
 if (cleanedP02.status !== "hold" || cleanedP02.priceUsd !== null) {
   fail("Copy overlay must not flip P02 off Hold internally");
@@ -123,11 +127,14 @@ const staffRewroteA01 = overlayCustomerStockVoice({
   ),
 });
 const cleanedA01 = staffRewroteA01.products.find((product) => product.ma === "A01");
-if (!seedA01 || !cleanedA01 || cleanedA01.titleEn !== seedA01.titleEn) {
-  fail("Hub overlay must restore seed boutique titles");
+if (!seedA01 || !cleanedA01 || cleanedA01.titleEn !== "Staff title") {
+  fail("Stored hub title must stay; seed copy must not replace Blob");
 }
-if (cleanedA01.descriptionEn !== seedA01.descriptionEn) {
-  fail("Hub overlay must restore seed garment copy, not a staff rewrite");
+if (cleanedA01.descriptionEn !== "Nice admin rewrite.") {
+  fail("Stored hub description must stay; seed copy must not replace Blob");
+}
+if (!cleanedA01.titleVn || cleanedA01.titleVn !== seedA01.titleVn) {
+  fail("A non-blank hub title must stay when the other language is already stored");
 }
 
 if (!seedA01) {
