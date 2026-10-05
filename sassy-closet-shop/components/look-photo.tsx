@@ -4,7 +4,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { BLUSH_BLUR } from "@/lib/image-placeholder";
 import { shouldOptimizeImage } from "@/lib/image-hosts";
-import { lookCardFetchPriority } from "@/lib/look-card-photo";
+import { lookCardFetchPriority, nativePhotoSettle, revealLookPhoto } from "@/lib/look-card-photo";
 
 export function LookPhoto({
   src,
@@ -119,16 +119,37 @@ function NativeLookPhoto({
   onError?: () => void;
 }) {
   const imgRef = useRef<HTMLImageElement>(null);
+  const onErrorRef = useRef(onError);
   const [pending, setPending] = useState(false);
+  onErrorRef.current = onError;
 
   useLayoutEffect(() => {
     const img = imgRef.current;
-    const cached = Boolean(img && img.complete && img.naturalWidth > 0);
-    if (cached || !img || (!fadeIn && priority)) {
-      setPending(false);
+    if (!img) {
       return;
     }
-    setPending(true);
+    const settle = nativePhotoSettle(img);
+    switch (settle) {
+      case "ready":
+        setPending(false);
+        return;
+      case "broken":
+        // Already finished, so the error event will not fire again.
+        // Tell the card to swap to the placeholder instead of leaving the well blank.
+        onErrorRef.current?.();
+        return;
+      case "pending":
+        if (!fadeIn && priority) {
+          setPending(false);
+          return;
+        }
+        setPending(true);
+        return;
+      default: {
+        const _never: never = settle;
+        return _never;
+      }
+    }
   }, [fadeIn, priority, src]);
 
   return (
@@ -144,8 +165,19 @@ function NativeLookPhoto({
       loading={priority ? "eager" : "lazy"}
       fetchPriority={fetchPriority}
       data-loaded={pending ? "false" : "true"}
-      onLoad={() => {
-        setPending(false);
+      onLoad={(event) => {
+        const img = event.currentTarget;
+        revealLookPhoto(
+          img,
+          () => {
+            const current = imgRef.current;
+            if (!current || current !== img || img.getAttribute("src") !== src || img.naturalWidth <= 0) {
+              return;
+            }
+            setPending(false);
+          },
+          fadeIn,
+        );
       }}
       onError={onError}
       className={`sc-photo ${className ?? ""}`}
