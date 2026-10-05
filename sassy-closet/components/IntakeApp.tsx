@@ -9,8 +9,20 @@ import { PhotoLightbox } from "@/components/PhotoLightbox";
 import { PhotoThumbs } from "@/components/PhotoThumbs";
 import { SavedCard } from "@/components/SavedCard";
 import { convertCnyToUsd, convertUsdToCny } from "@/lib/fx";
-import { COLORS, KINDS, assertNever, keepSizesForKind, sizeScaleForKind, sizesForKind } from "@/lib/kinds";
+import { isUnlistedMa } from "@/lib/held-incomplete";
+import { COLORS, KINDS, assertNever, isKindCode, keepSizesForKind, sizeScaleForKind, sizesForKind } from "@/lib/kinds";
 import { nextMa, parseHubMa } from "@/lib/mint";
+import {
+  buildIntakeDataset,
+  catalogSellAmount,
+  datasetEntryForMa,
+  datasetLaneLabel,
+  formatMaList,
+  intakeListPrice,
+  intakeListSize,
+  type DatasetLane,
+  type ShopDatasetRow,
+} from "@/lib/intake-dataset";
 import {
   listingChip,
   listingItemForMa,
@@ -91,6 +103,9 @@ export function IntakeApp({
   const [findCard, setFindCard] = useState<MaLookup | null>(null);
   const [findMiss, setFindMiss] = useState(false);
   const [savedRows, setSavedRows] = useState<Submission[]>([]);
+  const [rowsReady, setRowsReady] = useState(false);
+  const [shopRows, setShopRows] = useState<ShopDatasetRow[] | null>(null);
+  const [catalogDraftMa, setCatalogDraftMa] = useState<string | null>(null);
   const [listing, setListing] = useState<ListingStatusClient>({ enabled: false, items: {} });
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const listingTimer = useRef<number | null>(null);
@@ -104,7 +119,14 @@ export function IntakeApp({
   }
 
   useEffect(() => {
+    if (!loadedMa || catalogDraftMa) return;
+    const amount = catalogSellAmount(shopRows, loadedMa);
+    if (amount !== null) setSellUsd(amount);
+  }, [loadedMa, shopRows, catalogDraftMa]);
+
+  useEffect(() => {
     void refreshMas();
+    void loadShopRows();
     const ma = new URLSearchParams(window.location.search).get("ma");
     if (!ma) return;
     setTab("edit");
@@ -256,6 +278,7 @@ export function IntakeApp({
     setCalcFx(String(initialFxRate));
     setCalcDebox("");
     setAutoPrice(null);
+    setCatalogDraftMa(null);
   }
 
   function switchTab(next: TabId) {
@@ -300,12 +323,25 @@ export function IntakeApp({
     }, LISTING_REFRESH_AFTER_SAVE_MS);
   }
 
+  async function loadShopRows() {
+    try {
+      const response = await fetch("/api/shop-dataset", { cache: "no-store" });
+      if (!response.ok) return;
+      const data = (await response.json()) as { rows?: ShopDatasetRow[] | null };
+      setShopRows(Array.isArray(data.rows) ? data.rows : null);
+    } catch {
+      // Leave lanes off. A missed catalog read must not mark mãs Live.
+    }
+  }
+
   async function refreshMas(): Promise<string[]> {
     try {
       const response = await fetch("/api/submissions");
+      if (!response.ok) return knownMas;
       const data = (await response.json()) as { submissions?: Submission[] };
       const rows = data.submissions ?? [];
       setSavedRows(rows);
+      setRowsReady(true);
       const mas = rows.map((row) => String(row.ma ?? "")).filter(Boolean);
       setKnownMas(mas);
       return mas;
@@ -422,7 +458,24 @@ export function IntakeApp({
     }
   }
 
+  function openCatalogMa(row: ShopDatasetRow) {
+    if (!isKindCode(row.kind)) return;
+    resetForm();
+    setTab("edit");
+    setCatalogDraftMa(row.ma);
+    setLookupMa(row.ma);
+    setKind(row.kind);
+    setSizes(row.sizes);
+    const amount = catalogSellAmount([row], row.ma);
+    if (amount !== null) setSellUsd(amount);
+  }
+
   async function onSaveClick() {
+    if (tab === "edit" && catalogDraftMa && !loadedMa) {
+      const ok = await save(catalogDraftMa, null);
+      if (ok) setCatalogDraftMa(null);
+      return;
+    }
     let current = loadedMa;
     if (tab === "edit" && !current && lookupMa.trim()) {
       const loaded = await loadMa(lookupMa);
@@ -473,9 +526,11 @@ export function IntakeApp({
         setFindMiss(true);
         return;
       }
+      const amount = catalogSellAmount(shopRows, data.staged.ma);
+      const staged = amount === null ? data.staged : { ...data.staged, sell_usd: amount, sell_cny: "" };
       setFindCard({
         code: data.code,
-        staged: data.staged,
+        staged,
         on_hand: data.on_hand ?? [],
         staged_only: Boolean(data.staged_only ?? (data.on_hand ?? []).length === 0),
       });
@@ -619,12 +674,16 @@ export function IntakeApp({
       </section>
       <SavedList
         rows={savedRows}
+        rowsReady={rowsReady}
+        shopRows={shopRows}
         listing={listing}
         onOpen={(ma) => {
+          setCatalogDraftMa(null);
           setTab("edit");
           setLookupMa(ma);
           void loadMa(ma);
         }}
+        onOpenCatalog={openCatalogMa}
         onCreate={() => switchTab("create")}
       />
       {confirm ? (
@@ -646,10 +705,6 @@ export function IntakeApp({
       <p className="mt-4 text-center text-xs text-rose-700/70">
         <a className="inline-flex min-h-11 items-center underline-offset-2 hover:underline" href="/admin">
           Kit export CSV
-        </a>
-        <span className="mx-1">·</span>
-        <a className="inline-flex min-h-11 items-center underline-offset-2 hover:underline" href="/admin/shop">
-          Shop tools
         </a>
         <span className="mx-1">· Boss one-pager trong README / BOSS.md</span>
       </p>
@@ -1525,6 +1580,31 @@ function StatusChips({
   );
 }
 
+function DatasetLaneChip({ lane, ma }: { lane: DatasetLane; ma: string }) {
+  const toneClass = laneTone(lane);
+  return (
+    <span
+      data-testid={`dataset-lane-${ma}`}
+      className={`rounded-full px-2 py-0.5 text-[11px] font-semibold tracking-[0.08em] ${toneClass}`}
+    >
+      {datasetLaneLabel(lane)}
+    </span>
+  );
+}
+
+function laneTone(lane: DatasetLane): string {
+  switch (lane) {
+    case "live":
+      return "bg-[#e7f4ec] text-[#246044]";
+    case "held":
+      return "bg-[#fbf3e4] text-[#8a5a12]";
+    case "sold":
+      return "bg-[#f3e6e2] text-[#5c3d48]";
+    default:
+      return assertNever(lane, "unknown dataset lane");
+  }
+}
+
 function ListingChip({ item, ma }: { item: ListingItem | undefined; ma: string }) {
   const chip = listingChip(item);
   const toneClass = {
@@ -1542,24 +1622,120 @@ function ListingChip({ item, ma }: { item: ListingItem | undefined; ma: string }
   );
 }
 
+function ListRow({
+  ma,
+  kind,
+  size,
+  price,
+  thumb,
+  needsResearch,
+  lane,
+  listing,
+  onClick,
+}: {
+  ma: string;
+  kind: string;
+  size: string;
+  price: string;
+  thumb: string | undefined;
+  needsResearch: boolean;
+  lane: DatasetLane | null;
+  listing: ListingStatusClient | null;
+  onClick: () => void;
+}) {
+  return (
+    <li>
+      <button
+        type="button"
+        data-testid={`saved-row-${ma}`}
+        className="flex min-h-11 w-full items-center gap-3 px-3 py-2 text-left hover:bg-[#fbf6f4]"
+        onClick={onClick}
+      >
+        {thumb ? (
+          <img src={`/api/photos/${thumb}`} alt="" className="h-12 w-10 rounded-lg object-cover" />
+        ) : (
+          <span className="flex h-12 w-10 items-center justify-center rounded-lg bg-[#f3e6e2] text-[11px] text-[#7d5360]">
+            Ảnh
+          </span>
+        )}
+        <span className="min-w-0 flex-1">
+          <span className="block text-[13.5px] font-semibold tabular text-[#3c2a2e]">{ma}</span>
+          <span className="mt-1 flex flex-wrap gap-1">
+            {kind ? (
+              <span className="rounded-full bg-[#f3e6e2] px-2 py-0.5 text-[11px] uppercase tracking-[0.08em] text-[#5c3d48]">
+                {kind}
+              </span>
+            ) : null}
+            {size ? (
+              <span className="rounded-full bg-white px-2 py-0.5 text-[11px] uppercase tracking-[0.08em] text-[#7d5360] ring-1 ring-[#eadfdc]">
+                {size}
+              </span>
+            ) : (
+              <span className="rounded-full bg-[#fbf3e4] px-2 py-0.5 text-[11px] uppercase tracking-[0.08em] text-[#8a5a12]">
+                Thiếu size
+              </span>
+            )}
+            {needsResearch ? (
+              <span className="rounded-full bg-[#e7f1f6] px-2 py-0.5 text-[11px] uppercase tracking-[0.08em] text-[#1f5670]">
+                Cần xem tay
+              </span>
+            ) : null}
+            {lane ? (
+              <DatasetLaneChip lane={lane} ma={ma} />
+            ) : listing?.enabled ? (
+              <ListingChip item={listingItemForMa(listing.items, ma)} ma={ma} />
+            ) : null}
+          </span>
+        </span>
+        <span data-testid={`saved-price-${ma}`} className="shrink-0 text-[13.5px] font-semibold tabular text-[#3c2a2e]">
+          {price}
+        </span>
+      </button>
+    </li>
+  );
+}
+
 function SavedList({
   rows,
+  rowsReady,
+  shopRows,
   listing,
   onOpen,
+  onOpenCatalog,
   onCreate,
 }: {
   rows: Submission[];
+  rowsReady: boolean;
+  shopRows: ShopDatasetRow[] | null;
   listing: ListingStatusClient;
   onOpen: (ma: string) => void;
+  onOpenCatalog: (row: ShopDatasetRow) => void;
   onCreate: () => void;
 }) {
+  const listedRows = rows.filter((row) => !isUnlistedMa(row.ma));
+  const dataset = buildIntakeDataset(
+    listedRows.map((row) => row.ma),
+    rowsReady ? shopRows : null,
+  );
+  const shopByMa = new Map((shopRows ?? []).map((row) => [row.ma, row]));
+  const shopOnly = dataset.shopOnlyLive.flatMap((entry) => {
+    const row = shopByMa.get(entry.ma);
+    return row ? [row] : [];
+  });
   return (
     <section className="mt-6" aria-labelledby="saved-list-title">
       <h2 id="saved-list-title" className="text-[21px] leading-tight text-[#3c2a2e]">
         Đã lưu
       </h2>
       <p className="mt-1 text-[12.5px] text-[#7d5360]">Món đã bấm lưu trên máy này.</p>
-      {rows.length === 0 ? (
+      {dataset.ready ? (
+        <p data-testid="dataset-summary" className="mt-1 text-[12.5px] text-[#7d5360]">
+          Live {dataset.liveCount} trên shop
+          {dataset.heldMas.length > 0 ? ` · Held ${dataset.heldMas.length} chưa xong` : ""}
+          {shopOnly.length > 0 ? ` · Từ shop, chưa lưu form: ${formatMaList(shopOnly.map((row) => row.ma))}` : ""}
+        </p>
+      ) : null}
+      {listedRows.length === 0 && shopOnly.length === 0 ? (
         <div className="mt-3 rounded-2xl bg-white px-4 py-5 ring-1 ring-[#eadfdc]">
           <p className="text-[13.5px] text-[#3c2a2e]">Chưa có món.</p>
           <button
@@ -1572,49 +1748,51 @@ function SavedList({
         </div>
       ) : (
         <ul className="mt-3 divide-y divide-[#eadfdc] overflow-hidden rounded-2xl bg-white ring-1 ring-[#eadfdc]">
-          {rows.map((row) => {
-            const thumb = row.photo_paths?.[0];
-            const price = row.sell_usd ? `$${row.sell_usd}` : row.sell_cny ? `¥${row.sell_cny}` : "Thiếu giá";
+          {listedRows.map((row) => {
+            const lane = dataset.ready ? (datasetEntryForMa(dataset, row.ma)?.lane ?? "held") : null;
+            const shop = shopByMa.get(row.ma.trim().toUpperCase());
+            const price = intakeListPrice({
+              lane,
+              shopPriceUsd: shop?.priceUsd ?? null,
+              sellUsd: row.sell_usd,
+              sellCny: row.sell_cny,
+            });
+            const size = intakeListSize(lane, shop?.sizes ?? null, row.size);
             return (
-              <li key={row.ma}>
-                <button
-                  type="button"
-                  className="flex min-h-11 w-full items-center gap-3 px-3 py-2 text-left hover:bg-[#fbf6f4]"
-                  onClick={() => onOpen(row.ma)}
-                >
-                  {thumb ? (
-                    <img src={`/api/photos/${thumb}`} alt="" className="h-12 w-10 rounded-lg object-cover" />
-                  ) : (
-                    <span className="flex h-12 w-10 items-center justify-center rounded-lg bg-[#f3e6e2] text-[11px] text-[#7d5360]">
-                      Ảnh
-                    </span>
-                  )}
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-[13.5px] font-semibold tabular text-[#3c2a2e]">{row.ma}</span>
-                    <span className="mt-1 flex flex-wrap gap-1">
-                      <span className="rounded-full bg-[#f3e6e2] px-2 py-0.5 text-[11px] uppercase tracking-[0.08em] text-[#5c3d48]">
-                        {row.kind}
-                      </span>
-                      {row.size ? (
-                        <span className="rounded-full bg-white px-2 py-0.5 text-[11px] uppercase tracking-[0.08em] text-[#7d5360] ring-1 ring-[#eadfdc]">
-                          {row.size}
-                        </span>
-                      ) : (
-                        <span className="rounded-full bg-[#fbf3e4] px-2 py-0.5 text-[11px] uppercase tracking-[0.08em] text-[#8a5a12]">
-                          Thiếu size
-                        </span>
-                      )}
-                      {row.needs_research ? (
-                        <span className="rounded-full bg-[#e7f1f6] px-2 py-0.5 text-[11px] uppercase tracking-[0.08em] text-[#1f5670]">
-                          Cần xem tay
-                        </span>
-                      ) : null}
-                      {listing.enabled ? <ListingChip item={listingItemForMa(listing.items, row.ma)} ma={row.ma} /> : null}
-                    </span>
-                  </span>
-                  <span className="shrink-0 text-[13.5px] font-semibold tabular text-[#3c2a2e]">{price}</span>
-                </button>
-              </li>
+              <ListRow
+                key={row.ma}
+                ma={row.ma}
+                kind={row.kind}
+                size={size}
+                price={price}
+                thumb={row.photo_paths?.[0]}
+                needsResearch={Boolean(row.needs_research)}
+                lane={lane}
+                listing={dataset.ready ? null : listing}
+                onClick={() => onOpen(row.ma)}
+              />
+            );
+          })}
+          {shopOnly.map((row) => {
+            const price = intakeListPrice({
+              lane: "live",
+              shopPriceUsd: row.priceUsd,
+              sellUsd: "",
+              sellCny: "",
+            });
+            return (
+              <ListRow
+                key={row.ma}
+                ma={row.ma}
+                kind={row.kind}
+                size={intakeListSize("live", row.sizes, "")}
+                price={price}
+                thumb={undefined}
+                needsResearch={false}
+                lane="live"
+                listing={null}
+                onClick={() => onOpenCatalog(row)}
+              />
             );
           })}
         </ul>
