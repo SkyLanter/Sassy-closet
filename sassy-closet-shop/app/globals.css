@@ -765,6 +765,19 @@ body {
     transform: scale(1.035);
   }
 
+  /* Look-card covers fade in over the blush plate. The card shell does not use this transition. */
+  .sc-card-photo {
+    transition:
+      opacity 180ms var(--sc-ease),
+      transform 180ms var(--sc-ease);
+  }
+
+  .sc-photo.sc-card-photo[data-loaded="false"] {
+    opacity: 0;
+    filter: none;
+    transform: none;
+  }
+
   .shop-search-sheet,
   .sc-chip-in,
   .sc-to-top,
@@ -934,7 +947,8 @@ summary::-webkit-details-marker {
   .shimmer,
   .content-wave-sheen,
   .sc-rise,
-  .sc-photo {
+  .sc-photo,
+  .sc-card-photo {
     animation: none !important;
   }
 
@@ -948,12 +962,23 @@ summary::-webkit-details-marker {
 
   .sc-photo,
   .sc-photo[data-loaded="false"],
+  .sc-card-photo,
+  .sc-card-photo[data-loaded="false"],
+  .sc-photo.sc-card-photo[data-loaded="false"],
   .sc-rise,
   .sc-rise[data-rise="pending"],
   .sc-rise[data-rise="shown"] {
     opacity: 1 !important;
     filter: none !important;
     transform: none !important;
+  }
+
+  .sc-photo,
+  .sc-photo[data-loaded="false"],
+  .sc-card-photo,
+  .sc-card-photo[data-loaded="false"],
+  .sc-photo.sc-card-photo[data-loaded="false"] {
+    transition: none !important;
   }
 
   .ky-header-wordmark,
