@@ -159,7 +159,7 @@ test("available share cards keep catalog USD and held mãs stay off the seed", (
       assert.equal(card.detail, dollars);
       assert.equal(description.startsWith(`${dollars} · ${product.ma} ·`), true);
       assert.equal(/inbox for price/i.test(description), false);
-      const offer = productJsonLd(product).offers as { price?: string };
+      const offer = productJsonLd(toShopLook(product)).offers as { price?: string };
       assert.equal(offer.price, product.priceUsd.toFixed(2));
       continue;
     }
