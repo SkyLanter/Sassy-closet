@@ -98,6 +98,27 @@ function pairingError(status: ShopCatalogStatus, priceUsd: number | null, ma: st
   }
 }
 
+/** Shop-tools save must leave S06 available at $25. Other mãs are not listed here. */
+const S06_MA = "S06";
+const S06_AVAILABLE_USD = 25;
+
+function lockedS06Error(ma: string, status: ShopCatalogStatus, priceUsd: number | null): string | null {
+  if (ma !== S06_MA) {
+    return null;
+  }
+  switch (status) {
+    case "available":
+      return priceUsd === S06_AVAILABLE_USD ? null : "S06 stays available at $25.";
+    case "hold":
+    case "sold":
+      return "S06 stays available at $25.";
+    default: {
+      const _exhaustive: never = status;
+      return _exhaustive;
+    }
+  }
+}
+
 function readText(value: unknown, label: string, max: number, allowEmpty: boolean): string | null {
   if (typeof value !== "string") {
     return null;
@@ -264,6 +285,10 @@ export function applyShopCatalogPatch(
   const paired = pairingError(status, priceUsd, ma);
   if (paired) {
     return { ok: false, error: paired };
+  }
+  const locked = lockedS06Error(ma, status, priceUsd);
+  if (locked) {
+    return { ok: false, error: locked };
   }
   product.status = status;
   product.priceUsd = priceUsd;
