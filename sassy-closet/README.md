@@ -116,4 +116,4 @@ Two boxes on the same tab (do not drop either):
 
 Hard stops: no invent mã / qty / $, no Square Save, no Facebook Post/Send.
 
-Incomplete Taobao mãs stay off the sell catalog: S14, A24, A25, S15, A26, K02, K03, K04, K05, V04. Dataset and admin only (`lib/held-incomplete.ts`).
+Incomplete Taobao mãs stay off the sell catalog: S14, A24, A25, S15, A26, K02, K03, K04, K05, V04, V05. Dataset and admin only (`lib/held-incomplete.ts`).

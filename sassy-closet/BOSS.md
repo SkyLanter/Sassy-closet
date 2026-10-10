@@ -11,6 +11,6 @@
   5. Smoke: one Món mới Lưu + one Sửa theo mã Lưu → routine run history shows create + update. Poll backup stays ON if a webhook is missed.
 - Tìm mã: code box (sheet with staged + on-hand) **and** existing photo / color detect. Both stay. Card thumbs: ≤3 in one row; tap opens lightbox.
 - Missing on-hand = **Staged only — not on Square On_Hand yet**. Never invent qty / $ / storage.
-- Incomplete Taobao mãs stay off the sell catalog: S14, A24, A25, S15, A26, K02, K03, K04, K05, V04. Dataset and admin only.
+- Incomplete Taobao mãs stay off the sell catalog: S14, A24, A25, S15, A26, K02, K03, K04, K05, V04, V05. Dataset and admin only.
 - Square Free = on-hand SoT. Never invent mã. Never Square Save from the site.
 - Production persistence: Vercel → Storage → Create **Blob** → **Private** → connect Production. Without this, redeploy wipes mã + photos. Verify: Lưu → Redeploy → mã still in export. See `README.md` Durable store.
