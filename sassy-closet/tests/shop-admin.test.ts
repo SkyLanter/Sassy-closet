@@ -93,6 +93,24 @@ function sampleCatalog(): Record<string, unknown> {
   };
 }
 
+function s06Catalog(): Record<string, unknown> {
+  const catalog = sampleCatalog();
+  const products = catalog.products as Record<string, unknown>[];
+  products.push({
+    ma: "S06",
+    type: "S",
+    titleVn: "Set",
+    titleEn: "Set",
+    priceUsd: 25,
+    qty: 1,
+    status: "available",
+    colors: [],
+    images: [],
+    sizes: ["S"],
+  });
+  return catalog;
+}
+
 function listen(server: Server): Promise<number> {
   return new Promise((resolve, reject) => {
     server.listen(0, "127.0.0.1", () => {
@@ -324,6 +342,33 @@ test("signed-in catalog route reads a local file and does not require the intake
     }
   } finally {
     rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("shop save refuses every S06 dollar other than 25", async () => {
+  for (const priceUsd of [0, 24, 26, 40, 99, 25.5]) {
+    const document = s06Catalog();
+    const before = JSON.stringify(document);
+    const patch = applyShopCatalogPatch(document, { ma: "S06", priceUsd }, "t");
+    assert.equal(patch.ok, false, String(priceUsd));
+    if (!patch.ok) assert.match(patch.error, /\$25/);
+    assert.equal(JSON.stringify(document), before);
+    const port = memoryShopCatalogPort(s06Catalog());
+    const snapshot = port.snapshot();
+    const saved = await saveShopCatalogProduct(port, { ma: "S06", priceUsd });
+    assert.equal(saved.ok, false, String(priceUsd));
+    if (!saved.ok) assert.match(saved.error, /\$25/);
+    assert.equal(saved.blobWritten, false);
+    assert.equal(port.snapshot(), snapshot);
+  }
+
+  const kept = applyShopCatalogPatch(s06Catalog(), { ma: "S06", priceUsd: 25, titleEn: "Still twenty-five" }, "t");
+  assert.equal(kept.ok, true);
+  if (kept.ok) {
+    const written = JSON.parse(kept.json) as { products: { ma: string; priceUsd: number; titleEn: string }[] };
+    const row = written.products.find((product) => product.ma === "S06");
+    assert.equal(row?.priceUsd, 25);
+    assert.equal(row?.titleEn, "Still twenty-five");
   }
 });
 

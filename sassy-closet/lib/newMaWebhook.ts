@@ -1,5 +1,6 @@
 import { after } from "next/server";
 import { assertNever } from "./kinds";
+import { publishBlock } from "./publish-guard";
 
 export const NEW_MA_WEBHOOK_TIMEOUT_MS = 3_000;
 
@@ -69,6 +70,7 @@ export async function notifyNewMaWebhook(input: NewMaWebhookInput): Promise<void
     const url = readEnv("NEW_MA_WEBHOOK_URL");
     const token = readEnv("NEW_MA_WEBHOOK_TOKEN");
     if (!url || !token || !ma.trim()) return;
+    if (publishBlock({ action: event, ma })) return;
     if (!isHttpsWebhookUrl(url)) {
       logFailure(event, ma, "skip");
       return;

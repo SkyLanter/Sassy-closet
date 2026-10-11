@@ -4,10 +4,12 @@ on:
   push:
     paths:
       - "sassy-closet-shop/**"
+      - "data/held.json"
       - ".github/workflows/sassy-closet-shop.yml"
   pull_request:
     paths:
       - "sassy-closet-shop/**"
+      - "data/held.json"
       - ".github/workflows/sassy-closet-shop.yml"
 
 jobs:

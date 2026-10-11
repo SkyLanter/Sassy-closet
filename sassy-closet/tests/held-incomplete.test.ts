@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
+import held from "../../data/held.json";
 import { HELD_INCOMPLETE_MAS, isHeldIncompleteMa } from "../lib/held-incomplete";
 
-const EXPECTED = ["S14", "A24", "A25", "S15", "A26", "K02", "K03", "K04", "K05", "V04"] as const;
-const LIST_LINE = EXPECTED.join(", ");
+const LIST_LINE = held.heldIncomplete.join(", ");
 
 const LIST_FILES = [
   "docs/SHOP_ADMIN.md",
@@ -15,8 +15,10 @@ const LIST_FILES = [
   "../sassy-closet-shop/README.md",
 ] as const;
 
-test("held incomplete config names all ten unfinished mãs", () => {
-  assert.deepEqual([...HELD_INCOMPLETE_MAS], [...EXPECTED]);
+test("held incomplete config loads data/held.json, including K06 and V05", () => {
+  assert.deepEqual([...HELD_INCOMPLETE_MAS], [...held.heldIncomplete]);
+  assert.ok(HELD_INCOMPLETE_MAS.includes("K06"));
+  assert.ok(HELD_INCOMPLETE_MAS.includes("V05"));
   assert.equal(isHeldIncompleteMa("s15"), true);
   assert.equal(isHeldIncompleteMa("A26"), true);
   assert.equal(isHeldIncompleteMa("K02"), true);
@@ -24,8 +26,15 @@ test("held incomplete config names all ten unfinished mãs", () => {
   assert.equal(isHeldIncompleteMa("k04"), true);
   assert.equal(isHeldIncompleteMa("K05"), true);
   assert.equal(isHeldIncompleteMa("V04"), true);
+  assert.equal(isHeldIncompleteMa("K06"), true);
+  assert.equal(isHeldIncompleteMa("v05"), true);
   assert.equal(isHeldIncompleteMa("S06"), false);
   assert.equal(isHeldIncompleteMa("Q02"), false);
+  assert.equal(isHeldIncompleteMa("A07"), false);
+  assert.equal(isHeldIncompleteMa("S10"), false);
+  const source = readFileSync(new URL("../lib/held-incomplete.ts", import.meta.url), "utf8");
+  assert.match(source, /data\/held\.json/);
+  assert.equal(source.includes('["S14"'), false);
 });
 
 test("docs and config lists enumerate every held incomplete mã", () => {

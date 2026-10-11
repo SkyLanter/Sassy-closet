@@ -1,7 +1,12 @@
 import type { NextConfig } from "next";
+import path from "node:path";
 import { SHOP_REMOTE_IMAGE_PATTERNS } from "./lib/image-hosts";
 
 const nextConfig: NextConfig = {
+  turbopack: {
+    // Held mãs live in repo-root data/held.json, outside this app directory.
+    root: path.join(import.meta.dirname, ".."),
+  },
   allowedDevOrigins: ["127.0.0.1"],
   images: {
     // WebP only. AVIF plus WebP asks the optimizer for two files per size.

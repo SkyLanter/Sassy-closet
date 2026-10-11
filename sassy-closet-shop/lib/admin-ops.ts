@@ -15,6 +15,7 @@ import { assertColorsReadyForSell, isAllowedImageSrc, parseProduct } from "@/lib
 import { assertUniqueNormalizedMas, looksLikeOfficialMa } from "@/lib/catalog-integrity";
 import { assertHoldPricePairing, isSellableMa, nonAllowlistSaveError } from "@/lib/sell-contract";
 import { isKnownSeedMa } from "@/lib/catalog-contract";
+import { isOffLiveSell } from "@/lib/held-incomplete";
 import { warehouseVoiceError } from "@/lib/warehouse-voice";
 import type {
   AsiaSizeLetter,
@@ -156,6 +157,9 @@ export function addProductToCatalog(
     letter,
     catalog.map((product) => product.ma),
   );
+  if (isOffLiveSell(ma)) {
+    return { ok: false, error: `Cannot mint ${ma}.` };
+  }
   if (!isSellableMa(ma) || looksLikeOfficialMa(ma)) {
     return { ok: false, error: nonAllowlistSaveError(ma) };
   }
@@ -184,6 +188,9 @@ export function saveProductInCatalog(
   const index = catalog.findIndex((product) => product.ma === ma);
   if (index < 0) {
     return { ok: false, error: `Mã ${ma} is not in the catalog` };
+  }
+  if (ma === "S06" && input.priceUsd !== 25) {
+    return { ok: false, error: "S06 stays $25." };
   }
   try {
     const next = productFromFields(ma, input);

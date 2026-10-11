@@ -1,3 +1,4 @@
+import { isOffLiveSell } from "@/lib/held-incomplete";
 import { shopSafeProduct } from "@/lib/sell-contract";
 import { toShopLook, type ShopLook } from "@/lib/shop-look";
 import { SITE } from "@/lib/site";
@@ -74,7 +75,7 @@ export function isShopVisibleStatus(status: ProductStatus): boolean {
 
 export function shopVisibleProducts(products: Product[]): Product[] {
   return products
-    .filter((product) => isShopVisibleStatus(product.status))
+    .filter((product) => isShopVisibleStatus(product.status) && !isOffLiveSell(product.ma))
     .map(shopSafeProduct);
 }
 
