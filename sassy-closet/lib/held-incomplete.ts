@@ -7,6 +7,8 @@ import held from "../../data/held.json";
 
 export const HELD_INCOMPLETE_MAS: readonly string[] = held.heldIncomplete;
 
+export const NEVER_LIST_MAS: readonly string[] = held.neverList;
+
 export type HeldIncompleteMa = (typeof HELD_INCOMPLETE_MAS)[number];
 
 const HELD_INCOMPLETE_SET: ReadonlySet<string> = new Set(

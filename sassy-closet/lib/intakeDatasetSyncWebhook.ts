@@ -1,4 +1,5 @@
 import { assertNever } from "./kinds";
+import { publishBlock } from "./publish-guard";
 import type { Submission } from "./types";
 
 export const INTAKE_DATASET_SYNC_TIMEOUT_MS = 8_000;
@@ -81,6 +82,9 @@ export async function notifyIntakeDatasetSyncWebhook(
     const url = readWebhookUrl();
     const key = readWebhookKey();
     if (!url || !key) return;
+    if (publishBlock({ action: event === "create" ? "create" : "sync", ma: row.ma, sellUsd: row.sell_usd })) {
+      return;
+    }
 
     const payload = buildIntakeDatasetSyncPayload(event, row);
     const response = await fetch(url, {

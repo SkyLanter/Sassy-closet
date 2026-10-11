@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { isKindCode, kindLabel, sizeOptionsLine } from "./kinds";
 import { notifyIntakeDatasetSyncWebhook } from "./intakeDatasetSyncWebhook";
 import { formatMa, maExists, nextMa, normalizeMa, parseHubMa } from "./mint";
+import { mintBlock, publishBlock } from "./publish-guard";
 import { normalizeSourceLink } from "./source-link";
 import { sanitizeOnHandRows } from "./on-hand";
 import { buildCaptionVi } from "./captions";
@@ -114,6 +115,14 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
     newMa: input.newMa,
     mas,
   });
+  const blocked = publishBlock({
+    action: existing ? "update" : "create",
+    ma,
+    sellUsd: input.sell_usd,
+  });
+  if (blocked) {
+    throw Object.assign(new Error(`Không lưu ${ma} (${blocked}).`), { status: 409 });
+  }
 
   const now = new Date().toISOString();
   const photoPaths = [...input.keep_photos];
@@ -257,6 +266,15 @@ function csvCell(value: string): string {
   return value;
 }
 
+function guardedMint(kind: KindCode, mas: string[]): string {
+  const blocked = mintBlock(kind, mas);
+  if (blocked) {
+    const ma = nextMa(kind, mas);
+    throw Object.assign(new Error(`Không mint ${ma} (${blocked}).`), { status: 409 });
+  }
+  return nextMa(kind, mas);
+}
+
 function resolveSaveMa(input: {
   kind: KindCode;
   existing: Submission | null;
@@ -266,11 +284,15 @@ function resolveSaveMa(input: {
   const raw = (input.newMa ?? "").trim();
   if (!raw) {
     if (input.existing) return input.existing.ma;
-    return nextMa(input.kind, input.mas);
+    return guardedMint(input.kind, input.mas);
   }
   const parsed = parseHubMa(raw);
   if (parsed) {
     const formatted = formatMa(parsed.kind, parsed.n);
+    const blocked = publishBlock({ action: input.existing ? "update" : "create", ma: formatted });
+    if (blocked) {
+      throw Object.assign(new Error(`Không lưu ${formatted} (${blocked}).`), { status: 409 });
+    }
     if (input.existing && formatted === input.existing.ma) return formatted;
     if (maExists(input.mas, formatted, input.existing?.ma)) {
       throw Object.assign(new Error(`Mã ${formatted} đã có rồi — không gộp nha 💕`), {
@@ -280,9 +302,7 @@ function resolveSaveMa(input: {
     return formatted;
   }
   if (isKindCode(raw.toUpperCase())) {
-    const minted = nextMa(raw.toUpperCase() as KindCode, input.mas);
-    if (input.existing && minted === input.existing.ma) return minted;
-    return minted;
+    return guardedMint(raw.toUpperCase() as KindCode, input.mas);
   }
   throw Object.assign(
     new Error("Mã mới: chữ P (ra P kế) hoặc đủ số kiểu P10 nha 💕"),

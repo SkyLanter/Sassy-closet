@@ -3,6 +3,8 @@
 Read-only. The only files this writes are out/dataset-freshness-YYYY-MM-DD.md
 and the JSON sibling. Guard failures exit 1. A Taobao login wall is SKIP,
 not FAIL. Intake ¥ flags are reported and do not change the exit code.
+Meta is fixture-only: logged out is NOTE, and login reads captions. No
+Meta sign-in, create, delete, or edit. Pickup decisions do not publish.
 
 PDP hosts are the primary sell host and the alias the shop already checks:
 https://sassycloset.vercel.app and https://sassy-closet-shop.vercel.app.
@@ -22,15 +24,24 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
 
-_KIT_ROOT = Path(__file__).resolve().parents[1] / "excel-kit"
+_ROOT = Path(__file__).resolve().parents[1]
+_KIT_ROOT = _ROOT / "excel-kit"
+_SCRIPTS = Path(__file__).resolve().parent
+if str(_SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS))
 if str(_KIT_ROOT) not in sys.path:
     sys.path.insert(0, str(_KIT_ROOT))
+
+from runtime_check import ensure_runtime
+
+ensure_runtime(_ROOT / "out")
 
 from openpyxl import load_workbook
 from schema import header_row_for_sheet, read_headers, resolve_header_key
 
 from held_policy import HeldPolicy, load_held_policy
 from intake_flags import IntakeFlag, IntakeRow, PublicCny, flag_intake
+from pickup import PickupDecision, PickupEvent, events_from_json, plan_pickups
 
 PRIMARY_ORIGIN = "https://sassycloset.vercel.app"
 ALIAS_ORIGIN = "https://sassy-closet-shop.vercel.app"
@@ -72,6 +83,24 @@ class TaobaoView:
     state: str
     public_cny: Decimal | None = None
     detail: str = ""
+    promo_cny: Decimal | None = None
+    final_cny: Decimal | None = None
+
+
+@dataclass(frozen=True)
+class MetaPost:
+    caption: str
+    gia: str | None
+    priced: bool
+    held: bool
+
+    def as_json(self) -> dict[str, object]:
+        return {
+            "caption": self.caption,
+            "gia": self.gia,
+            "priced": self.priced,
+            "held": self.held,
+        }
 
 
 @dataclass
@@ -86,6 +115,10 @@ class Snapshot:
     hub_state: SourceState
     pdp: dict[str, dict[str, PdpView]]
     taobao: list[TaobaoView] = field(default_factory=list)
+    taobao_mode: str = "logged-out"
+    meta_mode: str = "logged-out"
+    meta_posts: tuple[MetaPost, ...] = ()
+    pickup_events: list[PickupEvent] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -105,6 +138,8 @@ class Report:
     flags: list[IntakeFlag]
     rows: list[dict[str, object]]
     sources: dict[str, SourceState]
+    pickup: list[PickupDecision] = field(default_factory=list)
+    meta_reads: list[MetaPost] = field(default_factory=list)
 
     @property
     def guards_pass(self) -> bool:
@@ -256,6 +291,81 @@ def parse_taobao_cny(html: str) -> Decimal | None:
     return None
 
 
+def parse_taobao_promo(html: str) -> Decimal | None:
+    return _first_decimal(
+        html,
+        (
+            r'"promoPrice"\s*:\s*"(\d+(?:\.\d{1,2})?)"',
+            r'"promotionPrice"\s*:\s*"(\d+(?:\.\d{1,2})?)"',
+            r'"salePrice"\s*:\s*"(\d+(?:\.\d{1,2})?)"',
+        ),
+    )
+
+
+def parse_taobao_final(html: str) -> Decimal | None:
+    return _first_decimal(html, (r'"finalPrice"\s*:\s*"(\d+(?:\.\d{1,2})?)"',))
+
+
+def _first_decimal(html: str, patterns: tuple[str, ...]) -> Decimal | None:
+    for pattern in patterns:
+        match = re.search(pattern, html)
+        if match:
+            return Decimal(match.group(1))
+    return None
+
+
+_GIA_RE = re.compile(r"Giá\s*:?\s*([^\n]+)", re.IGNORECASE)
+_GIA_PRICE_RE = re.compile(r"^\$?\s*\d+(?:\.\d+)?$")
+TAOBAO_MODES = ("logged-out", "login")
+META_MODES = ("logged-out", "login")
+
+
+def read_meta_caption(caption: str, held: bool) -> MetaPost:
+    match = _GIA_RE.search(caption)
+    gia = match.group(1).strip() if match else None
+    priced = bool(gia and _GIA_PRICE_RE.match(gia.replace(" ", "")))
+    return MetaPost(caption=caption, gia=gia, priced=priced, held=held)
+
+
+def meta_source(mode: str, posts: tuple[MetaPost, ...]) -> tuple[SourceState, tuple[MetaPost, ...]]:
+    if mode == "logged-out":
+        return SourceState("note", "NOTE logged out; captions not read"), ()
+    if mode == "login":
+        if not posts:
+            return SourceState("note", "NOTE login mode is fixture-only; not signing in"), ()
+        return SourceState("ok", f"NOTE {len(posts)} fixture posts; no sign-in"), posts
+    raise ValueError("meta mode must be logged-out or login")
+
+
+def _mode_value(value: object, fallback: str, allowed: tuple[str, ...]) -> str:
+    if value is None:
+        return fallback
+    chosen = str(value).strip() or fallback
+    if chosen not in allowed:
+        raise ValueError(f"mode must be {' or '.join(allowed)}")
+    return chosen
+
+
+def _meta_posts_from_json(value: object) -> tuple[MetaPost, ...]:
+    if value is None:
+        return ()
+    if not isinstance(value, list):
+        raise ValueError("fixture metaPosts must be a list")
+    posts: list[MetaPost] = []
+    for item in value:
+        if not isinstance(item, dict) or not isinstance(item.get("caption"), str):
+            raise ValueError("fixture meta post needs a caption")
+        posts.append(read_meta_caption(item["caption"], bool(item.get("held", False))))
+    return tuple(posts)
+
+
+def resolve_mode(cli: str | None, env_name: str, fallback: str, allowed: tuple[str, ...]) -> str:
+    chosen = cli if cli else os.environ.get(env_name, "").strip() or fallback
+    if chosen not in allowed:
+        raise ValueError(f"{env_name} must be {' or '.join(allowed)}")
+    return chosen
+
+
 def classify_taobao(status: int, html: str) -> TaobaoView:
     if status != 200 or taobao_blocked(html):
         return TaobaoView("", "skip", None, "login-walled or unreachable")
@@ -311,10 +421,17 @@ def evaluate(snapshot: Snapshot, policy: HeldPolicy | None = None) -> Report:
                 )
             )
     _guard_s06(snapshot, guards)
+    _guard_duplicate_rows(snapshot.blob_rows, "blob", guards)
+    _guard_duplicate_rows(snapshot.hub_rows, "hub", guards)
     public = {
         item.ma: PublicCny(item.state, item.public_cny, item.detail) for item in snapshot.taobao
     }
     flags = flag_intake(snapshot.intake, public)
+    decisions = plan_pickups(snapshot.pickup_events, rules)
+    flags.extend(_pickup_flags(decisions))
+    flags.extend(_login_price_flags(snapshot))
+    _guard_pickup(decisions, snapshot.blob_rows, guards)
+    meta_state, meta_reads = meta_source(snapshot.meta_mode, snapshot.meta_posts)
     return Report(
         day=snapshot.day,
         guards=guards,
@@ -324,8 +441,60 @@ def evaluate(snapshot: Snapshot, policy: HeldPolicy | None = None) -> Report:
             "intake": snapshot.intake_state,
             "blob": snapshot.blob_state,
             "hub": snapshot.hub_state,
+            "meta": meta_state,
         },
+        pickup=decisions,
+        meta_reads=list(meta_reads),
     )
+
+
+def _guard_duplicate_rows(rows: list[MoneyRow] | None, source: str, guards: list[Guard]) -> None:
+    if rows is None:
+        return
+    counts: dict[str, int] = {}
+    s06_prices: list[Decimal | None] = []
+    for row in rows:
+        counts[row.ma] = counts.get(row.ma, 0) + 1
+        if row.ma == S06:
+            s06_prices.append(row.price_usd)
+    for ma, count in counts.items():
+        if count > 1:
+            guards.append(Guard(f"duplicate:{source}:{ma}", False, f"{count} rows"))
+    other = [price for price in s06_prices if price != S06_USD]
+    if len(s06_prices) > 1 and other:
+        guards.append(Guard(f"s06-second-dollar:{source}", False, "second S06 row at another dollar"))
+
+
+def _guard_pickup(decisions: list[PickupDecision], blob_rows: list[MoneyRow] | None, guards: list[Guard]) -> None:
+    present = {row.ma for row in blob_rows} if blob_rows is not None else set()
+    for decision in decisions:
+        if decision.blocks_live and decision.ma in present:
+            guards.append(Guard(f"off-live:{decision.ma}", False, "on Blob without a live publish"))
+        if any(flag in {"duplicate", "reused", "never_list", "s06_lock", "no_reprice", "held"} for flag in decision.flags):
+            guards.append(Guard(f"publish-block:{decision.ma}:{decision.flags[0]}", False, decision.detail))
+
+
+def _pickup_flags(decisions: list[PickupDecision]) -> list[IntakeFlag]:
+    flags: list[IntakeFlag] = []
+    for decision in decisions:
+        for flag in decision.flags:
+            flags.append(IntakeFlag(decision.ma, flag, decision.stored_cny))
+    return flags
+
+
+def _login_price_flags(snapshot: Snapshot) -> list[IntakeFlag]:
+    if snapshot.taobao_mode != "login":
+        return []
+    intake = {row.ma.strip().upper(): row for row in snapshot.intake}
+    flags: list[IntakeFlag] = []
+    for item in snapshot.taobao:
+        row = intake.get(item.ma)
+        stored = "" if row is None or row.cost_cny is None else row.cost_cny
+        if item.promo_cny is not None:
+            flags.append(IntakeFlag(item.ma, "promo_cny", stored, money_text(item.promo_cny)))
+        if item.final_cny is not None:
+            flags.append(IntakeFlag(item.ma, "final_cny", stored, money_text(item.final_cny)))
+    return flags
 
 
 def _guard_s06(snapshot: Snapshot, guards: list[Guard]) -> None:
@@ -428,6 +597,24 @@ def render_markdown(report: Report) -> str:
     for name, source in report.sources.items():
         detail = f" — {source.detail}" if source.detail else ""
         lines.append(f"- {name}: {source.state}{detail}")
+    lines.extend(["", "## Pickup", ""])
+    if not report.pickup:
+        lines.append("None.")
+    else:
+        for decision in report.pickup:
+            quoted = "—" if decision.quoted_usd is None else str(decision.quoted_usd)
+            lines.append(
+                f"- {decision.ma} held={decision.held} live={decision.live} "
+                f"publish={decision.publish} quote={quoted} flags={','.join(decision.flags) or '—'}"
+            )
+    lines.extend(["", "## Meta", ""])
+    meta = report.sources.get("meta")
+    if meta is None:
+        lines.append("None.")
+    else:
+        lines.append(f"- {meta.state} — {meta.detail}")
+    for post in report.meta_reads:
+        lines.append(f"- held={post.held} priced={post.priced} Giá {post.gia}")
     lines.extend(["", "## Intake ¥ flags", ""])
     if not report.flags:
         lines.append("None.")
@@ -496,6 +683,8 @@ def report_json(report: Report) -> dict[str, object]:
         "flags": [flag.as_json() for flag in report.flags],
         "sources": {name: source.as_json() for name, source in report.sources.items()},
         "rows": report.rows,
+        "pickup": [decision.as_json() for decision in report.pickup],
+        "meta": [post.as_json() for post in report.meta_reads],
     }
 
 
@@ -528,6 +717,10 @@ def snapshot_from_json(payload: object) -> Snapshot:
         hub_state=_source_block_state(payload.get("hub"), "hub"),
         pdp=_pdp_from_json(payload.get("pdp", {})),
         taobao=_taobao_from_json(payload.get("taobao", [])),
+        taobao_mode=_mode_value(payload.get("taobaoMode"), "logged-out", TAOBAO_MODES),
+        meta_mode=_mode_value(payload.get("metaMode"), "logged-out", META_MODES),
+        meta_posts=_meta_posts_from_json(payload.get("metaPosts", [])),
+        pickup_events=events_from_json(payload.get("pickup", [])),
     )
 
 
@@ -613,12 +806,16 @@ def _taobao_from_json(value: object) -> list[TaobaoView]:
             raise ValueError("fixture taobao row needs a mã")
         state = str(item.get("state", "skip"))
         raw = item.get("public_cny")
+        promo = item.get("promo_cny")
+        final = item.get("final_cny")
         rows.append(
             TaobaoView(
                 item["ma"].strip().upper(),
                 state,
                 None if raw is None else Decimal(str(raw)),
                 "" if item.get("detail") is None else str(item.get("detail")),
+                None if promo is None else Decimal(str(promo)),
+                None if final is None else Decimal(str(final)),
             )
         )
     return rows
@@ -646,6 +843,8 @@ def fetch_live(day: str) -> Snapshot:
         hub_state=hub_state,
         pdp=pdp,
         taobao=taobao,
+        taobao_mode="logged-out",
+        meta_mode="logged-out",
     )
 
 
@@ -742,7 +941,12 @@ def _fetch_taobao(row: IntakeRow) -> TaobaoView:
     if error:
         return TaobaoView(code, "skip", None, "login-walled or unreachable")
     classified = classify_taobao(status, body)
-    return TaobaoView(code, classified.state, classified.public_cny, classified.detail)
+    promo = None
+    final = None
+    if status == 200 and body and not taobao_blocked(body):
+        promo = parse_taobao_promo(body)
+        final = parse_taobao_final(body)
+    return TaobaoView(code, classified.state, classified.public_cny, classified.detail, promo, final)
 
 
 def _http_get(url: str, timeout: float = 20) -> tuple[int, str, str | None]:
@@ -769,6 +973,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--date", default=datetime.now(timezone.utc).date().isoformat())
     parser.add_argument("--out", default="out")
     parser.add_argument("--fixture", help="Snapshot JSON. Skips the network.")
+    parser.add_argument("--mode", help="Taobao mode: logged-out or login. Env SASSY_TAOBAO_MODE.")
+    parser.add_argument("--meta", help="Meta mode: logged-out or login. Fixtures only. Env SASSY_META_MODE.")
     args = parser.parse_args(argv)
     if re.fullmatch(r"\d{4}-\d{2}-\d{2}", args.date) is None:
         print("date must be YYYY-MM-DD", file=sys.stderr)
@@ -779,6 +985,12 @@ def main(argv: list[str] | None = None) -> int:
             snapshot.day = args.date
         else:
             snapshot = fetch_live(args.date)
+            snapshot.meta_posts = ()
+        snapshot.taobao_mode = resolve_mode(args.mode, "SASSY_TAOBAO_MODE", snapshot.taobao_mode, TAOBAO_MODES)
+        snapshot.meta_mode = resolve_mode(args.meta, "SASSY_META_MODE", snapshot.meta_mode, META_MODES)
+        if not args.fixture:
+            snapshot.meta_mode = "logged-out"
+            snapshot.meta_posts = ()
         report = evaluate(snapshot)
     except (OSError, ValueError, json.JSONDecodeError) as error:
         print(str(error), file=sys.stderr)
