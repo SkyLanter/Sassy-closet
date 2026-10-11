@@ -5,7 +5,8 @@ m = 0.25 when the resulting sell is >= $45.
 Between those, m moves in a straight line.
 sell = ceil(landed / (1 - m)).
 When that ceil is under $10, add $2.
-The margin uses the resulting sell, so the quote is the fixed point of that rule.
+The margin uses the resulting sell. The quote is the smallest whole dollar
+that does not undercut that sell: sell >= quote_from_sell(landed, sell).
 
 This module reads data/held.json and does not write intake, Blob, the hub,
 Square, or Meta. It does not change a stored ¥.
@@ -55,21 +56,21 @@ def _money(value: Decimal | int | str | float) -> Decimal:
 
 
 def price(landed: Decimal | int | str | float) -> int:
-    """Return the tiered sell in whole dollars. Refuse a non-positive landed cost."""
+    """Smallest whole-dollar sell that does not undercut. Refuse a non-positive landed cost."""
     money = _money(landed)
     if money <= 0:
         raise ValueError("landed cost must be positive; refusing to invent a sell price")
-    upper = max(quote_from_sell(money, LOW_SELL), quote_from_sell(money, HIGH_SELL)) + 5
-    matches = [sell for sell in range(1, upper + 1) if quote_from_sell(money, sell) == sell]
-    if len(matches) == 1:
-        return matches[0]
-    if len(matches) > 1:
-        raise RuntimeError(f"multiple sell fixed points for landed {money}: {matches}")
-    start = quote_from_sell(money, LOW_SELL)
-    nxt = quote_from_sell(money, start)
-    if quote_from_sell(money, nxt) == start:
-        return max(start, nxt)
-    return start
+    # A 2-cycle has no exact dollar. Its higher dollar is the smallest one
+    # that does not undercut (16.26 → 26, 19.50 → 30). The old fallback
+    # returned the raw 35% quote instead (30 → 47, 33 → 51, 19.51 → 31).
+    # The low-end margin produces the usual highest quote. The under-$10 bump
+    # can lift a neighbor by $2, so the search runs a little past that quote.
+    ceiling = quote_from_sell(money, 1) + UNDER_TEN_BUMP
+    for sell in range(1, ceiling + 1):
+        quoted = quote_from_sell(money, sell)
+        if sell >= quoted:
+            return sell
+    raise RuntimeError(f"no non-undercutting sell for landed {money}")
 
 
 @dataclass(frozen=True)

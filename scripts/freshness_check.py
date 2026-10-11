@@ -233,6 +233,13 @@ def taobao_blocked(html: str) -> bool:
     return False
 
 
+_ITEM_URL_PRICE_RE = re.compile(
+    r"""https?://(?:item\.taobao\.com|detail\.tmall\.com)/item\.htm\?"""
+    r"""(?:[^'"\s<>]|&amp;)*?(?:\?|&|&amp;)price=(\d+(?:\.\d{1,2})?)""",
+    flags=re.IGNORECASE,
+)
+
+
 def parse_taobao_cny(html: str) -> Decimal | None:
     for pattern in (
         r'"defaultItemPrice"\s*:\s*"(\d+(?:\.\d{1,2})?)"',
@@ -243,6 +250,9 @@ def parse_taobao_cny(html: str) -> Decimal | None:
         match = re.search(pattern, html)
         if match:
             return Decimal(match.group(1))
+    embedded = _ITEM_URL_PRICE_RE.search(html)
+    if embedded:
+        return Decimal(embedded.group(1))
     return None
 
 

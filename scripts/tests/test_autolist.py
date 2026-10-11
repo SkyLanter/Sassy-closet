@@ -58,6 +58,29 @@ def test_middle_band_fixed_point() -> None:
 
 def test_gap_between_bands_does_not_undercut() -> None:
     assert price(Decimal("16.26")) == 26
+    assert price(Decimal("19.50")) == 30
+
+
+def test_raw_35_percent_quote_is_replaced_when_it_undercuts() -> None:
+    """Old line 72 returned the raw 35% quote: 30→47, 33→51, 19.51→31."""
+    cases = (
+        (Decimal("30"), 42),
+        (Decimal("33"), 45),
+        (Decimal("19.51"), 30),
+    )
+    for landed, expected in cases:
+        sell = price(landed)
+        assert sell == expected
+        assert sell >= quote_from_sell(landed, sell)
+        assert quote_from_sell(landed, sell - 1) > sell - 1
+    quoted = listing_quote("A07", Decimal("30"))
+    assert quoted.action == "quote"
+    assert quoted.sell_usd == 42
+    assert listing_quote("S06", Decimal("30")).sell_usd == 25
+    skipped = listing_quote("V05", Decimal("30"))
+    assert skipped.action == "skip"
+    assert skipped.sell_usd is None
+    assert price(Decimal("19.58")) == 30
 
 
 def test_non_positive_landed_is_refused() -> None:

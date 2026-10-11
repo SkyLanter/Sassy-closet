@@ -17,6 +17,7 @@ from freshness_check import (
     classify_taobao,
     evaluate,
     parse_pdp_price,
+    parse_taobao_cny,
     read_hub_official,
     render_markdown,
     report_json,
@@ -197,6 +198,24 @@ def test_cli_writes_sibling_reports_and_exit_codes(tmp_path: Path) -> None:
     )
     assert failed.returncode == 1
     assert json.loads(sibling.read_text(encoding="utf-8"))["guardsPass"] is False
+
+
+def test_bridge_item_url_price_without_json_fields() -> None:
+    html = (
+        "var url = 'https://item.taobao.com/item.htm?id=1&sourceType=item&price=59.9&suid=abc';"
+        + (" " * 2100)
+    )
+    assert "defaultItemPrice" not in html
+    assert "priceText" not in html
+    assert "reservePrice" not in html
+    assert '"price"' not in html
+    assert parse_taobao_cny(html) == Decimal("59.9")
+    parsed = classify_taobao(200, html)
+    assert parsed.state == "ok"
+    assert parsed.public_cny == Decimal("59.9")
+    wall = classify_taobao(200, "访问受限" + html)
+    assert wall.state == "skip"
+    assert wall.public_cny is None
 
 
 def test_taobao_login_wall_is_skip_and_public_price_parses() -> None:
