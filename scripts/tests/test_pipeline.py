@@ -9,7 +9,9 @@ import sys
 from pathlib import Path
 
 import freshness_check
-from freshness_check import evaluate, main, snapshot_from_json
+from autolist import listing_quote
+from freshness_check import classify_taobao, evaluate, main, snapshot_from_json
+from pickup import landed_usd_from_cny
 from test_freshness_check import _passing_payload
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -101,7 +103,9 @@ def test_incomplete_taobao_is_held_and_not_quoted() -> None:
         assert decision.publish is False
     assert report.guards_pass
 
-    walled, _payload = _report([_complete("Z94", public_cny=None, taobao_state="skip")])
+    walled, _payload = _report(
+        [_complete("Z94", public_cny=None, taobao_state="skip", detail="login-walled or unreachable")]
+    )
     assert walled.pickup[0].flags == ("boss_approval",)
     assert "missing_yen" not in walled.pickup[0].flags
     assert walled.pickup[0].quoted_usd == 25
@@ -333,3 +337,151 @@ def test_q02_s06_held_and_reprice_do_not_publish() -> None:
     assert same.pickup[0].publish is False
     assert same.pickup[0].flags == ()
     assert same.guards_pass
+
+
+def _z99_fixture() -> dict:
+    payload = _passing_payload()
+    payload["intake"].append(
+        {
+            "ma": "Z99",
+            "cost_cny": "88",
+            "sell_usd": "",
+            "link": "https://e.tb.cn/h.fixtureZ99",
+        }
+    )
+    payload["taobao"].append(
+        {
+            "ma": "Z99",
+            "state": "ok",
+            "public_cny": "88",
+            "title": "fixture set",
+            "colors": ["den", "trang"],
+            "sizes": ["S", "M"],
+            "gallery": [
+                "https://example.invalid/z99-1.jpg",
+                "https://example.invalid/z99-2.jpg",
+                "https://example.invalid/z99-3.jpg",
+            ],
+        }
+    )
+    assert "pickup" not in payload
+    return payload
+
+
+def test_natural_fixture_quotes_and_holds_new_ma(tmp_path: Path) -> None:
+    before = (ROOT / "data" / "held.json").read_bytes()
+    payload = _z99_fixture()
+    original = json.dumps(payload)
+    report = evaluate(snapshot_from_json(payload))
+    decision = next(item for item in report.pickup if item.ma == "Z99")
+    landed = landed_usd_from_cny("Z99", "88")
+    assert listing_quote("Z99", landed).sell_usd == 21
+    assert decision.held is True
+    assert decision.live is False
+    assert decision.publish is False
+    assert decision.quoted_usd == 21
+    assert decision.flags == ("boss_approval",)
+    assert decision.stored_cny == "88"
+    assert any(
+        flag.ma == "Z99" and flag.kind == "boss_approval" and flag.stored == "88" for flag in report.flags
+    )
+    assert report.guards_pass
+    row = next(item for item in report.rows if item["ma"] == "Z99")
+    assert row["intakeCny"] == "88"
+    text = freshness_check.render_markdown(report)
+    assert "quote=21" in text
+    assert "boss_approval" in text
+    pickup_section = text.split("## Pickup", 1)[1].split("##", 1)[0]
+    assert "None." not in pickup_section
+    assert (ROOT / "data" / "held.json").read_bytes() == before
+
+    fixture = tmp_path / "z99.json"
+    fixture.write_text(original, encoding="utf-8")
+    out = tmp_path / "out"
+    env = {key: value for key, value in os.environ.items() if key not in {"SASSY_TAOBAO_MODE", "SASSY_META_MODE"}}
+    ran = subprocess.run(
+        [
+            sys.executable,
+            str(ROOT / "scripts" / "freshness_check.py"),
+            "--fixture",
+            str(fixture),
+            "--out",
+            str(out),
+            "--date",
+            "2026-10-11",
+        ],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+        env=env,
+    )
+    assert ran.returncode == 0, ran.stderr
+    assert fixture.read_text(encoding="utf-8") == original
+    saved = json.loads((out / "dataset-freshness-2026-10-11.json").read_text(encoding="utf-8"))
+    picked = next(item for item in saved["pickup"] if item["ma"] == "Z99")
+    assert picked["quotedUsd"] == 21
+    assert picked["held"] is True
+    assert picked["publish"] is False
+    assert picked["flags"] == ["boss_approval"]
+    assert (ROOT / "data" / "held.json").read_bytes() == before
+
+
+def test_natural_new_ma_on_blob_fails_guards() -> None:
+    payload = _z99_fixture()
+    payload["blob"]["rows"].append({"ma": "Z99", "price_usd": "21"})
+    payload["hub"]["rows"].append({"ma": "Z99", "price_usd": "21"})
+    for origin in payload["origins"]:
+        payload["pdp"].setdefault("Z99", {})[origin] = {"status": 200, "price_usd": "21"}
+    before = (ROOT / "data" / "held.json").read_bytes()
+    report = evaluate(snapshot_from_json(payload))
+    decision = next(item for item in report.pickup if item.ma == "Z99")
+    assert report.guards_pass is False
+    assert decision.quoted_usd == 21
+    assert decision.held is True
+    assert decision.publish is False
+    assert decision.live is False
+    failed = {guard.name for guard in report.guards if not guard.ok}
+    assert "off-live:Z99" in failed
+    assert (ROOT / "data" / "held.json").read_bytes() == before
+
+
+def test_no_public_yen_page_is_not_quoted() -> None:
+    page = "Size: S\n<img src=\"photo.jpg\">" + ("." * 2400)
+    classified = classify_taobao(200, page)
+    assert classified.state == "skip"
+    assert classified.public_cny is None
+    assert "no public ¥" in classified.detail
+    report, _payload = _report(
+        [
+            _complete("A90", cost_cny="88", landed_usd="19.50", public_cny="88"),
+            _complete(
+                "A93",
+                cost_cny="88",
+                landed_usd="19.50",
+                sizes=["S", "M"],
+                photo_count=2,
+                public_cny=None,
+                taobao_state=classified.state,
+                detail=classified.detail,
+            ),
+            _complete(
+                "A94",
+                cost_cny="88",
+                landed_usd="19.50",
+                sizes=["S", "M"],
+                photo_count=2,
+                public_cny=None,
+                taobao_state="skip",
+            ),
+        ]
+    )
+    by_ma = {decision.ma: decision for decision in report.pickup}
+    assert by_ma["A90"].quoted_usd == 30
+    assert by_ma["A90"].flags == ("boss_approval",)
+    assert by_ma["A93"].quoted_usd is None
+    assert by_ma["A93"].flags == ("missing_yen",)
+    assert by_ma["A93"].held is True
+    assert by_ma["A93"].publish is False
+    assert by_ma["A94"].quoted_usd is None
+    assert by_ma["A94"].flags == ("missing_yen",)

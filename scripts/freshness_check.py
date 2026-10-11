@@ -85,6 +85,8 @@ class TaobaoView:
     detail: str = ""
     promo_cny: Decimal | None = None
     final_cny: Decimal | None = None
+    sizes: tuple[str, ...] | None = None
+    photo_count: int | None = None
 
 
 @dataclass(frozen=True)
@@ -427,10 +429,13 @@ def evaluate(snapshot: Snapshot, policy: HeldPolicy | None = None) -> Report:
         item.ma: PublicCny(item.state, item.public_cny, item.detail) for item in snapshot.taobao
     }
     flags = flag_intake(snapshot.intake, public)
-    decisions = plan_pickups(snapshot.pickup_events, rules)
+    decisions = plan_pickups(
+        [*snapshot.pickup_events, *intake_pickup_events(snapshot)],
+        rules,
+    )
     flags.extend(_pickup_flags(decisions))
     flags.extend(_login_price_flags(snapshot))
-    _guard_pickup(decisions, snapshot.blob_rows, guards)
+    _guard_pickup(decisions, snapshot, guards)
     meta_state, meta_reads = meta_source(snapshot.meta_mode, snapshot.meta_posts)
     return Report(
         day=snapshot.day,
@@ -465,12 +470,84 @@ def _guard_duplicate_rows(rows: list[MoneyRow] | None, source: str, guards: list
         guards.append(Guard(f"s06-second-dollar:{source}", False, "second S06 row at another dollar"))
 
 
-def _guard_pickup(decisions: list[PickupDecision], blob_rows: list[MoneyRow] | None, guards: list[Guard]) -> None:
-    present = {row.ma for row in blob_rows} if blob_rows is not None else set()
+def intake_pickup_events(snapshot: Snapshot) -> list[PickupEvent]:
+    """New intake rows the fixture did not already put in pickup. No writes."""
+    explicit = {event.ma.strip().upper() for event in snapshot.pickup_events}
+    taobao = {item.ma: item for item in snapshot.taobao}
+    events: list[PickupEvent] = []
+    for row in snapshot.intake:
+        code = row.ma.strip().upper()
+        if code in explicit:
+            continue
+        sell = "" if row.sell_usd is None else row.sell_usd.strip()
+        if sell:
+            continue
+        view = taobao.get(code)
+        if not _candidate_shape(row, view):
+            continue
+        sizes = _joined_sizes(row, view)
+        events.append(
+            PickupEvent(
+                ma=code,
+                via="intake",
+                action="create",
+                cost_cny="" if row.cost_cny is None else row.cost_cny,
+                landed_usd=None,
+                sell_usd=row.sell_usd,
+                sizes=sizes,
+                photo_count=_joined_photos(row, view),
+                public_cny=None if view is None else view.public_cny,
+                taobao_state="ok" if view is None else view.state,
+                boss_approved=False,
+                already_listed=False,
+                listed_sell_usd=None,
+                reused=False,
+                taobao_detail="" if view is None else view.detail,
+            )
+        )
+    return events
+
+
+def _candidate_shape(row: IntakeRow, view: TaobaoView | None) -> bool:
+    if row.sizes is not None or row.photo_count is not None:
+        return True
+    if view is None:
+        return False
+    return view.sizes is not None or view.photo_count is not None
+
+
+def _joined_sizes(row: IntakeRow, view: TaobaoView | None) -> tuple[str, ...]:
+    if view is not None and view.sizes is not None:
+        return view.sizes
+    if row.sizes is not None:
+        return row.sizes
+    return ()
+
+
+def _joined_photos(row: IntakeRow, view: TaobaoView | None) -> int | None:
+    if view is not None and view.photo_count is not None:
+        return view.photo_count
+    return row.photo_count
+
+
+def _guard_pickup(decisions: list[PickupDecision], snapshot: Snapshot, guards: list[Guard]) -> None:
+    present = {row.ma for row in snapshot.blob_rows} if snapshot.blob_rows is not None else set()
+    hub = {row.ma for row in snapshot.hub_rows} if snapshot.hub_rows is not None else set()
     for decision in decisions:
         if decision.blocks_live and decision.ma in present:
-            guards.append(Guard(f"off-live:{decision.ma}", False, "on Blob without a live publish"))
-        if any(flag in {"duplicate", "reused", "never_list", "s06_lock", "no_reprice", "held"} for flag in decision.flags):
+            guards.append(Guard(f"off-live:{decision.ma}", False, "on Blob without a Boss yes"))
+        if decision.blocks_live and decision.ma in hub:
+            guards.append(Guard(f"off-live:{decision.ma}:hub", False, "on hub without a Boss yes"))
+        if decision.blocks_live:
+            for origin, view in snapshot.pdp.get(decision.ma, {}).items():
+                if view.status is not None and view.status != 404:
+                    guards.append(
+                        Guard(f"off-live:{decision.ma}:{origin}", False, f"HTTP {view.status}")
+                    )
+        if any(
+            flag in {"duplicate", "reused", "never_list", "s06_lock", "no_reprice", "held"}
+            for flag in decision.flags
+        ):
             guards.append(Guard(f"publish-block:{decision.ma}:{decision.flags[0]}", False, decision.detail))
 
 
@@ -740,6 +817,38 @@ def _source_block_state(value: object, label: str) -> SourceState:
     return SourceState(str(state), "" if detail is None else str(detail))
 
 
+def _sizes_field(item: dict[str, object]) -> tuple[str, ...] | None:
+    if "sizes" in item:
+        raw = item.get("sizes")
+        if raw is None:
+            return ()
+        if isinstance(raw, str):
+            return tuple(part for part in re.split(r"[\s,]+", raw) if part.strip())
+        if isinstance(raw, list):
+            parts: list[str] = []
+            for part in raw:
+                if not isinstance(part, str):
+                    raise ValueError("fixture sizes must be a list of strings")
+                text = part.strip()
+                if text:
+                    parts.append(text)
+            return tuple(parts)
+        raise ValueError("fixture sizes must be a list of strings")
+    if "size" in item and isinstance(item.get("size"), str):
+        return tuple(part for part in re.split(r"[\s,]+", str(item.get("size"))) if part.strip())
+    return None
+
+
+def _photo_field(item: dict[str, object]) -> int | None:
+    if "photo_count" in item and item.get("photo_count") is not None:
+        return int(str(item.get("photo_count")))
+    for key in ("gallery", "photos", "images", "gallery_urls"):
+        raw = item.get(key)
+        if isinstance(raw, list):
+            return sum(1 for part in raw if str(part).strip())
+    return None
+
+
 def _intake_from_json(value: object) -> list[IntakeRow]:
     if not isinstance(value, list):
         raise ValueError("fixture intake must be a list")
@@ -756,6 +865,8 @@ def _intake_from_json(value: object) -> list[IntakeRow]:
                 None if cost is None else str(cost),
                 None if sell is None else str(sell),
                 None if link is None else str(link),
+                _sizes_field(item),
+                _photo_field(item),
             )
         )
     return rows
@@ -816,6 +927,8 @@ def _taobao_from_json(value: object) -> list[TaobaoView]:
                 "" if item.get("detail") is None else str(item.get("detail")),
                 None if promo is None else Decimal(str(promo)),
                 None if final is None else Decimal(str(final)),
+                _sizes_field(item),
+                _photo_field(item),
             )
         )
     return rows

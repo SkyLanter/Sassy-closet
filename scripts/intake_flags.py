@@ -19,6 +19,8 @@ class IntakeRow:
     cost_cny: str | None
     sell_usd: str | None = None
     link: str | None = None
+    sizes: tuple[str, ...] | None = None
+    photo_count: int | None = None
 
 
 @dataclass(frozen=True)

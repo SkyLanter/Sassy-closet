@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 
@@ -9,6 +10,10 @@ from autolist import listing_quote
 from held_policy import HeldPolicy
 
 S06_LOCK = 25
+# Same store rate as sassy-closet pricing.ts DEFAULT_FX. Not a new rate.
+INTAKE_FX = Decimal("6.723")
+DEBOX_USD = {"V": Decimal("7.50"), "Q": Decimal("7.50"), "D": Decimal("7.50")}
+_CNY_RE = re.compile(r"^\d+(?:\.\d+)?$")
 
 
 @dataclass(frozen=True)
@@ -27,6 +32,7 @@ class PickupEvent:
     already_listed: bool
     listed_sell_usd: str | None
     reused: bool
+    taobao_detail: str = ""
 
 
 @dataclass(frozen=True)
@@ -109,7 +115,7 @@ def plan_pickups(events: list[PickupEvent], policy: HeldPolicy) -> list[PickupDe
                 )
             )
             continue
-        quote = listing_quote(code, event.landed_usd, policy)
+        quote = listing_quote(code, _landed_for_quote(code, event), policy)
         if not event.boss_approved:
             decisions.append(
                 _decision(
@@ -163,6 +169,7 @@ def events_from_json(value: object) -> list[PickupEvent]:
                 photo_count=photo_count,
                 public_cny=_decimal_or_none(item.get("public_cny")),
                 taobao_state=str(item.get("taobao_state", "ok")),
+                taobao_detail=_detail_text(item),
                 boss_approved=bool(item.get("boss_approved", False)),
                 already_listed=bool(item.get("already_listed", False)),
                 listed_sell_usd=(
@@ -174,13 +181,46 @@ def events_from_json(value: object) -> list[PickupEvent]:
     return events
 
 
+def landed_usd_from_cny(ma: str, cost_cny: str | None) -> str | None:
+    """Landed USD from an intake ¥. Blank or garbled ¥ does not invent a dollar."""
+    if cost_cny is None:
+        return None
+    text = cost_cny.strip()
+    if _CNY_RE.fullmatch(text) is None:
+        return None
+    kind = ma.strip().upper()[:1]
+    debox = DEBOX_USD.get(kind, Decimal("0"))
+    landed = Decimal(text) / INTAKE_FX + debox
+    return format(landed, "f")
+
+
+def _landed_for_quote(code: str, event: PickupEvent) -> str | None:
+    if event.landed_usd is not None and event.landed_usd.strip() != "":
+        return event.landed_usd
+    return landed_usd_from_cny(code, event.cost_cny)
+
+
+def _detail_text(item: dict[str, object]) -> str:
+    detail = item.get("taobao_detail", item.get("detail", ""))
+    return "" if detail is None else str(detail)
+
+
+def _is_login_wall(event: PickupEvent) -> bool:
+    if event.taobao_state != "skip":
+        return False
+    detail = event.taobao_detail.casefold()
+    if detail == "":
+        return False
+    return any(token in detail for token in ("login-walled", "unreachable", "访问受限", "passport", "安全验证"))
+
+
 def _missing_taobao(event: PickupEvent) -> list[str]:
     missing: list[str] = []
-    if not event.sizes:
+    if not any(part.strip() for part in event.sizes):
         missing.append("missing_size")
     if event.photo_count is None or event.photo_count < 1:
         missing.append("missing_photos")
-    if event.taobao_state != "skip" and event.public_cny is None:
+    if event.public_cny is None and not _is_login_wall(event):
         missing.append("missing_yen")
     return missing
 
