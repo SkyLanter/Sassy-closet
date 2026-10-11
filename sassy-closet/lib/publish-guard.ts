@@ -12,6 +12,7 @@ export type PublishIntent = {
   action: PublishAction;
   ma: string;
   sellUsd?: string | null;
+  sellCurrency?: string | null;
   reused?: boolean;
   duplicate?: boolean;
 };
@@ -28,6 +29,8 @@ export function publishBlock(intent: PublishIntent): string | null {
   if (NEVER_LIST.has(ma)) return "never-list";
   if (isHeldIncompleteMa(ma)) return "held";
   if (ma === S06) {
+    const currency = (intent.sellCurrency ?? "").trim().toUpperCase();
+    if (currency === "CNY") return "s06-lock";
     const sell = wholeDollars(intent.sellUsd);
     if (sell !== null && sell !== 25) return "s06-lock";
   }

@@ -249,6 +249,20 @@ def test_live_path_does_not_read_meta(monkeypatch, tmp_path: Path) -> None:
     assert "graph.facebook.com" not in json.dumps(saved)
 
 
+def test_live_ma_still_quotes_but_a_duplicate_is_not_published() -> None:
+    quote = listing_quote("A01", "16.25")
+    assert quote.action == "quote"
+    assert quote.sell_usd == 25
+    report, _payload = _report([_complete("A01"), _complete("A01", via="poll")])
+    assert len(report.pickup) == 2
+    for decision in report.pickup:
+        assert decision.quoted_usd is None
+        assert decision.publish is False
+        assert decision.live is False
+        assert decision.flags == ("duplicate",)
+    assert report.guards_pass is False
+
+
 def test_duplicate_and_reused_are_not_quoted() -> None:
     report, _payload = _report([_complete("Z88"), _complete("Z88", via="poll")])
     assert len(report.pickup) == 2

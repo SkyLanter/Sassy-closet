@@ -58,9 +58,10 @@ export function buildIntakeDatasetSyncPayload(
   const cost = pickAmount(row.cost_currency, row.cost_usd, row.cost_cny);
   if (cost) payload.cost = cost;
 
-  const sell =
-    pickAmount(row.sell_currency, row.sell_usd, row.sell_cny) || row.price.trim();
-  if (sell) payload.sell = sell;
+  if (event === "create") {
+    const sell = resolvedSell(row);
+    if (sell) payload.sell = sell;
+  }
 
   const sourceLink = row.link.trim();
   if (sourceLink) payload.source_link = sourceLink;
@@ -77,12 +78,23 @@ export function buildIntakeDatasetSyncPayload(
 export async function notifyIntakeDatasetSyncWebhook(
   event: IntakeDatasetSyncEvent,
   row: Submission,
+  previous?: Submission | null,
 ): Promise<void> {
   try {
     const url = readWebhookUrl();
     const key = readWebhookKey();
     if (!url || !key) return;
-    if (publishBlock({ action: event === "create" ? "create" : "sync", ma: row.ma, sellUsd: row.sell_usd })) {
+    if (previous && event === "update" && resolvedSell(previous) !== resolvedSell(row)) {
+      return;
+    }
+    if (
+      publishBlock({
+        action: event === "create" ? "create" : "sync",
+        ma: row.ma,
+        sellUsd: resolvedSell(row),
+        sellCurrency: row.sell_currency,
+      })
+    ) {
       return;
     }
 
@@ -132,6 +144,10 @@ function collectColors(row: Submission): string[] {
   for (const part of splitTokens(row.color, /,/)) add(part);
   for (const piece of row.pieces ?? []) add(piece.color);
   return out;
+}
+
+function resolvedSell(row: Submission): string {
+  return pickAmount(row.sell_currency, row.sell_usd, row.sell_cny) || row.price.trim();
 }
 
 function pickAmount(currency: string, usd: string, cny: string): string {

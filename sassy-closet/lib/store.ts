@@ -118,7 +118,8 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
   const blocked = publishBlock({
     action: existing ? "update" : "create",
     ma,
-    sellUsd: input.sell_usd,
+    sellUsd: postedSell(input.sell_currency, input.sell_usd, input.sell_cny),
+    sellCurrency: input.sell_currency,
   });
   if (blocked) {
     throw Object.assign(new Error(`Không lưu ${ma} (${blocked}).`), { status: 409 });
@@ -182,7 +183,7 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
     store.submissions.push(base);
   }
   await persistStore(store);
-  await notifyIntakeDatasetSyncWebhook(existing ? "update" : "create", base);
+  await notifyIntakeDatasetSyncWebhook(existing ? "update" : "create", base, existing);
   return base;
 }
 
@@ -264,6 +265,15 @@ export function storeHealth(): ReturnType<typeof storageStatus> {
 function csvCell(value: string): string {
   if (/[",\n]/.test(value)) return `"${value.replaceAll('"', '""')}"`;
   return value;
+}
+
+function postedSell(currency: string, usd: string, cny: string): string {
+  const cur = currency.trim().toUpperCase();
+  const usdTrim = usd.trim();
+  const cnyTrim = cny.trim();
+  if (cur === "CNY" && cnyTrim) return cnyTrim;
+  if (cur === "USD" && usdTrim) return usdTrim;
+  return usdTrim || cnyTrim;
 }
 
 function guardedMint(kind: KindCode, mas: string[]): string {

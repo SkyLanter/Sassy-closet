@@ -265,6 +265,9 @@ export function applyShopCatalogPatch(
   if (paired) {
     return { ok: false, error: paired };
   }
+  if (ma === "S06" && priceUsd !== 25) {
+    return { ok: false, error: "S06 stays $25." };
+  }
   product.status = status;
   product.priceUsd = priceUsd;
 
