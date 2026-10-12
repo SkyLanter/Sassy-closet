@@ -25,7 +25,7 @@ from freshness_check import (
     taobao_blocked,
     write_report,
 )
-from held_policy import load_held_policy
+from held_policy import HeldPolicy, load_held_policy
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -121,10 +121,25 @@ def test_held_pdp_200_fails() -> None:
     assert any(not guard.ok and "K06" in guard.name for guard in report.guards)
 
 
-def test_q02_pdp_200_fails() -> None:
+def test_q02_is_not_a_pdp_404_guard() -> None:
+    source = (ROOT / "scripts" / "freshness_check.py").read_text(encoding="utf-8")
+    assert "Q02" not in source
+    report = evaluate(snapshot_from_json(_passing_payload()))
+    assert report.guards_pass
+    assert not any("Q02" in guard.name for guard in report.guards)
+
+
+def test_fake_never_list_pdp_200_fails() -> None:
     payload = _passing_payload()
-    payload["pdp"]["Q02"][ALIAS_ORIGIN] = {"status": 200, "price_usd": "20"}
-    assert evaluate(snapshot_from_json(payload)).guards_pass is False
+    origins = list(payload["origins"])
+    payload["pdp"]["Z02"] = {origin: {"status": 404} for origin in origins}
+    policy = HeldPolicy(held=(), never_list=("Z02",))
+    hidden = evaluate(snapshot_from_json(payload), policy)
+    assert any(guard.name == f"pdp-404:Z02:{ALIAS_ORIGIN}" and guard.ok for guard in hidden.guards)
+    payload["pdp"]["Z02"][ALIAS_ORIGIN] = {"status": 200, "price_usd": "20"}
+    leaked = evaluate(snapshot_from_json(payload), policy)
+    assert leaked.guards_pass is False
+    assert any(guard.name == f"pdp-404:Z02:{ALIAS_ORIGIN}" and not guard.ok for guard in leaked.guards)
 
 
 def test_s06_not_25_fails_on_blob_and_pdp() -> None:
@@ -255,7 +270,6 @@ def test_hub_official_reader(tmp_path: Path) -> None:
     assert rows["A07"] == Decimal("26")
     assert "K06" not in rows
     assert "V05" not in rows
-    assert "Q02" not in rows
 
 
 def test_write_report_names(tmp_path: Path) -> None:

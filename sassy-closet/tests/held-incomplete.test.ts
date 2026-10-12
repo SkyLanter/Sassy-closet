@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import held from "../../data/held.json";
-import { HELD_INCOMPLETE_MAS, isHeldIncompleteMa } from "../lib/held-incomplete";
+import { HELD_INCOMPLETE_MAS, NEVER_LIST_MAS, isHeldIncompleteMa } from "../lib/held-incomplete";
 
 const LIST_LINE = held.heldIncomplete.join(", ");
 
@@ -30,6 +30,8 @@ test("held incomplete config loads data/held.json, including K06 and V05", () =>
   assert.equal(isHeldIncompleteMa("v05"), true);
   assert.equal(isHeldIncompleteMa("S06"), false);
   assert.equal(isHeldIncompleteMa("Q02"), false);
+  assert.deepEqual([...NEVER_LIST_MAS], [...held.neverList]);
+  assert.equal(NEVER_LIST_MAS.includes("Q02"), false);
   assert.equal(isHeldIncompleteMa("A07"), false);
   assert.equal(isHeldIncompleteMa("S10"), false);
   const source = readFileSync(new URL("../lib/held-incomplete.ts", import.meta.url), "utf8");

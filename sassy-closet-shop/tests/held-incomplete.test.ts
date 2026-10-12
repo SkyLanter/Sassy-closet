@@ -38,7 +38,7 @@ test("sell site loads held mãs from data/held.json", () => {
   assert.equal(isHeldIncompleteMa("K06"), true);
   assert.equal(isHeldIncompleteMa("V05"), true);
   assert.equal(isHeldIncompleteMa("Q02"), false);
-  assert.equal(isOffLiveSell("Q02"), true);
+  assert.equal(isOffLiveSell("Q02"), false);
   assert.equal(isOffLiveSell("A07"), false);
   assert.equal(isOffLiveSell("S10"), false);
   const source = readFileSync(new URL("../lib/held-incomplete.ts", import.meta.url), "utf8");
@@ -46,7 +46,7 @@ test("sell site loads held mãs from data/held.json", () => {
   assert.equal(source.includes('["S14"'), false);
 });
 
-test("public catalog hides held mãs and Q02 and keeps A07 and S10", () => {
+test("public catalog hides held mãs and keeps Q02, A07, and S10", () => {
   const visible = shopVisibleProducts([
     product("S14", 20),
     product("K06", 48),
@@ -56,5 +56,5 @@ test("public catalog hides held mãs and Q02 and keeps A07 and S10", () => {
     product("S10", 37),
     product("S06", 25),
   ]).map((item) => item.ma);
-  assert.deepEqual(visible, ["A07", "S10", "S06"]);
+  assert.deepEqual(visible, ["Q02", "A07", "S10", "S06"]);
 });
