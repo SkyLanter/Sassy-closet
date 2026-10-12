@@ -88,7 +88,7 @@ def plan_pickups(events: list[PickupEvent], policy: HeldPolicy) -> list[PickupDe
             continue
         reason = policy.skip_reason(code)
         if reason == "never-list":
-            decisions.append(_blocked(event, code, ("never_list",), "Q02 stays unlisted"))
+            decisions.append(_blocked(event, code, ("never_list",), "never-list mã stays unlisted"))
             continue
         if reason == "held":
             decisions.append(

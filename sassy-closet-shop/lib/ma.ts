@@ -1,3 +1,5 @@
+import { NEVER_LIST_MAS } from "./held-incomplete";
+
 /** Allowed leading letters for Sassy Closet mãs. Do not invent letters. */
 export const MA_LETTERS = [
   "A",
@@ -59,18 +61,30 @@ export function compareMa(left: string, right: string): number {
   return a.localeCompare(b, "en", { numeric: true });
 }
 
-/** Next unused mã for a letter (A02 present → A03). Never invents letters. */
-export function nextMaForLetter(letter: MaLetter, existingMas: string[]): string {
+/** Next unused mã for a letter (A02 present → A03). Skips never-list numbers and numbers already used. */
+export function nextMaForLetter(
+  letter: MaLetter,
+  existingMas: string[],
+  blocked: readonly string[] = [],
+): string {
+  const taken = numbersForLetter(letter, existingMas);
   let max = 0;
-  for (const ma of existingMas) {
-    const normalized = normalizeMa(ma);
-    if (maLetter(normalized) !== letter) {
-      continue;
-    }
-    const n = Number.parseInt(normalized.slice(1), 10);
-    if (Number.isFinite(n) && n > max) {
-      max = n;
-    }
+  for (const n of taken) {
+    if (n > max) max = n;
   }
-  return `${letter}${String(max + 1).padStart(2, "0")}`;
+  const skipped = numbersForLetter(letter, [...NEVER_LIST_MAS, ...blocked]);
+  let n = max + 1;
+  while (taken.has(n) || skipped.has(n)) n += 1;
+  return `${letter}${String(n).padStart(2, "0")}`;
+}
+
+function numbersForLetter(letter: MaLetter, mas: readonly string[]): Set<number> {
+  const numbers = new Set<number>();
+  for (const ma of mas) {
+    const normalized = normalizeMa(ma);
+    if (maLetter(normalized) !== letter) continue;
+    const n = Number.parseInt(normalized.slice(1), 10);
+    if (Number.isFinite(n) && n >= 1) numbers.add(n);
+  }
+  return numbers;
 }

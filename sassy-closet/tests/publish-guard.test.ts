@@ -8,6 +8,7 @@ import {
   notifyIntakeDatasetSyncWebhook,
 } from "../lib/intakeDatasetSyncWebhook";
 import { notifyNewMaWebhook } from "../lib/newMaWebhook";
+import { nextMa } from "../lib/mint";
 import { mintBlock, publishBlock } from "../lib/publish-guard";
 import { hashBytes, listSubmissions, saveSubmission } from "../lib/store";
 import { resetStoreBackendForTests } from "../lib/store-backend";
@@ -31,10 +32,10 @@ afterEach(() => {
   resetStoreBackendForTests();
 });
 
-test("publish guard blocks Q02, held mãs, a reused mã, and S06 off $25", () => {
-  assert.equal(publishBlock({ action: "create", ma: "Q02" }), "never-list");
-  assert.equal(publishBlock({ action: "sync", ma: "q02", sellUsd: "20" }), "never-list");
-  assert.equal(publishBlock({ action: "mint", ma: "Q02" }), "never-list");
+test("publish guard allows Q02 and still blocks held mãs, a reused mã, and S06 off $25", () => {
+  assert.equal(publishBlock({ action: "create", ma: "Q02" }), null);
+  assert.equal(publishBlock({ action: "sync", ma: "q02", sellUsd: "20" }), null);
+  assert.equal(publishBlock({ action: "mint", ma: "Q02" }), null);
   assert.equal(publishBlock({ action: "create", ma: "K06" }), "held");
   assert.equal(publishBlock({ action: "sync", ma: "V05" }), "held");
   assert.equal(publishBlock({ action: "create", ma: "A01", reused: true }), "reused");
@@ -49,18 +50,22 @@ test("publish guard blocks Q02, held mãs, a reused mã, and S06 off $25", () =>
   assert.equal(publishBlock({ action: "sync", ma: "S06", sellUsd: "25", sellCurrency: "CNY" }), "s06-lock");
   assert.equal(publishBlock({ action: "sync", ma: "S06", sellUsd: "180", sellCurrency: "cny" }), "s06-lock");
   assert.equal(mintBlock("K", ["K01", "K02", "K03", "K04", "K05"]), "held");
-  assert.equal(mintBlock("Q", ["Q01"]), "never-list");
+  assert.equal(mintBlock("Q", ["Q01"]), null);
   assert.equal(mintBlock("A", []), null);
 });
 
-test("save does not persist Q02, K06, or S06 at another dollar", async () => {
+test("save persists Q02 and still refuses K06 or S06 at another dollar", async () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "sassy-guard-"));
   rememberEnv();
   process.env.SASSY_DATA_DIR = tmp;
   delete process.env.INTAKE_DATASET_SYNC_WEBHOOK_URL;
   delete process.env.INTAKE_DATASET_SYNC_WEBHOOK_KEY;
   resetStoreBackendForTests();
-  await assert.rejects(() => saveSubmission(blankSave({ kind: "Q", newMa: "Q02" })), /never-list/);
+  const queen = await saveSubmission(blankSave({ kind: "Q", newMa: "Q02" }));
+  assert.equal(queen.ma, "Q02");
+  assert.equal(queen.status, "staged");
+  assert.equal(queen.square, "not_square");
+  await assert.rejects(() => saveSubmission(blankSave({ kind: "Q", newMa: "q02" })), /đã có rồi/);
   await assert.rejects(() => saveSubmission(blankSave({ kind: "K", newMa: "K06" })), /held/);
   await assert.rejects(() => saveSubmission(blankSave({ kind: "S", newMa: "S06", sellUsd: "30" })), /s06-lock/);
   const locked = await saveSubmission(blankSave({ kind: "S", newMa: "S06", sellUsd: "25" }));
@@ -71,12 +76,13 @@ test("save does not persist Q02, K06, or S06 at another dollar", async () => {
     /s06-lock/,
   );
   const rows = await listSubmissions();
-  assert.deepEqual(rows.map((row) => row.ma), ["S06"]);
-  assert.equal(rows[0]?.sell_usd, "25");
+  assert.deepEqual(rows.map((row) => row.ma), ["Q02", "S06"]);
+  assert.equal(rows[0]?.status, "staged");
+  assert.equal(rows[1]?.sell_usd, "25");
   fs.rmSync(tmp, { recursive: true, force: true });
 });
 
-test("mint through save does not emit K06 or Q02", async () => {
+test("mint through save assigns Q02 and does not emit K06", async () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "sassy-mint-"));
   rememberEnv();
   process.env.SASSY_DATA_DIR = tmp;
@@ -89,11 +95,14 @@ test("mint through save does not emit K06 or Q02", async () => {
     JSON.stringify({ nextId: 7, submissions: seeded, fx: { usd_cny: 6.71, updated: "2026-09-07" } }),
   );
   await assert.rejects(() => saveSubmission(blankSave({ kind: "K", newMa: "K" })), /K06/);
-  await assert.rejects(() => saveSubmission(blankSave({ kind: "Q", newMa: "Q" })), /Q02/);
+  const minted = await saveSubmission(blankSave({ kind: "Q", newMa: "Q" }));
+  assert.equal(minted.ma, "Q02");
+  assert.equal(minted.status, "staged");
+  assert.equal(minted.square, "not_square");
   const rows = await listSubmissions();
   assert.deepEqual(
     rows.map((row) => row.ma),
-    seeded.map((row) => row.ma),
+    [...seeded.map((row) => row.ma), "Q02"],
   );
   fs.rmSync(tmp, { recursive: true, force: true });
 });
@@ -117,6 +126,12 @@ test("dataset sync and new-mã webhook do not post blocked mãs", async () => {
     await notifyIntakeDatasetSyncWebhook("update", submission({ ma: "S06", kind: "S", sell_usd: "25", price: "25" }));
     await notifyNewMaWebhook({
       event: "create",
+      ma: "Q02",
+      updated_at: "2026-10-11T00:00:00.000Z",
+      photo_count: 1,
+    });
+    await notifyNewMaWebhook({
+      event: "create",
       ma: "K06",
       updated_at: "2026-10-11T00:00:00.000Z",
       photo_count: 1,
@@ -132,8 +147,17 @@ test("dataset sync and new-mã webhook do not post blocked mãs", async () => {
   }
   assert.deepEqual(calls, [
     "https://example.invalid/intake-dataset-sync",
+    "https://example.invalid/intake-dataset-sync",
+    "https://example.invalid/new-ma",
     "https://example.invalid/new-ma",
   ]);
+});
+
+test("next mã skips a fake never-list gap and a number that already exists", () => {
+  assert.equal(nextMa("P", ["P01"], ["P02"]), "P03");
+  assert.equal(nextMa("P", ["P01"], ["P02", "P03"]), "P04");
+  assert.equal(nextMa("P", ["P01", "P04"], ["P02", "P03"]), "P05");
+  assert.equal(nextMa("Q", ["Q01"]), "Q02");
 });
 
 test("sync refuses S06 when the posted sell is not the $25 dollar", async () => {

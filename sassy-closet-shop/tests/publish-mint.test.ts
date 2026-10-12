@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { messageReadyAddFields } from "../lib/admin-add";
 import { addProductToCatalog, saveProductInCatalog, type ProductFieldsInput } from "../lib/admin-ops";
+import { nextMaForLetter } from "../lib/ma";
 import type { Product } from "../lib/types";
 
 function stub(ma: string, priceUsd: number): Product {
@@ -20,11 +22,20 @@ function fields(priceUsd: number | null): ProductFieldsInput {
   };
 }
 
-test("shop mint does not emit Q02 or K06", () => {
+test("shop letter Q mints Q02 on hold and still refuses K06", () => {
+  assert.equal(nextMaForLetter("Q", ["Q01"]), "Q02");
+  assert.equal(nextMaForLetter("Q", ["Q01", "Q02"]), "Q03");
+  assert.equal(nextMaForLetter("P", ["P01"], ["P02", "P03"]), "P04");
+
   const queens = [stub("Q01", 20)];
-  const mintedQueen = addProductToCatalog(queens, "Q", fields(20));
-  assert.equal(mintedQueen.ok, false);
-  if (!mintedQueen.ok) assert.match(mintedQueen.error, /Q02/);
+  const mintedQueen = addProductToCatalog(queens, "Q", messageReadyAddFields("Q"));
+  assert.equal(mintedQueen.ok, true);
+  if (mintedQueen.ok) {
+    assert.equal(mintedQueen.ma, "Q02");
+    const queen = mintedQueen.products.find((product) => product.ma === "Q02");
+    assert.equal(queen?.status, "hold");
+    assert.equal(queen?.priceUsd, null);
+  }
   assert.deepEqual(
     queens.map((product) => product.ma),
     ["Q01"],

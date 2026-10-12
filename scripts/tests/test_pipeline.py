@@ -292,11 +292,36 @@ def test_second_s06_dollar_fails_even_when_last_row_is_25() -> None:
     assert report.guards_pass is False
 
 
-def test_q02_s06_held_and_reprice_do_not_publish() -> None:
+def test_q02_is_quoted_held_for_boss_and_not_live() -> None:
+    for action in ("create", "sync", "mint"):
+        report, _payload = _report([_complete("Q02", action=action)])
+        decision = report.pickup[0]
+        assert decision.ma == "Q02", action
+        assert decision.held is True, action
+        assert decision.live is False, action
+        assert decision.publish is False, action
+        assert decision.flags == ("boss_approval",), action
+        assert decision.quoted_usd is not None, action
+        assert report.guards_pass, action
+
+    approved, _payload = _report([_complete("Q02", boss_approved=True)])
+    assert approved.pickup[0].held is False
+    assert approved.pickup[0].live is False
+    assert approved.pickup[0].publish is False
+    assert approved.pickup[0].flags == ()
+
+    payload = _passing_payload()
+    payload["blob"]["rows"].append({"ma": "Q02", "price_usd": "20"})
+    payload["pickup"] = [_complete("Q02")]
+    leaked = evaluate(snapshot_from_json(payload))
+    assert leaked.pickup[0].publish is False
+    assert leaked.pickup[0].live is False
+    assert leaked.guards_pass is False
+    assert any(guard.name == "off-live:Q02" and not guard.ok for guard in leaked.guards)
+
+
+def test_s06_held_and_reprice_do_not_publish() -> None:
     blocked = {
-        "Q02-create": _complete("Q02", action="create", landed_usd="10"),
-        "Q02-sync": _complete("Q02", action="sync"),
-        "Q02-mint": _complete("Q02", action="mint"),
         "K06-create": _complete("K06", action="create"),
         "K06-mint": _complete("K06", action="mint"),
         "V05-sync": _complete("V05", action="sync"),
@@ -311,9 +336,6 @@ def test_q02_s06_held_and_reprice_do_not_publish() -> None:
         ),
     }
     expected = {
-        "Q02-create": "never_list",
-        "Q02-sync": "never_list",
-        "Q02-mint": "never_list",
         "K06-create": "held",
         "K06-mint": "held",
         "V05-sync": "held",

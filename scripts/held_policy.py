@@ -46,15 +46,17 @@ def load_held_policy(path: Path | None = None) -> HeldPolicy:
     if not isinstance(payload, dict):
         raise ValueError(f"{file} must be a JSON object")
     held = _codes(payload.get("heldIncomplete"), "heldIncomplete")
-    never = _codes(payload.get("neverList"), "neverList")
+    never = _codes(payload.get("neverList"), "neverList", allow_empty=True)
     overlap = sorted(set(held) & set(never))
     if overlap:
         raise ValueError(f"{file} lists {overlap} in both heldIncomplete and neverList")
     return HeldPolicy(held=tuple(held), never_list=tuple(never))
 
 
-def _codes(value: object, label: str) -> list[str]:
-    if not isinstance(value, list) or not value:
+def _codes(value: object, label: str, *, allow_empty: bool = False) -> list[str]:
+    if not isinstance(value, list):
+        raise ValueError(f"{label} must be a list of mãs")
+    if not value and not allow_empty:
         raise ValueError(f"{label} must be a non-empty list of mãs")
     codes: list[str] = []
     seen: set[str] = set()

@@ -1,3 +1,4 @@
+import { NEVER_LIST_MAS } from "./held-incomplete";
 import { KIND_CODES, isKindCode, type KindCode } from "./kinds";
 
 export type ParsedMa = {
@@ -27,15 +28,30 @@ export function normalizeMa(raw: string): string {
   return parsed ? formatMa(parsed.kind, parsed.n) : raw.trim().toUpperCase();
 }
 
-export function nextMa(kind: KindCode, existing: string[]): string {
+/** Next free number. Skips never-list mãs and numbers already in `existing`. */
+export function nextMa(
+  kind: KindCode,
+  existing: string[],
+  blocked: readonly string[] = [],
+): string {
+  const taken = numbersForKind(kind, existing);
   let max = 0;
-  for (const ma of existing) {
-    const parsed = parseHubMa(ma);
-    if (parsed && parsed.kind === kind) {
-      max = Math.max(max, parsed.n);
-    }
+  for (const n of taken) {
+    if (n > max) max = n;
   }
-  return formatMa(kind, max + 1);
+  const skipped = numbersForKind(kind, [...NEVER_LIST_MAS, ...blocked]);
+  let n = max + 1;
+  while (taken.has(n) || skipped.has(n)) n += 1;
+  return formatMa(kind, n);
+}
+
+function numbersForKind(kind: KindCode, mas: readonly string[]): Set<number> {
+  const numbers = new Set<number>();
+  for (const ma of mas) {
+    const parsed = parseHubMa(ma);
+    if (parsed && parsed.kind === kind) numbers.add(parsed.n);
+  }
+  return numbers;
 }
 
 export function maExists(existing: string[], ma: string, except?: string): boolean {

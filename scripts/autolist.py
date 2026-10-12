@@ -110,7 +110,7 @@ def main(argv: list[str] | None = None) -> int:
         description="Print a tiered sell quote. Does not write intake, Blob, or Meta.",
     )
     parser.add_argument("--landed", required=True, help="Landed USD. Not an intake ¥.")
-    parser.add_argument("--ma", default="", help="Optional mã. Held mãs and Q02 are skipped.")
+    parser.add_argument("--ma", default="", help="Optional mã. Held mãs and never-list mãs are skipped.")
     args = parser.parse_args(argv)
     policy = load_held_policy()
     if args.ma.strip():
