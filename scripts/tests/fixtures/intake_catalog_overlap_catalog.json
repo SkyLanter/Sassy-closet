@@ -1,0 +1,8 @@
+{
+  "schema": "catalog.v1",
+  "products": [
+    {"ma": "S06", "priceUsd": 25},
+    {"ma": "A01", "priceUsd": 27},
+    {"ma": "D05", "priceUsd": 26}
+  ]
+}
