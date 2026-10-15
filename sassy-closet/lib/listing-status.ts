@@ -76,6 +76,14 @@ export function listingPollIntervalMs(visibility: string): number | null {
   return null;
 }
 
+export function liveListingMas(items: Record<string, ListingItem>): string[] {
+  const mas: string[] = [];
+  for (const [code, item] of Object.entries(items)) {
+    if (item.state === "live") mas.push(code);
+  }
+  return mas;
+}
+
 export function listingItemForMa(
   items: Record<string, ListingItem>,
   ma: string,

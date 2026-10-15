@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
 import { isKindCode, kindLabel, sizeOptionsLine } from "./kinds";
 import { notifyIntakeDatasetSyncWebhook } from "./intakeDatasetSyncWebhook";
-import { formatMa, maExists, nextMa, normalizeMa, parseHubMa } from "./mint";
+import { readLiveCatalogMas } from "./live-mas";
+import { formatMa, maExists, nextMa, normalizeMa, parseHubMa, suggestNextMa } from "./mint";
 import { mintBlock, publishBlock } from "./publish-guard";
 import { normalizeSourceLink } from "./source-link";
 import { sanitizeOnHandRows } from "./on-hand";
@@ -40,6 +41,8 @@ export type SaveInput = {
   photos: { bytes: Buffer; hash: string; ext: string }[];
   existingMa?: string;
   newMa?: string;
+  /** Held mãs the next-free suggestion skips. Defaults to heldIncomplete. */
+  heldMas?: readonly string[];
   needs_research: boolean;
   taobao_snapshot: TaobaoItem | null;
   auto_price: PriceBreakdown | null;
@@ -109,11 +112,14 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
     throw Object.assign(new Error("Không tìm thấy mã này 🥺"), { status: 404 });
   }
 
+  const liveMas = await readLiveCatalogMas();
   const ma = resolveSaveMa({
     kind: input.kind,
     existing,
     newMa: input.newMa,
     mas,
+    liveMas,
+    heldMas: input.heldMas,
   });
   const blocked = publishBlock({
     action: existing ? "update" : "create",
@@ -262,6 +268,25 @@ export function storeHealth(): ReturnType<typeof storageStatus> {
   return storageStatus();
 }
 
+function takenMaError(kind: "reused" | "duplicate", ma: string, suggestion: string): Error {
+  switch (kind) {
+    case "reused":
+      return Object.assign(new Error(`Không lưu ${ma} (reused). Mã kế: ${suggestion}.`), {
+        status: 409,
+        suggestion,
+      });
+    case "duplicate":
+      return Object.assign(new Error(`Mã ${ma} đã có rồi — không gộp nha 💕 Mã kế: ${suggestion}.`), {
+        status: 409,
+        suggestion,
+      });
+    default: {
+      const neverKind: never = kind;
+      return Object.assign(new Error(`Không lưu ${ma} (${String(neverKind)}).`), { status: 409 });
+    }
+  }
+}
+
 function csvCell(value: string): string {
   if (/[",\n]/.test(value)) return `"${value.replaceAll('"', '""')}"`;
   return value;
@@ -276,11 +301,15 @@ function postedSell(currency: string, usd: string, cny: string): string {
   return usdTrim || cnyTrim;
 }
 
-function guardedMint(kind: KindCode, mas: string[]): string {
+function guardedMint(kind: KindCode, mas: string[], heldMas?: readonly string[]): string {
   const blocked = mintBlock(kind, mas);
   if (blocked) {
     const ma = nextMa(kind, mas);
-    throw Object.assign(new Error(`Không mint ${ma} (${blocked}).`), { status: 409 });
+    const suggestion = suggestNextMa(kind, mas, heldMas);
+    throw Object.assign(new Error(`Không mint ${ma} (${blocked}). Mã kế: ${suggestion}.`), {
+      status: 409,
+      suggestion,
+    });
   }
   return nextMa(kind, mas);
 }
@@ -290,29 +319,39 @@ function resolveSaveMa(input: {
   existing: Submission | null;
   newMa?: string;
   mas: string[];
+  liveMas: readonly string[];
+  heldMas?: readonly string[];
 }): string {
+  const occupied = [...input.mas, ...input.liveMas];
   const raw = (input.newMa ?? "").trim();
   if (!raw) {
     if (input.existing) return input.existing.ma;
-    return guardedMint(input.kind, input.mas);
+    return guardedMint(input.kind, occupied, input.heldMas);
   }
   const parsed = parseHubMa(raw);
   if (parsed) {
     const formatted = formatMa(parsed.kind, parsed.n);
-    const blocked = publishBlock({ action: input.existing ? "update" : "create", ma: formatted });
+    const sameRow = input.existing ? normalizeMa(input.existing.ma) === formatted : false;
+    const liveHit = !sameRow && maExists([...input.liveMas], formatted);
+    const blocked = publishBlock({
+      action: input.existing ? "update" : "create",
+      ma: formatted,
+      reused: liveHit,
+    });
+    if (blocked === "reused") {
+      throw takenMaError("reused", formatted, suggestNextMa(parsed.kind, occupied, input.heldMas));
+    }
     if (blocked) {
       throw Object.assign(new Error(`Không lưu ${formatted} (${blocked}).`), { status: 409 });
     }
-    if (input.existing && formatted === input.existing.ma) return formatted;
+    if (sameRow) return formatted;
     if (maExists(input.mas, formatted, input.existing?.ma)) {
-      throw Object.assign(new Error(`Mã ${formatted} đã có rồi — không gộp nha 💕`), {
-        status: 409,
-      });
+      throw takenMaError("duplicate", formatted, suggestNextMa(parsed.kind, occupied, input.heldMas));
     }
     return formatted;
   }
   if (isKindCode(raw.toUpperCase())) {
-    return guardedMint(raw.toUpperCase() as KindCode, input.mas);
+    return guardedMint(raw.toUpperCase() as KindCode, occupied, input.heldMas);
   }
   throw Object.assign(
     new Error("Mã mới: chữ P (ra P kế) hoặc đủ số kiểu P10 nha 💕"),

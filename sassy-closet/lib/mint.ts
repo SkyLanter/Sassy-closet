@@ -1,4 +1,4 @@
-import { NEVER_LIST_MAS } from "./held-incomplete";
+import { HELD_INCOMPLETE_MAS, NEVER_LIST_MAS } from "./held-incomplete";
 import { KIND_CODES, isKindCode, type KindCode } from "./kinds";
 
 export type ParsedMa = {
@@ -43,6 +43,18 @@ export function nextMa(
   let n = max + 1;
   while (taken.has(n) || skipped.has(n)) n += 1;
   return formatMa(kind, n);
+}
+
+/**
+ * Next free mã for a suggestion. Skips never-list mãs, heldIncomplete
+ * (or the fixture `held` list), and numbers already taken.
+ */
+export function suggestNextMa(
+  kind: KindCode,
+  existing: readonly string[],
+  held: readonly string[] = HELD_INCOMPLETE_MAS,
+): string {
+  return nextMa(kind, [...existing], held);
 }
 
 function numbersForKind(kind: KindCode, mas: readonly string[]): Set<number> {
