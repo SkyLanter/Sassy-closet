@@ -50,6 +50,14 @@ python3 excel-kit/tests/run_checks.py
 
 Prompts also live in `excel-kit/prompts/` (`BOUTIQUE_DESKTOP_EFFICIENT.md`, `BOUTIQUE_PHONE_SAFE.md`, `GF_CLOTHES_INTAKE.md`, `SAVED_CARD_AND_REAL_MINIBOSS_ASK_2026-09-07.md`).
 
+## Restock note
+
+Read-only list of catalog mãs whose status is sold. The command reads a local fixture and writes a markdown note. It does not change catalog rows, prices, or `data/held.json`. Held mãs stay held. S06 stays $25. It does not post to Meta or mark a mã sold or available.
+
+```bash
+python3 scripts/restock_note.py --fixture ./catalog.json --note ./out/restock-note.md
+```
+
 ## Sell shop
 
 Next.js sell shop in [`sassy-closet-shop/`](sassy-closet-shop/). Live URL stays [https://sassy-closet-shop.vercel.app](https://sassy-closet-shop.vercel.app).
