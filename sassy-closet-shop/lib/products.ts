@@ -1,8 +1,8 @@
 import { connection } from "next/server";
 import { CATALOG_CACHE_TAG } from "@/lib/catalog-tag";
 import { readLiveCatalogDocument, readLiveCatalogRecord } from "@/lib/catalog-store";
-import { normalizeMa, type MaLetter } from "@/lib/ma";
-import { shopVisibleLooks } from "@/lib/site-settings";
+import type { MaLetter } from "@/lib/ma";
+import { pdpDecision, shopVisibleLooks } from "@/lib/site-settings";
 import type { CatalogBackend } from "@/lib/storage-info";
 import type { CatalogDocument, Product, SiteSettings } from "@/lib/types";
 import { sortByPopular } from "@/lib/popular-rank";
@@ -56,9 +56,18 @@ export async function getSiteSettingsUncached(): Promise<SiteSettings> {
 }
 
 export async function getProduct(ma: string): Promise<ShopLook | undefined> {
-  const normalized = normalizeMa(ma);
-  const products = await getProducts();
-  return products.find((product) => product.ma === normalized);
+  const document = await getCatalogDocument();
+  const decision = pdpDecision(document.products, ma);
+  switch (decision.status) {
+    case 200:
+      return decision.look;
+    case 404:
+      return undefined;
+    default: {
+      const _exhaustive: never = decision;
+      return _exhaustive;
+    }
+  }
 }
 
 export function catalogTypesFrom(products: Array<{ type: MaLetter }>): MaLetter[] {

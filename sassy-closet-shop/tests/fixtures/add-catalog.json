@@ -1,0 +1,11 @@
+{
+  "rows": [
+    { "ma": "S06", "priceUsd": 25 },
+    { "ma": "Q01", "priceUsd": 20 },
+    { "ma": "K01", "priceUsd": 36 },
+    { "ma": "V01", "priceUsd": 30 },
+    { "ma": "V02", "priceUsd": 30 },
+    { "ma": "V03", "priceUsd": 30 },
+    { "ma": "S13", "priceUsd": 26 }
+  ]
+}

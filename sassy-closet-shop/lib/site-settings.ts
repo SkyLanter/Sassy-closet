@@ -1,4 +1,5 @@
 import { isOffLiveSell } from "@/lib/held-incomplete";
+import { normalizeMa } from "@/lib/ma";
 import { shopSafeProduct } from "@/lib/sell-contract";
 import { toShopLook, type ShopLook } from "@/lib/shop-look";
 import { SITE } from "@/lib/site";
@@ -81,6 +82,18 @@ export function shopVisibleProducts(products: Product[]): Product[] {
 
 export function shopVisibleLooks(products: Product[]): ShopLook[] {
   return shopVisibleProducts(products).map(toShopLook);
+}
+
+export type PdpDecision = { status: 404 } | { status: 200; look: ShopLook };
+
+/** Public PDP lookup. 404 is what `/m/[ma]` turns into `notFound()`. */
+export function pdpDecision(products: Product[], ma: string): PdpDecision {
+  const code = normalizeMa(ma);
+  const look = shopVisibleLooks(products).find((item) => item.ma === code);
+  if (!look) {
+    return { status: 404 };
+  }
+  return { status: 200, look };
 }
 
 export function asksInboxPrice(status: ProductStatus): boolean {

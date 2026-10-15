@@ -10,6 +10,7 @@ import {
   newMaWebhookConfigured,
   notifyNewMaWebhook,
   scheduleNewMaWebhook,
+  settledNewMaWebhooks,
   type NewMaWebhookInput,
 } from "../lib/newMaWebhook";
 import { resetStoreBackendForTests } from "../lib/store-backend";
@@ -383,6 +384,7 @@ describe("save routes stay 200 when the new-mã webhook fails", { concurrency: 1
     } finally {
       release();
       await pending;
+      await flush();
     }
   });
 
@@ -425,7 +427,7 @@ function jsonForm(method: "POST" | "PATCH", pathname: string, fields: Record<str
 }
 
 function flush(): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, 30));
+  return settledNewMaWebhooks();
 }
 
 function assertNoSecret(logs: unknown[][]): void {
