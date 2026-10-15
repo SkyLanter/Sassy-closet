@@ -15,6 +15,7 @@ import { ProductPageTitle } from "@/components/product-page-title";
 import { ProductPrice } from "@/components/product-price";
 import type { AsiaSizeLetter } from "@/lib/asia-size";
 import { categoryAriaLabel, categoryCopy, categoryHref } from "@/lib/categories";
+import { SITE } from "@/lib/site";
 import { colorShopLabel } from "@/lib/colors";
 import { imagesForColor, uniqueImageSrcs } from "@/lib/product-media";
 import { ORDER_VIA_MESSENGER } from "@/lib/pdp-copy";
@@ -40,14 +41,32 @@ export function ProductLook({ product }: { product: ShopLook }) {
 
   return (
     <>
-    <article aria-labelledby="look-title" className="ky-pdp mx-auto grid max-w-7xl items-start gap-1 ky-gutter py-1 lg:grid-cols-2 lg:gap-14 lg:py-12">
-      <div className="ky-pdp-media min-w-0 lg:sticky lg:top-[calc(env(safe-area-inset-top,0px)+8.75rem)] lg:self-start">
+    <article aria-labelledby="look-title" className="ky-pdp mx-auto grid max-w-7xl items-start gap-1 ky-gutter py-1 lg:grid-cols-2 lg:gap-x-14 lg:gap-y-1 lg:py-12">
+      <div className="ky-pdp-lead min-w-0 lg:col-start-2 lg:row-start-1">
+        <nav className="sr-only" aria-label="Breadcrumb" data-testid="look-breadcrumb">
+          <ol>
+            <li>
+              <Link href="/">{SITE.name}</Link>
+            </li>
+            <li>
+              <Link href={categoryHref(product.type)}>{type.label}</Link>
+            </li>
+            <li aria-current="page">{product.ma}</li>
+          </ol>
+        </nav>
+        <ProductPageTitle product={product} />
+        <ProductPrice
+          product={product}
+          className="ky-pdp-price sc-price mt-2 block text-[1.35rem] font-semibold tracking-tight text-ink sm:text-[1.5rem]"
+        />
+      </div>
+      <div className="ky-pdp-media min-w-0 lg:sticky lg:top-[calc(env(safe-area-inset-top,0px)+8.75rem)] lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:self-start">
         <ContentWaveLooks>
           <ProductGallery product={product} colorId={colorId} onColorId={setColorId} />
         </ContentWaveLooks>
       </div>
-      <div className="ky-pdp-copy flex min-w-0 flex-col">
-        <p className="ky-pdp-meta flex min-w-0 flex-nowrap items-center gap-x-2 overflow-x-auto tab-scroll text-[11px] uppercase tracking-[0.18em] text-muted">
+      <div className="ky-pdp-copy flex min-w-0 flex-col lg:col-start-2 lg:row-start-2">
+        <div className="ky-pdp-meta flex min-w-0 flex-nowrap items-center gap-x-2 overflow-x-auto tab-scroll text-[11px] uppercase tracking-[0.18em] text-muted">
           <Link
             href={categoryHref(product.type)}
             aria-label={categoryAriaLabel(product.type)}
@@ -59,12 +78,7 @@ export function ProductLook({ product }: { product: ShopLook }) {
           <span className="shrink-0" aria-hidden>/</span>
           <CopyMa ma={product.ma} />
           <ShareLook ma={product.ma} title={productShareTitle(product)} />
-        </p>
-        <ProductPageTitle product={product} />
-        <ProductPrice
-          product={product}
-          className="ky-pdp-price sc-price mt-2 block text-[1.35rem] font-semibold tracking-tight text-ink sm:text-[1.5rem]"
-        />
+        </div>
         <ProductOptions
           product={product}
           colorId={colorId}

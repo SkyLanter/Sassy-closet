@@ -76,7 +76,7 @@ export function SizeNameChips({
       <HScrollCue className="ky-h-scroll-cue min-w-0 max-w-full">
       <div
         ref={railRef}
-        className="flex min-w-0 max-w-full flex-nowrap gap-1 overflow-x-auto tab-scroll scroll-px-2"
+        className="flex min-w-0 max-w-full flex-nowrap gap-2 overflow-x-auto tab-scroll scroll-px-2"
         role="radiogroup"
         aria-orientation="horizontal"
         aria-label={SIZE_FIELD_LEGEND}

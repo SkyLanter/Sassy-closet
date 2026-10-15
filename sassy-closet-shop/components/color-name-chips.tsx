@@ -90,7 +90,7 @@ export function ColorNameChips({
       <HScrollCue className="ky-h-scroll-cue min-w-0 max-w-full">
         <div
           ref={railRef}
-          className="flex w-full min-w-0 max-w-full flex-nowrap gap-1 scroll-px-2 overflow-x-auto tab-scroll"
+          className="flex w-full min-w-0 max-w-full flex-nowrap gap-2 scroll-px-2 overflow-x-auto tab-scroll"
           role="radiogroup"
           aria-orientation="horizontal"
           aria-label={COLOR_FIELD_LEGEND}
