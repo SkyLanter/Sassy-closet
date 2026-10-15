@@ -1,4 +1,5 @@
 import { categorySearchLabels } from "@/lib/categories";
+import { isOffLiveSell } from "@/lib/held-incomplete";
 import { isValidMa, maLetter, normalizeMa } from "@/lib/ma";
 
 /** Customer search index — mã + titles only. Never invent rows. */
@@ -145,17 +146,22 @@ function stemMatches(haystack: string, token: string): boolean {
   return false;
 }
 
+function shopSearchLooks<T extends LookSearchItem>(looks: T[]): T[] {
+  return looks.filter((look) => !isOffLiveSell(look.ma));
+}
+
 export function filterLooksByQuery<T extends LookSearchItem>(
   looks: T[],
   query: string,
 ): T[] {
+  const shop = shopSearchLooks(looks);
   const raw = query.trim();
   if (!raw) {
-    return looks;
+    return shop;
   }
   const ma = looseMaCandidate(raw);
   if (ma) {
-    const hit = looks.find((look) => look.ma === ma);
+    const hit = shop.find((look) => look.ma === ma);
     if (hit) {
       return [hit];
     }
@@ -165,9 +171,9 @@ export function filterLooksByQuery<T extends LookSearchItem>(
   const needle = ma ? raw.replace(/[\s-]+/g, "") : raw;
   const tokens = foldSearchText(needle).split(" ").filter(Boolean);
   if (tokens.length === 0) {
-    return looks;
+    return shop;
   }
-  return looks.filter((look) => {
+  return shop.filter((look) => {
     const haystack = lookSearchHaystack(look);
     return tokens.every((token) => stemMatches(haystack, token));
   });
@@ -191,7 +197,7 @@ export function exactMaLook<T extends LookSearchItem>(
 ): T | undefined {
   const normalized = normalizeMa(query);
   const candidate = isValidMa(normalized) ? normalized : looseMaCandidate(query);
-  if (!candidate || !isValidMa(candidate)) {
+  if (!candidate || !isValidMa(candidate) || isOffLiveSell(candidate)) {
     return undefined;
   }
   return looks.find((look) => look.ma === candidate);
