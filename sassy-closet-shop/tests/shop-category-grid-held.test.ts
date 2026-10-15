@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import held from "../../data/held.json";
-import { categoryGridLooks } from "../lib/category-grid";
+import { categoryGridLooks, homeLooks } from "../lib/category-grid";
 import { HELD_INCOMPLETE_MAS } from "../lib/held-incomplete";
 import { maLetter, type MaLetter } from "../lib/ma";
 import { parseCatalog } from "../lib/product-parse";
@@ -55,6 +55,21 @@ test("shop category grid omits held mãs from the fixture and keeps S06 at $25",
     assert.equal(gridMas(type).includes(ma), false, ma);
   }
 
+  assert.equal(readFileSync(HELD_FILE).equals(HELD_BYTES), true);
+  assert.equal(products.find((product) => product.ma === "S06")?.priceUsd, 25);
+});
+
+test("home looks list omits held mãs from the fixture and keeps S06 at $25", () => {
+  assert.equal(heldSet.has("S06"), false);
+  const listed = homeLooks(products);
+  assert.deepEqual(
+    listed.map((look) => look.ma),
+    ["S06", "A15"],
+  );
+  assert.equal(listed.find((look) => look.ma === "S06")?.priceUsd, 25);
+  for (const ma of HELD_INCOMPLETE_MAS) {
+    assert.equal(listed.some((look) => look.ma === ma), false, ma);
+  }
   assert.equal(readFileSync(HELD_FILE).equals(HELD_BYTES), true);
   assert.equal(products.find((product) => product.ma === "S06")?.priceUsd, 25);
 });
