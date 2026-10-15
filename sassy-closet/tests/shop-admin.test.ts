@@ -345,6 +345,34 @@ test("signed-in catalog route reads a local file and does not require the intake
   }
 });
 
+test("a mã with a bad stored status or price cannot be saved and nothing is written", () => {
+  const brokenStatus = sampleCatalog();
+  const statusRows = brokenStatus.products as { status: string }[];
+  statusRows[0].status = "mystery";
+  const statusBefore = JSON.stringify(brokenStatus);
+  const statusPatch = applyShopCatalogPatch(brokenStatus, { ma: "A01", titleEn: "Nope" }, "t");
+  assert.equal(statusPatch.ok, false);
+  if (!statusPatch.ok) {
+    assert.match(statusPatch.error, /A01 cannot be saved/);
+    assert.match(statusPatch.error, /status is not available, hold, or sold/);
+    assert.match(statusPatch.error, /Nothing was written/);
+  }
+  assert.equal(JSON.stringify(brokenStatus), statusBefore);
+
+  const brokenPrice = sampleCatalog();
+  const priceRows = brokenPrice.products as { priceUsd: number }[];
+  priceRows[0].priceUsd = -1;
+  const priceBefore = JSON.stringify(brokenPrice);
+  const pricePatch = applyShopCatalogPatch(brokenPrice, { ma: "A01", titleEn: "Nope" }, "t");
+  assert.equal(pricePatch.ok, false);
+  if (!pricePatch.ok) {
+    assert.match(pricePatch.error, /A01 cannot be saved/);
+    assert.match(pricePatch.error, /USD price is not a valid dollar amount/);
+    assert.match(pricePatch.error, /Nothing was written/);
+  }
+  assert.equal(JSON.stringify(brokenPrice), priceBefore);
+});
+
 test("shop save refuses every S06 dollar other than 25", async () => {
   for (const priceUsd of [0, 24, 26, 40, 99, 25.5]) {
     const document = s06Catalog();
