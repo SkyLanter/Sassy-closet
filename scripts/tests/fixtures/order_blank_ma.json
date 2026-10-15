@@ -1,0 +1,13 @@
+{
+  "orderId": "FIX-BLANK-MA",
+  "lines": [
+    {"ma": "S06", "title": "Satin skirt", "priceUsd": 25},
+    {"ma": "", "title": "No code", "priceUsd": 30},
+    {"ma": "   ", "title": "Spaces only", "priceUsd": "18"},
+    {"ma": null, "title": "Null code", "priceUsd": 22},
+    {"title": "Missing code", "priceUsd": 19},
+    {"ma": "", "title": "No code and no price"},
+    {"ma": "A01", "title": "Ivory blouse", "priceUsd": 28},
+    {"ma": "K06", "title": "Held knit", "priceUsd": 48}
+  ]
+}
