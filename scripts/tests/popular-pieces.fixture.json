@@ -1,0 +1,12 @@
+{
+  "held": ["S14", "A24", "A25", "S15", "A26", "K02"],
+  "pieces": [
+    {"ma": "A05", "priceUsd": 28, "available": true},
+    {"ma": "S14", "priceUsd": 40, "available": true},
+    {"ma": "S06", "priceUsd": 25, "available": true},
+    {"ma": "A24", "priceUsd": 33, "available": true},
+    {"ma": "A07", "priceUsd": 26, "available": true},
+    {"ma": "K02", "priceUsd": 19, "available": false},
+    {"ma": "D05", "priceUsd": 26, "available": true}
+  ]
+}
