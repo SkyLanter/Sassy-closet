@@ -1,0 +1,128 @@
+[
+  {
+    "ma": "S06",
+    "status": "available",
+    "priceUsd": 25,
+    "qty": 1,
+    "titleEn": "Washed overalls",
+    "titleVn": "Yếm jean",
+    "images": []
+  },
+  {
+    "ma": "A15",
+    "status": "available",
+    "priceUsd": 19,
+    "qty": 1,
+    "titleEn": "Heather knit top",
+    "titleVn": "Áo len hoa",
+    "images": []
+  },
+  {
+    "ma": "S14",
+    "status": "available",
+    "priceUsd": 1,
+    "qty": 1,
+    "titleEn": "Held piece S14",
+    "titleVn": "Mã held S14",
+    "images": []
+  },
+  {
+    "ma": "A24",
+    "status": "available",
+    "priceUsd": 1,
+    "qty": 1,
+    "titleEn": "Held piece A24",
+    "titleVn": "Mã held A24",
+    "images": []
+  },
+  {
+    "ma": "A25",
+    "status": "available",
+    "priceUsd": 1,
+    "qty": 1,
+    "titleEn": "Held piece A25",
+    "titleVn": "Mã held A25",
+    "images": []
+  },
+  {
+    "ma": "S15",
+    "status": "available",
+    "priceUsd": 1,
+    "qty": 1,
+    "titleEn": "Held piece S15",
+    "titleVn": "Mã held S15",
+    "images": []
+  },
+  {
+    "ma": "A26",
+    "status": "available",
+    "priceUsd": 1,
+    "qty": 1,
+    "titleEn": "Held piece A26",
+    "titleVn": "Mã held A26",
+    "images": []
+  },
+  {
+    "ma": "K02",
+    "status": "available",
+    "priceUsd": 1,
+    "qty": 1,
+    "titleEn": "Held piece K02",
+    "titleVn": "Mã held K02",
+    "images": []
+  },
+  {
+    "ma": "K03",
+    "status": "available",
+    "priceUsd": 1,
+    "qty": 1,
+    "titleEn": "Held piece K03",
+    "titleVn": "Mã held K03",
+    "images": []
+  },
+  {
+    "ma": "K04",
+    "status": "available",
+    "priceUsd": 1,
+    "qty": 1,
+    "titleEn": "Held piece K04",
+    "titleVn": "Mã held K04",
+    "images": []
+  },
+  {
+    "ma": "K05",
+    "status": "available",
+    "priceUsd": 1,
+    "qty": 1,
+    "titleEn": "Held piece K05",
+    "titleVn": "Mã held K05",
+    "images": []
+  },
+  {
+    "ma": "V04",
+    "status": "available",
+    "priceUsd": 1,
+    "qty": 1,
+    "titleEn": "Held piece V04",
+    "titleVn": "Mã held V04",
+    "images": []
+  },
+  {
+    "ma": "K06",
+    "status": "available",
+    "priceUsd": 1,
+    "qty": 1,
+    "titleEn": "Held piece K06",
+    "titleVn": "Mã held K06",
+    "images": []
+  },
+  {
+    "ma": "V05",
+    "status": "available",
+    "priceUsd": 1,
+    "qty": 1,
+    "titleEn": "Held piece V05",
+    "titleVn": "Mã held V05",
+    "images": []
+  }
+]

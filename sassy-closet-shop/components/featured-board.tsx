@@ -14,6 +14,7 @@ import { ShopEmpty } from "@/components/shop-empty";
 import { SizeFilterChips } from "@/components/size-filter";
 import { useShopSearch } from "@/components/shop-search";
 import type { AsiaSizeLetter } from "@/lib/asia-size";
+import { categoryGridLooks } from "@/lib/category-grid";
 import { categoryAriaLabel, categoryFilterLabel, categorySectionId, TYPE_SLUGS } from "@/lib/categories";
 import { DEFAULT_SHOP_SORT, sortShopLooks, type ShopSortId } from "@/lib/fb-rank";
 import { scrollChromeChildIntoView } from "@/lib/gallery-snap";
@@ -73,7 +74,7 @@ export function FeaturedBoard({
   const sections = useMemo(() => {
     const next = new Map<MaLetter, ShopLook[]>();
     for (const type of types) {
-      const inType = searched.filter((product) => product.type === type);
+      const inType = categoryGridLooks(searched, type);
       const sized = activeSize
         ? inType.filter((product) => product.sizes.includes(activeSize))
         : inType;
