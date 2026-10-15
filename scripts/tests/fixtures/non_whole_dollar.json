@@ -1,0 +1,39 @@
+{
+  "products": [
+    {
+      "ma": "S06",
+      "titleEn": "Washed distressed overalls",
+      "titleVn": "Yếm jean wash rách",
+      "priceUsd": 25
+    },
+    {
+      "ma": "A01",
+      "titleEn": "Puppy cardigan",
+      "titleVn": "Áo len puppy",
+      "priceUsd": 25.50
+    },
+    {
+      "ma": "k06",
+      "titleEn": "Set",
+      "titleVn": "Set",
+      "priceUsd": "  7.25"
+    },
+    {
+      "ma": "H01",
+      "titleEn": "Rabbit hair bows",
+      "titleVn": "Nơ tóc thỏ",
+      "priceUsd": 8
+    },
+    {
+      "ma": "V05",
+      "titleEn": "Skirt",
+      "titleVn": "Chân váy",
+      "priceUsd": "12.00"
+    },
+    {
+      "ma": "K02",
+      "titleEn": "Set",
+      "titleVn": "Set"
+    }
+  ]
+}
