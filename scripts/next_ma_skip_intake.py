@@ -6,8 +6,9 @@ for that letter, then steps over held numbers and those intake numbers.
 
 Prices are copied through. A fixture that prices S06 must say $25.
 
-This module only reads the fixture path it is given. It does not write
-intake, the on-disk held list, or a sell price.
+This module only reads the fixture path it is given. A live intake URL is
+refused and is not read. It does not write intake, the on-disk held list,
+or a sell price.
 """
 
 from __future__ import annotations
@@ -25,6 +26,8 @@ ROOT = Path(__file__).resolve().parents[1]
 _HELD_FILE = (ROOT / "data" / "held.json").resolve()
 _SHOP_DATA = (ROOT / "sassy-closet-shop" / "data").resolve()
 _INTAKE_DATA = (ROOT / "sassy-closet" / "data").resolve()
+_LIVE_INTAKE = "Live intake is not read. Pass a fixture file."
+_REMOTE_KEYS = ("url", "intakeUrl", "intake_url", "catalogUrl", "catalog_url")
 
 
 @dataclass(frozen=True)
@@ -99,6 +102,8 @@ def count_next_free(
 def count_fixture(path: Path) -> dict[str, object]:
     _refuse_live(path)
     payload = json.loads(path.read_text(encoding="utf-8"))
+    if _remote_pointer(payload):
+        raise ValueError(_LIVE_INTAKE)
     if not isinstance(payload, dict):
         raise ValueError("fixture must be a JSON object")
     for key in ("catalog", "held", "intake"):
@@ -123,6 +128,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         help="JSON with catalog, held, intake, and optional prices.",
     )
     args = parser.parse_args(argv)
+    if _is_live_target(args.fixture):
+        print(_LIVE_INTAKE, file=sys.stderr)
+        return 2
     try:
         report = count_fixture(Path(args.fixture))
     except (OSError, ValueError, json.JSONDecodeError) as error:
@@ -133,10 +141,8 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 
 def _refuse_live(path: Path) -> None:
-    raw = str(path).strip()
-    lowered = raw.lower()
-    if "://" in raw or lowered.startswith("http:") or lowered.startswith("https:"):
-        raise ValueError("live reads are refused")
+    if _is_live_target(str(path)):
+        raise ValueError(_LIVE_INTAKE)
     resolved = path.resolve(strict=False)
     refused = (
         resolved == _HELD_FILE
@@ -145,6 +151,23 @@ def _refuse_live(path: Path) -> None:
     )
     if refused:
         raise ValueError("live reads are refused")
+
+
+def _is_live_target(value: str) -> bool:
+    text = value.strip().casefold()
+    return "://" in text or text.startswith("//") or text.startswith("blob:") or text.startswith("http")
+
+
+def _remote_pointer(payload: object) -> bool:
+    if isinstance(payload, str):
+        return _is_live_target(payload)
+    if not isinstance(payload, dict):
+        return False
+    for key in ("intake", "catalog", "held", *_REMOTE_KEYS):
+        value = payload.get(key)
+        if isinstance(value, str) and _is_live_target(value):
+            return True
+    return False
 
 
 def _is_inside(child: Path, parent: Path) -> bool:

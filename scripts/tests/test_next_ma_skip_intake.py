@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from next_ma_skip_intake import count_fixture, count_next_free, next_code
+from next_ma_skip_intake import count_fixture, count_next_free, main, next_code
 
 ROOT = Path(__file__).resolve().parents[2]
 FIXTURE = ROOT / "scripts" / "tests" / "fixtures" / "next-ma-skip-intake.json"
@@ -161,14 +161,13 @@ def test_cli_prints_q02_skips_a27_and_writes_nothing(monkeypatch: pytest.MonkeyP
         count_fixture(HELD_PATH)
     with pytest.raises(ValueError, match="^live reads are refused$"):
         count_fixture(PRODUCTS_PATH)
-    with pytest.raises(ValueError, match="^live reads are refused$"):
-        count_fixture(Path("https://example.com/catalog.json"))
+    with pytest.raises(ValueError, match="^Live intake is not read\\. Pass a fixture file\\.$"):
+        count_fixture(Path("https://sassy-closet.vercel.app/api/submissions"))
     _unchanged()
 
 
 def test_cli_refuses_a_url_and_the_held_file() -> None:
     for fixture in (
-        "https://example.com/catalog.json",
         str(HELD_PATH),
         "scripts/tests/fixtures/../../../data/held.json",
     ):
@@ -191,6 +190,71 @@ def test_cli_refuses_a_url_and_the_held_file() -> None:
     )
     assert missing.returncode == 2
     assert missing.stdout == ""
+    _unchanged()
+
+
+def test_live_intake_url_exits_nonzero_and_is_not_read(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    url = "https://sassy-closet.vercel.app/api/submissions"
+    reads: list[str] = []
+    original = Path.read_text
+
+    def record_read(self: Path, *args: object, **kwargs: object) -> str:
+        reads.append(str(self))
+        return original(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", record_read)
+    assert main(["--fixture", url]) != 0
+    assert main(["--fixture", "//sassy-closet.vercel.app/api/submissions"]) == 2
+    captured = capsys.readouterr()
+    assert "Live intake is not read. Pass a fixture file." in captured.err
+    assert url not in reads
+    assert all("api/submissions" not in item for item in reads)
+
+    ran = subprocess.run(
+        [sys.executable, str(SCRIPT), "--fixture", url],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert ran.returncode != 0
+    assert ran.returncode == 2
+    assert ran.stdout == ""
+    assert "Live intake is not read. Pass a fixture file." in ran.stderr
+
+    pointer = tmp_path / "intake-url.json"
+    pointer.write_text(
+        json.dumps(
+            {
+                "catalog": ["Q01"],
+                "held": [],
+                "intake": url,
+            }
+        ),
+        encoding="utf-8",
+    )
+    before = pointer.read_bytes()
+    pointed = subprocess.run(
+        [sys.executable, str(SCRIPT), "--fixture", str(pointer)],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert pointed.returncode == 2
+    assert pointed.stdout == ""
+    assert "Live intake is not read. Pass a fixture file." in pointed.stderr
+    assert pointer.read_bytes() == before
+    source = SCRIPT.read_text(encoding="utf-8")
+    assert "urllib" not in source
+    assert "urlopen" not in source
+    assert "requests" not in source
+    assert count_fixture(FIXTURE)["next"]["Q"] == "Q02"
+    assert "A27" not in count_fixture(FIXTURE)["next"].values()
     _unchanged()
 
 
