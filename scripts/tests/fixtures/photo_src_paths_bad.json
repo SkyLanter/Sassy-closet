@@ -16,6 +16,11 @@
           "src": "https://cdn.example.test/s06/photo-2.jpg",
           "colorId": null,
           "order": 2
+        },
+        {
+          "src": "/products/../etc/passwd",
+          "colorId": null,
+          "order": 3
         }
       ]
     },

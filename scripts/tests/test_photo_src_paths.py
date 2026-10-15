@@ -31,6 +31,7 @@ BAD_BYTES = BAD.read_bytes()
 COVER = "/products/S06/cover.jpg"
 HTTP_SRC = "https://cdn.example.test/s06/photo-2.jpg"
 DATA_SRC = "data:image/jpeg;base64,aaaa"
+TRAVERSAL = "/products/../etc/passwd"
 
 
 def test_site_path_stays_quiet_and_http_data_blank_are_flagged() -> None:
@@ -53,6 +54,7 @@ def test_site_path_stays_quiet_and_http_data_blank_are_flagged() -> None:
     assert src_kind("//cdn.example.test/a.jpg") == "not_site_path"
     assert src_kind(COVER + " ") == "not_site_path"
     assert src_kind("/products/S06/../cover.jpg") == "not_site_path"
+    assert src_kind(TRAVERSAL) == "not_site_path"
 
 
 def test_s06_cover_stays_quiet_while_a_full_url_on_the_same_row_is_flagged() -> None:
@@ -99,6 +101,17 @@ def test_src_outside_products_is_flagged_without_rewriting() -> None:
         PhotoSrcFlag("S06", "images/a01.jpg", 1, "not_site_path"),
         PhotoSrcFlag("S06", "/etc/passwd", 2, "not_site_path"),
     ]
+    assert COVER not in {flag.src for flag in flags}
+
+
+def test_products_src_with_parent_dir_is_flagged_without_rewriting() -> None:
+    photos = (COVER, TRAVERSAL)
+    row = CatalogPhotoRow("S06", photos, 25, False, "available")
+    flags = flag_photo_src_paths([row])
+    assert row.photos is photos
+    assert row.photos[1] == TRAVERSAL
+    assert row.price_usd == 25
+    assert flags == [PhotoSrcFlag("S06", TRAVERSAL, 1, "not_site_path")]
     assert COVER not in {flag.src for flag in flags}
 
 
@@ -183,7 +196,7 @@ def test_bad_fixture_keeps_s06_at_25_and_the_cover_quiet() -> None:
     assert by_ma["S06"].price_usd == 25
     assert by_ma["S06"].held is False
     assert by_ma["S06"].status == "available"
-    assert by_ma["S06"].photos[0] == COVER
+    assert by_ma["S06"].photos == (COVER, HTTP_SRC, TRAVERSAL)
     assert by_ma["K06"].held is True
     assert by_ma["K06"].status == "hold"
     assert by_ma["K06"].photos == ("/products/K06/cover.jpg",)
@@ -197,6 +210,7 @@ def test_bad_fixture_keeps_s06_at_25_and_the_cover_quiet() -> None:
         {"ma": "A01", "src": "images/a01.jpg", "index": 2, "kind": "not_site_path"},
         {"ma": "A01", "src": "/etc/passwd", "index": 3, "kind": "not_site_path"},
         {"ma": "S06", "src": HTTP_SRC, "index": 1, "kind": "http_url"},
+        {"ma": "S06", "src": TRAVERSAL, "index": 2, "kind": "not_site_path"},
         {"ma": "V05", "src": "", "index": 0, "kind": "blank"},
         {"ma": "V05", "src": "  ", "index": 1, "kind": "blank"},
         {"ma": "V05", "src": "", "index": 2, "kind": "blank"},
@@ -226,6 +240,7 @@ def test_cli_bad_fixture_exits_1_and_writes_nothing() -> None:
     assert report["readOnly"] is True
     assert report["rows"] == 5
     assert {"ma": "S06", "src": HTTP_SRC, "index": 1, "kind": "http_url"} in report["flags"]
+    assert {"ma": "S06", "src": TRAVERSAL, "index": 2, "kind": "not_site_path"} in report["flags"]
     assert {"ma": "A01", "src": "images/a01.jpg", "index": 2, "kind": "not_site_path"} in report["flags"]
     assert {"ma": "A01", "src": "/etc/passwd", "index": 3, "kind": "not_site_path"} in report["flags"]
     assert COVER not in result.stdout

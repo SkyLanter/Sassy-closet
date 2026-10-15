@@ -1,11 +1,11 @@
 """Flag a catalog photo src that is not a site path.
 
-Read-only. A site path starts with /products/, such as
-/products/S06/cover.jpg. A full http URL, a data URL, a blank, and a src
-that does not start with /products/ (images/a01.jpg, /etc/passwd) are
-named in the report with the stored src. This script does not rewrite a
-src, change a price, or write data/held.json. Pass a fixture file. A URL
-and the shop catalog are refused.
+Read-only. A site path starts with /products/ and does not contain ..,
+such as /products/S06/cover.jpg. A full http URL, a data URL, a blank, a
+src that does not start with /products/ (images/a01.jpg, /etc/passwd), and
+a src such as /products/../etc/passwd are named in the report with the
+stored src. This script does not rewrite a src, change a price, or write
+data/held.json. Pass a fixture file. A URL and the shop catalog are refused.
 """
 
 from __future__ import annotations
@@ -131,13 +131,15 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _is_site_path(src: str) -> bool:
-    """True when the stored src starts with /products/, such as /products/S06/cover.jpg."""
+    """True when the stored src starts with /products/ and does not contain .."""
     if src != src.strip() or not src.startswith(_SITE_PREFIX) or src.endswith("/"):
         return False
-    if any(char.isspace() or char in {"\\", "\x00", ":"} for char in src) or "//" in src:
+    if ".." in src or "//" in src:
+        return False
+    if any(char.isspace() or char in {"\\", "\x00", ":"} for char in src):
         return False
     parts = src.split("/")
-    return all(part not in {"", ".", ".."} for part in parts[1:])
+    return all(part not in {"", "."} for part in parts[1:])
 
 
 def _photo_list(item: dict[str, object]) -> tuple[str, ...]:
