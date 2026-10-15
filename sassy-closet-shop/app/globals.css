@@ -1917,6 +1917,27 @@ button[aria-checked="true"] > .sc-chip-face {
   scroll-padding-inline-end: 2rem;
 }
 
+/* Color names stay whole on a phone card. The category chevron does not cover a chip. */
+.ky-chip-rail {
+  container-type: inline-size;
+}
+
+.ky-chip-rail.ky-h-scroll-cue[data-fade-right="true"] > .ky-scroll-more,
+.ky-chip-rail > .ky-scroll-more {
+  display: none;
+}
+
+@container (max-width: 12rem) {
+  .ky-chip-rail .ky-color-chip {
+    padding-inline: 0;
+    letter-spacing: 0.02em;
+  }
+
+  .ky-chip-rail .ky-color-chip .sc-chip-face {
+    padding-inline: 0.5rem;
+  }
+}
+
 /* Lighthouse flags text under 12px. The tracked labels stay uppercase. */
 .text-\[9px\],
 .text-\[10px\],

@@ -25,6 +25,8 @@ test("shop type floor and phone name lead stay in the stylesheet", () => {
   assert.match(css, /\.text-\\\[11px\\\]/);
   assert.match(css, /font-size: 0\.75rem/);
   assert.match(css, /\.ky-scroll-more/);
+  assert.match(css, /\.ky-chip-rail > \.ky-scroll-more/);
+  assert.match(read("components/color-name-chips.tsx"), /ky-chip-rail/);
   assert.match(css, /\.ky-pdp-media \.ky-gallery-frame/);
   const look = read("components/product-look.tsx");
   assert.match(look, /ky-pdp-lead/);
