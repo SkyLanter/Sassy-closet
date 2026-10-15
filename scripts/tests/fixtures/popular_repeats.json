@@ -1,0 +1,16 @@
+{
+  "order": [
+    {"ma": "A05", "priceUsd": 28},
+    {"ma": "S06", "priceUsd": 25},
+    {"ma": "A07", "priceUsd": 26},
+    {"ma": "A05", "priceUsd": 28},
+    {"ma": "D05", "priceUsd": 26},
+    {"ma": "S06", "priceUsd": 25}
+  ],
+  "scores": {
+    "A05": 1.2,
+    "S06": 0.022727,
+    "A07": 0.16,
+    "D05": 0.1
+  }
+}
