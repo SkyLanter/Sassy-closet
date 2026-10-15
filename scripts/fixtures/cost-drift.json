@@ -1,0 +1,33 @@
+{
+  "intake": [
+    {"ma": "K01", "cost_cny": ""},
+    {"ma": "H01", "cost_cny": "  "},
+    {"ma": "O04", "cost_cny": null},
+    {"ma": "S07", "cost_cny": "127;145"},
+    {"ma": "S09", "cost_cny": "134"},
+    {"ma": "S11", "cost_cny": "180"},
+    {"ma": "A03", "cost_cny": "108.01"},
+    {"ma": "A01", "cost_cny": "80"},
+    {"ma": "A02", "cost_cny": "108"},
+    {"ma": "A04", "cost_cny": "92"},
+    {"ma": "A05", "cost_cny": "105"},
+    {"ma": "A07", "cost_cny": "87.23"},
+    {"ma": "S06", "cost_cny": "80", "sell_usd": "25"},
+    {"ma": "P01", "cost_cny": "70"},
+    {"ma": "P02", "cost_cny": "59.9"}
+  ],
+  "taobao": [
+    {"ma": "S07", "state": "ok", "public_cny": "100", "detail": "fixture public ¥"},
+    {"ma": "S09", "state": "ok", "public_cny": "100", "detail": "fixture public ¥"},
+    {"ma": "S11", "state": "ok", "public_cny": "200", "detail": "fixture public ¥"},
+    {"ma": "A03", "state": "ok", "public_cny": "100", "detail": "fixture public ¥"},
+    {"ma": "A01", "state": "ok", "public_cny": "80", "detail": "fixture public ¥"},
+    {"ma": "A02", "state": "ok", "public_cny": "100", "detail": "fixture public ¥"},
+    {"ma": "A04", "state": "ok", "public_cny": "100", "detail": "fixture public ¥"},
+    {"ma": "A05", "state": "ok", "public_cny": "100", "detail": "fixture public ¥"},
+    {"ma": "A07", "state": "skip", "public_cny": "10", "detail": "login-walled"},
+    {"ma": "S06", "state": "ok", "public_cny": "80", "detail": "fixture public ¥"},
+    {"ma": "P01", "html_file": "taobao/price-59-9.html"},
+    {"ma": "P02", "html_file": "taobao/price-59-9.html"}
+  ]
+}
