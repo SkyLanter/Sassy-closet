@@ -17,6 +17,7 @@ import {
   listingPollIntervalMs,
   listingStatusFromApi,
   listingWebView,
+  liveListingMas,
   type ListingItem,
   type ListingStatusClient,
 } from "@/lib/listing-status";
@@ -399,8 +400,9 @@ export function IntakeApp({
       const existing = editingMa || (tab === "edit" ? loadedMa : null);
       const url = existing ? `/api/submissions/${encodeURIComponent(existing)}` : "/api/submissions";
       const response = await fetch(url, { method: existing ? "PATCH" : "POST", body: form });
-      const data = (await response.json()) as { submission?: Submission; error?: string };
+      const data = (await response.json()) as { submission?: Submission; error?: string; suggestion?: string };
       if (!response.ok || !data.submission) {
+        if (data.suggestion) setRenameTo(data.suggestion);
         setError(data.error || "Chưa nhận được mã. Thử lại nha 🥺");
         return false;
       }
@@ -450,7 +452,7 @@ export function IntakeApp({
     if (tab === "edit" && loadedMa) {
       const current = parseHubMa(loadedMa)?.kind;
       if (current && current !== next) {
-        setRenameTo(nextMa(next, knownMas));
+        setRenameTo(nextMa(next, [...knownMas, ...liveListingMas(listing.items)]));
       }
     }
   }

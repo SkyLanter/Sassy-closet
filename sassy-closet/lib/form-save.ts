@@ -67,6 +67,29 @@ function parseJson<T>(raw: FormDataEntryValue | null, guard: (value: unknown) =>
   }
 }
 
+export function intakeSaveFailure(error: unknown): {
+  status: number;
+  body: { error: string; suggestion?: string };
+} {
+  const status =
+    typeof error === "object" && error !== null && "status" in error && typeof error.status === "number"
+      ? error.status
+      : 400;
+  const message = error instanceof Error ? error.message : "Chưa lưu được, thử lại nha.";
+  const suggestion =
+    typeof error === "object" &&
+    error !== null &&
+    "suggestion" in error &&
+    typeof error.suggestion === "string" &&
+    error.suggestion.trim()
+      ? error.suggestion
+      : undefined;
+  return {
+    status,
+    body: suggestion ? { error: message, suggestion } : { error: message },
+  };
+}
+
 function extFromName(name: string): string {
   const ext = name.toLowerCase().match(/\.(jpe?g|png|webp)$/)?.[0];
   return ext ?? ".jpg";
