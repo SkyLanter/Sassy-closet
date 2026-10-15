@@ -372,12 +372,15 @@ test("shop save refuses every S06 dollar other than 25", async () => {
   }
 });
 
-test("intake tabs stay the four GF tabs and shop tools is a separate link", () => {
+test("intake tabs stay the four GF tabs and shop tools stays off the form", () => {
   const types = readFileSync(path.join(process.cwd(), "lib/types.ts"), "utf8");
   assert.match(types, /export type TabId = "create" \| "edit" \| "find" \| "ask"/);
   const intake = readFileSync(path.join(process.cwd(), "components/IntakeApp.tsx"), "utf8");
-  assert.match(intake, /href="\/admin\/shop"/);
+  assert.doesNotMatch(intake, /href="\/admin\/shop"/);
+  assert.doesNotMatch(intake, /Shop tools/);
   assert.doesNotMatch(intake, /tab-shop/);
+  const admin = readFileSync(path.join(process.cwd(), "app/admin/page.tsx"), "utf8");
+  assert.match(admin, /href="\/admin\/shop"/);
   const catalog = readFileSync(path.join(process.cwd(), "lib/shop-catalog.ts"), "utf8");
   assert.equal(catalog.includes("presentLockedBossPrices"), false);
   const store = readFileSync(path.join(process.cwd(), "lib/shop-catalog-store.ts"), "utf8");
