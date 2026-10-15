@@ -1,0 +1,189 @@
+{
+  "submissions": [
+    {
+      "ma": "S06",
+      "sell_usd": "25",
+      "photo_paths": ["S06/001.jpg", "S06/002.jpeg"],
+      "photo_hashes": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    {
+      "ma": "K06",
+      "photo_paths": ["K06/001.webp"],
+      "photo_hashes": [
+        "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      ]
+    },
+    {
+      "ma": "V05",
+      "photo_paths": [],
+      "photo_hashes": []
+    },
+    {
+      "ma": "Z81",
+      "sell_usd": "40"
+    },
+    {
+      "ma": "Z82",
+      "photo_paths": ["  ", "n/a", null]
+    },
+    {
+      "ma": "Z83",
+      "photo_paths": ["Z83/001.jpg", "Z83/../../secret.jpg"],
+      "photo_hashes": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ],
+      "pieces": [{ "id": "p", "photos": [1] }]
+    },
+    {
+      "ma": "Z84",
+      "photo_paths": ["https://example.com/Z84/001.jpg"],
+      "photo_hashes": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ]
+    },
+    {
+      "ma": "Z85",
+      "photo_paths": ["blob:http://localhost/1"],
+      "photo_hashes": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ]
+    },
+    {
+      "ma": "Z86",
+      "photo_paths": ["Z86/notes.txt"],
+      "photo_hashes": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ]
+    },
+    {
+      "ma": "Z87",
+      "photo_paths": ["Z87/001.jpg"],
+      "photo_hashes": ["zzzz"]
+    },
+    {
+      "ma": "Z88",
+      "photo_paths": ["Z88/001.jpg"],
+      "photo_hashes": [
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      ]
+    },
+    {
+      "ma": "Z89",
+      "photo_paths": ["Z89/001.png"],
+      "photo_hashes": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ],
+      "pieces": [
+        {"id": "p1", "photos": [0]},
+        {"id": "p2", "photos": [3]}
+      ]
+    },
+    {
+      "ma": "Z90",
+      "photo_paths": [1, "Z90/001.jpg"],
+      "photo_hashes": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    {
+      "ma": "Z91",
+      "photo_paths": ["Z91/001.JPG"],
+      "photo_hashes": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ]
+    },
+    {
+      "ma": "Z92",
+      "photo_paths": [" Z92/001.jpg"],
+      "photo_hashes": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ]
+    },
+    {
+      "ma": "Z93",
+      "photo_paths": ["A01/001.jpg"],
+      "photo_hashes": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ]
+    },
+    {
+      "ma": "Z94",
+      "photo_paths": ["data:image/jpeg;base64,aaaa"],
+      "photo_hashes": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ]
+    },
+    {
+      "ma": "Z95",
+      "photo_paths": ["Z95/001.webp"]
+    },
+    {
+      "ma": "Z96",
+      "photo_paths": ["Z96/001.jpg", "Z96/002.jpg"],
+      "photo_hashes": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ]
+    },
+    {
+      "ma": "Z70",
+      "photo_paths": ["Z70/001.jpg", ""],
+      "photo_hashes": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    {
+      "ma": "Z97",
+      "photo_paths": "Z97/001.jpg"
+    },
+    {
+      "ma": "Z98",
+      "photo_paths": ["/Z98/001.jpg"],
+      "photo_hashes": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ]
+    },
+    {
+      "ma": "Z99",
+      "photo_paths": ["Z99/001.gif"],
+      "photo_hashes": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ]
+    },
+    {
+      "ma": "Z80",
+      "photo_paths": ["Z80/001.jpg", "Z80/002.jpg"],
+      "photo_hashes": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        ""
+      ]
+    },
+    {
+      "ma": "Z79",
+      "photo_paths": ["Z79/001.jpg"],
+      "photo_hashes": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ],
+      "pieces": [{ "id": "p", "photos": [true] }]
+    },
+    {
+      "ma": "K02",
+      "photo_paths": ["K02/001.gif"],
+      "photo_hashes": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ]
+    },
+    {
+      "ma": "Z78",
+      "photos": ["Z78/001.png"],
+      "photo_hashes": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      ]
+    }
+  ]
+}
