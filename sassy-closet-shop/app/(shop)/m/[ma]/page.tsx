@@ -5,12 +5,13 @@ import { HScrollCue } from "@/components/h-scroll-cue";
 import { ProductLook } from "@/components/product-look";
 import { ProductViewEvent } from "@/components/product-view-event";
 import { ProductGrid } from "@/components/product-grid";
-import { categoryAriaLabel, categoryCopy } from "@/lib/categories";
+import { categoryAriaLabel, categoryCopy, categoryHref } from "@/lib/categories";
 import { lookCountLabel } from "@/lib/look-count";
 import { KNOWN_SEED_MAS } from "@/lib/catalog-contract";
 import { catalogShaOf } from "@/lib/catalog-sha";
 import { getCatalogDocument, getProduct, getProductsByType } from "@/lib/products";
-import { productJsonLd, productSeo } from "@/lib/seo";
+import { breadcrumbJsonLd, productJsonLd, productSeo, serializeJsonLd } from "@/lib/seo";
+import { SITE } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 export const dynamicParams = true;
@@ -53,7 +54,19 @@ export default async function ProductPage({
     <div className="bg-paper">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd(product)) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(productJsonLd(product)) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: serializeJsonLd(
+            breadcrumbJsonLd([
+              { name: SITE.name, path: "/" },
+              { name: type.label, path: categoryHref(product.type) },
+              { name: product.ma, path: `/m/${product.ma}` },
+            ]),
+          ),
+        }}
       />
       <ContentWaveHost className="shop-content-layer">
         <ProductViewEvent ma={product.ma} />

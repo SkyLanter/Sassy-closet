@@ -1878,3 +1878,93 @@ button[aria-checked="true"] > .sc-chip-face {
     backdrop-filter: blur(var(--glass-blur-bar)) saturate(var(--glass-sat));
   }
 }
+
+/* Phone: name and price lead the page so the buy bar does not cover them.
+   The photo stays full width and 3:4. */
+@media (max-width: 767px) {
+  .ky-pdp-media .ky-gallery-frame {
+    width: 100%;
+  }
+}
+
+/* Horizontal rails fade the clipped label and show that more categories exist. */
+.ky-scroll-more {
+  display: none;
+}
+
+.ky-h-scroll-cue[data-fade-right="true"] > .ky-scroll-more {
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  width: 2.25rem;
+  place-items: center;
+  pointer-events: none;
+  background: linear-gradient(to left, var(--paper) 46%, transparent);
+}
+
+.ky-scroll-more-mark {
+  justify-self: end;
+  margin-right: 0.15rem;
+  color: var(--ink);
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.ky-h-scroll-cue[data-fade-right="true"] :is(nav, .tab-scroll) {
+  scroll-padding-inline-end: 2rem;
+}
+
+/* Color names stay whole on a phone card. The category chevron does not cover a chip. */
+.ky-chip-rail {
+  container-type: inline-size;
+}
+
+.ky-chip-rail.ky-h-scroll-cue[data-fade-right="true"] > .ky-scroll-more,
+.ky-chip-rail > .ky-scroll-more {
+  display: none;
+}
+
+@container (max-width: 12rem) {
+  .ky-chip-rail .ky-color-chip {
+    padding-inline: 0;
+    letter-spacing: 0.02em;
+  }
+
+  .ky-chip-rail .ky-color-chip .sc-chip-face {
+    padding-inline: 0.5rem;
+  }
+}
+
+/* Lighthouse flags text under 12px. The tracked labels stay uppercase. */
+.text-\[9px\],
+.text-\[10px\],
+.text-\[11px\] {
+  font-size: 0.75rem;
+}
+
+[data-testid="shop-ship-bar"] p {
+  max-width: 100%;
+  overflow: hidden;
+  letter-spacing: 0.01em;
+  text-overflow: ellipsis;
+  text-transform: none;
+}
+
+input.shop-search-field {
+  min-height: 3rem;
+}
+
+@media (pointer: coarse) {
+  .sc-chip-hit,
+  .sc-to-top {
+    min-height: 3rem;
+    min-width: 3rem;
+  }
+
+  [data-testid="shop-chrome"] .ky-header-row .min-h-11 {
+    min-height: 3rem;
+  }
+}

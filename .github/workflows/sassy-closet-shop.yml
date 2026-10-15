@@ -28,6 +28,8 @@ jobs:
       - run: npm ci
       - run: npm test
       - name: Build
+        env:
+          NEXT_PUBLIC_SHOP_URL: http://127.0.0.1:4317
         run: |
           # next/font + Turbopack can fail once with
           # "next/font/google queries have exactly one entry" on a cold runner.
@@ -40,3 +42,26 @@ jobs:
             attempt=$((attempt + 1))
             echo "Build attempt $attempt after next/font Turbopack flake"
           done
+      - name: Lighthouse-style shop audit
+        env:
+          SHOP_AUDIT_URL: http://127.0.0.1:4317
+        run: |
+          if ! command -v google-chrome >/dev/null 2>&1; then
+            sudo apt-get update
+            wget -q -O /tmp/chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+            sudo apt-get install -y /tmp/chrome.deb
+          fi
+          npx next start --hostname 127.0.0.1 --port 4317 &
+          ready=0
+          for _ in $(seq 1 40); do
+            if curl -sf -o /dev/null http://127.0.0.1:4317/; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then
+            echo "shop did not start"
+            exit 1
+          fi
+          node scripts/audit-shop.mjs

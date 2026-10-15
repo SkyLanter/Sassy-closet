@@ -3,7 +3,7 @@ import { FeaturedBoard } from "@/components/featured-board";
 import { HeroEditorial } from "@/components/hero-mesh";
 import { firstSearchQueryParam } from "@/lib/look-search";
 import { getCatalogTypes, getProducts, getSiteSettings } from "@/lib/products";
-import { organizationJsonLd } from "@/lib/seo";
+import { homeCatalogJsonLd, organizationJsonLd, serializeJsonLd, websiteJsonLd } from "@/lib/seo";
 import { SITE } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +23,15 @@ export default async function HomePage({
     <div>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd(settings.facebookPageUrl)) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(organizationJsonLd(settings.facebookPageUrl)) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(websiteJsonLd()) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(homeCatalogJsonLd(products)) }}
       />
       <h1 className="sr-only">{SITE.tagline === SITE.name ? SITE.name : `${SITE.name}. ${SITE.tagline}`}</h1>
       {committedQuery ? null : <HeroEditorial />}

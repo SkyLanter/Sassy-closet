@@ -25,6 +25,7 @@ const nextConfig: NextConfig = {
     remotePatterns: SHOP_REMOTE_IMAGE_PATTERNS.map((pattern) => ({ ...pattern })),
   },
   experimental: {
+    optimizePackageImports: ["framer-motion"],
     serverActions: {
       bodySizeLimit: "8mb",
     },
