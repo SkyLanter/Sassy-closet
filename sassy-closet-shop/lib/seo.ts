@@ -93,7 +93,7 @@ export function rootSeo(): Metadata {
       images: images,
     },
     appleWebApp: {
-      statusBarStyle: "default",
+      statusBarStyle: "black-translucent",
       title: SITE.name,
     },
     other: {
