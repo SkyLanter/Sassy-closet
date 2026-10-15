@@ -1,7 +1,8 @@
 __pycache__/
 *.py[cod]
 .out/
-/out/
+/out/*
+!/out/sell-catalog.v1.json
 *.xlsx
 .DS_Store
 .venv/

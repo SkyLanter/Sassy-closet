@@ -21,6 +21,12 @@ excel-kit/
   prompts/BOUTIQUE_PHONE_SAFE.md
   prompts/GF_CLOTHES_INTAKE.md   ← GF self-upload contract (not live inventory)
   prompts/SAVED_CARD_AND_REAL_MINIBOSS_ASK_2026-09-07.md
+  prompts/CATALOG_EXPORT_CLONE_OFFICIAL_2026-09-09.md
+  docs/SELL_CATALOG_CONTRACT.md   ← catalog.v1 + xlsx column map
+  docs/CLONE_TO_OFFICIAL.md       ← Boss: new Vercel shop, never intake
+  scripts/export_sell_catalog.py  ← sassycloset.xlsx → catalog.v1 JSON
+  scripts/validate_sell_catalog.py
+  samples/sell-catalog.v1.json    ← kit-local copy of the 10 known mãs
   KIT.md                         ← site env names (no secret values)
   templates/from_gf/             ← HOW_TO + INTAKE_TEMPLATE + example packets
   inbox/gf_intake_reply_templates.md
@@ -68,6 +74,14 @@ python3 excel-kit/square/validate_import.py excel-kit/square/square_import_templ
 
 # Kit CI
 python3 excel-kit/tests/run_checks.py
+
+# Sell-site catalog.v1 (allowlist ten; needs local OD xlsx)
+python3 excel-kit/scripts/export_sell_catalog.py \
+  -w "$HOME/OneDrive/Documents/Sassy Closet/sassycloset.xlsx" \
+  --photos-dir "$HOME/OneDrive/Documents/Sassy Closet/Photos" \
+  -o ./out/sell-catalog.v1.json
+python3 excel-kit/scripts/validate_sell_catalog.py ./out/sell-catalog.v1.json
+# committed artifact: out/sell-catalog.v1.json
 ```
 
 Do not commit live inventory, customer names, secrets, or a filled Square CSV. Empty data sheets are intentional.

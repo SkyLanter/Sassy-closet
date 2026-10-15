@@ -1,0 +1,325 @@
+{
+  "schema": "catalog.v1",
+  "source": "Documents/Sassy Closet/sassycloset.xlsx",
+  "exportedAt": "2026-09-09T01:42:55Z",
+  "allowlist": [
+    "A01",
+    "S01",
+    "P01",
+    "P02",
+    "P03",
+    "P04",
+    "P05",
+    "K01",
+    "H01",
+    "A02"
+  ],
+  "products": [
+    {
+      "ma": "A01",
+      "titleEn": "",
+      "titleVn": "",
+      "descriptionEn": "",
+      "descriptionVn": "",
+      "type": "top",
+      "status": "available",
+      "priceUsd": 25,
+      "qty": 1,
+      "colors": [
+        {
+          "id": "kem",
+          "name": "Kem"
+        },
+        {
+          "id": "xanh",
+          "name": "Xanh"
+        }
+      ],
+      "images": [
+        {
+          "src": "Documents/Sassy Closet/Photos/A01/001.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "Documents/Sassy Closet/Photos/A01/002.jpg",
+          "colorId": null,
+          "order": 2
+        }
+      ]
+    },
+    {
+      "ma": "S01",
+      "titleEn": "",
+      "titleVn": "",
+      "descriptionEn": "",
+      "descriptionVn": "",
+      "type": "set",
+      "status": "available",
+      "priceUsd": 28,
+      "qty": 1,
+      "colors": [
+        {
+          "id": "kem",
+          "name": "Kem"
+        }
+      ],
+      "images": [
+        {
+          "src": "Documents/Sassy Closet/Photos/S01/001.jpg",
+          "colorId": null,
+          "order": 1
+        }
+      ]
+    },
+    {
+      "ma": "P01",
+      "titleEn": "",
+      "titleVn": "",
+      "descriptionEn": "",
+      "descriptionVn": "",
+      "type": "accessory",
+      "status": "available",
+      "priceUsd": 5,
+      "qty": 1,
+      "colors": [
+        {
+          "id": "hoa",
+          "name": "Hoa"
+        }
+      ],
+      "images": [
+        {
+          "src": "Documents/Sassy Closet/Photos/P01/001.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "Documents/Sassy Closet/Photos/P01/002.jpg",
+          "colorId": null,
+          "order": 2
+        }
+      ]
+    },
+    {
+      "ma": "P02",
+      "titleEn": "",
+      "titleVn": "",
+      "descriptionEn": "",
+      "descriptionVn": "",
+      "type": "thermos",
+      "status": "hold",
+      "priceUsd": null,
+      "qty": 1,
+      "colors": [
+        {
+          "id": "do",
+          "name": "Đỏ"
+        }
+      ],
+      "images": [
+        {
+          "src": "Documents/Sassy Closet/Photos/P02/001.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "Documents/Sassy Closet/Photos/P02/002.jpg",
+          "colorId": null,
+          "order": 2
+        }
+      ]
+    },
+    {
+      "ma": "P03",
+      "titleEn": "",
+      "titleVn": "",
+      "descriptionEn": "",
+      "descriptionVn": "",
+      "type": "accessory",
+      "status": "available",
+      "priceUsd": 18,
+      "qty": 1,
+      "colors": [
+        {
+          "id": "den",
+          "name": "Đen"
+        },
+        {
+          "id": "do",
+          "name": "Đỏ"
+        }
+      ],
+      "images": [
+        {
+          "src": "Documents/Sassy Closet/Photos/P03/001.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "Documents/Sassy Closet/Photos/P03/002.jpg",
+          "colorId": null,
+          "order": 2
+        },
+        {
+          "src": "Documents/Sassy Closet/Photos/P03/003.jpg",
+          "colorId": null,
+          "order": 3
+        }
+      ]
+    },
+    {
+      "ma": "P04",
+      "titleEn": "",
+      "titleVn": "",
+      "descriptionEn": "",
+      "descriptionVn": "",
+      "type": "accessory",
+      "status": "available",
+      "priceUsd": 13,
+      "qty": 1,
+      "colors": [
+        {
+          "id": "kem",
+          "name": "Kem"
+        }
+      ],
+      "images": [
+        {
+          "src": "Documents/Sassy Closet/Photos/P04/001.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "Documents/Sassy Closet/Photos/P04/002.jpg",
+          "colorId": null,
+          "order": 2
+        }
+      ]
+    },
+    {
+      "ma": "P05",
+      "titleEn": "",
+      "titleVn": "",
+      "descriptionEn": "",
+      "descriptionVn": "",
+      "type": "thermos",
+      "status": "hold",
+      "priceUsd": null,
+      "qty": 1,
+      "colors": [
+        {
+          "id": "hong",
+          "name": "Hồng"
+        },
+        {
+          "id": "do",
+          "name": "Đỏ"
+        },
+        {
+          "id": "xanh",
+          "name": "Xanh"
+        }
+      ],
+      "images": [
+        {
+          "src": "Documents/Sassy Closet/Photos/P05/001.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "Documents/Sassy Closet/Photos/P05/002.jpg",
+          "colorId": null,
+          "order": 2
+        },
+        {
+          "src": "Documents/Sassy Closet/Photos/P05/003.jpg",
+          "colorId": null,
+          "order": 3
+        }
+      ]
+    },
+    {
+      "ma": "K01",
+      "titleEn": "",
+      "titleVn": "",
+      "descriptionEn": "",
+      "descriptionVn": "",
+      "type": "jacket",
+      "status": "available",
+      "priceUsd": 37,
+      "qty": 1,
+      "colors": [],
+      "images": [
+        {
+          "src": "Documents/Sassy Closet/Photos/K01/001.jpeg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "Documents/Sassy Closet/Photos/K01/002.jpeg",
+          "colorId": null,
+          "order": 2
+        }
+      ]
+    },
+    {
+      "ma": "H01",
+      "titleEn": "",
+      "titleVn": "",
+      "descriptionEn": "",
+      "descriptionVn": "",
+      "type": "hair",
+      "status": "available",
+      "priceUsd": 8,
+      "qty": 1,
+      "colors": [],
+      "images": [
+        {
+          "src": "Documents/Sassy Closet/Photos/H01/001.jpeg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "Documents/Sassy Closet/Photos/H01/002.jpeg",
+          "colorId": null,
+          "order": 2
+        },
+        {
+          "src": "Documents/Sassy Closet/Photos/H01/003.jpeg",
+          "colorId": null,
+          "order": 3
+        }
+      ]
+    },
+    {
+      "ma": "A02",
+      "titleEn": "",
+      "titleVn": "",
+      "descriptionEn": "",
+      "descriptionVn": "",
+      "type": "top",
+      "status": "available",
+      "priceUsd": 22,
+      "qty": 1,
+      "colors": [
+        {
+          "id": "cham-bi",
+          "name": "Chấm bi"
+        }
+      ],
+      "images": [
+        {
+          "src": "Documents/Sassy Closet/Photos/A02/001.jpeg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "Documents/Sassy Closet/Photos/A02/002.jpeg",
+          "colorId": null,
+          "order": 2
+        }
+      ]
+    }
+  ]
+}
