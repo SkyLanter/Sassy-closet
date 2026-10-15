@@ -1,0 +1,254 @@
+"""Flag fixture color names that match except for case.
+
+Read-only. Pink and pink are one flag group. A name that appears as only one
+spelling stays quiet. Stored text is copied into the flag and is not renamed.
+Hex, color id, a note, and a piece's suggested label are not color names.
+Nothing here writes a catalog row, a price, or data/held.json.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from dataclasses import dataclass
+from pathlib import Path
+
+
+@dataclass(frozen=True)
+class CatalogColor:
+    name: str | None
+    color_id: str | None = None
+
+
+@dataclass(frozen=True)
+class CatalogPiece:
+    piece_id: str
+    color: str | None
+
+
+@dataclass(frozen=True)
+class CatalogRow:
+    ma: str
+    colors: tuple[CatalogColor, ...] | None
+    pieces: tuple[CatalogPiece, ...] = ()
+    price_usd: int | float | str | None = None
+    status: str | None = None
+
+
+@dataclass(frozen=True)
+class ColorCaseFlag:
+    ma: str
+    kind: str
+    stored: str
+    names: tuple[str, ...]
+    index: int | None = None
+    piece: str | None = None
+
+    def as_json(self) -> dict[str, str | int | list[str] | None]:
+        return {
+            "ma": self.ma,
+            "kind": self.kind,
+            "stored": self.stored,
+            "names": list(self.names),
+            "index": self.index,
+            "piece": self.piece,
+        }
+
+
+def flag_case_colors(rows: list[CatalogRow]) -> list[ColorCaseFlag]:
+    """Return flags. Leave every CatalogRow as it was passed in."""
+    groups = _colliding_spellings(rows)
+    flags: list[ColorCaseFlag] = []
+    for row in rows:
+        code = row.ma.strip().upper()
+        if not code:
+            raise ValueError("catalog row needs a mã")
+        for stored, index, piece in _named_slots(row):
+            if stored.strip() == "":
+                continue
+            names = groups.get(stored.casefold())
+            if names is None:
+                continue
+            flags.append(ColorCaseFlag(code, "case_color", stored, names, index, piece))
+    return flags
+
+
+def rows_from_payload(payload: object) -> list[CatalogRow]:
+    """Copy catalog rows out of a fixture. Does not write the payload."""
+    products = _product_list(payload)
+    rows: list[CatalogRow] = []
+    for index, item in enumerate(products):
+        if not isinstance(item, dict):
+            raise ValueError(f"catalog row {index} must be an object")
+        ma = item.get("ma")
+        if not isinstance(ma, str) or not ma.strip():
+            raise ValueError(f"catalog row {index} needs a mã")
+        rows.append(
+            CatalogRow(
+                ma=ma,
+                colors=_colors_from_row(item, ma),
+                pieces=_pieces_from_row(item, ma),
+                price_usd=_price(item, ma),
+                status=_status(item, ma),
+            )
+        )
+    return rows
+
+
+def _colliding_spellings(rows: list[CatalogRow]) -> dict[str, tuple[str, ...]]:
+    found: dict[str, set[str]] = {}
+    for row in rows:
+        for stored, _index, _piece in _named_slots(row):
+            if stored.strip() == "":
+                continue
+            found.setdefault(stored.casefold(), set()).add(stored)
+    return {
+        key: tuple(sorted(names))
+        for key, names in found.items()
+        if len(names) > 1
+    }
+
+
+def _named_slots(row: CatalogRow) -> list[tuple[str, int, str | None]]:
+    slots: list[tuple[str, int, str | None]] = []
+    if row.colors:
+        for index, color in enumerate(row.colors):
+            if color.name is not None:
+                slots.append((color.name, index, None))
+    for index, piece in enumerate(row.pieces):
+        if piece.color is not None:
+            slots.append((piece.color, index, piece.piece_id))
+    return slots
+
+
+def _product_list(payload: object) -> list[object]:
+    if isinstance(payload, list):
+        return payload
+    if isinstance(payload, dict):
+        products = payload.get("products")
+        if isinstance(products, list):
+            return products
+    raise ValueError("catalog fixture must be a product list or a catalog document")
+
+
+def _colors_from_row(item: dict[str, object], ma: str) -> tuple[CatalogColor, ...] | None:
+    if "colors" in item:
+        raw = item["colors"]
+        if raw is None:
+            return None
+        if not isinstance(raw, list):
+            raise ValueError(f"{ma} colors must be a list")
+        return tuple(_one_color(color, ma, index) for index, color in enumerate(raw))
+    if "color" in item:
+        raw = item["color"]
+        if raw is None:
+            return None
+        if not isinstance(raw, str):
+            raise ValueError(f"{ma} color must be a string")
+        return (CatalogColor(raw),)
+    return None
+
+
+def _one_color(color: object, ma: str, index: int) -> CatalogColor:
+    if isinstance(color, str):
+        return CatalogColor(color)
+    if not isinstance(color, dict):
+        raise ValueError(f"{ma} color {index} must be a string or an object")
+    if "name" not in color or color.get("name") is None:
+        name: str | None = None
+    else:
+        raw_name = color.get("name")
+        if not isinstance(raw_name, str):
+            raise ValueError(f"{ma} color {index} name must be a string")
+        name = raw_name
+    raw_id = color.get("id")
+    color_id = raw_id if isinstance(raw_id, str) else None
+    return CatalogColor(name, color_id)
+
+
+def _pieces_from_row(item: dict[str, object], ma: str) -> tuple[CatalogPiece, ...]:
+    if "pieces" not in item or item.get("pieces") is None:
+        return ()
+    raw = item.get("pieces")
+    if not isinstance(raw, list):
+        raise ValueError(f"{ma} pieces must be a list")
+    pieces: list[CatalogPiece] = []
+    for index, piece in enumerate(raw):
+        if not isinstance(piece, dict):
+            raise ValueError(f"{ma} piece {index} must be an object")
+        raw_id = piece.get("id")
+        piece_id = raw_id if isinstance(raw_id, str) else ""
+        if "color" not in piece or piece.get("color") is None:
+            color: str | None = None
+        else:
+            raw_color = piece.get("color")
+            if not isinstance(raw_color, str):
+                raise ValueError(f"{ma} piece {index} color must be a string")
+            color = raw_color
+        pieces.append(CatalogPiece(piece_id, color))
+    return tuple(pieces)
+
+
+def _price(item: dict[str, object], ma: str) -> int | float | str | None:
+    if "priceUsd" in item:
+        key = "priceUsd"
+    elif "price_usd" in item:
+        key = "price_usd"
+    else:
+        return None
+    value = item[key]
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, (int, float, str)):
+        raise ValueError(f"{ma} price must be a number, a string, or blank")
+    return value
+
+
+def _status(item: dict[str, object], ma: str) -> str | None:
+    if "status" not in item or item.get("status") is None:
+        return None
+    value = item.get("status")
+    if not isinstance(value, str):
+        raise ValueError(f"{ma} status must be a string")
+    return value
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        description=(
+            "Flag fixture color names that match except for case. "
+            "Reads a JSON fixture and prints flags. Does not rename colors."
+        ),
+    )
+    parser.add_argument("--fixture", required=True, help="Local JSON fixture. Not a live catalog URL.")
+    args = parser.parse_args(argv)
+    path_text = str(args.fixture).strip()
+    if path_text.startswith("http://") or path_text.startswith("https://"):
+        print("refusing a live catalog URL", file=sys.stderr)
+        return 2
+    path = Path(path_text)
+    if path.name == "held.json":
+        print("refusing to open held.json", file=sys.stderr)
+        return 2
+    if not path.is_file():
+        print(f"fixture not found: {path}", file=sys.stderr)
+        return 2
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        rows = rows_from_payload(payload)
+    except (json.JSONDecodeError, ValueError) as error:
+        print(str(error), file=sys.stderr)
+        return 2
+    json.dump(
+        [flag.as_json() for flag in flag_case_colors(rows)],
+        sys.stdout,
+        ensure_ascii=False,
+        indent=2,
+    )
+    sys.stdout.write("\n")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
