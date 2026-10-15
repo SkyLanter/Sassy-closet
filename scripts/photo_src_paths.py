@@ -1,10 +1,11 @@
 """Flag a catalog photo src that is not a site path.
 
-Read-only. A site path looks like /products/S06/cover.jpg. A full http URL,
-a data URL, a blank, and any other non-path are named in the report with
-the stored src. This script does not rewrite a src, change a price, or
-write data/held.json. Pass a fixture file. A URL and the shop catalog are
-refused.
+Read-only. A site path starts with /products/, such as
+/products/S06/cover.jpg. A full http URL, a data URL, a blank, and a src
+that does not start with /products/ (images/a01.jpg, /etc/passwd) are
+named in the report with the stored src. This script does not rewrite a
+src, change a price, or write data/held.json. Pass a fixture file. A URL
+and the shop catalog are refused.
 """
 
 from __future__ import annotations
@@ -18,6 +19,7 @@ from pathlib import Path
 _PHOTO_KEYS = ("images", "photos", "gallery", "gallery_urls")
 _URL_KEYS = ("src", "url", "path")
 _HTTP_PREFIXES = ("http://", "https://")
+_SITE_PREFIX = "/products/"
 
 
 @dataclass(frozen=True)
@@ -129,8 +131,8 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _is_site_path(src: str) -> bool:
-    """True for a root-relative photo path such as /products/S06/cover.jpg."""
-    if src != src.strip() or not src.startswith("/") or src.startswith("//") or src.endswith("/"):
+    """True when the stored src starts with /products/, such as /products/S06/cover.jpg."""
+    if src != src.strip() or not src.startswith(_SITE_PREFIX) or src.endswith("/"):
         return False
     if any(char.isspace() or char in {"\\", "\x00", ":"} for char in src) or "//" in src:
         return False

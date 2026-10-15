@@ -46,6 +46,10 @@ def test_site_path_stays_quiet_and_http_data_blank_are_flagged() -> None:
     assert src_kind("   ") == "blank"
     assert src_kind("\n") == "blank"
     assert src_kind("products/S06/cover.jpg") == "not_site_path"
+    assert src_kind("images/a01.jpg") == "not_site_path"
+    assert src_kind("/etc/passwd") == "not_site_path"
+    assert src_kind("/products") == "not_site_path"
+    assert src_kind("/Products/S06/cover.jpg") == "not_site_path"
     assert src_kind("//cdn.example.test/a.jpg") == "not_site_path"
     assert src_kind(COVER + " ") == "not_site_path"
     assert src_kind("/products/S06/../cover.jpg") == "not_site_path"
@@ -81,6 +85,21 @@ def test_blank_data_and_relative_srcs_are_flagged_without_rewriting() -> None:
         PhotoSrcFlag("Z81", DATA_SRC, 2, "data_url"),
         PhotoSrcFlag("Z81", relative, 3, "not_site_path"),
     ]
+
+
+def test_src_outside_products_is_flagged_without_rewriting() -> None:
+    outside = ("images/a01.jpg", "/etc/passwd")
+    photos = (COVER, *outside)
+    row = CatalogPhotoRow("S06", photos, 25, False, "available")
+    flags = flag_photo_src_paths([row])
+    assert row.photos is photos
+    assert row.photos[1:] == outside
+    assert row.price_usd == 25
+    assert flags == [
+        PhotoSrcFlag("S06", "images/a01.jpg", 1, "not_site_path"),
+        PhotoSrcFlag("S06", "/etc/passwd", 2, "not_site_path"),
+    ]
+    assert COVER not in {flag.src for flag in flags}
 
 
 def test_full_url_containing_the_cover_path_is_still_a_flag() -> None:
@@ -168,11 +187,15 @@ def test_bad_fixture_keeps_s06_at_25_and_the_cover_quiet() -> None:
     assert by_ma["K06"].held is True
     assert by_ma["K06"].status == "hold"
     assert by_ma["K06"].photos == ("/products/K06/cover.jpg",)
+    assert by_ma["A01"].photos[1] == "/products/A01/photo-2.jpg"
+    assert by_ma["A01"].photos[2:] == ("images/a01.jpg", "/etc/passwd")
     assert by_ma["V05"].held is True
     assert by_ma["V05"].photos == ("", "  ", "")
     flags = flag_photo_src_paths(rows)
     assert [flag.as_json() for flag in flags] == [
         {"ma": "A01", "src": "http://photos.example.test/a01/cover.jpg", "index": 0, "kind": "http_url"},
+        {"ma": "A01", "src": "images/a01.jpg", "index": 2, "kind": "not_site_path"},
+        {"ma": "A01", "src": "/etc/passwd", "index": 3, "kind": "not_site_path"},
         {"ma": "S06", "src": HTTP_SRC, "index": 1, "kind": "http_url"},
         {"ma": "V05", "src": "", "index": 0, "kind": "blank"},
         {"ma": "V05", "src": "  ", "index": 1, "kind": "blank"},
@@ -202,7 +225,9 @@ def test_cli_bad_fixture_exits_1_and_writes_nothing() -> None:
     report = json.loads(result.stdout)
     assert report["readOnly"] is True
     assert report["rows"] == 5
-    assert report["flags"][1] == {"ma": "S06", "src": HTTP_SRC, "index": 1, "kind": "http_url"}
+    assert {"ma": "S06", "src": HTTP_SRC, "index": 1, "kind": "http_url"} in report["flags"]
+    assert {"ma": "A01", "src": "images/a01.jpg", "index": 2, "kind": "not_site_path"} in report["flags"]
+    assert {"ma": "A01", "src": "/etc/passwd", "index": 3, "kind": "not_site_path"} in report["flags"]
     assert COVER not in result.stdout
     assert "priceUsd" not in result.stdout
     assert "25" not in result.stdout

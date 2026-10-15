@@ -45,6 +45,16 @@
           "src": "/products/A01/photo-2.jpg",
           "colorId": null,
           "order": 2
+        },
+        {
+          "src": "images/a01.jpg",
+          "colorId": null,
+          "order": 3
+        },
+        {
+          "src": "/etc/passwd",
+          "colorId": null,
+          "order": 4
         }
       ]
     },
