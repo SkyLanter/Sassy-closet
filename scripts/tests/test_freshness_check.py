@@ -277,3 +277,35 @@ def test_write_report_names(tmp_path: Path) -> None:
     markdown, sibling = write_report(report, tmp_path)
     assert markdown.name == "dataset-freshness-2026-10-11.md"
     assert sibling.name == "dataset-freshness-2026-10-11.json"
+
+
+def _fresh_catalog_fixture() -> dict:
+    path = ROOT / "scripts" / "tests" / "fixtures" / "fresh-catalog.json"
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def test_fresh_catalog_fixture_holds_pdp_404_and_s06() -> None:
+    payload = _fresh_catalog_fixture()
+    policy = load_held_policy()
+    origins = list(payload["origins"])
+    assert origins == list(SELL_ORIGINS)
+    for code in policy.held:
+        for origin in origins:
+            assert payload["pdp"][code][origin]["status"] == 404
+    report = evaluate(snapshot_from_json(payload))
+    assert report.guards_pass
+    s06 = [guard for guard in report.guards if guard.name.startswith("s06-price:")]
+    assert s06
+    assert all(guard.ok and guard.detail == "25" for guard in s06)
+    leaked = json.loads(json.dumps(payload))
+    leaked["pdp"]["K06"][PRIMARY_ORIGIN] = {"status": 200, "price_usd": "48"}
+    assert evaluate(snapshot_from_json(leaked)).guards_pass is False
+    drifted = json.loads(json.dumps(payload))
+    for row in drifted["blob"]["rows"]:
+        if row["ma"] == "S06":
+            row["price_usd"] = "24"
+    assert evaluate(snapshot_from_json(drifted)).guards_pass is False
+    fresh_again = _fresh_catalog_fixture()
+    for row in fresh_again["blob"]["rows"]:
+        if row["ma"] == "S06":
+            assert row["price_usd"] == "25"

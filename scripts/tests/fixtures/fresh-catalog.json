@@ -1,0 +1,180 @@
+{
+  "day": "2026-10-15",
+  "origins": [
+    "https://sassycloset.vercel.app",
+    "https://sassy-closet-shop.vercel.app"
+  ],
+  "intakeState": {
+    "state": "ok"
+  },
+  "intake": [
+    {
+      "ma": "S06",
+      "cost_cny": "80",
+      "sell_usd": ""
+    }
+  ],
+  "blob": {
+    "state": "ok",
+    "rows": [
+      {
+        "ma": "S06",
+        "price_usd": "25"
+      },
+      {
+        "ma": "A07",
+        "price_usd": "26"
+      },
+      {
+        "ma": "S10",
+        "price_usd": "37"
+      }
+    ]
+  },
+  "hub": {
+    "state": "ok",
+    "rows": [
+      {
+        "ma": "S06",
+        "price_usd": "25"
+      },
+      {
+        "ma": "A07",
+        "price_usd": "26"
+      },
+      {
+        "ma": "S10",
+        "price_usd": "37"
+      }
+    ]
+  },
+  "pdp": {
+    "S14": {
+      "https://sassycloset.vercel.app": {
+        "status": 404
+      },
+      "https://sassy-closet-shop.vercel.app": {
+        "status": 404
+      }
+    },
+    "A24": {
+      "https://sassycloset.vercel.app": {
+        "status": 404
+      },
+      "https://sassy-closet-shop.vercel.app": {
+        "status": 404
+      }
+    },
+    "A25": {
+      "https://sassycloset.vercel.app": {
+        "status": 404
+      },
+      "https://sassy-closet-shop.vercel.app": {
+        "status": 404
+      }
+    },
+    "S15": {
+      "https://sassycloset.vercel.app": {
+        "status": 404
+      },
+      "https://sassy-closet-shop.vercel.app": {
+        "status": 404
+      }
+    },
+    "A26": {
+      "https://sassycloset.vercel.app": {
+        "status": 404
+      },
+      "https://sassy-closet-shop.vercel.app": {
+        "status": 404
+      }
+    },
+    "K02": {
+      "https://sassycloset.vercel.app": {
+        "status": 404
+      },
+      "https://sassy-closet-shop.vercel.app": {
+        "status": 404
+      }
+    },
+    "K03": {
+      "https://sassycloset.vercel.app": {
+        "status": 404
+      },
+      "https://sassy-closet-shop.vercel.app": {
+        "status": 404
+      }
+    },
+    "K04": {
+      "https://sassycloset.vercel.app": {
+        "status": 404
+      },
+      "https://sassy-closet-shop.vercel.app": {
+        "status": 404
+      }
+    },
+    "K05": {
+      "https://sassycloset.vercel.app": {
+        "status": 404
+      },
+      "https://sassy-closet-shop.vercel.app": {
+        "status": 404
+      }
+    },
+    "V04": {
+      "https://sassycloset.vercel.app": {
+        "status": 404
+      },
+      "https://sassy-closet-shop.vercel.app": {
+        "status": 404
+      }
+    },
+    "K06": {
+      "https://sassycloset.vercel.app": {
+        "status": 404
+      },
+      "https://sassy-closet-shop.vercel.app": {
+        "status": 404
+      }
+    },
+    "V05": {
+      "https://sassycloset.vercel.app": {
+        "status": 404
+      },
+      "https://sassy-closet-shop.vercel.app": {
+        "status": 404
+      }
+    },
+    "S06": {
+      "https://sassycloset.vercel.app": {
+        "status": 200,
+        "price_usd": "25"
+      },
+      "https://sassy-closet-shop.vercel.app": {
+        "status": 200,
+        "price_usd": "25"
+      }
+    },
+    "A07": {
+      "https://sassycloset.vercel.app": {
+        "status": 200,
+        "price_usd": "26"
+      },
+      "https://sassy-closet-shop.vercel.app": {
+        "status": 200,
+        "price_usd": "26"
+      }
+    },
+    "S10": {
+      "https://sassycloset.vercel.app": {
+        "status": 200,
+        "price_usd": "37"
+      },
+      "https://sassy-closet-shop.vercel.app": {
+        "status": 200,
+        "price_usd": "37"
+      }
+    }
+  },
+  "taobao": []
+}

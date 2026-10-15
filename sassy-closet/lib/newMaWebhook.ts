@@ -94,6 +94,18 @@ export async function notifyNewMaWebhook(input: NewMaWebhookInput): Promise<void
   }
 }
 
+let detachedNewMaWebhooks: Promise<void> = Promise.resolve();
+
+/** Resolves when detached test sends finish. Production `after()` is not tracked. */
+export function settledNewMaWebhooks(): Promise<void> {
+  return detachedNewMaWebhooks;
+}
+
+function detachNewMaWebhook(input: NewMaWebhookInput): void {
+  const task = notifyNewMaWebhook(input).catch(() => {});
+  detachedNewMaWebhooks = detachedNewMaWebhooks.then(() => task);
+}
+
 /**
  * Run after a successful persist, without holding the save response.
  * `after()` schedules work once the response is flushed (Vercel waitUntil).
@@ -105,7 +117,7 @@ export function scheduleNewMaWebhook(input: NewMaWebhookInput): void {
     after(() => notifyNewMaWebhook(input));
   } catch (error) {
     if (!isOutsideRequestScope(error)) return;
-    void notifyNewMaWebhook(input).catch(() => {});
+    detachNewMaWebhook(input);
   }
 }
 

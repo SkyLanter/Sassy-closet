@@ -1,0 +1,29 @@
+{
+  "schema": "catalog.v1",
+  "version": 1,
+  "siteId": "sassy-closet-shop",
+  "updatedAt": "2026-10-15T00:00:00.000Z",
+  "settings": {
+    "announcementLines": ["fixture"],
+    "facebookPageUrl": "https://m.me/example"
+  },
+  "products": [
+    {
+      "ma": "S06",
+      "type": "S",
+      "titleVn": "Set",
+      "titleEn": "Set",
+      "priceUsd": 25,
+      "qty": 1,
+      "status": "available",
+      "colors": [],
+      "images": [],
+      "sizes": [],
+      "fitCm": { "bustChestCm": null, "waistCm": null, "lengthCm": null },
+      "descriptionVn": "",
+      "descriptionEn": "",
+      "fulfillment": "dropship",
+      "sourceLink": null
+    }
+  ]
+}

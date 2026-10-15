@@ -1,0 +1,20 @@
+{
+  "products": [
+    { "ma": "S06", "status": "available", "priceUsd": 25 },
+    { "ma": "A07", "status": "available", "priceUsd": 26 },
+    { "ma": "S10", "status": "available", "priceUsd": 37 },
+    { "ma": "Q02", "status": "hold", "priceUsd": null },
+    { "ma": "S14", "status": "hold", "priceUsd": null },
+    { "ma": "A24", "status": "hold", "priceUsd": null },
+    { "ma": "A25", "status": "hold", "priceUsd": null },
+    { "ma": "S15", "status": "hold", "priceUsd": null },
+    { "ma": "A26", "status": "hold", "priceUsd": null },
+    { "ma": "K02", "status": "hold", "priceUsd": null },
+    { "ma": "K03", "status": "hold", "priceUsd": null },
+    { "ma": "K04", "status": "hold", "priceUsd": null },
+    { "ma": "K05", "status": "hold", "priceUsd": null },
+    { "ma": "V04", "status": "hold", "priceUsd": null },
+    { "ma": "K06", "status": "hold", "priceUsd": null },
+    { "ma": "V05", "status": "hold", "priceUsd": null }
+  ]
+}
