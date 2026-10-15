@@ -104,11 +104,33 @@ function s06Catalog(): Record<string, unknown> {
     priceUsd: 25,
     qty: 1,
     status: "available",
-    colors: [],
+    colors: [{ id: "cs0600", hex: "#ffffff", name: "White", note: "" }],
     images: [],
     sizes: ["S"],
   });
   return catalog;
+}
+
+function s06CatalogAt(priceUsd: number | null, status: "available" | "hold" | "sold"): Record<string, unknown> {
+  const catalog = s06Catalog();
+  const products = catalog.products as Record<string, unknown>[];
+  const row = products.find((product) => product.ma === "S06");
+  if (!row) {
+    throw new Error("S06 missing from fixture");
+  }
+  row.priceUsd = priceUsd;
+  row.status = status;
+  return catalog;
+}
+
+function catalogProduct(
+  snapshot: string | null,
+  ma: string,
+): { ma: string; status: string; priceUsd: number | null; titleEn?: string; colors?: { name: string }[] } | undefined {
+  const parsed = JSON.parse(snapshot ?? "{}") as {
+    products: { ma: string; status: string; priceUsd: number | null; titleEn?: string; colors?: { name: string }[] }[];
+  };
+  return parsed.products.find((product) => product.ma === ma);
 }
 
 function listen(server: Server): Promise<number> {
@@ -369,6 +391,180 @@ test("shop save refuses every S06 dollar other than 25", async () => {
     const row = written.products.find((product) => product.ma === "S06");
     assert.equal(row?.priceUsd, 25);
     assert.equal(row?.titleEn, "Still twenty-five");
+  }
+});
+
+test("shop tools save refuses to leave S06 anything other than available at $25", async () => {
+  const revalidate = async () => {
+    throw new Error("revalidate must not run when S06 is refused");
+  };
+  const port = memoryShopCatalogPort(s06Catalog());
+
+  const sold = await saveShopCatalogProduct(
+    port,
+    { ma: "S06", status: "sold", priceUsd: 25 },
+    { revalidate },
+  );
+  assert.equal(sold.ok, false);
+  if (!sold.ok) {
+    assert.equal(sold.status, 400);
+    assert.equal(sold.blobWritten, false);
+    assert.equal(sold.error, "S06 stays available at $25.");
+  }
+  assert.equal(catalogProduct(port.snapshot(), "S06")?.status, "available");
+  assert.equal(catalogProduct(port.snapshot(), "S06")?.priceUsd, 25);
+
+  const hold = await saveShopCatalogProduct(
+    port,
+    { ma: "S06", status: "hold", priceUsd: null },
+    { revalidate },
+  );
+  assert.equal(hold.ok, false);
+  if (!hold.ok) {
+    assert.equal(hold.blobWritten, false);
+    assert.equal(hold.error, "S06 stays available at $25.");
+  }
+  assert.equal(catalogProduct(port.snapshot(), "S06")?.status, "available");
+  assert.equal(catalogProduct(port.snapshot(), "S06")?.priceUsd, 25);
+
+  const soldRow = memoryShopCatalogPort(s06CatalogAt(25, "sold"));
+  const renameSold = await saveShopCatalogProduct(
+    soldRow,
+    { ma: "S06", titleEn: "Should not stick" },
+    { revalidate },
+  );
+  assert.equal(renameSold.ok, false);
+  if (!renameSold.ok) {
+    assert.equal(renameSold.blobWritten, false);
+  }
+  assert.equal(catalogProduct(soldRow.snapshot(), "S06")?.status, "sold");
+  assert.equal(catalogProduct(soldRow.snapshot(), "S06")?.titleEn, "Set");
+  assert.equal(catalogProduct(soldRow.snapshot(), "S06")?.priceUsd, 25);
+
+  const drifted = memoryShopCatalogPort(s06CatalogAt(19, "available"));
+  const titleOnly = await saveShopCatalogProduct(
+    drifted,
+    { ma: "S06", titleEn: "Should not stick" },
+    { revalidate },
+  );
+  assert.equal(titleOnly.ok, false);
+  if (!titleOnly.ok) {
+    assert.equal(titleOnly.blobWritten, false);
+  }
+  assert.equal(catalogProduct(drifted.snapshot(), "S06")?.priceUsd, 19);
+  assert.equal(catalogProduct(drifted.snapshot(), "S06")?.titleEn, "Set");
+
+  let calls = 0;
+  const allow = async () => {
+    calls += 1;
+    return { ok: true as const };
+  };
+  const titled = await saveShopCatalogProduct(
+    port,
+    {
+      ma: "S06",
+      titleEn: "Set renamed",
+      colors: [{ id: "cs0600", name: "Ivory" }],
+    },
+    { now: "2026-10-15T00:00:00.000Z", revalidate: allow },
+  );
+  assert.equal(titled.ok, true);
+  assert.equal(calls, 1);
+  assert.equal(catalogProduct(port.snapshot(), "S06")?.titleEn, "Set renamed");
+  assert.equal(catalogProduct(port.snapshot(), "S06")?.colors?.[0]?.name, "Ivory");
+  assert.equal(catalogProduct(port.snapshot(), "S06")?.status, "available");
+  assert.equal(catalogProduct(port.snapshot(), "S06")?.priceUsd, 25);
+
+  const restored = await saveShopCatalogProduct(
+    soldRow,
+    { ma: "S06", status: "available", priceUsd: 25, titleEn: "Back at twenty-five" },
+    { revalidate: allow },
+  );
+  assert.equal(restored.ok, true);
+  assert.equal(catalogProduct(soldRow.snapshot(), "S06")?.status, "available");
+  assert.equal(catalogProduct(soldRow.snapshot(), "S06")?.priceUsd, 25);
+  assert.equal(catalogProduct(soldRow.snapshot(), "S06")?.titleEn, "Back at twenty-five");
+
+  const otherSold = await saveShopCatalogProduct(
+    port,
+    { ma: "A01", status: "sold", priceUsd: 20 },
+    { revalidate: allow },
+  );
+  assert.equal(otherSold.ok, true);
+  assert.equal(catalogProduct(port.snapshot(), "A01")?.status, "sold");
+  assert.equal(catalogProduct(port.snapshot(), "A01")?.priceUsd, 20);
+  const otherHold = await saveShopCatalogProduct(
+    port,
+    { ma: "A03", status: "hold", priceUsd: 12 },
+    { revalidate: allow },
+  );
+  assert.equal(otherHold.ok, true);
+  assert.equal(catalogProduct(port.snapshot(), "A03")?.status, "hold");
+  assert.equal(catalogProduct(port.snapshot(), "A03")?.priceUsd, null);
+  assert.equal(catalogProduct(port.snapshot(), "S06")?.status, "available");
+  assert.equal(catalogProduct(port.snapshot(), "S06")?.priceUsd, 25);
+
+  const source = readFileSync(path.join(process.cwd(), "lib/shop-catalog.ts"), "utf8");
+  assert.equal(source.includes("HELD_INCOMPLETE"), false);
+  assert.equal(source.includes("isHeldIncompleteMa"), false);
+  assert.equal(source.includes("presentLockedBossPrices"), false);
+  for (const ma of ["S14", "A24", "A25", "S15", "A26", "K02", "K03", "K04", "K05", "V04", "Q02"]) {
+    assert.equal(source.includes(`"${ma}"`), false, ma);
+  }
+});
+
+test("signed-in save route refuses an S06 sold or hold and leaves the file unchanged", async () => {
+  delete process.env.SHOP_BLOB_READ_WRITE_TOKEN;
+  delete process.env.BLOB_READ_WRITE_TOKEN;
+  delete process.env.VERCEL;
+  process.env.ADMIN_PASSWORD = PASSWORD;
+  process.env.ADMIN_SESSION_SECRET = SESSION_SECRET;
+  process.env.SHOP_REVALIDATE_SECRET = REVALIDATE_SECRET;
+  const dir = mkdtempSync(path.join(tmpdir(), "shop-catalog-s06-"));
+  const file = path.join(dir, "catalog.v1.json");
+  const original = `${JSON.stringify(s06Catalog(), null, 2)}\n`;
+  writeFileSync(file, original);
+  process.env.SHOP_CATALOG_FILE = file;
+  const token = await createAdminSessionToken();
+  assert.ok(token);
+  let hits = 0;
+  const server = createServer((request, response) => {
+    hits += 1;
+    assert.equal(request.headers[SHOP_REVALIDATE_HEADER], REVALIDATE_SECRET);
+    response.writeHead(200);
+    response.end('{"ok":true}');
+  });
+  const portNumber = await listen(server);
+  process.env.SHOP_REVALIDATE_URL = `http://127.0.0.1:${portNumber}/api/admin/revalidate`;
+  try {
+    const { POST } = await import("../app/api/shop-catalog/save/route.ts");
+    const cookie = `${ADMIN_SESSION_COOKIE}=${token}`;
+    const sold = await POST(
+      new Request("http://127.0.0.1/api/shop-catalog/save", {
+        method: "POST",
+        headers: { cookie, "content-type": "application/json" },
+        body: JSON.stringify({ ma: "S06", status: "sold", priceUsd: 25 }),
+      }),
+    );
+    assert.equal(sold.status, 400);
+    const body = (await sold.json()) as { ok: boolean; error?: string; blobWritten?: boolean };
+    assert.equal(body.ok, false);
+    assert.equal(body.error, "S06 stays available at $25.");
+    assert.equal(body.blobWritten, false);
+
+    const held = await POST(
+      new Request("http://127.0.0.1/api/shop-catalog/save", {
+        method: "POST",
+        headers: { cookie, "content-type": "application/json" },
+        body: JSON.stringify({ ma: "S06", status: "hold" }),
+      }),
+    );
+    assert.equal(held.status, 400);
+    assert.equal(readFileSync(file, "utf8"), original);
+    assert.equal(hits, 0);
+  } finally {
+    server.close();
+    rmSync(dir, { recursive: true, force: true });
   }
 });
 
