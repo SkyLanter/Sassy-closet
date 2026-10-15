@@ -1,0 +1,142 @@
+{
+  "submissions": [
+    {
+      "ma": "S06",
+      "sell_usd": "25",
+      "link": "https://e.tb.cn/h.8KCQeaHH3dz1iSl?tk=WeuOTTBXHOu"
+    },
+    {
+      "ma": "K06",
+      "link": "https://item.taobao.com/item.htm?id=987654321098"
+    },
+    {
+      "ma": "V05",
+      "link": ""
+    },
+    {
+      "ma": "K02",
+      "link": "https://1688.com/offer/123.html"
+    },
+    {
+      "ma": "A26",
+      "link": "https://detail.tmall.com/item.htm?id=123456789"
+    },
+    {
+      "ma": "Z81",
+      "sell_usd": "40"
+    },
+    {
+      "ma": "Z82",
+      "link": "  \n\t"
+    },
+    {
+      "ma": "Z83",
+      "link": null
+    },
+    {
+      "ma": "Z84",
+      "link": "n/a"
+    },
+    {
+      "ma": "Z85",
+      "link": "https://example.com/shop"
+    },
+    {
+      "ma": "Z86",
+      "link": "https://m.tb.cn/h.eeKwB12"
+    },
+    {
+      "ma": "Z87",
+      "link": "https://item.taobao.com/item.htm"
+    },
+    {
+      "ma": "Z88",
+      "link": "https://item.taobao.com/item.htm?id=12345"
+    },
+    {
+      "ma": "Z89",
+      "link": "https://www.taobao.com/"
+    },
+    {
+      "ma": "Z90",
+      "link": "https://s.taobao.com/search?q=dress"
+    },
+    {
+      "ma": "Z91",
+      "link": "https://e.tb.cn/"
+    },
+    {
+      "ma": "Z92",
+      "link": "https://e.tb.cn/h."
+    },
+    {
+      "ma": "Z93",
+      "link": "【淘宝】https://e.tb.cn/h.7KxYzAb  HU1234 「连衣裙」点击链接直接打开"
+    },
+    {
+      "ma": "Z94",
+      "link": "https://e.tb.cn/h.7KxYzAb点击链接"
+    },
+    {
+      "ma": "Z95",
+      "link": "淘宝店铺"
+    },
+    {
+      "ma": "Z96",
+      "link": "javascript:alert(1)"
+    },
+    {
+      "ma": "Z97",
+      "link": "https://user:pass@e.tb.cn/h.abc"
+    },
+    {
+      "ma": "Z98",
+      "link": "https://e.tb.cn/h.7KxYzAb https://item.taobao.com/item.htm?id=123456789"
+    },
+    {
+      "ma": "Z99",
+      "link": "https://e.tb.cn:443/h.abc"
+    },
+    {
+      "ma": "Z70",
+      "link": "",
+      "source_link": "https://e.tb.cn/h.goodLink"
+    },
+    {
+      "ma": "Z60",
+      "link": ["nope"]
+    },
+    {
+      "ma": "Z59",
+      "link": "https://shop123.taobao.com/"
+    },
+    {
+      "ma": "Z58",
+      "link": "https://e.tb.cn/h.abc."
+    },
+    {
+      "ma": "Z57",
+      "link": "https://tb.cn/h.abc"
+    },
+    {
+      "ma": "Z56",
+      "link": "https://world.taobao.com/item.htm?id=770708953593"
+    },
+    {
+      "ma": "Z55",
+      "link": "https://e.tb.cn//h.abc"
+    },
+    {
+      "ma": "Z54",
+      "link": "https://e.tb.cn/H.abc"
+    },
+    {
+      "ma": "Z53",
+      "link": "https://s.click.taobao.com/abc"
+    },
+    {
+      "ma": "Z52",
+      "link": "ftp://e.tb.cn/h.abc"
+    }
+  ]
+}
