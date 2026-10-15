@@ -17,3 +17,5 @@ jobs:
         run: pip install -r requirements.txt pytest
       - name: Fixture unit tests
         run: python -m pytest scripts/tests -q
+      - name: Intake shop link flags (fixtures, no live intake)
+        run: python scripts/intake_shop_link_flags.py --fixture scripts/tests/fixtures/intake_shop_links_clean.json --out out
