@@ -1,0 +1,26 @@
+{
+  "catalog": [
+    {"ma": "A90", "size": ""},
+    {"ma": "A91", "size": "   "},
+    {"ma": "A92", "size": "free"},
+    {"ma": "A93", "sizes": ["均码"]},
+    {"ma": "A94", "sizes": []},
+    {"ma": "A95", "size": "S"},
+    {"ma": "A96", "sizes": ["free", "M 90cm"]},
+    {"ma": "A97", "size": "onesize/均码"},
+    {"ma": "A01", "size": "S 80cm"},
+    {"ma": "A15", "sizes": ["均码(建议95-150斤)"]},
+    {"ma": "G01", "sizes": ["36", "37"]},
+    {"ma": "S06", "size": "S 84cm"}
+  ],
+  "intake": [
+    {"ma": "D90", "size": "Freesize"},
+    {"ma": "D91", "size": "free size"},
+    {"ma": "D92", "size": "FREE"},
+    {"ma": "D93", "size": null},
+    {"ma": "D94", "size": "free 80cm"},
+    {"ma": "D95", "size": "Freesize 88 cm"},
+    {"ma": "Q90", "size": "M 88cm"},
+    {"ma": "H90"}
+  ]
+}
