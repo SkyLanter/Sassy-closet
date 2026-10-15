@@ -9,6 +9,7 @@ import { PhotoLightbox } from "@/components/PhotoLightbox";
 import { PhotoThumbs } from "@/components/PhotoThumbs";
 import { SavedCard } from "@/components/SavedCard";
 import { convertCnyToUsd, convertUsdToCny } from "@/lib/fx";
+import { costCnyWarning, explainIntakeFailure } from "@/lib/intake-errors";
 import { COLORS, KINDS, assertNever, keepSizesForKind, sizeScaleForKind, sizesForKind } from "@/lib/kinds";
 import { nextMa, parseHubMa } from "@/lib/mint";
 import {
@@ -97,11 +98,17 @@ export function IntakeApp({
   const loadListingRef = useRef<() => void>(() => {});
   const [confirm, setConfirm] = useState<null | { kind: "rename" | "overwrite"; ma: string; next: string | null }>(null);
   const toastSeq = useRef(0);
+  const errorRef = useRef<HTMLParagraphElement | null>(null);
 
   function pushToast(text: string, tone: ToastItem["tone"]) {
     const id = (toastSeq.current += 1);
     setToasts((current) => [...current, { id, text, tone }].slice(-4));
   }
+
+  useEffect(() => {
+    if (!error) return;
+    errorRef.current?.scrollIntoView({ block: "nearest" });
+  }, [error]);
 
   useEffect(() => {
     void refreshMas();
@@ -173,7 +180,7 @@ export function IntakeApp({
 
   async function onTaobaoLookup() {
     if (!link.trim()) {
-      setError("Dán link Taobao trước nha iu ơi.");
+      setError("Dán link Taobao trước, rồi mới bấm đọc.");
       return;
     }
     setTbState("loading");
@@ -321,7 +328,7 @@ export function IntakeApp({
       const response = await fetch(`/api/submissions/${encodeURIComponent(raw.trim())}`);
       const data = (await response.json()) as { submission?: Submission; error?: string };
       if (!response.ok || !data.submission) {
-        setError(data.error || "Không tìm thấy mã này 🥺");
+        setError(explainIntakeFailure(data.error || "Không tìm thấy mã này 🥺"));
         setLoadedMa(null);
         return null;
       }
@@ -330,7 +337,7 @@ export function IntakeApp({
       await refreshMas();
       return data.submission;
     } catch {
-      setError("Mạng hơi lag, thử lại nha.");
+      setError("Chưa mở được mã vì lỗi mạng. Kiểm tra mạng rồi thử lại.");
       return null;
     } finally {
       setBusy(false);
@@ -401,7 +408,7 @@ export function IntakeApp({
       const response = await fetch(url, { method: existing ? "PATCH" : "POST", body: form });
       const data = (await response.json()) as { submission?: Submission; error?: string };
       if (!response.ok || !data.submission) {
-        setError(data.error || "Chưa nhận được mã. Thử lại nha 🥺");
+        setError(explainIntakeFailure(data.error || ""));
         return false;
       }
       setSaved(data.submission);
@@ -415,7 +422,7 @@ export function IntakeApp({
       scheduleListingRefresh();
       return true;
     } catch {
-      setError("Chưa gửi được. Kiểm tra mạng rồi thử lại 💕");
+      setError("Chưa lưu được vì lỗi mạng. Kiểm tra mạng rồi thử lại. Mã chưa được ghi.");
       return false;
     } finally {
       setBusy(false);
@@ -480,7 +487,7 @@ export function IntakeApp({
         staged_only: Boolean(data.staged_only ?? (data.on_hand ?? []).length === 0),
       });
     } catch {
-      setError("Mạng hơi lag, thử lại nha.");
+      setError("Chưa tìm được mã vì lỗi mạng. Kiểm tra mạng rồi thử lại.");
     } finally {
       setBusy(false);
     }
@@ -501,13 +508,13 @@ export function IntakeApp({
         error?: string;
       };
       if (!response.ok) {
-        setError(data.error || "Không thấy mã khớp");
+        setError(data.error || "Không thấy mã khớp với ảnh này. Thử ảnh khác hoặc tìm theo mã.");
         setFindMatches([]);
         return;
       }
       setFindMatches(data.matches ?? []);
     } catch {
-      setError("Chưa gửi được. Kiểm tra mạng rồi thử lại 💕");
+      setError("Chưa gửi được ảnh vì lỗi mạng. Kiểm tra mạng rồi thử lại.");
     } finally {
       setBusy(false);
     }
@@ -612,7 +619,12 @@ export function IntakeApp({
           findBusy: busy,
         })}
         {error ? (
-          <p data-testid="intake-error" role="alert" className="mt-4 text-center text-sm text-[#9b2c2c]">
+          <p
+            ref={errorRef}
+            data-testid="intake-error"
+            role="alert"
+            className="mt-4 rounded-2xl bg-[#fdecec] px-4 py-3 text-center text-sm text-[#9b2c2c] ring-1 ring-[#f0c7c7]"
+          >
             {error}
           </p>
         ) : null}
@@ -843,6 +855,7 @@ function ItemForm(props: {
   priceBreakdown: PriceBreakdown | null;
   onUseAutoPrice: () => void;
 }) {
+  const cnyWarning = costCnyWarning(props.costCny);
   return (
     <div data-testid="intake-grid" className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-x-10">
       <div>
@@ -1016,6 +1029,8 @@ function ItemForm(props: {
             <input
               data-testid="cost-cny"
               value={props.costCny}
+              aria-invalid={cnyWarning?.kind === "garbled" ? true : undefined}
+              aria-describedby={cnyWarning ? "cost-cny-warning" : undefined}
               onChange={(event) => {
                 const value = event.target.value;
                 props.setCostCny(value);
@@ -1038,6 +1053,17 @@ function ItemForm(props: {
               className="h-11 rounded-xl bg-white px-3 ring-1 ring-rose-100"
             />
           </div>
+          {cnyWarning ? (
+            <p
+              id="cost-cny-warning"
+              data-testid="cost-cny-warning"
+              data-warning={cnyWarning.kind}
+              role="status"
+              className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-900 ring-1 ring-amber-200"
+            >
+              {cnyWarning.text}
+            </p>
+          ) : null}
         </fieldset>
         <fieldset className="mb-4">
           <label className="mb-2 block text-sm font-medium">Giá bán / sell (tuỳ chọn)</label>
@@ -1124,6 +1150,7 @@ function ItemForm(props: {
           hasPrice={Boolean(props.sellUsd.trim() || props.sellCny.trim())}
           needsResearch={props.needsResearch}
           belowFloor={props.priceBreakdown ? !props.priceBreakdown.captionEligible : false}
+          costWarning={cnyWarning?.kind ?? null}
         />
         <button
           type="button"
@@ -1492,17 +1519,21 @@ function StatusChips({
   hasPrice,
   needsResearch,
   belowFloor,
+  costWarning,
 }: {
   photos: number;
   sizes: number;
   hasPrice: boolean;
   needsResearch: boolean;
   belowFloor: boolean;
+  costWarning: "blank" | "garbled" | null;
 }) {
   const chips: { tone: "warn" | "info" | "ok"; label: string }[] = [];
   if (photos === 0) chips.push({ tone: "warn", label: "Thiếu ảnh" });
   if (sizes === 0) chips.push({ tone: "warn", label: "Thiếu size" });
   if (!hasPrice) chips.push({ tone: "warn", label: "Thiếu giá" });
+  if (costWarning === "blank") chips.push({ tone: "warn", label: "Thiếu ¥" });
+  if (costWarning === "garbled") chips.push({ tone: "warn", label: "¥ sai dạng" });
   if (belowFloor) chips.push({ tone: "warn", label: `Dưới ${Math.round(MARGIN_FLOOR * 100)}%` });
   if (needsResearch) chips.push({ tone: "info", label: "Cần xem tay" });
   if (chips.length === 0) chips.push({ tone: "ok", label: "Đủ để lưu" });

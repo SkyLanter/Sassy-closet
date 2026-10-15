@@ -179,6 +179,22 @@ export function listShopCatalog(document: unknown): ShopCatalogList {
   return { ok: true, products, updatedAt, siteId: SHOP_CATALOG_SITE_ID };
 }
 
+function explainUnsavedCatalog(message: string): string {
+  const status = message.match(/^Mã ([A-Z0-9]+) has an invalid status\.$/);
+  if (status) {
+    return `Mã ${status[1]} cannot be saved because the status is not available, hold, or sold. Nothing was written.`;
+  }
+  const price = message.match(/^Mã ([A-Z0-9]+) has an invalid USD price\.$/);
+  if (price) {
+    return `Mã ${price[1]} cannot be saved because the USD price is not a valid dollar amount. Nothing was written.`;
+  }
+  const cents = message.match(/^Mã ([A-Z0-9]+) price must be dollars and cents\.$/);
+  if (cents) {
+    return `Mã ${cents[1]} cannot be saved because the price must be dollars and cents. Nothing was written.`;
+  }
+  return message;
+}
+
 export function applyShopCatalogPatch(
   document: unknown,
   patch: unknown,
@@ -188,7 +204,7 @@ export function applyShopCatalogPatch(
   | { ok: false; error: string } {
   const listed = listShopCatalog(document);
   if (!listed.ok) {
-    return listed;
+    return { ok: false, error: explainUnsavedCatalog(listed.error) };
   }
   if (!isRecord(patch) || typeof patch.ma !== "string") {
     return { ok: false, error: "Save needs a mã." };
@@ -238,8 +254,11 @@ export function applyShopCatalogPatch(
 
   const storedStatus = readStatus(product.status, ma);
   const storedPrice = readPrice(product.priceUsd, ma);
-  if (!isStatus(storedStatus) || typeof storedPrice === "string") {
-    return { ok: false, error: `Mã ${ma} cannot be saved.` };
+  if (!isStatus(storedStatus)) {
+    return { ok: false, error: explainUnsavedCatalog(storedStatus) };
+  }
+  if (typeof storedPrice === "string") {
+    return { ok: false, error: explainUnsavedCatalog(storedPrice) };
   }
 
   let status = storedStatus;
@@ -247,14 +266,14 @@ export function applyShopCatalogPatch(
   if ("status" in patch) {
     const nextStatus = readStatus(patch.status, ma);
     if (!isStatus(nextStatus)) {
-      return { ok: false, error: nextStatus };
+      return { ok: false, error: explainUnsavedCatalog(nextStatus) };
     }
     status = nextStatus;
   }
   if ("priceUsd" in patch) {
     const nextPrice = readPrice(patch.priceUsd, ma);
     if (typeof nextPrice === "string") {
-      return { ok: false, error: nextPrice };
+      return { ok: false, error: explainUnsavedCatalog(nextPrice) };
     }
     priceUsd = nextPrice;
   }
