@@ -1,0 +1,27 @@
+{
+  "submissions": [
+    {
+      "ma": "S06",
+      "sell_usd": "25",
+      "photo_paths": ["S06/001.jpg", "S06/002.jpeg"],
+      "photo_hashes": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    {
+      "ma": "K06",
+      "photo_paths": ["K06/001.webp"],
+      "photo_hashes": [
+        "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      ]
+    },
+    {
+      "ma": "A01",
+      "photo_paths": ["A01/001.png"],
+      "photo_hashes": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ]
+    }
+  ]
+}
