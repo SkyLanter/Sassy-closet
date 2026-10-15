@@ -8,14 +8,16 @@ import sys
 from decimal import Decimal
 from pathlib import Path
 
-from openpyxl import Workbook
+from openpyxl import Workbook, load_workbook
 
 from freshness_check import (
     ALIAS_ORIGIN,
     PRIMARY_ORIGIN,
     SELL_ORIGINS,
+    _hub_from_path,
     classify_taobao,
     evaluate,
+    parse_blob_catalog,
     parse_pdp_price,
     parse_taobao_cny,
     read_hub_official,
@@ -270,6 +272,100 @@ def test_hub_official_reader(tmp_path: Path) -> None:
     assert rows["A07"] == Decimal("26")
     assert "K06" not in rows
     assert "V05" not in rows
+
+
+def test_schema_list_price_beats_row1_sell_usd(tmp_path: Path) -> None:
+    book = Workbook()
+    sheet = book.active
+    sheet.title = "Official"
+    sheet.cell(1, 1, "ma")
+    sheet.cell(1, 2, "sell_usd")
+    sheet.cell(2, 1, "S06")
+    sheet.cell(2, 2, 99)
+    sheet.cell(4, 1, "ma")
+    sheet.cell(4, 2, "list_price")
+    sheet.cell(5, 1, "S06")
+    sheet.cell(5, 2, 25)
+    sheet.cell(6, 1, "A07")
+    sheet.cell(6, 2, 26)
+    path = tmp_path / "schema-wins.xlsx"
+    book.save(path)
+    rows = {row.ma: row.price_usd for row in read_hub_official(path)}
+    assert rows == {"S06": Decimal("25"), "A07": Decimal("26")}
+
+
+def _write_live_hub_workbook(path: Path) -> None:
+    """Live hub layout: Official headers on row 1, USD in sell_usd.
+
+    Row 4 is a data row, which is the schema header row. A decoy sheet
+    carries a different S06 dollar so the reader must use Official.
+    """
+    book = Workbook()
+    notes = book.active
+    notes.title = "Notes"
+    notes.cell(1, 1, "ma")
+    notes.cell(1, 2, "sell_usd")
+    notes.cell(2, 1, "S06")
+    notes.cell(2, 2, 1)
+    official = book.create_sheet("Official")
+    for col, name in enumerate(("ma", "status", "cost_cny", "sell_usd"), start=1):
+        official.cell(1, col, name)
+    for offset, row in enumerate(
+        (
+            ("S06", "live", 60.39, 25),
+            ("A07", "live", 87.23, 26),
+            ("S10", "live", 140, 37),
+        ),
+        start=2,
+    ):
+        for col, value in enumerate(row, start=1):
+            official.cell(offset, col, value)
+    book.save(path)
+    book.close()
+
+
+def test_row1_sell_usd_fixture_matches_blob(tmp_path: Path) -> None:
+    path = tmp_path / "hub-official-row1.xlsx"
+    _write_live_hub_workbook(path)
+    loaded = load_workbook(path, data_only=True)
+    try:
+        assert loaded.sheetnames[0] != "Official"
+        sheet = loaded["Official"]
+        assert [sheet.cell(1, col).value for col in range(1, 5)] == [
+            "ma",
+            "status",
+            "cost_cny",
+            "sell_usd",
+        ]
+        schema_row = [sheet.cell(4, col).value for col in range(1, 5)]
+        assert schema_row == ["S10", "live", 140, 37]
+        assert "list_price" not in schema_row
+    finally:
+        loaded.close()
+
+    hub = read_hub_official(path)
+    prices = {row.ma: row.price_usd for row in hub}
+    assert prices == {
+        "S06": Decimal("25"),
+        "A07": Decimal("26"),
+        "S10": Decimal("37"),
+    }
+    assert "K06" not in prices
+    assert "V05" not in prices
+    blob = parse_blob_catalog(
+        {
+            "products": [
+                {"ma": "S06", "priceUsd": 25},
+                {"ma": "A07", "priceUsd": 26},
+                {"ma": "S10", "priceUsd": 37},
+            ]
+        }
+    )
+    assert [(row.ma, row.price_usd) for row in hub] == [(row.ma, row.price_usd) for row in blob]
+    parsed, state = _hub_from_path(path)
+    assert state.state == "ok"
+    assert parsed is not None
+    assert {row.ma: row.price_usd for row in parsed} == prices
 
 
 def test_write_report_names(tmp_path: Path) -> None:
