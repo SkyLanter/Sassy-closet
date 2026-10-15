@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, type FormEvent } from "react";
+import { buildIntakeDataset, formatMaList, type ShopDatasetRow } from "@/lib/intake-dataset";
 import type { ShopCatalogList, ShopCatalogRow, ShopCatalogStatus } from "@/lib/shop-catalog";
 
 type SaveReceipt = {
@@ -11,7 +12,15 @@ type SaveReceipt = {
   ma?: string;
 };
 
-export function ShopCatalogDesk({ initial }: { initial: ShopCatalogList }) {
+export function ShopCatalogDesk({
+  initial,
+  intakeMas,
+  shopRows,
+}: {
+  initial: ShopCatalogList;
+  intakeMas: string[];
+  shopRows: ShopDatasetRow[] | null;
+}) {
   const [products, setProducts] = useState<ShopCatalogRow[]>(initial.ok ? initial.products : []);
   const [selectedMa, setSelectedMa] = useState(initial.ok ? (initial.products[0]?.ma ?? "") : "");
   const [busy, setBusy] = useState(false);
@@ -76,7 +85,7 @@ export function ShopCatalogDesk({ initial }: { initial: ShopCatalogList }) {
 
   return (
     <main className="mx-auto max-w-lg px-4 py-8 text-[#5c3d48]">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#a85d74]">Intake · Shop tools</p>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#a85d74]">Admin · Shop tools</p>
       <div className="mt-1 flex items-start justify-between gap-3">
         <h1 className="text-[21px] font-semibold text-[#3c2a2e]">Shop catalog</h1>
         <form action="/api/shop-catalog/logout" method="post">
@@ -89,9 +98,11 @@ export function ShopCatalogDesk({ initial }: { initial: ShopCatalogList }) {
         </form>
       </div>
       <p className="mt-2 text-[13.5px] leading-relaxed text-[#7d5360]">
-        Edits the sell catalog in Blob <span className="font-semibold">sassy-closet-shop/catalog.v1.json</span>, then
-        asks the shop to revalidate. Available USD is the catalog price.
+        Separate from the intake form. Edits the sell catalog in Blob{" "}
+        <span className="font-semibold">sassy-closet-shop/catalog.v1.json</span>, then asks the shop to revalidate.
+        Available USD is the catalog price. This dataset list does not write prices or photos.
       </p>
+      {shopRows ? <DatasetSummary rows={shopRows} intakeMas={intakeMas} /> : null}
       <p className="mt-3 text-sm">
         <a className="underline-offset-2 hover:underline" href="/">
           Back to intake
@@ -135,6 +146,23 @@ export function ShopCatalogDesk({ initial }: { initial: ShopCatalogList }) {
         </p>
       ) : null}
     </main>
+  );
+}
+
+function DatasetSummary({ rows, intakeMas }: { rows: ShopDatasetRow[]; intakeMas: string[] }) {
+  const dataset = buildIntakeDataset(intakeMas, rows);
+  return (
+    <section data-testid="admin-dataset" className="mt-4 rounded-2xl bg-white px-3 py-3 text-sm ring-1 ring-[#eadfdc]">
+      <p className="font-semibold text-[#3c2a2e]">Dataset</p>
+      <p className="mt-1 text-[#7d5360]">Live {dataset.liveCount} — sell catalog, status available.</p>
+      <p className="mt-1 text-[#7d5360]">
+        Held · chưa xong: {dataset.heldMas.length > 0 ? formatMaList(dataset.heldMas, 24) : "không có"}
+      </p>
+      <p className="mt-1 text-[#7d5360]">
+        Trên shop, hiện trên list từ catalog (chưa lưu form):{" "}
+        {dataset.shopOnlyLive.length > 0 ? formatMaList(dataset.shopOnlyLive.map((entry) => entry.ma), 24) : "không có"}
+      </p>
+    </section>
   );
 }
 

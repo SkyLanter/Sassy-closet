@@ -26,7 +26,9 @@ html {
   -webkit-tap-highlight-color: transparent;
 }
 
-body {
+body,
+.sassy-shell {
+  min-height: 100%;
   background:
     radial-gradient(900px 420px at 50% -12%, #f6ddd6 0%, transparent 60%),
     var(--adm-paper);

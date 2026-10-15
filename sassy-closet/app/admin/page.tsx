@@ -29,6 +29,7 @@ export default async function AdminPage() {
           Shop tools
         </a>
       </p>
+      <p className="mt-2 text-xs text-[#7d5360]">Trang riêng, có mật khẩu. Không nằm trong form nhận đồ.</p>
     </main>
   );
 }
