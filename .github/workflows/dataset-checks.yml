@@ -17,3 +17,7 @@ jobs:
         run: pip install -r requirements.txt pytest
       - name: Fixture unit tests
         run: python -m pytest scripts/tests -q
+      - name: Intake cost drift (fixtures, no live intake)
+        run: |
+          python scripts/cost_drift.py --fixture scripts/fixtures/cost-drift.json --out out --date 2026-10-15
+          python -m pytest scripts/tests/test_cost_drift.py -q
