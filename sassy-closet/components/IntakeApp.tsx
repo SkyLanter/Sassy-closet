@@ -10,7 +10,7 @@ import { PhotoThumbs } from "@/components/PhotoThumbs";
 import { SavedCard } from "@/components/SavedCard";
 import { convertCnyToUsd, convertUsdToCny } from "@/lib/fx";
 import { COLORS, KINDS, assertNever, keepSizesForKind, sizeScaleForKind, sizesForKind } from "@/lib/kinds";
-import { nextMa, parseHubMa } from "@/lib/mint";
+import { parseHubMa, suggestNextMa } from "@/lib/mint";
 import {
   listingChip,
   listingItemForMa,
@@ -452,7 +452,7 @@ export function IntakeApp({
     if (tab === "edit" && loadedMa) {
       const current = parseHubMa(loadedMa)?.kind;
       if (current && current !== next) {
-        setRenameTo(nextMa(next, [...knownMas, ...liveListingMas(listing.items)]));
+        setRenameTo(suggestNextMa(next, [...knownMas, ...liveListingMas(listing.items)]));
       }
     }
   }

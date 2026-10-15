@@ -6,7 +6,7 @@ import { afterEach, test } from "node:test";
 import { intakeSaveFailure } from "../lib/form-save";
 import { isHeldIncompleteMa, NEVER_LIST_MAS } from "../lib/held-incomplete";
 import { liveListingMas } from "../lib/listing-status";
-import { nextMa } from "../lib/mint";
+import { nextMa, suggestNextMa } from "../lib/mint";
 import { publishBlock } from "../lib/publish-guard";
 import { hashBytes, listSubmissions, saveSubmission } from "../lib/store";
 import { resetStoreBackendForTests } from "../lib/store-backend";
@@ -176,6 +176,80 @@ test("editing the same live mã does not write the catalog", async () => {
   fs.rmSync(tmp, { recursive: true, force: true });
 });
 
+test("next S suggestion skips a fixture held list and is not S14, S15, or S16", async () => {
+  const heldBefore = fs.readFileSync(heldPath, "utf8");
+  const fixtureHeld = ["S14", "S15", "S16"];
+  assert.equal(fixtureHeld.includes("Q02"), false);
+  assert.equal(NEVER_LIST_MAS.includes("Q02"), false);
+  assert.equal(suggestNextMa("Q", ["Q01"], fixtureHeld), "Q02");
+  assert.equal(nextMa("Q", ["Q01"]), "Q02");
+  const nextS = suggestNextMa("S", ["S06", "S13"], fixtureHeld);
+  assert.equal(nextS, "S17");
+  assert.notEqual(nextS, "S14");
+  assert.notEqual(nextS, "S15");
+  assert.notEqual(nextS, "S16");
+  assert.equal(publishBlock({ action: "update", ma: "S06", sellUsd: "25" }), null);
+  assert.equal(publishBlock({ action: "update", ma: "S06", sellUsd: "30" }), "s06-lock");
+
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "sassy-held-s-"));
+  const catalog = writeCatalog(tmp, [
+    product("S06", 25, "Washed distressed overalls", "Blue"),
+    product("S13", 26, "Fixture set", "Green"),
+    product("Q01", 20, "Fixture pants", "Navy"),
+  ]);
+  const catalogBefore = fs.readFileSync(catalog, "utf8");
+  const calls: string[] = [];
+  rememberEnv();
+  process.env.SASSY_DATA_DIR = tmp;
+  process.env.SHOP_CATALOG_FILE = catalog;
+  delete process.env.SHOP_BLOB_READ_WRITE_TOKEN;
+  delete process.env.BLOB_READ_WRITE_TOKEN;
+  delete process.env.BLOB_STORE_ID;
+  delete process.env.VERCEL;
+  delete process.env.INTAKE_DATASET_SYNC_WEBHOOK_URL;
+  delete process.env.INTAKE_DATASET_SYNC_WEBHOOK_KEY;
+  delete process.env.NEW_MA_WEBHOOK_URL;
+  delete process.env.NEW_MA_WEBHOOK_TOKEN;
+  resetStoreBackendForTests();
+  const original = globalThis.fetch;
+  globalThis.fetch = (async (url: string | URL | Request) => {
+    calls.push(String(url));
+    throw new Error("no live write");
+  }) as typeof fetch;
+  try {
+    await assert.rejects(
+      () => saveSubmission(blankSave({ kind: "S", newMa: "S13", heldMas: fixtureHeld })),
+      (error: unknown) => {
+        assert.ok(error instanceof Error);
+        assert.match(error.message, /Không lưu S13 \(reused\)/);
+        assert.match(error.message, /Mã kế: S17/);
+        assert.equal((error as { suggestion?: string }).suggestion, "S17");
+        for (const blocked of ["S14", "S15", "S16"]) {
+          assert.notEqual((error as { suggestion?: string }).suggestion, blocked);
+        }
+        return true;
+      },
+    );
+    await assert.rejects(
+      () => saveSubmission(blankSave({ kind: "Q", newMa: "Q01", heldMas: fixtureHeld })),
+      (error: unknown) => {
+        assert.ok(error instanceof Error);
+        assert.equal((error as { suggestion?: string }).suggestion, "Q02");
+        return true;
+      },
+    );
+    assert.deepEqual(await listSubmissions(), []);
+  } finally {
+    globalThis.fetch = original;
+  }
+  assert.deepEqual(calls, []);
+  assert.equal(fs.readFileSync(catalog, "utf8"), catalogBefore);
+  assert.match(catalogBefore, /"ma": "S06"/);
+  assert.match(catalogBefore, /"priceUsd": 25/);
+  assert.equal(fs.readFileSync(heldPath, "utf8"), heldBefore);
+  fs.rmSync(tmp, { recursive: true, force: true });
+});
+
 test("a reused Q suggests Q02 and Q02 is not on the never-list", async () => {
   const heldBefore = fs.readFileSync(heldPath, "utf8");
   const held = JSON.parse(heldBefore) as { neverList: string[] };
@@ -296,6 +370,7 @@ function blankSave(
     existingMa?: string;
     sellUsd?: string;
     color?: string;
+    heldMas?: readonly string[];
   } = {},
 ) {
   const bytes = Buffer.from("photo");
@@ -316,6 +391,7 @@ function blankSave(
     photos: [{ bytes, hash: hashBytes(bytes), ext: ".jpg" }],
     existingMa: overrides.existingMa,
     newMa: overrides.newMa,
+    heldMas: overrides.heldMas,
     needs_research: false,
     taobao_snapshot: null,
     auto_price: null,

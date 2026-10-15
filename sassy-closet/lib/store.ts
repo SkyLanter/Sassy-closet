@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { isKindCode, kindLabel, sizeOptionsLine } from "./kinds";
 import { notifyIntakeDatasetSyncWebhook } from "./intakeDatasetSyncWebhook";
 import { readLiveCatalogMas } from "./live-mas";
-import { formatMa, maExists, nextMa, normalizeMa, parseHubMa } from "./mint";
+import { formatMa, maExists, nextMa, normalizeMa, parseHubMa, suggestNextMa } from "./mint";
 import { mintBlock, publishBlock } from "./publish-guard";
 import { normalizeSourceLink } from "./source-link";
 import { sanitizeOnHandRows } from "./on-hand";
@@ -41,6 +41,8 @@ export type SaveInput = {
   photos: { bytes: Buffer; hash: string; ext: string }[];
   existingMa?: string;
   newMa?: string;
+  /** Held mãs the next-free suggestion skips. Defaults to heldIncomplete. */
+  heldMas?: readonly string[];
   needs_research: boolean;
   taobao_snapshot: TaobaoItem | null;
   auto_price: PriceBreakdown | null;
@@ -117,6 +119,7 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
     newMa: input.newMa,
     mas,
     liveMas,
+    heldMas: input.heldMas,
   });
   const blocked = publishBlock({
     action: existing ? "update" : "create",
@@ -298,11 +301,15 @@ function postedSell(currency: string, usd: string, cny: string): string {
   return usdTrim || cnyTrim;
 }
 
-function guardedMint(kind: KindCode, mas: string[]): string {
+function guardedMint(kind: KindCode, mas: string[], heldMas?: readonly string[]): string {
   const blocked = mintBlock(kind, mas);
   if (blocked) {
     const ma = nextMa(kind, mas);
-    throw Object.assign(new Error(`Không mint ${ma} (${blocked}).`), { status: 409 });
+    const suggestion = suggestNextMa(kind, mas, heldMas);
+    throw Object.assign(new Error(`Không mint ${ma} (${blocked}). Mã kế: ${suggestion}.`), {
+      status: 409,
+      suggestion,
+    });
   }
   return nextMa(kind, mas);
 }
@@ -313,12 +320,13 @@ function resolveSaveMa(input: {
   newMa?: string;
   mas: string[];
   liveMas: readonly string[];
+  heldMas?: readonly string[];
 }): string {
   const occupied = [...input.mas, ...input.liveMas];
   const raw = (input.newMa ?? "").trim();
   if (!raw) {
     if (input.existing) return input.existing.ma;
-    return guardedMint(input.kind, occupied);
+    return guardedMint(input.kind, occupied, input.heldMas);
   }
   const parsed = parseHubMa(raw);
   if (parsed) {
@@ -331,19 +339,19 @@ function resolveSaveMa(input: {
       reused: liveHit,
     });
     if (blocked === "reused") {
-      throw takenMaError("reused", formatted, nextMa(parsed.kind, occupied));
+      throw takenMaError("reused", formatted, suggestNextMa(parsed.kind, occupied, input.heldMas));
     }
     if (blocked) {
       throw Object.assign(new Error(`Không lưu ${formatted} (${blocked}).`), { status: 409 });
     }
     if (sameRow) return formatted;
     if (maExists(input.mas, formatted, input.existing?.ma)) {
-      throw takenMaError("duplicate", formatted, nextMa(parsed.kind, occupied));
+      throw takenMaError("duplicate", formatted, suggestNextMa(parsed.kind, occupied, input.heldMas));
     }
     return formatted;
   }
   if (isKindCode(raw.toUpperCase())) {
-    return guardedMint(raw.toUpperCase() as KindCode, occupied);
+    return guardedMint(raw.toUpperCase() as KindCode, occupied, input.heldMas);
   }
   throw Object.assign(
     new Error("Mã mới: chữ P (ra P kế) hoặc đủ số kiểu P10 nha 💕"),
