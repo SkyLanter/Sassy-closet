@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   captionPriceLine,
+  sellPriceFlag,
   computeAutoPrice,
   deboxFor,
   DEFAULT_FX,
@@ -62,6 +63,49 @@ test("auto price returns null for bad inputs instead of inventing a price", () =
   assert.equal(computeAutoPrice({ costCny: 0, fxRate: FX, kind: "A" }), null);
   assert.equal(computeAutoPrice({ costCny: NaN, fxRate: FX, kind: "A" }), null);
   assert.equal(computeAutoPrice({ costCny: 50, fxRate: 0, kind: "A" }), null);
+});
+
+test("blank sell is later, not a forced price", () => {
+  const input = {
+    sellUsd: "",
+    sellCny: "",
+    sellCurrency: "USD",
+    costCny: "50",
+    costUsd: "",
+    costCurrency: "CNY",
+    kind: "A",
+    fxRate: FX,
+  };
+  assert.equal(sellPriceFlag(input), "later");
+  assert.equal(captionPriceLine(input), "Inbox giá");
+});
+
+test("typed sell under the margin floor is flagged", () => {
+  const input = {
+    sellUsd: "10",
+    sellCny: "",
+    sellCurrency: "USD",
+    costCny: "50",
+    costUsd: "",
+    costCurrency: "CNY",
+    kind: "A",
+    fxRate: FX,
+  };
+  assert.equal(sellPriceFlag(input), "under-margin");
+});
+
+test("typed sell at the margin floor is ok", () => {
+  const input = {
+    sellUsd: "12",
+    sellCny: "",
+    sellCurrency: "USD",
+    costCny: "50",
+    costUsd: "",
+    costCurrency: "CNY",
+    kind: "A",
+    fxRate: FX,
+  };
+  assert.equal(sellPriceFlag(input), "ok");
 });
 
 test("caption price: blank sell stays Inbox giá", () => {
