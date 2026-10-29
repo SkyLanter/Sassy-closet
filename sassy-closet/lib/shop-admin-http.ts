@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requestHasAdminSession } from "@/lib/admin-auth";
+import { pipelineBearerOk } from "@/lib/pipeline-auth";
 
 export const SHOP_ADMIN_NO_STORE = {
   "Cache-Control": "private, no-store, no-cache, max-age=0, must-revalidate",
@@ -33,11 +34,29 @@ export function shopAdminUnauthorized(mode: ShopAdmin401Mode = shopAdmin401Mode(
   return shopAdminJson({ ok: false, error: "Unauthorized." }, 401);
 }
 
+/** Session cookie only. The pipeline bearer is not a shop-admin session. */
 export async function requireShopAdmin(
   request: Request,
   opts?: { mode?: ShopAdmin401Mode },
 ): Promise<NextResponse | null> {
   if (await requestHasAdminSession(request)) {
+    return null;
+  }
+  return shopAdminUnauthorized(opts?.mode);
+}
+
+/**
+ * Shop-admin session, or a machine GET with `Authorization: Bearer $INTAKE_PIPELINE_SECRET`.
+ * POST and PATCH ignore the bearer, so the token cannot save a mã.
+ */
+export async function requireIntakeRead(
+  request: Request,
+  opts?: { mode?: ShopAdmin401Mode },
+): Promise<NextResponse | null> {
+  if (await requestHasAdminSession(request)) {
+    return null;
+  }
+  if (request.method === "GET" && (await pipelineBearerOk(request))) {
     return null;
   }
   return shopAdminUnauthorized(opts?.mode);

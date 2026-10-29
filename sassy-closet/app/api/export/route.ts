@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import { exportCsv } from "@/lib/store";
-import { requireShopAdmin, SHOP_ADMIN_NO_STORE } from "@/lib/shop-admin-http";
+import { requireIntakeRead, SHOP_ADMIN_NO_STORE } from "@/lib/shop-admin-http";
 import { storeUnavailableResponse } from "@/lib/store-unavailable";
 
-// CSV carries costs + source links: admin session required (same as shop tools).
+export const dynamic = "force-dynamic";
+
+// CSV carries costs + source links. GET: shop-admin session or pipeline bearer.
+// Middleware also checks this path. See docs/INTAKE_PIPELINE.md.
 export async function GET(request: Request) {
-  const denied = await requireShopAdmin(request);
+  const denied = await requireIntakeRead(request);
   if (denied) return denied;
   let csv: string;
   try {

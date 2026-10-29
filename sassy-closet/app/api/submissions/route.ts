@@ -1,14 +1,17 @@
 import { NextResponse } from "next/server";
-import { requireShopAdmin } from "@/lib/shop-admin-http";
+import { requireIntakeRead, requireShopAdmin, shopAdminJson } from "@/lib/shop-admin-http";
 import { saveFromForm } from "@/lib/form-save";
 import { intakeCatalog } from "@/lib/kinds";
 import { scheduleNewMaWebhookFromRow } from "@/lib/newMaWebhook";
 import { listSubmissions, storeHealth } from "@/lib/store";
 import { storeUnavailableResponse } from "@/lib/store-unavailable";
 
-// Rows carry costs + source links: admin session required (piece 240b).
+export const dynamic = "force-dynamic";
+
+// Rows carry costs + source links. GET: shop-admin session or pipeline bearer.
+// POST stays session-only. See docs/INTAKE_PIPELINE.md.
 export async function GET(request: Request) {
-  const denied = await requireShopAdmin(request);
+  const denied = await requireIntakeRead(request);
   if (denied) return denied;
   let submissions;
   try {
@@ -16,7 +19,7 @@ export async function GET(request: Request) {
   } catch (error) {
     return storeUnavailableResponse(error);
   }
-  return NextResponse.json({
+  return shopAdminJson({
     submissions,
     storage: storeHealth(),
     catalog: intakeCatalog(),

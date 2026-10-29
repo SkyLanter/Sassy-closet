@@ -34,6 +34,7 @@ if str(_SCRIPTS) not in sys.path:
 if str(_KIT_ROOT) not in sys.path:
     sys.path.insert(0, str(_KIT_ROOT))
 
+from intake_pipeline_auth import authorization_headers
 from runtime_check import ensure_runtime
 
 ensure_runtime(_ROOT / "out")
@@ -979,7 +980,7 @@ def _live_codes(
 
 
 def _fetch_intake() -> tuple[list[IntakeRow], SourceState]:
-    status, body, error = _http_get(INTAKE_URL)
+    status, body, error = _http_get(INTAKE_URL, headers=authorization_headers())
     if error or status != 200:
         return [], SourceState("skip", error or f"HTTP {status}")
     try:
@@ -1064,15 +1065,26 @@ def _fetch_taobao(row: IntakeRow) -> TaobaoView:
     return TaobaoView(code, classified.state, classified.public_cny, classified.detail, promo, final)
 
 
-def _http_get(url: str, timeout: float = 20) -> tuple[int, str, str | None]:
-    status, raw, error = _http_get_bytes(url, timeout)
+def _http_get(
+    url: str,
+    timeout: float = 20,
+    headers: dict[str, str] | None = None,
+) -> tuple[int, str, str | None]:
+    status, raw, error = _http_get_bytes(url, timeout, headers)
     if error or raw is None:
         return status, "", error
     return status, raw.decode("utf-8", errors="replace"), None
 
 
-def _http_get_bytes(url: str, timeout: float = 20) -> tuple[int, bytes | None, str | None]:
-    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "*/*"})
+def _http_get_bytes(
+    url: str,
+    timeout: float = 20,
+    headers: dict[str, str] | None = None,
+) -> tuple[int, bytes | None, str | None]:
+    merged = {"User-Agent": USER_AGENT, "Accept": "*/*"}
+    if headers:
+        merged.update(headers)
+    request = urllib.request.Request(url, headers=merged)
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
             return getattr(response, "status", 200), response.read(), None

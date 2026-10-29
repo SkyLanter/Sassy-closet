@@ -6,7 +6,7 @@ Read-only. Run only AFTER Boss unblocks the Vercel Blob store. One command does 
 | # | URL | PASS looks like |
 |---|-----|-----------------|
 | 1 | https://sassy-closet.vercel.app/ | 200, form shows. The FX label is the real one, not "Tỷ giá mặc định … kho đang không đọc được" |
-| 2 | https://sassy-closet.vercel.app/api/submissions | **401** logged out (240b: rows have costs). Logged in at /admin/shop/login: 200 with a real mã list, no `"storeUnavailable":true` |
+| 2 | https://sassy-closet.vercel.app/api/submissions | **401** logged out, no `Authorization` header (rows have costs). Logged in at /admin/shop/login: 200 with a real mã list, no `"storeUnavailable":true`. Auto-list uses `Authorization: Bearer $INTAKE_PIPELINE_SECRET` (see `sassy-closet/docs/INTAKE_PIPELINE.md`); this checklist stays the logged-out check |
 | 3 | https://sassy-closet.vercel.app/api/fx | 200 with `usd_cny` |
 | 4 | https://sassy-closet.vercel.app/api/submissions/S06 and /api/ma/S06 | **401** logged out. Logged in: 200 with mã S06 |
 | 5 | https://sassy-closet.vercel.app/api/export | **401** without login (piece 240 locks the costs CSV). If you're logged in at /admin/shop/login, it's a 200 CSV. The script only checks the logged-out status |

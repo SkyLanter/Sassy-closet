@@ -1,16 +1,18 @@
 import { NextResponse } from "next/server";
-import { requireShopAdmin } from "@/lib/shop-admin-http";
+import { requireIntakeRead, requireShopAdmin, shopAdminJson } from "@/lib/shop-admin-http";
 import { saveFromForm } from "@/lib/form-save";
 import { normalizeMa } from "@/lib/mint";
 import { scheduleNewMaWebhookFromRow } from "@/lib/newMaWebhook";
 import { getSubmission } from "@/lib/store";
 import { storeUnavailableResponse } from "@/lib/store-unavailable";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(
   request: Request,
   context: { params: Promise<{ ma: string }> },
 ) {
-  const denied = await requireShopAdmin(request);
+  const denied = await requireIntakeRead(request);
   if (denied) return denied;
   const { ma } = await context.params;
   let submission;
@@ -20,9 +22,9 @@ export async function GET(
     return storeUnavailableResponse(error);
   }
   if (!submission) {
-    return NextResponse.json({ error: "Không tìm thấy mã này 🥺" }, { status: 404 });
+    return shopAdminJson({ error: "Không tìm thấy mã này 🥺" }, 404);
   }
-  return NextResponse.json({
+  return shopAdminJson({
     ma: submission.ma,
     caption_vi: submission.caption_vi,
     submission,

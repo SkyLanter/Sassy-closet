@@ -9,6 +9,7 @@
   3. Add `INTAKE_DATASET_SYNC_WEBHOOK_URL` and `INTAKE_DATASET_SYNC_WEBHOOK_KEY` (Production + Preview as needed). Header the app sends: `Authorization: Bearer <key>`.
   4. **Redeploy intake only.** Do not touch sell-test (`sassy-closet-shop`).
   5. Smoke: one Món mới Lưu + one Sửa theo mã Lưu → routine run history shows create + update. Poll backup stays ON if a webhook is missed.
+- Auto-list read (draft until Boss deploys it): logged-out browsers stay 401 on the mã list. The machine sends `Authorization: Bearer <INTAKE_PIPELINE_SECRET>` on GET only. Set that name on the **intake** Vercel project (Production, and Preview if needed), redeploy intake only, and export the same name on the auto-list machine. Do not reuse the shop-admin password or the session secret. `run.sh` is local — add `-H "Authorization: Bearer ${INTAKE_PIPELINE_SECRET}"` to its intake curl. Full checklist: `docs/INTAKE_PIPELINE.md`.
 - Tìm mã: code box (sheet with staged + on-hand) **and** existing photo / color detect. Both stay. Card thumbs: ≤3 in one row; tap opens lightbox.
 - Missing on-hand = **Staged only — not on Square On_Hand yet**. Never invent qty / $ / storage.
 - Incomplete Taobao mãs stay off the sell catalog: S14, A24, A25, S15, A26, K02, K03, K04, K05, V04, K06, V05, S16, S17, S18, S19, A27, A28, A29, H02, G01. Dataset and admin only (`data/held.json`).

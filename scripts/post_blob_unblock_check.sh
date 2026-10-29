@@ -15,7 +15,8 @@ down() { grep -q '"storeUnavailable":true' "$TMP/body"; }
 
 c=$(get "$INTAKE/"); { [ "$c" = 200 ] && ! grep -q "kho đang không đọc được" "$TMP/body"; } && res ok "intake home 200, real FX" || res no "intake home" "http $c or default-FX fallback shown"
 c=$(get "$INTAKE/api/fx"); { [ "$c" = 200 ] && grep -q usd_cny "$TMP/body" && ! down; } && res ok "intake /api/fx 200 (store readable)" || res no "intake /api/fx" "http $c"
-# Cost-bearing reads are admin-only (piece 240/240b): logged out they must be 401.
+# Cost-bearing reads stay 401 with no cookie and no Authorization header.
+# Do not send INTAKE_PIPELINE_SECRET here. That bearer is the auto-list machine, not the public.
 for path in /api/submissions /api/submissions/S06 /api/ma/S06 /api/export; do
   c=$(get "$INTAKE$path")
   { [ "$c" = 401 ] && ! grep -q 'cost_' "$TMP/body"; } && res ok "intake $path locked (401 without login)" || res no "intake $path locked" "http $c - costs may be public, tell Boss"

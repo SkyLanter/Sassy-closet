@@ -20,6 +20,8 @@ SHOP="${SHOP_BASE:-https://sassy-closet-shop.vercel.app}"
 T="${CHECK_TIMEOUT:-20}"
 HELD="${HELD_MAS:-K03 K04 K05 V04 Q02 G01 H02 A27 S16}"
 case "$(echo "${SHOP_ADMIN_401_EMPTY:-}" | tr -d ' ' | tr A-Z a-z)" in 1|true|yes) MODE=empty ;; *) MODE=json ;; esac
+# Logged-out probe only. Do not send Authorization or INTAKE_PIPELINE_SECRET.
+# A 200 here means the public gate is open. The machine bearer is a different check.
 GATED="/api/export /api/submissions /api/submissions/S06 /api/ma/S06"
 LEAK_RE='cost_cny|cost_usd|costCny|costUsd|source_link|sourceLink|taobao'
 
