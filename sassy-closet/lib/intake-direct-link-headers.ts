@@ -15,9 +15,13 @@ export const INTAKE_LISTING_ROBOTS = {
 } as const;
 
 export const INTAKE_DIRECT_LINK_SOURCES = [
+  "/admin",
+  "/admin/:path*",
   "/api/submissions",
   "/api/submissions/:path*",
   "/api/export",
   "/api/export/:path*",
   "/api/ma/:path*",
+  "/api/shop-catalog",
+  "/api/shop-catalog/:path*",
 ] as const;

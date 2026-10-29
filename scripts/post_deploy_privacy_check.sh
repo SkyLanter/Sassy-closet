@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Read-only check after intake data links are open without a session.
-# GET /api/submissions, /api/export, and /api/ma/S06 must be 200 with no cookie
-# and X-Robots-Tag: noindex, nofollow, nosnippet. GET /api/submissions/S06 may be 200 or 404.
+# GET /api/submissions, /api/export, /api/ma/S06, and /admin/shop must be 200
+# with no cookie and X-Robots-Tag: noindex, nofollow, nosnippet.
+# GET /api/submissions/S06 may be 200 or 404.
 # POST/PATCH are open by link. This script does not send them (a probe would save a mã).
 # Never prints response bodies (so cost values never reach logs).
 #
@@ -16,7 +17,7 @@ INTAKE="${INTAKE_BASE:-https://sassy-closet.vercel.app}"
 SHOP="${SHOP_BASE:-https://sassy-closet-shop.vercel.app}"
 T="${CHECK_TIMEOUT:-20}"
 HELD="${HELD_MAS:-K03 K04 K05 V04 Q02 G01 H02 A27 S16}"
-OPEN="/api/export /api/submissions /api/ma/S06"
+OPEN="/api/export /api/submissions /api/ma/S06 /admin/shop"
 
 if [ "$DRY" = 1 ]; then
   echo "DRY RUN (no network). intake=$INTAKE shop=$SHOP"

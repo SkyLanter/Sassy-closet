@@ -146,8 +146,8 @@ test("session helper still signs a cookie; the login route does not require it",
   const open = await POST(
     new Request("http://127.0.0.1/api/shop-catalog/login", {
       method: "POST",
-      headers: { "content-type": "application/json", "x-forwarded-for": "203.0.113.10" },
-      body: JSON.stringify({ password: "nope" }),
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({}),
     }),
   );
   assert.equal(open.status, 200);
@@ -170,8 +170,8 @@ test("login rate helper still counts failures; the login route stays open", asyn
   const open = await POST(
     new Request("http://127.0.0.1/api/shop-catalog/login", {
       method: "POST",
-      headers: { "content-type": "application/json", "x-forwarded-for": "203.0.113.13" },
-      body: JSON.stringify({ password: PASSWORD }),
+      headers: { "content-type": "application/json" },
+      body: "{}",
     }),
   );
   assert.equal(open.status, 200);
@@ -191,13 +191,9 @@ test("middleware leaves shop tools and catalog open without a session", async ()
   const exportApi = await middleware(new NextRequest("http://127.0.0.1/api/export"));
   assert.equal(exportApi.status, 200);
   assert.equal(shopAdminGate("/api/export", false), "public");
+  assert.equal(shopAdminGate("/admin/shop", false), "public");
+  assert.equal(shopAdminGate("/api/shop-catalog", false), "public");
   assert.equal(shopAdminGate("/", false), "public");
-  const signed = await middleware(
-    new NextRequest("http://127.0.0.1/admin/shop", {
-      headers: { cookie: `${ADMIN_SESSION_COOKIE}=${token}` },
-    }),
-  );
-  assert.equal(signed.status, 200);
 });
 
 test("catalog save edits an existing mã, writes its USD, and revalidates with the secret", async () => {

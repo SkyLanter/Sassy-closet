@@ -79,14 +79,12 @@ export function ShopCatalogDesk({ initial }: { initial: ShopCatalogList }) {
       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#a85d74]">Intake · Shop tools</p>
       <div className="mt-1 flex items-start justify-between gap-3">
         <h1 className="text-[21px] font-semibold text-[#3c2a2e]">Shop catalog</h1>
-        <form action="/api/shop-catalog/logout" method="post">
-          <button
-            type="submit"
-            className="inline-flex min-h-11 items-center rounded-full px-3 text-sm font-semibold text-[#5c3d48] ring-1 ring-[#eadfdc]"
-          >
-            Sign out
-          </button>
-        </form>
+        <a
+          className="inline-flex min-h-11 items-center rounded-full px-3 text-sm font-semibold text-[#5c3d48] ring-1 ring-[#eadfdc]"
+          href="/"
+        >
+          Intake
+        </a>
       </div>
       <p className="mt-2 text-[13.5px] leading-relaxed text-[#7d5360]">
         Edits the sell catalog in Blob <span className="font-semibold">sassy-closet-shop/catalog.v1.json</span>, then

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { INTAKE_LISTING_ROBOTS } from "@/lib/intake-direct-link-headers";
 
 export const dynamic = "force-dynamic";
 

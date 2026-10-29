@@ -12,7 +12,7 @@ function readTrimmed(name: typeof ADMIN_PASSWORD | typeof ADMIN_SESSION_SECRET):
   return process.env[name]?.trim() ?? "";
 }
 
-/** Both must be non-empty. Missing either locks shop tools. There is no default password. */
+/** Both must be non-empty for the unused session helper. Intake does not ask for a password. */
 export function adminAuthConfigured(): boolean {
   return readTrimmed(ADMIN_PASSWORD).length > 0 && readTrimmed(ADMIN_SESSION_SECRET).length > 0;
 }

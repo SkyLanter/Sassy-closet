@@ -6,18 +6,22 @@ import { INTAKE_DIRECT_LINK_HEADERS, INTAKE_DIRECT_LINK_SOURCES, INTAKE_LISTING_
 
 const ROBOTS = "noindex, nofollow, nosnippet";
 
-test("direct-link header config covers submissions, export, and ma only", async () => {
+test("direct-link header config covers intake data and shop tools", async () => {
   assert.equal(INTAKE_DIRECT_LINK_HEADERS["X-Robots-Tag"], ROBOTS);
   assert.equal(INTAKE_LISTING_ROBOTS.index, false);
   assert.equal(INTAKE_LISTING_ROBOTS.follow, false);
   assert.equal(INTAKE_LISTING_ROBOTS.nosnippet, true);
   assert.match(INTAKE_DIRECT_LINK_HEADERS["Cache-Control"] ?? "", /no-store/);
   assert.deepEqual(INTAKE_DIRECT_LINK_SOURCES, [
+    "/admin",
+    "/admin/:path*",
     "/api/submissions",
     "/api/submissions/:path*",
     "/api/export",
     "/api/export/:path*",
     "/api/ma/:path*",
+    "/api/shop-catalog",
+    "/api/shop-catalog/:path*",
   ]);
   const config = (await import("../next.config")).default;
   assert.equal(typeof config.headers, "function");
@@ -30,7 +34,9 @@ test("direct-link header config covers submissions, export, and ma only", async 
     const robots = rule.headers.find((header) => header.key === "X-Robots-Tag");
     assert.equal(robots?.value, ROBOTS);
   }
-  assert.equal(rules.some((rule) => rule.source === "/" || rule.source === "/admin"), false);
+  assert.equal(rules.some((rule) => rule.source === "/"), false);
+  assert.equal(rules.some((rule) => rule.source === "/admin"), true);
+  assert.equal(rules.some((rule) => rule.source === "/api/shop-catalog"), true);
 });
 
 test("direct-link routes are not added to a sitemap or the home nav", () => {

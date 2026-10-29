@@ -24,8 +24,6 @@ Local only: if the shop token is unset and `VERCEL` is not `1`, `SHOP_CATALOG_FI
 
 Intake project **sassy-closet** (https://sassy-closet.vercel.app):
 
-- `ADMIN_PASSWORD`
-- `ADMIN_SESSION_SECRET`
 - `SHOP_BLOB_READ_WRITE_TOKEN` (value is the shop Blob store’s `BLOB_READ_WRITE_TOKEN`; do not reuse the intake store token)
 - `SHOP_REVALIDATE_SECRET`
 - `SHOP_REVALIDATE_URL` (`https://sassycloset.vercel.app/api/admin/revalidate` or `https://sassy-closet-shop.vercel.app/api/admin/revalidate` — same deployment)
