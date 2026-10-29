@@ -8,10 +8,7 @@ export function isShopCatalogApi(pathname: string): boolean {
   return pathname === "/api/shop-catalog" || pathname.startsWith("/api/shop-catalog/");
 }
 
-/**
- * Intake rows, CSV, and mã cards. Open by direct link (no session).
- * Shop catalog stays on the admin session.
- */
+/** Intake rows, CSV, mã cards, and shop tools. Open by direct link. No session. */
 export function isDirectLinkIntakeApi(pathname: string): boolean {
   return (
     pathname === "/api/submissions" ||
@@ -38,26 +35,12 @@ export function isShopAdminLogoutApi(pathname: string): boolean {
 export type ShopAdminGateDecision = "public" | "allow" | "deny";
 
 /**
- * `public` — intake pages, and direct-link intake data (/api/submissions, /api/export, /api/ma).
- * `allow` — login, logout, or a shop-tools route with a valid session.
- * `deny` — shop tools without a session.
+ * Every intake path is public. There is no admin session and no login redirect.
+ * `hasSession` is ignored so a cookie cannot change the decision.
  */
-export function shopAdminGate(pathname: string, hasSession: boolean): ShopAdminGateDecision {
-  if (isDirectLinkIntakeApi(pathname)) {
-    return "public";
-  }
-  const page = isShopAdminPage(pathname);
-  const api = isShopCatalogApi(pathname);
-  if (!page && !api) {
-    return "public";
-  }
-  if (isShopAdminLoginPath(pathname) || isShopAdminLoginApi(pathname) || isShopAdminLogoutApi(pathname)) {
-    return "allow";
-  }
-  if (hasSession) {
-    return "allow";
-  }
-  return "deny";
+export function shopAdminGate(pathname: string, _hasSession: boolean): ShopAdminGateDecision {
+  void pathname;
+  return "public";
 }
 
 /** Only same-origin shop-tools paths. Anything else becomes the desk. */

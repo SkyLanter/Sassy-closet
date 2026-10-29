@@ -11,12 +11,12 @@ function clear(response: NextResponse): NextResponse {
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  url.pathname = "/admin/shop/login";
+  url.pathname = "/admin/shop";
   url.search = "";
   url.hash = "";
   const response = NextResponse.redirect(url, 303);
   response.headers.set("Cache-Control", SHOP_ADMIN_NO_STORE["Cache-Control"]);
-  response.headers.set("X-Robots-Tag", "noindex, nofollow");
+  response.headers.set("X-Robots-Tag", SHOP_ADMIN_NO_STORE["X-Robots-Tag"]);
   return clear(response);
 }
 

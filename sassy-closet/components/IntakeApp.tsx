@@ -34,8 +34,7 @@ type PhotoDraft = {
 };
 
 const LISTING_REFRESH_AFTER_SAVE_MS = 1500;
-const INTAKE_LOGIN_VI =
-  "Cần đăng nhập để xem mã đã lưu (có giá vốn) — vào /admin/shop/login rồi quay lại nha.";
+const INTAKE_LOGIN_VI = "Kho mã đang không đọc được — báo Mini Boss nha.";
 
 export function IntakeApp({
   initialFxRate,

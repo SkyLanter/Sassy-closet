@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { requestHasAdminSession } from "@/lib/admin-auth";
 import { INTAKE_DIRECT_LINK_HEADERS } from "@/lib/intake-direct-link-headers";
 
 export const SHOP_ADMIN_NO_STORE = INTAKE_DIRECT_LINK_HEADERS;
@@ -12,10 +11,8 @@ export function shopAdminJson(body: unknown, status = 200, extra?: Record<string
 }
 
 /**
- * 401 body mode for gated shop/intake routes.
- * Default "json" keeps `{ ok:false, error:"Unauthorized." }` (matches middleware).
- * Set env SHOP_ADMIN_401_EMPTY=1 (Boss choice) for a truly empty 401 body.
- * Only the response body changes; who is authorized never changes.
+ * Kept so older callers compile. Intake no longer returns 401 for a missing session.
+ * SHOP_ADMIN_401_EMPTY only describes the unused helper body.
  */
 export type ShopAdmin401Mode = "json" | "empty";
 
@@ -31,12 +28,10 @@ export function shopAdminUnauthorized(mode: ShopAdmin401Mode = shopAdmin401Mode(
   return shopAdminJson({ ok: false, error: "Unauthorized." }, 401);
 }
 
+/** Direct link. A missing cookie is not a denial. */
 export async function requireShopAdmin(
-  request: Request,
-  opts?: { mode?: ShopAdmin401Mode },
+  _request: Request,
+  _opts?: { mode?: ShopAdmin401Mode },
 ): Promise<NextResponse | null> {
-  if (await requestHasAdminSession(request)) {
-    return null;
-  }
-  return shopAdminUnauthorized(opts?.mode);
+  return null;
 }

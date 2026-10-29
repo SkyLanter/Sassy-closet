@@ -21,7 +21,8 @@ test("gate leaves /api/export public and still locks shop catalog", () => {
   assert.equal(shopAdminGate("/api/ma/S06", false), "public");
   assert.equal(shopAdminGate("/admin", false), "public");
   assert.equal(shopAdminGate("/", false), "public");
-  assert.equal(shopAdminGate("/api/shop-catalog", false), "deny");
+  assert.equal(shopAdminGate("/api/shop-catalog", false), "public");
+  assert.equal(shopAdminGate("/admin/shop", false), "public");
 });
 
 test("/api/export: 200 CSV without a session, noindex, forged cookie still 200", async () => {

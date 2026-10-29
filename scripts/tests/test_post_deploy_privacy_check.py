@@ -5,7 +5,6 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parents[1] / "post_deploy_privacy_check.sh"
-J401 = '{"ok":false,"error":"Unauthorized."}'
 HELD = ("K03", "Q02")
 SENTINEL = "SENTINEL-VALUE-777"  # must never be echoed by the script
 
@@ -44,10 +43,8 @@ def _serve(routes, seen):
 ROBOTS = {"X-Robots-Tag": "noindex, nofollow, nosnippet"}
 
 
-def _healthy(write_body=J401):
-    r = {p: (200, '{"ok":true}', ROBOTS) for p in ("/api/export", "/api/submissions", "/api/submissions/S06", "/api/ma/S06")}
-    r[("POST", "/api/submissions")] = (401, write_body)
-    r[("PATCH", "/api/submissions/ZZ99")] = (401, write_body)
+def _healthy():
+    r = {p: (200, '{"ok":true}', ROBOTS) for p in ("/api/export", "/api/submissions", "/api/submissions/S06", "/api/ma/S06", "/admin/shop")}
     r["/api/health"] = (200, '{"reading":"blob","blob":{"readable":true}}')
     r["/m/S06"] = (200, "<p>$25</p>")
     return r
@@ -73,16 +70,11 @@ def test_healthy_json_passes_without_write_probes():
     assert all(m == "GET" for m, _ in seen)
 
 
-def test_empty_401_mode():
-    assert _run(_healthy(""), WRITE_PROBES="1", SHOP_ADMIN_401_EMPTY="1")[0].returncode == 0
-    p, _ = _run(_healthy(J401), WRITE_PROBES="1", SHOP_ADMIN_401_EMPTY="1")
-    assert p.returncode == 1 and "body not empty shape" in p.stdout
-
-
-def test_write_probes_run_when_gate_live():
+def test_script_never_posts():
     p, seen = _run(_healthy(), WRITE_PROBES="1")
     assert p.returncode == 0, p.stdout
-    assert ("POST", "/api/submissions") in seen and ("PATCH", "/api/submissions/ZZ99") in seen
+    assert all(m == "GET" for m, _ in seen)
+    assert any(path == "/admin/shop" for _, path in seen)
 
 
 def test_missing_noindex_fails_never_echoes_values_and_blocks_writes():

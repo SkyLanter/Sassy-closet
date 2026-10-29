@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { requireShopAdmin } from "@/lib/shop-admin-http";
 import { saveFromForm } from "@/lib/form-save";
 import { intakeDirectJson, withIntakeDirectLinkHeaders } from "@/lib/intake-direct-link";
 import { normalizeMa } from "@/lib/mint";
@@ -32,8 +31,6 @@ export async function PATCH(
   request: Request,
   context: { params: Promise<{ ma: string }> },
 ) {
-  const denied = await requireShopAdmin(request);
-  if (denied) return denied;
   const { ma } = await context.params;
   try {
     const form = await request.formData();

@@ -2,13 +2,11 @@
 
 The customer shop (`sassy-closet-shop`, https://sassycloset.vercel.app and https://sassy-closet-shop.vercel.app) has no `/admin` page and no Shop tools button. Catalog edits live here, on the intake app, at `/admin/shop`.
 
-Nhung’s intake tabs stay **Món mới**, **Sửa theo mã**, **Tìm mã**, **Hỏi Mini Boss**. Shop tools is a separate password page linked from the intake footer and from the CSV export page. `/admin` CSV export stays open.
+Nhung’s intake tabs stay **Món mới**, **Sửa theo mã**, **Tìm mã**, **Hỏi Mini Boss**. Shop tools is a direct link at `/admin/shop`. There is no password and no session. `/admin` CSV export stays open. Those pages and the intake data APIs send `X-Robots-Tag: noindex, nofollow, nosnippet`.
 
 ## Password
 
-Sign-in checks `ADMIN_PASSWORD` on the server. A matching password sets cookie `sc_admin`: HttpOnly, Secure, SameSite=Lax, path `/`, 30 days, no Domain. The cookie value is a MAC, not the password. The MAC key is `HMAC-SHA256(ADMIN_SESSION_SECRET, ADMIN_PASSWORD)`. If either variable is missing, shop tools stay locked. There is no default password.
-
-Five failures from the same IP in 10 minutes return 429. A wrong password waits briefly.
+Intake does not ask for a password. `/admin/shop/login` redirects to the desk.
 
 ## Catalog
 
@@ -26,8 +24,6 @@ Local only: if the shop token is unset and `VERCEL` is not `1`, `SHOP_CATALOG_FI
 
 Intake project **sassy-closet** (https://sassy-closet.vercel.app):
 
-- `ADMIN_PASSWORD`
-- `ADMIN_SESSION_SECRET`
 - `SHOP_BLOB_READ_WRITE_TOKEN` (value is the shop Blob store’s `BLOB_READ_WRITE_TOKEN`; do not reuse the intake store token)
 - `SHOP_REVALIDATE_SECRET`
 - `SHOP_REVALIDATE_URL` (`https://sassycloset.vercel.app/api/admin/revalidate` or `https://sassy-closet-shop.vercel.app/api/admin/revalidate` — same deployment)

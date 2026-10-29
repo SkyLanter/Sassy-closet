@@ -146,7 +146,7 @@ Customer tiles show **name, price, description, color, photos** and **Message**.
 
 On this shop: `GET /admin` is 404, the home HTML has no Shop tools button, admin APIs other than revalidate are 404, and `POST /api/admin/revalidate` is 401 until `x-shop-revalidate-secret` matches `SHOP_REVALIDATE_SECRET`.
 
-Catalog edits are on the intake app at `/admin/shop` after the password cookie. See `sassy-closet/docs/SHOP_ADMIN.md`.
+Catalog edits are on the intake app at `/admin/shop` with no password. See `sassy-closet/docs/SHOP_ADMIN.md`.
 
 `npm run smoke:admin` checks Add A03 / Hold pairing / leftover Remove / missing-hub import / Official `AO001` refuse without the browser.
 
