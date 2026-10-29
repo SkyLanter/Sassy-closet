@@ -1,0 +1,4 @@
+{
+  "note": "Boss 2026-10-12: Q02 is allowed to list. PR #108 removed Q02 from data/held.json neverList. This auto-list config must not put Q02 back on a never-list. Confirm with Boss before adding any mã here. Held incomplete mãs stay in data/held.json. S06 stays $25.",
+  "neverList": []
+}

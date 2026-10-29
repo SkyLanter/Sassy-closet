@@ -8,18 +8,24 @@ When that ceil is under $10, add $2.
 The margin uses the resulting sell. The quote is the smallest whole dollar
 that does not undercut that sell: sell >= quote_from_sell(landed, sell).
 
-This module reads data/held.json and does not write intake, Blob, the hub,
-Square, or Meta. It does not change a stored ¥.
+This module reads data/held.json and auto-list/config.json. It does not write
+intake, Blob, the hub, Square, or Meta. It does not change a stored ¥.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import re
 from dataclasses import dataclass
 from decimal import Decimal, ROUND_CEILING
+from pathlib import Path
 
 from held_policy import HeldPolicy, load_held_policy
+
+# Boss 2026-10-12: the queen mã released in PR #108 stays off this config's
+# neverList. See auto-list/config.json. Confirm with Boss before adding a mã
+# there. Held mãs still come only from data/held.json. S06 stays $25.
 
 LOW_SELL = 25
 HIGH_SELL = 45
@@ -74,6 +80,45 @@ def price(landed: Decimal | int | str | float) -> int:
 
 
 @dataclass(frozen=True)
+class AutolistConfig:
+    never_list: tuple[str, ...]
+    note: str
+
+
+def default_autolist_config_path() -> Path:
+    return Path(__file__).resolve().parents[1] / "auto-list" / "config.json"
+
+
+def load_autolist_config(path: Path | None = None) -> AutolistConfig:
+    """Read auto-list/config.json. This does not write intake, Blob, or a price."""
+    file = path or default_autolist_config_path()
+    payload = json.loads(file.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError(f"{file} must be a JSON object")
+    note = payload.get("note")
+    if not isinstance(note, str) or not note.strip():
+        raise ValueError(f"{file} note must explain the never-list")
+    never = payload.get("neverList")
+    if not isinstance(never, list):
+        raise ValueError(f"{file} neverList must be a list of mãs")
+    codes: list[str] = []
+    seen: set[str] = set()
+    for item in never:
+        if not isinstance(item, str):
+            raise ValueError(f"{file} neverList contains a non-string mã")
+        code = item.strip().upper()
+        if not re.fullmatch(r"[A-Z][0-9]{2}", code):
+            raise ValueError(f"{file} neverList has an invalid mã {item!r}")
+        if code in seen:
+            raise ValueError(f"{file} neverList repeats {code}")
+        seen.add(code)
+        codes.append(code)
+    if "S06" in seen:
+        raise ValueError(f"{file} cannot never-list S06; S06 stays $25")
+    return AutolistConfig(never_list=tuple(codes), note=note)
+
+
+@dataclass(frozen=True)
 class ListingQuote:
     ma: str
     action: str
@@ -85,14 +130,16 @@ def listing_quote(
     ma: str,
     landed: Decimal | int | str | float | None,
     policy: HeldPolicy | None = None,
+    config: AutolistConfig | None = None,
 ) -> ListingQuote:
     """Decide whether a mã can be quoted. Never writes the stored intake row."""
     rules = policy or load_held_policy()
+    settings = config if config is not None else load_autolist_config()
     code = ma.strip().upper()
     reason = rules.skip_reason(code)
     if reason == "held":
         return ListingQuote(code, "skip", None, "held incomplete; not listed")
-    if reason == "never-list":
+    if reason == "never-list" or code in settings.never_list:
         return ListingQuote(code, "skip", None, "never listed")
     if code == "S06":
         return ListingQuote(code, "locked", S06_LOCK_USD, "S06 stays $25")
