@@ -38,6 +38,7 @@ def _healthy(body=J401):
     r = {p: (401, body) for p in ("/api/export", "/api/submissions", "/api/submissions/S06", "/api/ma/S06")}
     r[("POST", "/api/submissions")] = (401, body)
     r[("PATCH", "/api/submissions/ZZ99")] = (401, body)
+    r["/api/ma-index"] = (200, '{"items":[{"ma":"A01","kind":"A","size":"M","color":"Kem"}]}')
     r["/api/health"] = (200, '{"reading":"blob","blob":{"readable":true}}')
     r["/m/S06"] = (200, "<p>$25</p>")
     return r
@@ -95,6 +96,15 @@ def test_shop_regressions_fail():
     assert p.returncode == 1
     for frag in ("FAIL  shop health", "FAIL  shop /m/S06", "HELD MÃ VISIBLE"):
         assert frag in p.stdout
+
+
+def test_ma_index_leak_fails():
+    r = _healthy()
+    r["/api/ma-index"] = (200, '{"items":[{"ma":"A01","cost_usd":"x"}]}')
+    p, _ = _run(r)
+    assert p.returncode == 1
+    assert "ma-index" in p.stdout and "LEAK fields" in p.stdout
+    assert SENTINEL not in p.stdout + p.stderr
 
 
 def test_dry_run_no_network():

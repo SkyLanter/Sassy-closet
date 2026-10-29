@@ -68,9 +68,7 @@ Both required or the helper no-ops (save still succeeds). Header: `Authorization
 - `INTAKE_DATASET_SYNC_WEBHOOK_URL`
 - `INTAKE_DATASET_SYNC_WEBHOOK_KEY`
 
-Auto-list machine read of the mã list. Logged-out browsers stay **401**. The pipeline sends `Authorization: Bearer <INTAKE_PIPELINE_SECRET>` on GET `/api/submissions` (also one mã, `/api/ma/<mã>`, and `/api/export`). Boss sets that name on the intake Vercel project before deploy, and the same name on the auto-list machine. Writes ignore the bearer. Details: [docs/INTAKE_PIPELINE.md](docs/INTAKE_PIPELINE.md).
-
-- `INTAKE_PIPELINE_SECRET`
+Auto-list reads `GET /api/ma-index`. That JSON is mã, kind, size, color, status, photo count, and timestamps. Logged-out browsers stay **401** on `/api/submissions`, `/api/export`, and `/api/ma/<mã>`. No new secret. Details: [docs/MA_INDEX.md](docs/MA_INDEX.md).
 
 Local only:
 

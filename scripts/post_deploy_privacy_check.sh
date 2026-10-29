@@ -20,14 +20,15 @@ SHOP="${SHOP_BASE:-https://sassy-closet-shop.vercel.app}"
 T="${CHECK_TIMEOUT:-20}"
 HELD="${HELD_MAS:-K03 K04 K05 V04 Q02 G01 H02 A27 S16}"
 case "$(echo "${SHOP_ADMIN_401_EMPTY:-}" | tr -d ' ' | tr A-Z a-z)" in 1|true|yes) MODE=empty ;; *) MODE=json ;; esac
-# Logged-out probe only. Do not send Authorization or INTAKE_PIPELINE_SECRET.
-# A 200 here means the public gate is open. The machine bearer is a different check.
 GATED="/api/export /api/submissions /api/submissions/S06 /api/ma/S06"
+# Public mã list. 200 is expected. Cost and supplier field names are still a leak.
+INDEX="/api/ma-index"
 LEAK_RE='cost_cny|cost_usd|costCny|costUsd|source_link|sourceLink|taobao'
 
 if [ "$DRY" = 1 ]; then
   echo "DRY RUN (no network). intake=$INTAKE shop=$SHOP 401-body=$MODE"
   for p in $GATED; do echo "CHECK GET  $INTAKE$p -> 401, body $MODE, no cost/source fields"; done
+  echo "CHECK GET  $INTAKE$INDEX -> 200, no cost/source fields"
   if [ "${WRITE_PROBES:-0}" = 1 ]; then
     echo "CHECK POST  $INTAKE/api/submissions (empty JSON) -> 401  [only if all GET gates PASS]"
     echo "CHECK PATCH $INTAKE/api/submissions/ZZ99 (empty JSON) -> 401  [only if all GET gates PASS]"
@@ -60,6 +61,11 @@ for p in $GATED; do
   before=$FAILS; c=$(req GET "$INTAKE$p"); check401 "intake GET $p locked" "$c"
   [ "$FAILS" != "$before" ] && GETFAIL=1
 done
+
+c=$(req GET "$INTAKE$INDEX"); f="$(leaked)"
+if [ -n "$f" ]; then LEAKS=$((LEAKS+1)); res no "intake GET $INDEX public list" "http $c LEAK fields: ${f}- costs/sources public, tell Boss"
+elif [ "$c" != 200 ]; then res no "intake GET $INDEX public list" "http $c, expected 200"
+else res ok "intake GET $INDEX public list (200, no cost/source fields)"; fi
 
 if [ "${WRITE_PROBES:-0}" = 1 ]; then
   if [ "$GETFAIL" = 0 ]; then

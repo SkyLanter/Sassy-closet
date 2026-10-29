@@ -1,14 +1,13 @@
-import { requireIntakeRead, shopAdminJson } from "@/lib/shop-admin-http";
+import { NextResponse } from "next/server";
+import { requireShopAdmin } from "@/lib/shop-admin-http";
 import { lookupMaCard } from "@/lib/ma-card";
 import { storeUnavailableResponse } from "@/lib/store-unavailable";
-
-export const dynamic = "force-dynamic";
 
 export async function GET(
   request: Request,
   context: { params: Promise<{ code: string }> },
 ) {
-  const denied = await requireIntakeRead(request);
+  const denied = await requireShopAdmin(request);
   if (denied) return denied;
   const { code } = await context.params;
   let decoded = code ?? "";
@@ -24,9 +23,9 @@ export async function GET(
     return storeUnavailableResponse(error);
   }
   if (!card) {
-    return shopAdminJson({ error: "Không tìm thấy mã" }, 404);
+    return NextResponse.json({ error: "Không tìm thấy mã" }, { status: 404 });
   }
-  return shopAdminJson({
+  return NextResponse.json({
     code: card.code,
     staged: card.staged,
     on_hand: card.on_hand,

@@ -28,7 +28,6 @@ Intake project **sassy-closet** (https://sassy-closet.vercel.app):
 
 - `ADMIN_PASSWORD`
 - `ADMIN_SESSION_SECRET`
-- `INTAKE_PIPELINE_SECRET` (machine GET of the mã list only — not a second shop-admin password; see [INTAKE_PIPELINE.md](./INTAKE_PIPELINE.md))
 - `SHOP_BLOB_READ_WRITE_TOKEN` (value is the shop Blob store’s `BLOB_READ_WRITE_TOKEN`; do not reuse the intake store token)
 - `SHOP_REVALIDATE_SECRET`
 - `SHOP_REVALIDATE_URL` (`https://sassycloset.vercel.app/api/admin/revalidate` or `https://sassy-closet-shop.vercel.app/api/admin/revalidate` — same deployment)
@@ -38,3 +37,7 @@ Shop project **sassy-closet-shop**:
 - `SHOP_REVALIDATE_SECRET` (same value as on intake)
 
 Do not put the values in git. Redeploy each project after saving the variables. This repo does not change Vercel env or production Blob.
+
+## Public mã index
+
+`GET /api/ma-index` needs no session. The JSON is mã, kind, size, color, status, photo count, and timestamps. Costs and supplier links are not in it. Auto-list uses that URL. `/api/submissions`, `/api/export`, and `/api/ma/<mã>` stay on the shop-admin cookie. No new env name. See [MA_INDEX.md](./MA_INDEX.md).

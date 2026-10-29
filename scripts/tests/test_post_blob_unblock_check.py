@@ -36,6 +36,7 @@ def _healthy():
         "/api/submissions/S06": (401, "{}"),
         "/api/ma/S06": (401, "{}"),
         "/api/export": (401, "{}"),
+        "/api/ma-index": (200, '{"items":[{"ma":"A01","kind":"A","size":"M","color":"Kem"}]}'),
         "/api/health": (200, '{"reading":"blob","blob":{"readable":true}}'),
         "/m/S06": (200, "<p>$25</p>"),
     }

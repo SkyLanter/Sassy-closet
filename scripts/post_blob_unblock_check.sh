@@ -15,12 +15,13 @@ down() { grep -q '"storeUnavailable":true' "$TMP/body"; }
 
 c=$(get "$INTAKE/"); { [ "$c" = 200 ] && ! grep -q "kho đang không đọc được" "$TMP/body"; } && res ok "intake home 200, real FX" || res no "intake home" "http $c or default-FX fallback shown"
 c=$(get "$INTAKE/api/fx"); { [ "$c" = 200 ] && grep -q usd_cny "$TMP/body" && ! down; } && res ok "intake /api/fx 200 (store readable)" || res no "intake /api/fx" "http $c"
-# Cost-bearing reads stay 401 with no cookie and no Authorization header.
-# Do not send INTAKE_PIPELINE_SECRET here. That bearer is the auto-list machine, not the public.
+# Cost-bearing reads are admin-only (piece 240/240b): logged out they must be 401.
 for path in /api/submissions /api/submissions/S06 /api/ma/S06 /api/export; do
   c=$(get "$INTAKE$path")
   { [ "$c" = 401 ] && ! grep -q 'cost_' "$TMP/body"; } && res ok "intake $path locked (401 without login)" || res no "intake $path locked" "http $c - costs may be public, tell Boss"
 done
+c=$(get "$INTAKE/api/ma-index")
+{ [ "$c" = 200 ] && ! grep -qE 'cost_|source_link|taobao' "$TMP/body" && ! down; } && res ok "intake /api/ma-index 200, no costs" || res no "intake /api/ma-index" "http $c"
 
 c=$(get "$SHOP/api/health")
 r=$(python3 -c 'import json,sys;d=json.load(open(sys.argv[1]));print(d.get("reading"),(d.get("blob") or {}).get("readable"))' "$TMP/body" 2>/dev/null || echo "? ?")
