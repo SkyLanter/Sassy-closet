@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { adminRequest } from "./admin-request";
 
-// piece-253: optional empty-body 401; default stays JSON. Authorization unchanged.
+// piece-253: optional empty-body 401 on writes. Direct-link GETs are not part of this mode.
 const ctx = { params: Promise.resolve({ ma: "S06" }) };
 
 async function hit(empty: string | undefined) {
@@ -10,16 +10,10 @@ async function hit(empty: string | undefined) {
   else process.env.SHOP_ADMIN_401_EMPTY = empty;
   const list = await import("../app/api/submissions/route");
   const one = await import("../app/api/submissions/[ma]/route");
-  const exp = await import("../app/api/export/route");
-  const ma = await import("../app/api/ma/[code]/route");
-  const r = (m = "GET") => new Request("http://l/", { method: m, body: m === "GET" ? undefined : new FormData() });
+  const r = (m: string) => new Request("http://l/", { method: m, body: new FormData() });
   return [
-    await list.GET(r()),
     await list.POST(r("POST")),
-    await one.GET(r(), ctx),
     await one.PATCH(r("PATCH"), ctx),
-    await exp.GET(r()),
-    await ma.GET(r(), { params: Promise.resolve({ code: "S06" }) } as never),
   ];
 }
 

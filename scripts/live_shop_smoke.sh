@@ -5,8 +5,7 @@
 #
 # Usage: scripts/live_shop_smoke.sh [--dry-run] [--with-privacy]
 #   --dry-run       list every check; no network.
-#   --with-privacy  also run scripts/post_deploy_privacy_check.sh (GET-only by default;
-#                   expect FAIL until Boss deploys the intake login gate).
+#   --with-privacy  also run scripts/post_deploy_privacy_check.sh (GET-only by default).
 # Env: SHOP_HOSTS (space list, default both shop hosts), INTAKE_BASE,
 #      HELD_MAS (space list; default = data/held.json heldIncomplete + neverList + Q02),
 #      MIN_CATALOG (default 1), CHECK_TIMEOUT (default 20).
@@ -75,5 +74,5 @@ if [ "$PRIV" = 1 ]; then
 fi
 echo
 if [ "$FAILS" = 0 ]; then echo "LIVE SHOP SMOKE: PASS"; else echo "LIVE SHOP SMOKE: FAIL ($FAILS fails)"; fi
-[ "$PRIV" = 1 ] && { [ "$PF" = 0 ] && echo "PRIVACY CHECK: PASS" || echo "PRIVACY CHECK: FAIL (expected until Boss deploys gate)"; }
+[ "$PRIV" = 1 ] && { [ "$PF" = 0 ] && echo "PRIVACY CHECK: PASS" || echo "PRIVACY CHECK: FAIL"; }
 [ "$FAILS" = 0 ] && [ "$PF" = 0 ]

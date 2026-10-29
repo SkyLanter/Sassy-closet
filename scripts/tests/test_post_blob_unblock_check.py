@@ -10,8 +10,15 @@ SCRIPT = Path(__file__).resolve().parents[1] / "post_blob_unblock_check.sh"
 def _serve(routes):
     class H(BaseHTTPRequestHandler):
         def do_GET(self):
-            code, body = routes.get(self.path, (404, "nf"))
+            spec = routes.get(self.path, (404, "nf"))
+            headers = {}
+            if len(spec) == 3:
+                code, body, headers = spec
+            else:
+                code, body = spec
             self.send_response(code)
+            for key, value in headers.items():
+                self.send_header(key, value)
             self.end_headers()
             self.wfile.write(body.encode())
 
@@ -28,14 +35,17 @@ def _serve(routes):
     return srv
 
 
+ROBOTS = {"X-Robots-Tag": "noindex, nofollow"}
+
+
 def _healthy():
     r = {
         "/": (200, "<html>Tỷ giá: 1 USD</html>"),
-        "/api/submissions": (401, "{}"),
+        "/api/submissions": (200, '{"submissions":[]}', ROBOTS),
         "/api/fx": (200, '{"usd_cny":6.71}'),
-        "/api/submissions/S06": (401, "{}"),
-        "/api/ma/S06": (401, "{}"),
-        "/api/export": (401, "{}"),
+        "/api/submissions/S06": (200, "{}", ROBOTS),
+        "/api/ma/S06": (200, '{"code":"S06"}', ROBOTS),
+        "/api/export": (200, "ma\n", ROBOTS),
         "/api/health": (200, '{"reading":"blob","blob":{"readable":true}}'),
         "/m/S06": (200, "<p>$25</p>"),
     }
@@ -75,5 +85,5 @@ def test_store_down_and_seed_and_held_visible_fail():
     routes["/api/export"] = (200, "ma\nS06")
     p = _run(routes)
     assert p.returncode == 1
-    for frag in ("FAIL  intake /api/fx", "FAIL  intake /api/submissions locked", "FAIL  shop health", "FAIL  shop /m/S06", "HELD MÃ VISIBLE", "costs may be public"):
+    for frag in ("FAIL  intake /api/fx", "FAIL  intake /api/submissions", "FAIL  shop health", "FAIL  shop /m/S06", "HELD MÃ VISIBLE", "X-Robots-Tag"):
         assert frag in p.stdout, p.stdout

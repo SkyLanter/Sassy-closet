@@ -14,10 +14,17 @@ def _serve(routes, seen):
     class H(BaseHTTPRequestHandler):
         def _go(self):
             seen.append((self.command, self.path))
-            code, body = routes.get((self.command, self.path), routes.get(self.path, (404, "nf")))
+            spec = routes.get((self.command, self.path), routes.get(self.path, (404, "nf")))
+            headers = {}
+            if len(spec) == 3:
+                code, body, headers = spec
+            else:
+                code, body = spec
             data = body.encode()
             try:
                 self.send_response(code)
+                for key, value in headers.items():
+                    self.send_header(key, value)
                 self.send_header("Content-Length", str(len(data)))
                 self.end_headers()
                 self.wfile.write(data)
@@ -34,10 +41,13 @@ def _serve(routes, seen):
     return srv
 
 
-def _healthy(body=J401):
-    r = {p: (401, body) for p in ("/api/export", "/api/submissions", "/api/submissions/S06", "/api/ma/S06")}
-    r[("POST", "/api/submissions")] = (401, body)
-    r[("PATCH", "/api/submissions/ZZ99")] = (401, body)
+ROBOTS = {"X-Robots-Tag": "noindex, nofollow"}
+
+
+def _healthy(write_body=J401):
+    r = {p: (200, '{"ok":true}', ROBOTS) for p in ("/api/export", "/api/submissions", "/api/submissions/S06", "/api/ma/S06")}
+    r[("POST", "/api/submissions")] = (401, write_body)
+    r[("PATCH", "/api/submissions/ZZ99")] = (401, write_body)
     r["/api/health"] = (200, '{"reading":"blob","blob":{"readable":true}}')
     r["/m/S06"] = (200, "<p>$25</p>")
     return r
@@ -64,8 +74,8 @@ def test_healthy_json_passes_without_write_probes():
 
 
 def test_empty_401_mode():
-    assert _run(_healthy(""), SHOP_ADMIN_401_EMPTY="1")[0].returncode == 0
-    p, _ = _run(_healthy(J401), SHOP_ADMIN_401_EMPTY="1")
+    assert _run(_healthy(""), WRITE_PROBES="1", SHOP_ADMIN_401_EMPTY="1")[0].returncode == 0
+    p, _ = _run(_healthy(J401), WRITE_PROBES="1", SHOP_ADMIN_401_EMPTY="1")
     assert p.returncode == 1 and "body not empty shape" in p.stdout
 
 
@@ -75,15 +85,24 @@ def test_write_probes_run_when_gate_live():
     assert ("POST", "/api/submissions") in seen and ("PATCH", "/api/submissions/ZZ99") in seen
 
 
-def test_leak_fails_never_echoes_values_and_blocks_writes():
+def test_missing_noindex_fails_never_echoes_values_and_blocks_writes():
     r = _healthy()
     r["/api/export"] = (200, f"ma,cost_cny,source_link\nS06,{SENTINEL},x")
     r["/api/ma/S06"] = (200, f'{{"cost_usd":"{SENTINEL}"}}')
     p, seen = _run(r, WRITE_PROBES="1")
     assert p.returncode == 1
-    assert "LEAK fields" in p.stdout and "cost_cny" in p.stdout
+    assert "X-Robots-Tag" in p.stdout
     assert SENTINEL not in p.stdout + p.stderr
-    assert all(m == "GET" for m, _ in seen), "write probes must not run while gate is down"
+    assert all(m == "GET" for m, _ in seen), "write probes must not run while the direct link is down"
+
+
+def test_direct_link_body_passes_without_echoing_values():
+    r = _healthy()
+    r["/api/export"] = (200, f"ma,cost_cny,source_link\nS06,{SENTINEL},x", ROBOTS)
+    r["/api/ma/S06"] = (200, f'{{"cost_usd":"{SENTINEL}"}}', ROBOTS)
+    p, _ = _run(r)
+    assert p.returncode == 0, p.stdout
+    assert SENTINEL not in p.stdout + p.stderr
 
 
 def test_shop_regressions_fail():

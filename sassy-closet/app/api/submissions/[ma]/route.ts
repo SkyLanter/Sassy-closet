@@ -1,28 +1,27 @@
 import { NextResponse } from "next/server";
 import { requireShopAdmin } from "@/lib/shop-admin-http";
 import { saveFromForm } from "@/lib/form-save";
+import { intakeDirectJson, withIntakeDirectLinkHeaders } from "@/lib/intake-direct-link";
 import { normalizeMa } from "@/lib/mint";
 import { scheduleNewMaWebhookFromRow } from "@/lib/newMaWebhook";
 import { getSubmission } from "@/lib/store";
 import { storeUnavailableResponse } from "@/lib/store-unavailable";
 
 export async function GET(
-  request: Request,
+  _request: Request,
   context: { params: Promise<{ ma: string }> },
 ) {
-  const denied = await requireShopAdmin(request);
-  if (denied) return denied;
   const { ma } = await context.params;
   let submission;
   try {
     submission = await getSubmission(ma);
   } catch (error) {
-    return storeUnavailableResponse(error);
+    return withIntakeDirectLinkHeaders(storeUnavailableResponse(error));
   }
   if (!submission) {
-    return NextResponse.json({ error: "Không tìm thấy mã này 🥺" }, { status: 404 });
+    return intakeDirectJson({ error: "Không tìm thấy mã này 🥺" }, 404);
   }
-  return NextResponse.json({
+  return intakeDirectJson({
     ma: submission.ma,
     caption_vi: submission.caption_vi,
     submission,
@@ -46,12 +45,14 @@ export async function PATCH(
       submission,
       urlMa !== savedMa ? urlMa : undefined,
     );
-    return NextResponse.json({ submission });
+    return withIntakeDirectLinkHeaders(NextResponse.json({ submission }));
   } catch (error) {
     const status = (error as { status?: number }).status ?? 400;
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Chưa lưu được, thử lại nha." },
-      { status },
+    return withIntakeDirectLinkHeaders(
+      NextResponse.json(
+        { error: error instanceof Error ? error.message : "Chưa lưu được, thử lại nha." },
+        { status },
+      ),
     );
   }
 }

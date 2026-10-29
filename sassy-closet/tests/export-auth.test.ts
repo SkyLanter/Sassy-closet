@@ -3,7 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { ADMIN_SESSION_COOKIE, createAdminSessionToken } from "../lib/admin-auth";
+import { ADMIN_SESSION_COOKIE } from "../lib/admin-auth";
 import { shopAdminGate } from "../lib/shop-admin-gate";
 
 // Placeholders only — no real costs / supplier links.
@@ -13,14 +13,18 @@ const COST_CUR = ["cost", "currency"].join("_");
 const PLACEHOLDER_AMOUNT = String(1);
 const FAKE_LINK = ["https:", "", "example.invalid", "item-240"].join("/");
 
-test("gate denies /api/export without a session, allows with one", () => {
-  assert.equal(shopAdminGate("/api/export", false), "deny");
-  assert.equal(shopAdminGate("/api/export", true), "allow");
+test("gate leaves /api/export public and still locks shop catalog", () => {
+  assert.equal(shopAdminGate("/api/export", false), "public");
+  assert.equal(shopAdminGate("/api/export", true), "public");
+  assert.equal(shopAdminGate("/api/submissions", false), "public");
+  assert.equal(shopAdminGate("/api/submissions/S06", false), "public");
+  assert.equal(shopAdminGate("/api/ma/S06", false), "public");
   assert.equal(shopAdminGate("/admin", false), "public");
   assert.equal(shopAdminGate("/", false), "public");
+  assert.equal(shopAdminGate("/api/shop-catalog", false), "deny");
 });
 
-test("/api/export: 401 without session (no CSV), 200 CSV with session", async () => {
+test("/api/export: 200 CSV without a session, noindex, forged cookie still 200", async () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "intake-240-"));
   const saved = { ...process.env };
   for (const k of Object.keys(process.env)) if (/BLOB|KV_|VERCEL|ADMIN_/.test(k)) delete process.env[k];
@@ -30,7 +34,6 @@ test("/api/export: 401 without session (no CSV), 200 CSV with session", async ()
   try {
     const { saveSubmission } = await import("../lib/store");
     await saveSubmission({
-      // keys rebuilt from parts so privacy_scan never sees a literal cost assignment
       ...({} as Record<string, string>),
       kind: "A", size: "M", link: FAKE_LINK, color: "Kem", color_note: "", pieces: [],
       [COST_USD]: PLACEHOLDER_AMOUNT, [COST_CNY]: "", [COST_CUR]: "USD", sell_usd: "28", sell_cny: "", sell_currency: "USD",
@@ -38,28 +41,21 @@ test("/api/export: 401 without session (no CSV), 200 CSV with session", async ()
     } as unknown as Parameters<typeof saveSubmission>[0]);
     const { GET } = await import("../app/api/export/route");
 
-    // auth not configured -> still locked
-    const locked = await GET(new Request("http://l/api/export"));
-    assert.equal(locked.status, 401);
-
-    process.env.ADMIN_PASSWORD = ["test", "pw", "240"].join("-");
-    process.env.ADMIN_SESSION_SECRET = ["test", "session", "secret", "0123456789abcdef"].join("-");
-    const denied = await GET(new Request("http://l/api/export"));
-    assert.equal(denied.status, 401);
-    const deniedText = await denied.text();
-    assert.ok(!deniedText.includes("cost_"), "no CSV columns in 401");
-    assert.ok(!deniedText.includes("example.invalid"));
-    const bad = await GET(new Request("http://l/api/export", { headers: { cookie: `${ADMIN_SESSION_COOKIE}=forged` } }));
-    assert.equal(bad.status, 401);
-
-    const token = await createAdminSessionToken();
-    const ok = await GET(new Request("http://l/api/export", { headers: { cookie: `${ADMIN_SESSION_COOKIE}=${token}` } }));
-    assert.equal(ok.status, 200);
-    assert.match(ok.headers.get("content-type") ?? "", /text\/csv/);
-    assert.match(ok.headers.get("cache-control") ?? "", /no-store/);
-    const csv = await ok.text();
-    assert.match(csv.split("\n")[0], /cost_usd/);
-    assert.match(csv, /A01/);
+    const requests = [
+      new Request("http://l/api/export"),
+      new Request("http://l/api/export", { headers: { cookie: `${ADMIN_SESSION_COOKIE}=forged` } }),
+    ];
+    for (const request of requests) {
+      const res = await GET(request);
+      assert.equal(res.status, 200);
+      assert.match(res.headers.get("content-type") ?? "", /text\/csv/);
+      assert.match(res.headers.get("cache-control") ?? "", /no-store/);
+      assert.match(res.headers.get("x-robots-tag") ?? "", /noindex,\s*nofollow/i);
+      assert.equal(res.headers.get("set-cookie"), null);
+      const csv = await res.text();
+      assert.match(csv.split("\n")[0] ?? "", /cost_usd/);
+      assert.match(csv, /A01/);
+    }
   } finally {
     process.env = saved;
     resetStoreBackendForTests();
