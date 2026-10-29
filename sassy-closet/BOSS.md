@@ -2,6 +2,7 @@
 
 - Tabs: Món mới · Sửa theo mã · Tìm mã · Hỏi Mini Boss. No fifth tab.
 - Lưu opens **Saved · Đã lưu**: copy mã / `?ma=` link / caption starter. Done closes. App never Posts.
+- Giá bán is optional. Blank sell saves and shows **Tính giá sau**. A typed sell under the 35% floor is flagged. The auto-price box is optional; Nhung does not have to press it.
 - Ask relays to Mini Boss when `MINIBOSS_ASK_WEBHOOK_URL` + `MINIBOSS_ASK_WEBHOOK_KEY` are set. Reply via `ASK_REPLY_SECRET`. Offline → local draft banner.
 - Dataset sync (immediate path): after merge, Boss pastes URL + sender key into **Vercel intake only**, then Redeploy intake. Poll backup already exists on Grok Bot — Mini Boss does not need to be online. Unset env → save still works. Never paste the key into chat.
   1. Grok Bot desktop → routine `intake-dataset-sync-webhook` → copy **Webhook URL** + **sender key** (often `crsr_…`).

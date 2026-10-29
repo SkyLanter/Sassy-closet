@@ -99,13 +99,7 @@ export function computeAutoPrice(input: PriceInputs): PriceBreakdown | null {
   };
 }
 
-/**
- * Caption price line for a submission.
- * - sell blank            -> "Inbox giá"
- * - margin < 35% (known)  -> "Inbox giá"
- * - otherwise             -> the sell price as before ("$X" / "¥Y")
- */
-export function captionPriceLine(input: {
+export type SellPriceInput = {
   sellUsd: string;
   sellCny: string;
   sellCurrency: string;
@@ -115,40 +109,55 @@ export function captionPriceLine(input: {
   kind: string;
   fxRate: number;
   deboxOverrides?: DeboxOverrides;
-}): string {
-  const { sellUsd, sellCny, sellCurrency } = input;
-  const currency = sellCurrency.toUpperCase();
-  const sellBlank = currency === "CNY" ? !sellCny.trim() : !sellUsd.trim();
-  if (sellBlank) return "Inbox giá";
+};
 
-  // Margin guard: only when the cost side is known.
+/**
+ * Blank sell is calculated later. A typed sell is flagged only when cost is
+ * known and the margin is under the caption floor. Unknown cost does not block.
+ */
+export type SellPriceFlag = "later" | "under-margin" | "ok";
+
+export function sellPriceFlag(input: SellPriceInput): SellPriceFlag {
+  const currency = input.sellCurrency.toUpperCase();
+  const sellBlank = currency === "CNY" ? !input.sellCny.trim() : !input.sellUsd.trim();
+  if (sellBlank) return "later";
+
   const costCnyNum = Number(String(input.costCny).trim());
   const costUsdNum = Number(String(input.costUsd).trim());
   const costKnown =
     input.costCurrency.toUpperCase() === "CNY"
       ? Number.isFinite(costCnyNum) && costCnyNum > 0
       : Number.isFinite(costUsdNum) && costUsdNum > 0;
-  if (costKnown) {
-    const costCnyValue =
-      input.costCurrency.toUpperCase() === "CNY" ? costCnyNum : costUsdNum * input.fxRate;
-    const breakdown = computeAutoPrice({
-      costCny: costCnyValue,
-      fxRate: input.fxRate,
-      kind: input.kind,
-      deboxOverrides: input.deboxOverrides,
-    });
-    if (breakdown) {
-      const sellNum = currency === "CNY" ? Number(sellCny) / input.fxRate : Number(sellUsd);
-      if (Number.isFinite(sellNum) && sellNum > 0) {
-        const marginPct = (sellNum - breakdown.landedUsd) / sellNum;
-        if (marginPct < MARGIN_FLOOR) return "Inbox giá";
-      }
-    }
-  }
+  if (!costKnown) return "ok";
 
-  if (currency === "CNY" && sellCny) return `¥${sellCny}`;
-  if (sellUsd) return `$${sellUsd}`;
-  if (sellCny) return `¥${sellCny}`;
+  const costCnyValue =
+    input.costCurrency.toUpperCase() === "CNY" ? costCnyNum : costUsdNum * input.fxRate;
+  const breakdown = computeAutoPrice({
+    costCny: costCnyValue,
+    fxRate: input.fxRate,
+    kind: input.kind,
+    deboxOverrides: input.deboxOverrides,
+  });
+  if (!breakdown) return "ok";
+  const sellNum = currency === "CNY" ? Number(input.sellCny) / input.fxRate : Number(input.sellUsd);
+  if (!Number.isFinite(sellNum) || sellNum <= 0) return "ok";
+  const marginPct = (sellNum - breakdown.landedUsd) / sellNum;
+  if (marginPct < MARGIN_FLOOR) return "under-margin";
+  return "ok";
+}
+
+/**
+ * Caption price line for a submission.
+ * - sell blank            -> "Inbox giá"
+ * - margin < 35% (known)  -> "Inbox giá"
+ * - otherwise             -> the sell price as before ("$X" / "¥Y")
+ */
+export function captionPriceLine(input: SellPriceInput): string {
+  if (sellPriceFlag(input) !== "ok") return "Inbox giá";
+  const currency = input.sellCurrency.toUpperCase();
+  if (currency === "CNY" && input.sellCny) return `¥${input.sellCny}`;
+  if (input.sellUsd) return `$${input.sellUsd}`;
+  if (input.sellCny) return `¥${input.sellCny}`;
   return "Inbox giá";
 }
 

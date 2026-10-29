@@ -23,6 +23,8 @@ import {
 import { normalizeFindCode } from "@/lib/on-hand";
 import {
   computeAutoPrice,
+  sellPriceFlag,
+  type SellPriceFlag,
   DEBOX_LOCKED,
   MARGIN_DIVISOR,
   MARGIN_FLOOR,
@@ -1135,9 +1137,8 @@ function ItemForm(props: {
         <StatusChips
           photos={props.photos.length}
           sizes={props.sizes.length}
-          hasPrice={Boolean(props.sellUsd.trim() || props.sellCny.trim())}
+          priceFlag={intakeSellFlag(props)}
           needsResearch={props.needsResearch}
-          belowFloor={props.priceBreakdown ? !props.priceBreakdown.captionEligible : false}
         />
         <button
           type="button"
@@ -1307,7 +1308,8 @@ function PricePanel({
 }) {
   return (
     <div data-testid="price-panel" className="mb-5 rounded-2xl bg-white p-3 ring-1 ring-rose-100">
-      <p className="text-sm font-medium">💰 Tính giá tự động <span className="font-normal text-rose-700/60">(margin {Math.round(TARGET_MARGIN * 100)}%)</span></p>
+      <p className="text-sm font-medium">💰 Tính giá tự động <span className="font-normal text-rose-700/60">(tuỳ chọn · margin {Math.round(TARGET_MARGIN * 100)}%)</span></p>
+      <p className="mt-1 text-[11px] text-rose-700/70">Không bắt buộc. Giá bán để trống vẫn lưu — tính sau.</p>
       <div className="mt-2 grid grid-cols-3 gap-2">
         <label className="block">
           <span className="mb-1 block text-[11px] text-rose-700">Giá vốn ¥</span>
@@ -1360,11 +1362,7 @@ function PricePanel({
           <p className="mt-1">Giá bán gợi ý: <span className="text-sm font-bold">${breakdown.sellUsd}</span>
             <span className="text-rose-700/70"> · lãi ${breakdown.marginUsd.toFixed(2)} ({(breakdown.marginPct * 100).toFixed(1)}%)</span>
           </p>
-          {breakdown.captionEligible ? (
-            <p className="mt-1 font-semibold text-[#246044]">✓ Đủ {Math.round(MARGIN_FLOOR * 100)}% — caption sẽ hiện giá.</p>
-          ) : (
-            <p className="mt-1 font-semibold text-[#8a5a12]">⚠ Dưới {Math.round(MARGIN_FLOOR * 100)}% — caption sẽ là “Inbox giá”.</p>
-          )}
+          <p className="mt-1 text-rose-700/70">Gợi ý thôi. Bấm chỉ khi muốn ghi vào giá bán.</p>
           <button
             type="button"
             data-testid="price-use"
@@ -1375,7 +1373,7 @@ function PricePanel({
           </button>
         </div>
       ) : (
-        <p className="mt-2 text-xs text-rose-700/70">Nhập giá vốn ¥ và tỷ giá để tính nha.</p>
+        <p className="mt-2 text-xs text-rose-700/70">Bỏ qua cũng được. Giá bán không bắt buộc.</p>
       )}
     </div>
   );
@@ -1500,26 +1498,67 @@ function FindPanel({
   );
 }
 
+function intakeSellFlag(props: {
+  sellUsd: string;
+  sellCny: string;
+  costUsd: string;
+  costCny: string;
+  kind: KindCode;
+  calcFx: string;
+  calcDebox: string;
+  deboxLocked: boolean;
+  fxRate: number;
+}): SellPriceFlag {
+  const typedFx = Number(props.calcFx);
+  const fxRate = Number.isFinite(typedFx) && typedFx > 0 ? typedFx : props.fxRate;
+  const deboxNum = Number(props.calcDebox);
+  const deboxOverrides =
+    !props.deboxLocked && Number.isFinite(deboxNum) && deboxNum >= 0 && props.calcDebox.trim() !== ""
+      ? { [props.kind]: deboxNum }
+      : undefined;
+  return sellPriceFlag({
+    sellUsd: props.sellUsd,
+    sellCny: props.sellCny,
+    sellCurrency: props.sellUsd.trim() ? "USD" : props.sellCny.trim() ? "CNY" : "USD",
+    costUsd: props.costUsd,
+    costCny: props.costCny,
+    costCurrency: props.costUsd.trim() ? "USD" : props.costCny.trim() ? "CNY" : "USD",
+    kind: props.kind,
+    fxRate,
+    deboxOverrides,
+  });
+}
+
 function StatusChips({
   photos,
   sizes,
-  hasPrice,
+  priceFlag,
   needsResearch,
-  belowFloor,
 }: {
   photos: number;
   sizes: number;
-  hasPrice: boolean;
+  priceFlag: SellPriceFlag;
   needsResearch: boolean;
-  belowFloor: boolean;
 }) {
   const chips: { tone: "warn" | "info" | "ok"; label: string }[] = [];
   if (photos === 0) chips.push({ tone: "warn", label: "Thiếu ảnh" });
   if (sizes === 0) chips.push({ tone: "warn", label: "Thiếu size" });
-  if (!hasPrice) chips.push({ tone: "warn", label: "Thiếu giá" });
-  if (belowFloor) chips.push({ tone: "warn", label: `Dưới ${Math.round(MARGIN_FLOOR * 100)}%` });
+  switch (priceFlag) {
+    case "later":
+      chips.push({ tone: "info", label: "Tính giá sau" });
+      break;
+    case "under-margin":
+      chips.push({ tone: "warn", label: `Dưới ${Math.round(MARGIN_FLOOR * 100)}%` });
+      break;
+    case "ok":
+      break;
+    default: {
+      const neverFlag: never = priceFlag;
+      throw new Error(`unknown sell price flag ${String(neverFlag)}`);
+    }
+  }
   if (needsResearch) chips.push({ tone: "info", label: "Cần xem tay" });
-  if (chips.length === 0) chips.push({ tone: "ok", label: "Đủ để lưu" });
+  if (!chips.some((chip) => chip.tone === "warn")) chips.unshift({ tone: "ok", label: "Đủ để lưu" });
   const toneClass = {
     warn: "bg-[#fbf3e4] text-[#8a5a12]",
     info: "bg-[#e7f1f6] text-[#1f5670]",
@@ -1588,7 +1627,7 @@ function SavedList({
         <ul className="mt-3 divide-y divide-[#eadfdc] overflow-hidden rounded-2xl bg-white ring-1 ring-[#eadfdc]">
           {rows.map((row) => {
             const thumb = row.photo_paths?.[0];
-            const price = row.sell_usd ? `$${row.sell_usd}` : row.sell_cny ? `¥${row.sell_cny}` : "Thiếu giá";
+            const price = row.sell_usd ? `$${row.sell_usd}` : row.sell_cny ? `¥${row.sell_cny}` : "Tính giá sau";
             return (
               <li key={row.ma}>
                 <button
