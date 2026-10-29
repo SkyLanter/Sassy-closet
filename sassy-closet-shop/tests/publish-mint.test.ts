@@ -45,6 +45,19 @@ test("shop letter Q mints Q02 on hold and still refuses K06", () => {
   const mintedKnit = addProductToCatalog(knits, "K", fields(36));
   assert.equal(mintedKnit.ok, false);
   if (!mintedKnit.ok) assert.match(mintedKnit.error, /K06/);
+
+  assert.equal(nextMaForLetter("G", []), "G01");
+  const firstShoe = addProductToCatalog([], "G", messageReadyAddFields("G"));
+  assert.equal(firstShoe.ok, false);
+  if (!firstShoe.ok) assert.match(firstShoe.error, /G01/);
+  assert.equal(nextMaForLetter("G", ["G01"]), "G02");
+  const secondShoe = addProductToCatalog([stub("G01", 40)], "G", messageReadyAddFields("G"));
+  assert.equal(secondShoe.ok, true);
+  if (secondShoe.ok) assert.equal(secondShoe.ma, "G02");
+
+  const nextHair = addProductToCatalog([stub("H01", 8)], "H", messageReadyAddFields("H"));
+  assert.equal(nextHair.ok, false);
+  if (!nextHair.ok) assert.match(nextHair.error, /H02/);
   assert.deepEqual(
     knits.map((product) => product.ma),
     ["K01", "K02", "K03", "K04", "K05"],

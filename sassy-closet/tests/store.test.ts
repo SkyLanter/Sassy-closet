@@ -16,6 +16,26 @@ import {
 } from "../lib/store-backend";
 import { exportCsv, findByPhotoHash, getSubmission, hashBytes, listSubmissions, readPhoto, saveSubmission } from "../lib/store";
 
+function shoeSave(newMa?: string) {
+  return {
+    kind: "G",
+    size: "37 38",
+    link: "",
+    color: "Đen",
+    color_note: "",
+    pieces: [],
+    cost_usd: "",
+    cost_cny: "",
+    cost_currency: "USD",
+    sell_usd: "",
+    sell_cny: "",
+    sell_currency: "USD",
+    keep_photos: [],
+    photos: [],
+    newMa,
+  };
+}
+
 describe("durable / local store", { concurrency: 1 }, () => {
   let tmp = "";
   const prev: Record<string, string | undefined> = {};
@@ -109,33 +129,64 @@ describe("durable / local store", { concurrency: 1 }, () => {
     assert.ok(fs.existsSync(path.join(tmp, "photos", "A01", "001.jpg")));
   });
 
-  test("kind G mints G01 with shoe size and export size_options 35–41", async () => {
-    const saved = await saveSubmission({
-      kind: "G",
-      size: "37 38",
-      link: "",
-      color: "Đen",
-      color_note: "",
-      pieces: [],
-      cost_usd: "",
-      cost_cny: "",
-      cost_currency: "USD",
-      sell_usd: "",
-      sell_cny: "",
-      sell_currency: "USD",
-      keep_photos: [],
-      photos: [],
-    });
-    assert.equal(saved.ma, "G01");
+  test("kind G refuses a new G01 while that mã is held", async () => {
+    await assert.rejects(() => saveSubmission(shoeSave()), /Không mint G01 \(held\)/);
+    await assert.rejects(() => saveSubmission(shoeSave("G01")), /Không lưu G01 \(held\)/);
+    assert.equal((await listSubmissions()).length, 0);
+  });
+
+  test("once G01 is already staged, the next shoe is G02", async () => {
+    fs.writeFileSync(
+      path.join(tmp, "submissions.json"),
+      JSON.stringify({
+        nextId: 2,
+        fx: { usd_cny: 6.71, updated: "2026-09-07" },
+        submissions: [
+          {
+            id: 1,
+            ma: "G01",
+            kind: "G",
+            size: "38",
+            color: "",
+            color_note: "",
+            pieces: [],
+            link: "",
+            price: "",
+            cost_cny: "",
+            cost_usd: "",
+            cost_currency: "USD",
+            sell_cny: "",
+            sell_usd: "",
+            sell_currency: "USD",
+            blurb: "",
+            photo_paths: [],
+            photo_hashes: [],
+            status: "staged",
+            square: "not_square",
+            needs_research: false,
+            taobao_snapshot: null,
+            auto_price: null,
+            created_at: "2026-10-12T00:00:00.000Z",
+            updated_at: "2026-10-12T00:00:00.000Z",
+            caption_vi: "",
+            caption_en: "",
+            blurb_suggested: "",
+            photo_link: "",
+          },
+        ],
+      }),
+    );
+    resetStoreBackendForTests();
+    const saved = await saveSubmission(shoeSave());
+    assert.equal(saved.ma, "G02");
     assert.equal(saved.kind, "G");
     assert.equal(saved.size, "37 38");
     const csv = await exportCsv();
-    assert.match(csv, /G01/);
+    assert.match(csv, /G02/);
     assert.match(csv, /Giày \/ Cao gót/);
     assert.match(csv, /35 36 37 38 39 40 41/);
     const listed = await listSubmissions();
-    assert.equal(listed.length, 1);
-    assert.equal(listed[0].ma, "G01");
+    assert.deepEqual(listed.map((row) => row.ma), ["G01", "G02"]);
   });
 
   test("kind D mints D01 and does not invent extra mãs", async () => {

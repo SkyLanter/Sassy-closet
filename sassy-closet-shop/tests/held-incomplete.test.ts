@@ -32,11 +32,18 @@ function product(ma: string, priceUsd: number): Product {
   };
 }
 
+const ADDED_HELD = ["A27", "A28", "A29", "G01", "H02", "S16", "S17", "S18", "S19"] as const;
+
 test("sell site loads held mãs from data/held.json", () => {
   assert.deepEqual([...HELD_INCOMPLETE_MAS], [...held.heldIncomplete]);
   assert.deepEqual([...NEVER_LIST_MAS], [...held.neverList]);
+  assert.equal(HELD_INCOMPLETE_MAS.length, 21);
   assert.equal(isHeldIncompleteMa("K06"), true);
   assert.equal(isHeldIncompleteMa("V05"), true);
+  for (const ma of ADDED_HELD) {
+    assert.equal(isHeldIncompleteMa(ma), true, ma);
+    assert.equal(isOffLiveSell(ma), true, ma);
+  }
   assert.equal(isHeldIncompleteMa("Q02"), false);
   assert.equal(isOffLiveSell("Q02"), false);
   assert.equal(isOffLiveSell("A07"), false);
@@ -51,6 +58,10 @@ test("public catalog hides held mãs and keeps Q02, A07, and S10", () => {
     product("S14", 20),
     product("K06", 48),
     product("V05", 27),
+    product("G01", 40),
+    product("H02", 12),
+    product("A29", 20),
+    product("S19", 20),
     product("Q02", 20),
     product("A07", 26),
     product("S10", 37),

@@ -15,10 +15,16 @@ const LIST_FILES = [
   "../sassy-closet-shop/README.md",
 ] as const;
 
-test("held incomplete config loads data/held.json, including K06 and V05", () => {
+const ADDED_HELD = ["A27", "A28", "A29", "G01", "H02", "S16", "S17", "S18", "S19"] as const;
+
+test("held incomplete config loads data/held.json, including the 21 staged gaps", () => {
   assert.deepEqual([...HELD_INCOMPLETE_MAS], [...held.heldIncomplete]);
+  assert.equal(HELD_INCOMPLETE_MAS.length, 21);
   assert.ok(HELD_INCOMPLETE_MAS.includes("K06"));
   assert.ok(HELD_INCOMPLETE_MAS.includes("V05"));
+  for (const ma of ADDED_HELD) {
+    assert.equal(isHeldIncompleteMa(ma), true, ma);
+  }
   assert.equal(isHeldIncompleteMa("s15"), true);
   assert.equal(isHeldIncompleteMa("A26"), true);
   assert.equal(isHeldIncompleteMa("K02"), true);
