@@ -3,6 +3,7 @@ import { after } from "next/server";
 import { KNOWN_SEED_MAS } from "@/lib/catalog-contract";
 import { TYPE_SLUGS } from "@/lib/categories";
 import { CATALOG_CACHE_TAG } from "@/lib/catalog-tag";
+import { invalidateLiveCatalogMemo } from "@/lib/catalog-store";
 import { MA_LETTERS, maLetter, normalizeMa } from "@/lib/ma";
 
 function uniqueMas(mas: string[]): string[] {
@@ -93,6 +94,7 @@ export async function warmShopPaths(paths: string[]): Promise<void> {
 }
 
 function markShopStale(targets: string[]): void {
+  invalidateLiveCatalogMemo();
   revalidateTag(CATALOG_CACHE_TAG, "max");
   revalidatePath("/", "layout");
   revalidatePath("/", "page");

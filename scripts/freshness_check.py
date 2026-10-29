@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import re
 import sys
@@ -23,6 +24,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 _ROOT = Path(__file__).resolve().parents[1]
 _KIT_ROOT = _ROOT / "excel-kit"
@@ -39,7 +41,7 @@ ensure_runtime(_ROOT / "out")
 from openpyxl import load_workbook
 from schema import header_row_for_sheet, read_headers, resolve_header_key
 
-from held_policy import HeldPolicy, load_held_policy
+from held_policy import HeldPolicy, load_held_policy, norm_ma
 from intake_flags import IntakeFlag, IntakeRow, PublicCny, flag_intake
 from pickup import PickupDecision, PickupEvent, events_from_json, plan_pickups
 
@@ -163,9 +165,9 @@ def parse_usd(value: object) -> Decimal | None:
     if isinstance(value, bool):
         return None
     if isinstance(value, Decimal):
-        return value
+        return value if value.is_finite() else None
     if isinstance(value, (int, float)):
-        if isinstance(value, float) and value != value:
+        if isinstance(value, float) and not math.isfinite(value):
             return None
         return Decimal(str(value))
     text = str(value).strip().replace("$", "").replace(",", "")
@@ -184,7 +186,7 @@ def parse_blob_catalog(payload: object) -> list[MoneyRow]:
         raw_ma = item.get("ma")
         if not isinstance(raw_ma, str) or not raw_ma.strip():
             continue
-        rows.append(MoneyRow(raw_ma.strip().upper(), parse_usd(item.get("priceUsd"))))
+        rows.append(MoneyRow(norm_ma(raw_ma), parse_usd(item.get("priceUsd"))))
     return rows
 
 
@@ -204,7 +206,7 @@ def read_hub_official(path: Path) -> list[MoneyRow]:
         for cells in sheet.iter_rows(min_row=header_row + 1, values_only=True):
             if ma_idx >= len(cells) or cells[ma_idx] is None:
                 continue
-            ma = str(cells[ma_idx]).strip().upper()
+            ma = norm_ma(str(cells[ma_idx]))
             if ma == "":
                 continue
             raw_price = cells[price_idx] if price_idx < len(cells) else None
@@ -472,11 +474,11 @@ def _guard_duplicate_rows(rows: list[MoneyRow] | None, source: str, guards: list
 
 def intake_pickup_events(snapshot: Snapshot) -> list[PickupEvent]:
     """New intake rows the fixture did not already put in pickup. No writes."""
-    explicit = {event.ma.strip().upper() for event in snapshot.pickup_events}
+    explicit = {norm_ma(event.ma) for event in snapshot.pickup_events}
     taobao = {item.ma: item for item in snapshot.taobao}
     events: list[PickupEvent] = []
     for row in snapshot.intake:
-        code = row.ma.strip().upper()
+        code = norm_ma(row.ma)
         if code in explicit:
             continue
         sell = "" if row.sell_usd is None else row.sell_usd.strip()
@@ -562,7 +564,7 @@ def _pickup_flags(decisions: list[PickupDecision]) -> list[IntakeFlag]:
 def _login_price_flags(snapshot: Snapshot) -> list[IntakeFlag]:
     if snapshot.taobao_mode != "login":
         return []
-    intake = {row.ma.strip().upper(): row for row in snapshot.intake}
+    intake = {norm_ma(row.ma): row for row in snapshot.intake}
     flags: list[IntakeFlag] = []
     for item in snapshot.taobao:
         row = intake.get(item.ma)
@@ -603,7 +605,7 @@ def _s06_guard(source: str, price: Decimal | None) -> Guard:
 def _comparison_rows(snapshot: Snapshot, public: dict[str, PublicCny]) -> list[dict[str, object]]:
     blob = _index(snapshot.blob_rows) if snapshot.blob_rows is not None else None
     hub = _index(snapshot.hub_rows) if snapshot.hub_rows is not None else None
-    intake = {row.ma.strip().upper(): row for row in snapshot.intake}
+    intake = {norm_ma(row.ma): row for row in snapshot.intake}
     taobao = {item.ma: item for item in snapshot.taobao}
     codes = sorted(set(intake) | set(blob or {}) | set(hub or {}) | set(snapshot.pdp) | set(taobao))
     rows: list[dict[str, object]] = []
@@ -861,7 +863,7 @@ def _intake_from_json(value: object) -> list[IntakeRow]:
         link = item.get("link")
         rows.append(
             IntakeRow(
-                item["ma"],
+                norm_ma(item["ma"]),
                 None if cost is None else str(cost),
                 None if sell is None else str(sell),
                 None if link is None else str(link),
@@ -884,7 +886,7 @@ def _money_from_json(value: object) -> list[MoneyRow] | None:
     for item in raw_rows:
         if not isinstance(item, dict) or not isinstance(item.get("ma"), str):
             raise ValueError("fixture catalog row needs a mã")
-        rows.append(MoneyRow(item["ma"].strip().upper(), parse_usd(item.get("price_usd"))))
+        rows.append(MoneyRow(norm_ma(item["ma"]), parse_usd(item.get("price_usd"))))
     return rows
 
 
@@ -895,12 +897,12 @@ def _pdp_from_json(value: object) -> dict[str, dict[str, PdpView]]:
     for ma, hosts in value.items():
         if not isinstance(ma, str) or not isinstance(hosts, dict):
             raise ValueError("fixture pdp entries must be mã -> host")
-        parsed[ma.strip().upper()] = {}
+        parsed[norm_ma(ma)] = {}
         for origin, cell in hosts.items():
             if not isinstance(origin, str) or not isinstance(cell, dict):
                 raise ValueError("fixture pdp host cell is invalid")
             status = cell.get("status")
-            parsed[ma.strip().upper()][origin] = PdpView(
+            parsed[norm_ma(ma)][origin] = PdpView(
                 None if status is None else int(status),
                 parse_usd(cell.get("price_usd")),
                 None if cell.get("error") is None else str(cell.get("error")),
@@ -921,7 +923,7 @@ def _taobao_from_json(value: object) -> list[TaobaoView]:
         final = item.get("final_cny")
         rows.append(
             TaobaoView(
-                item["ma"].strip().upper(),
+                norm_ma(item["ma"]),
                 state,
                 None if raw is None else Decimal(str(raw)),
                 "" if item.get("detail") is None else str(item.get("detail")),
@@ -967,7 +969,7 @@ def _live_codes(
     hub_rows: list[MoneyRow] | None,
 ) -> list[str]:
     policy = load_held_policy()
-    codes = {row.ma.strip().upper() for row in intake_rows}
+    codes = {norm_ma(row.ma) for row in intake_rows}
     codes.update(row.ma for row in blob_rows or [])
     codes.update(row.ma for row in hub_rows or [])
     codes.update(policy.held)
@@ -993,7 +995,7 @@ def _fetch_intake() -> tuple[list[IntakeRow], SourceState]:
             continue
         rows.append(
             IntakeRow(
-                item["ma"],
+                norm_ma(item["ma"]),
                 None if item.get("cost_cny") is None else str(item.get("cost_cny")),
                 None if item.get("sell_usd") is None else str(item.get("sell_usd")),
                 None if item.get("link") is None else str(item.get("link")),
@@ -1046,7 +1048,7 @@ def _fetch_pdp(origin: str, ma: str) -> PdpView:
 
 
 def _fetch_taobao(row: IntakeRow) -> TaobaoView:
-    code = row.ma.strip().upper()
+    code = norm_ma(row.ma)
     link = (row.link or "").strip()
     if link == "":
         return TaobaoView(code, "skip", None, "no source link")
@@ -1081,9 +1083,17 @@ def _http_get_bytes(url: str, timeout: float = 20) -> tuple[int, bytes | None, s
         return 0, None, str(error)
 
 
+SHOP_TZ = ZoneInfo("America/Los_Angeles")
+
+
+def today_pt() -> str:
+    """The shop day (America/Los_Angeles). The UTC date is already tomorrow after 5 PM PDT / 4 PM PST."""
+    return datetime.now(timezone.utc).astimezone(SHOP_TZ).date().isoformat()
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Write a read-only dataset freshness report.")
-    parser.add_argument("--date", default=datetime.now(timezone.utc).date().isoformat())
+    parser.add_argument("--date", default=today_pt())
     parser.add_argument("--out", default="out")
     parser.add_argument("--fixture", help="Snapshot JSON. Skips the network.")
     parser.add_argument("--mode", help="Taobao mode: logged-out or login. Env SASSY_TAOBAO_MODE.")

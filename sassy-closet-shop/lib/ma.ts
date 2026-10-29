@@ -29,6 +29,18 @@ export function isValidMa(ma: string): boolean {
   return LETTER_SET.has(trimmed[0] ?? "");
 }
 
+/** `S006` / `S6` → `S06`; `A100` stays. Non-mã text is returned trimmed + upper-cased. */
+export function canonicalMaSpelling(ma: string): string {
+  const code = ma.trim().toUpperCase();
+  const match = code.match(/^([A-Z])(\d+)$/);
+  return match ? `${match[1]}${String(Number(match[2])).padStart(2, "0")}` : code;
+}
+
+/** True when the mã is already written the one canonical way (no extra zero padding). */
+export function isCanonicalMaSpelling(ma: string): boolean {
+  return canonicalMaSpelling(ma) === ma.trim().toUpperCase();
+}
+
 export function normalizeMa(ma: string): string {
   return ma.trim().toUpperCase();
 }

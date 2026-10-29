@@ -1,0 +1,220 @@
+{
+ "about": "Shared mã normalization golden vector (fake mãs only). expected = scripts/held_policy.norm_ma, which mirrors sassy-closet-shop/lib/ma.ts canonicalMaSpelling. input null means None/undefined. All helpers (Python norm_ma, shop canonicalMaSpelling, mint normalizeMa, held-incomplete canonicalHeldKey) must match expected on every row.",
+ "rows": [
+  {
+   "input": "K03",
+   "expected": "K03",
+   "case": "canonical"
+  },
+  {
+   "input": "A01",
+   "expected": "A01",
+   "case": "canonical"
+  },
+  {
+   "input": "S06",
+   "expected": "S06",
+   "case": "canonical"
+  },
+  {
+   "input": "Q02",
+   "expected": "Q02",
+   "case": "canonical"
+  },
+  {
+   "input": "D05",
+   "expected": "D05",
+   "case": "canonical"
+  },
+  {
+   "input": "K003",
+   "expected": "K03",
+   "case": "zero padding"
+  },
+  {
+   "input": "S006",
+   "expected": "S06",
+   "case": "zero padding"
+  },
+  {
+   "input": "A001",
+   "expected": "A01",
+   "case": "zero padding"
+  },
+  {
+   "input": "Q009",
+   "expected": "Q09",
+   "case": "zero padding"
+  },
+  {
+   "input": "K0003",
+   "expected": "K03",
+   "case": "zero padding"
+  },
+  {
+   "input": "k3",
+   "expected": "K03",
+   "case": "short form"
+  },
+  {
+   "input": "s6",
+   "expected": "S06",
+   "case": "short form"
+  },
+  {
+   "input": "a1",
+   "expected": "A01",
+   "case": "short form"
+  },
+  {
+   "input": "K3",
+   "expected": "K03",
+   "case": "short form"
+  },
+  {
+   "input": " K03 ",
+   "expected": "K03",
+   "case": "spaces"
+  },
+  {
+   "input": "\tk03\n",
+   "expected": "K03",
+   "case": "tab/newline"
+  },
+  {
+   "input": "K03\n",
+   "expected": "K03",
+   "case": "newline"
+  },
+  {
+   "input": "  s006  ",
+   "expected": "S06",
+   "case": "spaces+padding"
+  },
+  {
+   "input": "\t a1 \n",
+   "expected": "A01",
+   "case": "whitespace+short"
+  },
+  {
+   "input": "k03",
+   "expected": "K03",
+   "case": "lower"
+  },
+  {
+   "input": "q02",
+   "expected": "Q02",
+   "case": "lower"
+  },
+  {
+   "input": "k03",
+   "expected": "K03",
+   "case": "lower"
+  },
+  {
+   "input": "s06",
+   "expected": "S06",
+   "case": "lower"
+  },
+  {
+   "input": "A100",
+   "expected": "A100",
+   "case": "3-digit stays"
+  },
+  {
+   "input": "a100",
+   "expected": "A100",
+   "case": "3-digit lower"
+  },
+  {
+   "input": "A0100",
+   "expected": "A100",
+   "case": "3-digit padded"
+  },
+  {
+   "input": "K999",
+   "expected": "K999",
+   "case": "3-digit"
+  },
+  {
+   "input": "",
+   "expected": "",
+   "case": "empty"
+  },
+  {
+   "input": "   ",
+   "expected": "",
+   "case": "blank"
+  },
+  {
+   "input": "\n",
+   "expected": "",
+   "case": "blank"
+  },
+  {
+   "input": null,
+   "expected": "",
+   "case": "None"
+  },
+  {
+   "input": "HELLO",
+   "expected": "HELLO",
+   "case": "non-ma unchanged"
+  },
+  {
+   "input": "hello world",
+   "expected": "HELLO WORLD",
+   "case": "non-ma text"
+  },
+  {
+   "input": "12",
+   "expected": "12",
+   "case": "digits only"
+  },
+  {
+   "input": "K",
+   "expected": "K",
+   "case": "letter only"
+  },
+  {
+   "input": "K-03",
+   "expected": "K-03",
+   "case": "punctuation"
+  },
+  {
+   "input": "K 03",
+   "expected": "K 03",
+   "case": "inner space"
+  },
+  {
+   "input": "KK03",
+   "expected": "KK03",
+   "case": "two letters"
+  },
+  {
+   "input": "03K",
+   "expected": "03K",
+   "case": "reversed"
+  },
+  {
+   "input": "K03A",
+   "expected": "K03A",
+   "case": "trailing letter"
+  },
+  {
+   "input": "Z003",
+   "expected": "Z03",
+   "case": "letter outside the shop's mã letters (not a valid mã)"
+  },
+  {
+   "input": "K000",
+   "expected": "K00",
+   "case": "number zero (not a valid mã)"
+  },
+  {
+   "input": "k0",
+   "expected": "K00",
+   "case": "number zero short"
+  }
+ ]
+}

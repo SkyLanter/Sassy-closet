@@ -6,6 +6,7 @@
  * lib/pipeline-store.ts) — no new backend. Manual checkoffs except where the
  * admin can honestly auto-advance: intake import, price apply, catalog save.
  */
+import { canonicalMaSpelling } from "@/lib/ma";
 
 export const PIPELINE_STAGES = [
   { id: "intake", label: "Intake", hint: "GF submitted on the intake site (staged)" },
@@ -90,7 +91,7 @@ export function parsePipelineDocument(raw: unknown, siteId: string): PipelineDoc
       continue;
     }
     const candidate = entry as Record<string, unknown>;
-    const ma = typeof candidate.ma === "string" ? candidate.ma.trim().toUpperCase() : "";
+    const ma = typeof candidate.ma === "string" ? canonicalMaSpelling(candidate.ma) : "";
     if (!ma) {
       continue;
     }
@@ -104,7 +105,7 @@ export function parsePipelineDocument(raw: unknown, siteId: string): PipelineDoc
       }
     }
     const intakeMa = typeof candidate.intakeMa === "string" && candidate.intakeMa.trim()
-      ? candidate.intakeMa.trim().toUpperCase()
+      ? canonicalMaSpelling(candidate.intakeMa)
       : undefined;
     rows.push({
       ma,
@@ -124,7 +125,7 @@ export function parsePipelineDocument(raw: unknown, siteId: string): PipelineDoc
 }
 
 export function getPipelineRow(document: PipelineDocument, ma: string): PipelineRow | undefined {
-  const target = ma.trim().toUpperCase();
+  const target = canonicalMaSpelling(ma);
   return document.rows.find((row) => row.ma === target);
 }
 
@@ -135,7 +136,7 @@ export function setPipelineStage(
   done: boolean,
   at = new Date().toISOString(),
 ): PipelineDocument {
-  const target = ma.trim().toUpperCase();
+  const target = canonicalMaSpelling(ma);
   const existing = document.rows.find((row) => row.ma === target);
   const nextRow: PipelineRow = existing
     ? { ...existing, stages: { ...existing.stages, [stage]: done ? (existing.stages[stage] ?? at) : null }, updatedAt: at }
@@ -153,8 +154,8 @@ export function linkPipelineIntakeMa(
   intakeMa: string,
   at = new Date().toISOString(),
 ): PipelineDocument {
-  const target = ma.trim().toUpperCase();
-  const clean = intakeMa.trim().toUpperCase();
+  const target = canonicalMaSpelling(ma);
+  const clean = canonicalMaSpelling(intakeMa);
   if (!target || !clean || target === clean) {
     return document;
   }

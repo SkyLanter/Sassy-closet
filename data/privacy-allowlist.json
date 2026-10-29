@@ -1,0 +1,20 @@
+[
+ {"path": "scripts/tests/test_privacy_scan.py", "reason": "Piece 32 scanner tests: every value is a made-up planted hit (Z99, a@b.c, 555 numbers)."},
+ {"path": "*privacy-allowlist.json", "reason": "This file: path globs and reasons only, no data."},
+ {"path": "*privacy_scan.py", "reason": "Scanner source: regexes and made-up docstring examples (cost 9.39-style), no shop data."},
+ {"path": "scripts/tests/test_held_price_proposal.py", "rules": ["cost"], "reason": "Synthetic cost_cny rows (Q/Z mã, round numbers) for the proposal math."},
+ {"path": "scripts/tests/test_headroom_flag.py", "rules": ["intake_cny", "cost"], "reason": "Synthetic intake_cny rows for headroom tests."},
+ {"path": "scripts/tests/test_intake_gaps.py", "rules": ["cost", "taobao", "tb_cn"], "reason": "Synthetic BASE row; link is a placeholder (id=1 / example)."},
+ {"path": "scripts/tests/test_export_daily_inputs.py", "rules": ["cost", "1688", "supplier", "taobao", "tb_cn", "phone", "email"], "reason": "Planted fake costs/links/buyer (Z99, a@b.c) proving the export strips them."},
+ {"path": "scripts/tests/test_too_cheap_check.py", "rules": ["cost", "intake_cny", "yen"], "reason": "Synthetic too-cheap rows."},
+ {"path": "scripts/tests/test_daily_shop_check.py", "rules": ["cost", "intake_cny", "yen", "cny"], "reason": "Synthetic daily-check fixtures."},
+ {"path": "scripts/tests/test_caption_lint.py", "rules": ["yen", "cny", "cost"], "reason": "Synthetic captions."},
+ {"path": "sassy-closet/tests/pricing.test.ts", "rules": ["yen", "cost"], "reason": "Worked pricing examples (FX/tier math), not intake rows."},
+ {"path": "sassy-closet-shop/tests/pricing.test.ts", "rules": ["yen", "cost"], "reason": "Worked pricing examples."},
+ {"path": "*auto-list/tests/test_margin_flags.py", "rules": ["yen", "cost"], "reason": "Worked margin example."},
+ {"path": "scripts/gen_pricing_parity_fixture.py", "rules": ["yen"], "reason": "Generator loops over every ¥1..¥800; no real rows."},
+ {"path": "sassy-closet/lib/pricing.ts", "rules": ["cny"], "reason": "FX rate doc comment (1 USD = x CNY), not a cost."},
+ {"path": "sassy-closet/tests/store.test.ts", "rules": ["cost", "tb_cn"], "reason": "Synthetic store row; link e.tb.cn/example."},
+ {"path": "sassy-closet/tests/intake-sell-backfill.test.ts", "rules": ["cost", "taobao"], "reason": "Piece 32 replaced the real D05 link with placeholder id=1; costs synthetic."},
+ {"path": "07-pricing-parity/PR.md", "rules": ["yen", "cost_table"], "reason": "Illustrative FX/tier table (round ¥ steps), not intake rows."}
+]

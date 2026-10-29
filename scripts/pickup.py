@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 
 from autolist import listing_quote
-from held_policy import HeldPolicy
+from held_policy import HeldPolicy, norm_ma
 
 S06_LOCK = 25
 # Same store rate as sassy-closet pricing.ts DEFAULT_FX. Not a new rate.
@@ -77,7 +77,7 @@ class PickupDecision:
 def plan_pickups(events: list[PickupEvent], policy: HeldPolicy) -> list[PickupDecision]:
     """Quote, hold, or block. live and publish stay false. Stored ¥ is copied."""
     counts: dict[str, int] = {}
-    codes = [event.ma.strip().upper() for event in events]
+    codes = [norm_ma(event.ma) for event in events]
     for code in codes:
         counts[code] = counts.get(code, 0) + 1
     decisions: list[PickupDecision] = []
@@ -159,7 +159,7 @@ def events_from_json(value: object) -> list[PickupEvent]:
         photo_count = None if photos is None else int(photos)
         events.append(
             PickupEvent(
-                ma=item["ma"],
+                ma=norm_ma(item["ma"]),
                 via=str(item.get("via", "webhook")),
                 action=str(item.get("action", "create")),
                 cost_cny="" if item.get("cost_cny") is None else str(item.get("cost_cny")),
@@ -188,7 +188,7 @@ def landed_usd_from_cny(ma: str, cost_cny: str | None) -> str | None:
     text = cost_cny.strip()
     if _CNY_RE.fullmatch(text) is None:
         return None
-    kind = ma.strip().upper()[:1]
+    kind = norm_ma(ma)[:1]
     debox = DEBOX_USD.get(kind, Decimal("0"))
     landed = Decimal(text) / INTAKE_FX + debox
     return format(landed, "f")
@@ -303,6 +303,8 @@ def _whole_dollars(value: str | None) -> int | None:
         number = Decimal(text)
     except (InvalidOperation, ValueError):
         return None
+    if not number.is_finite():
+        return None
     integral = number.to_integral_value()
     if number != integral:
         return None
@@ -312,4 +314,8 @@ def _whole_dollars(value: str | None) -> int | None:
 def _decimal_or_none(value: object) -> Decimal | None:
     if value is None or value == "":
         return None
-    return Decimal(str(value))
+    try:
+        number = Decimal(str(value).strip())
+    except (InvalidOperation, ValueError):
+        return None
+    return number if number.is_finite() else None

@@ -14,13 +14,27 @@ from pathlib import Path
 MA_RE = re.compile(r"^[A-Z][0-9]{2}$")
 
 
+_SPELLING = re.compile(r"^([A-Z])(\d+)$")
+
+
+def norm_ma(value: object) -> str:
+    """Canonical mã key, same as ma.ts canonicalMaSpelling.
+
+    Trimmed, upper-cased, zero padding collapsed: ' k03 ', 'K003', 'k3' -> 'K03';
+    'A100' stays. Non-mã text is returned trimmed + upper-cased; None -> ''.
+    """
+    code = "" if value is None else str(value).strip().upper()
+    m = _SPELLING.match(code)
+    return f"{m.group(1)}{int(m.group(2)):02d}" if m else code
+
+
 @dataclass(frozen=True)
 class HeldPolicy:
     held: tuple[str, ...]
     never_list: tuple[str, ...]
 
     def skip_reason(self, ma: str) -> str | None:
-        code = ma.strip().upper()
+        code = norm_ma(ma)
         if code in self._held:
             return "held"
         if code in self._never:
@@ -63,7 +77,7 @@ def _codes(value: object, label: str, *, allow_empty: bool = False) -> list[str]
     for item in value:
         if not isinstance(item, str):
             raise ValueError(f"{label} contains a non-string mã")
-        code = item.strip().upper()
+        code = norm_ma(item)
         if not MA_RE.fullmatch(code):
             raise ValueError(f"{label} has an invalid mã {item!r}")
         if code in seen:

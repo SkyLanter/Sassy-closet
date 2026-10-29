@@ -1,0 +1,24 @@
+{
+  "schema": "run-gaps/v1",
+  "note": "Daily shop jobs and the output each one must leave. Paths are relative to --root (the shop work dir). {date} = YYYY-MM-DD in the job's timezone. Read-only config; run_gap_check.py never writes into --root.",
+  "jobs": [
+    {"name": "midnight_qc", "kind": "dated", "pattern": "out/midnight-qc/{date}/", "cadence": "daily",
+     "timezone": "America/Los_Angeles", "expected_hour": 2,
+     "required": ["started.json", "summary.json", "data-ok.md", "meta-light.md"], "json_files": ["started.json", "summary.json"]},
+    {"name": "muse_pack", "kind": "dated", "pattern": "out/muse/pack-{date}.md", "cadence": "daily",
+     "timezone": "UTC", "expected_hour": 12, "date_offset_days": -1,
+     "note": "pack-D.md is written the morning after D (~11:00 UTC), so today's expected file is yesterday's date"},
+    {"name": "muse_extras", "kind": "dated", "pattern": "out/muse/extras-{date}.md", "cadence": "daily",
+     "timezone": "UTC", "expected_hour": 8},
+    {"name": "muse_today", "kind": "single", "pattern": "out/muse/TODAY.md", "cadence": "daily",
+     "timezone": "UTC", "expected_hour": 12},
+    {"name": "cost_recheck", "kind": "dated", "pattern": "verify/cost-recheck/cost-recheck-{date}.csv", "cadence": "daily",
+     "timezone": "UTC", "expected_hour": 11},
+    {"name": "auto_list_state", "kind": "state", "pattern": "auto-list/state/last_check.json", "cadence": "daily",
+     "timezone": "UTC", "expected_hour": 6,
+     "active_window": {"timezone": "America/Los_Angeles", "start": "08:09", "end": "22:54", "max_age_minutes": 45},
+     "json_files": ["auto-list/state/last_check.json", "auto-list/state/live-catalog-latest.json"],
+     "zero_byte_ok": ["*.lock"], "scan_dir": "auto-list/state",
+     "note": "last_check.json is rewritten each auto-list run; empty *.lock files are flock targets and are normal. Auto-list runs every 15 min inside active_window (PT); outside it, never stale; inside, stale when the later of last run / window start is > max_age_minutes old"}
+  ]
+}

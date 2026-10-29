@@ -7,6 +7,8 @@ import {
   maLetter,
   nextMaForLetter,
   normalizeMa,
+  canonicalMaSpelling,
+  isCanonicalMaSpelling,
   type MaLetter,
 } from "@/lib/ma";
 import { applyRecordedHubColors, bindColorId, stampImageOrders } from "@/lib/hub-colors";
@@ -47,6 +49,19 @@ export type CatalogMutation =
 
 function isMaLetter(value: string): value is MaLetter {
   return (MA_LETTERS as readonly string[]).includes(value);
+}
+
+/** Catalog row for a mã under any spelling: exact first, then the shared canonical spelling. */
+function catalogIndex(catalog: Product[], ma: string): number {
+  const exact = catalog.findIndex((product) => product.ma === ma);
+  if (exact >= 0) return exact;
+  const key = canonicalMaSpelling(ma);
+  return key ? catalog.findIndex((product) => canonicalMaSpelling(product.ma) === key) : -1;
+}
+
+function maTaken(catalog: Product[], ma: string): boolean {
+  const key = canonicalMaSpelling(ma);
+  return catalog.some((product) => canonicalMaSpelling(product.ma) === key);
 }
 
 function isStatus(value: string): value is ProductStatus {
@@ -163,7 +178,7 @@ export function addProductToCatalog(
   if (!isSellableMa(ma) || looksLikeOfficialMa(ma)) {
     return { ok: false, error: nonAllowlistSaveError(ma) };
   }
-  if (catalog.some((product) => normalizeMa(product.ma) === ma)) {
+  if (maTaken(catalog, ma)) {
     return { ok: false, error: `Mã ${ma} already exists. Do not gộp. Pick an unused mã.` };
   }
   try {
@@ -181,15 +196,17 @@ export function saveProductInCatalog(
   maInput: string,
   input: ProductFieldsInput,
 ): CatalogMutation {
-  const ma = normalizeMa(maInput);
-  if (!isSellableMa(ma)) {
-    return { ok: false, error: nonAllowlistSaveError(ma) };
+  const asked = normalizeMa(maInput);
+  if (!isSellableMa(asked)) {
+    return { ok: false, error: nonAllowlistSaveError(asked) };
   }
-  const index = catalog.findIndex((product) => product.ma === ma);
+  const index = catalogIndex(catalog, asked);
   if (index < 0) {
-    return { ok: false, error: `Mã ${ma} is not in the catalog` };
+    return { ok: false, error: `Mã ${asked} is not in the catalog` };
   }
-  if (ma === "S06" && input.priceUsd !== 25) {
+  // Keep the stored spelling; lock on the canonical one so "S006" / "S6" cannot dodge S06 $25.
+  const ma = catalog[index].ma;
+  if (canonicalMaSpelling(ma) === "S06" && input.priceUsd !== 25) {
     return { ok: false, error: "S06 stays $25." };
   }
   try {
@@ -224,17 +241,26 @@ export function renameProductInCatalog(
   if (from === to) {
     return saveProductInCatalog(catalog, from, input);
   }
-  if (isKnownSeedMa(from)) {
+  if (!isCanonicalMaSpelling(to)) {
+    return { ok: false, error: `Use ${canonicalMaSpelling(to)}, not ${to}.` };
+  }
+  if (isOffLiveSell(to)) {
+    return { ok: false, error: `Cannot change mã to ${to}.` };
+  }
+  if (to === "S06" && input.priceUsd !== 25) {
+    return { ok: false, error: "S06 stays $25." };
+  }
+  if (isKnownSeedMa(canonicalMaSpelling(from))) {
     return {
       ok: false,
       error: `Cannot rename hub mã ${from}. Keep the ten. Add a new piece instead.`,
     };
   }
-  const index = catalog.findIndex((product) => product.ma === from);
+  const index = catalogIndex(catalog, from);
   if (index < 0) {
     return { ok: false, error: `Mã ${from} is not in the catalog` };
   }
-  if (catalog.some((product) => normalizeMa(product.ma) === to)) {
+  if (catalog.some((product, i) => i !== index && canonicalMaSpelling(product.ma) === to)) {
     return { ok: false, error: `Mã ${to} already exists. Do not gộp. Pick an unused mã.` };
   }
   try {
@@ -253,11 +279,11 @@ export function removeProductFromCatalog(catalog: Product[], maInput: string): C
   if (!ma) {
     return { ok: false, error: "Mã is required" };
   }
-  const index = catalog.findIndex((product) => product.ma === ma);
+  const index = catalogIndex(catalog, ma);
   if (index < 0) {
     return { ok: false, error: `Mã ${ma} is not in the catalog` };
   }
-  if (isKnownSeedMa(ma)) {
+  if (isKnownSeedMa(canonicalMaSpelling(ma))) {
     return {
       ok: false,
       error: `Cannot remove hub mã ${ma}. Mark Sold / Gone to hide it. Never invent a replacement mã.`,
@@ -266,7 +292,7 @@ export function removeProductFromCatalog(catalog: Product[], maInput: string): C
   if (catalog.length <= 1) {
     return { ok: false, error: "Catalog must keep at least one mã" };
   }
-  const updated = catalog.filter((product) => product.ma !== ma);
+  const updated = catalog.filter((_, i) => i !== index);
   return { ok: true, products: updated, ma };
 }
 
@@ -277,7 +303,7 @@ export function bulkHoldInCatalog(catalog: Product[], mas: string[]): CatalogMut
   let products = catalog;
   let last = "";
   for (const raw of mas) {
-    const current = products.find((product) => product.ma === normalizeMa(raw));
+    const current = products[catalogIndex(products, normalizeMa(raw))];
     if (!current) {
       return { ok: false, error: `Mã ${normalizeMa(raw)} is not in the catalog` };
     }
@@ -311,13 +337,13 @@ export function mergeProductColors(
   dropId: string,
 ): CatalogMutation {
   const ma = normalizeMa(maInput);
-  const current = catalog.find((product) => product.ma === ma);
+  const current = catalog[catalogIndex(catalog, ma)];
   if (!current) {
     return { ok: false, error: `Mã ${ma} is not in the catalog` };
   }
   try {
     const merged = mergeColorAssets(current.colors, current.images, keepId, dropId);
-    return saveProductInCatalog(catalog, ma, {
+    return saveProductInCatalog(catalog, current.ma, {
       titleEn: current.titleEn,
       titleVn: current.titleVn,
       descriptionEn: current.descriptionEn,

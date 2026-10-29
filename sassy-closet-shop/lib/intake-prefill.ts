@@ -1,4 +1,38 @@
-import type { IntakePrefill } from "@/lib/intake-import";
+import { isShopSize } from "@/lib/asia-size";
+import type { IntakePrefill, PrefillColor } from "@/lib/intake-import";
+
+const str = (value: unknown): string => (typeof value === "string" ? value : "");
+const strList = (value: unknown): string[] =>
+  Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+
+/** Stale or hand-edited storage must not crash prefillToDraft on /admin/new. */
+function sanitizePrefill(parsed: Partial<IntakePrefill> & { intakeMa: string }): IntakePrefill {
+  const colors: PrefillColor[] = Array.isArray(parsed.colors)
+    ? parsed.colors
+        .filter((c): c is PrefillColor => Boolean(c) && typeof c === "object" && typeof c.name === "string")
+        .map((c) => ({
+          ...c,
+          note: str(c.note),
+          truth: c.truth === "confirmed" ? "confirmed" : "unconfirmed",
+          source: str(c.source),
+        }))
+    : [];
+  return {
+    ...parsed,
+    letter: str(parsed.letter),
+    colors,
+    sizes: strList(parsed.sizes).filter(isShopSize),
+    droppedSizes: strList(parsed.droppedSizes),
+    sourceLink: str(parsed.sourceLink),
+    blurb: str(parsed.blurb),
+    captionVi: str(parsed.captionVi),
+    colorNote: str(parsed.colorNote),
+    photoPaths: strList(parsed.photoPaths),
+    photoLink: str(parsed.photoLink),
+    createdAt: str(parsed.createdAt),
+    warnings: strList(parsed.warnings),
+  } as IntakePrefill;
+}
 
 /**
  * Carries an intake prefill from the Intake import page to /admin/new.
@@ -36,10 +70,10 @@ export function consumeIntakePrefill(): IntakePrefill | null {
   }
   try {
     const parsed = JSON.parse(raw) as Partial<IntakePrefill>;
-    if (typeof parsed.intakeMa !== "string" || !parsed.intakeMa.trim()) {
+    if (!parsed || typeof parsed !== "object" || typeof parsed.intakeMa !== "string" || !parsed.intakeMa.trim()) {
       return null;
     }
-    return parsed as IntakePrefill;
+    return sanitizePrefill(parsed as Partial<IntakePrefill> & { intakeMa: string });
   } catch {
     return null;
   }

@@ -1,6 +1,6 @@
 import { isKnownSeedMa } from "@/lib/catalog-contract";
 import { isColorId } from "@/lib/colors";
-import { normalizeMa } from "@/lib/ma";
+import { canonicalMaSpelling, normalizeMa } from "@/lib/ma";
 import type { Product, ProductColor, ProductImageAsset } from "@/lib/types";
 
 /** Recorded hub slugs — not a mood board. Do not invent `den` on K01. */
@@ -67,7 +67,8 @@ export function recordedHubSlugs(ma: string): readonly HubColorSlug[] {
 }
 
 export function hubColorLocked(ma: string): boolean {
-  return isKnownSeedMa(normalizeMa(ma));
+  // Canonical spelling so "A001" / "a1" cannot unlock a hub mã's colours.
+  return isKnownSeedMa(canonicalMaSpelling(ma));
 }
 
 export function slugFromColorName(name: string): HubColorSlug | null {
