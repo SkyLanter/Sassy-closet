@@ -6,7 +6,14 @@ import json
 from decimal import Decimal
 from pathlib import Path
 
-from autolist import listing_quote, margin_for_sell, price, quote_from_sell
+from autolist import (
+    default_autolist_config_path,
+    listing_quote,
+    load_autolist_config,
+    margin_for_sell,
+    price,
+    quote_from_sell,
+)
 from held_policy import default_held_path, load_held_policy
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -140,3 +147,49 @@ def test_held_file_override_is_the_only_list(tmp_path: Path) -> None:
     assert "V05" not in source
     assert "Q02" not in source
     assert "Q02" not in pickup
+
+
+def test_autolist_config_allows_q02_and_matches_held_json() -> None:
+    """PR #108 cleared neverList. The auto-list config must stay aligned."""
+    config = load_autolist_config()
+    policy = load_held_policy()
+    assert default_autolist_config_path() == ROOT / "auto-list" / "config.json"
+    assert config.never_list == policy.never_list == ()
+    assert "Q02" not in config.never_list
+    assert "Boss 2026-10-12" in config.note
+    assert "PR #108" in config.note
+    assert "S06 stays $25" in config.note
+    quoted = listing_quote("Q02", Decimal("20"), policy, config)
+    assert quoted.action == "quote"
+    assert quoted.sell_usd is not None
+    assert listing_quote("S06", Decimal("20"), policy, config).sell_usd == 25
+
+
+def test_config_never_list_can_skip_but_cannot_move_s06(tmp_path: Path) -> None:
+    path = tmp_path / "config.json"
+    path.write_text(
+        json.dumps(
+            {
+                "note": "fixture never-list, not the committed Boss 2026-10-12 file",
+                "neverList": ["Q02"],
+            }
+        ),
+        encoding="utf-8",
+    )
+    config = load_autolist_config(path)
+    blocked = listing_quote("Q02", Decimal("20"), config=config)
+    assert blocked.action == "skip"
+    assert blocked.sell_usd is None
+    committed = load_autolist_config()
+    assert "Q02" not in committed.never_list
+    assert listing_quote("Q02", Decimal("10"), config=committed).action == "quote"
+    path.write_text(
+        json.dumps({"note": "S06 cannot be never-listed", "neverList": ["S06"]}),
+        encoding="utf-8",
+    )
+    try:
+        load_autolist_config(path)
+    except ValueError as error:
+        assert "S06" in str(error)
+        return
+    raise AssertionError("S06 was accepted on the auto-list never-list")
