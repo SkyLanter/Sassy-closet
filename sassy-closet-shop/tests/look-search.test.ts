@@ -13,6 +13,7 @@ import {
   suggestLooks,
   type LookSearchItem,
 } from "../lib/look-search";
+import { normalizeMa } from "../lib/ma";
 
 const BOOK: LookSearchItem[] = [
   { ma: "A15", titleEn: "Heather knit top", titleVn: "Áo len" },
@@ -58,6 +59,15 @@ test("search matches category words, plurals, and any token order", () => {
   assert.deepEqual(mas("top knit"), mas("knit top"));
   assert.equal(mas("top knit").includes("A15"), true);
   assert.deepEqual(mas(""), BOOK.map((look) => look.ma));
+});
+
+test("shop mã normalization trims and uppers and keeps extra zeros", () => {
+  assert.equal(normalizeMa("  s06 "), "S06");
+  assert.equal(normalizeMa("s06"), "S06");
+  assert.equal(normalizeMa("s006"), "S006");
+  assert.equal(normalizeMa("a015"), "A015");
+  assert.equal(normalizeMa("a1"), "A1");
+  assert.equal(normalizeMa("  "), "");
 });
 
 test("loose mã matches only an existing mã and keeps leading zeros", () => {

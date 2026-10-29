@@ -49,6 +49,11 @@ test("publish guard allows Q02 and still blocks held mãs, a reused mã, and S06
   assert.equal(publishBlock({ action: "sync", ma: "S06", sellUsd: "40" }), "s06-lock");
   assert.equal(publishBlock({ action: "sync", ma: "S06", sellUsd: "25", sellCurrency: "CNY" }), "s06-lock");
   assert.equal(publishBlock({ action: "sync", ma: "S06", sellUsd: "180", sellCurrency: "cny" }), "s06-lock");
+  assert.equal(publishBlock({ action: "sync", ma: " s06 ", sellUsd: "30" }), "s06-lock");
+  assert.equal(publishBlock({ action: "sync", ma: "s006", sellUsd: "30" }), "s06-lock");
+  assert.equal(publishBlock({ action: "update", ma: "S006", sellUsd: "25" }), null);
+  assert.equal(publishBlock({ action: "create", ma: "k006" }), "held");
+  assert.equal(publishBlock({ action: "mint", ma: "q002" }), null);
   assert.equal(mintBlock("K", ["K01", "K02", "K03", "K04", "K05"]), "held");
   assert.equal(mintBlock("Q", ["Q01"]), null);
   assert.equal(mintBlock("A", []), null);
@@ -68,6 +73,8 @@ test("save persists Q02 and still refuses K06 or S06 at another dollar", async (
   await assert.rejects(() => saveSubmission(blankSave({ kind: "Q", newMa: "q02" })), /đã có rồi/);
   await assert.rejects(() => saveSubmission(blankSave({ kind: "K", newMa: "K06" })), /held/);
   await assert.rejects(() => saveSubmission(blankSave({ kind: "S", newMa: "S06", sellUsd: "30" })), /s06-lock/);
+  await assert.rejects(() => saveSubmission(blankSave({ kind: "S", newMa: "s006", sellUsd: "30" })), /s06-lock/);
+  await assert.rejects(() => saveSubmission(blankSave({ kind: "K", newMa: "k006" })), /held/);
   const locked = await saveSubmission(blankSave({ kind: "S", newMa: "S06", sellUsd: "25" }));
   assert.equal(locked.ma, "S06");
   assert.equal(locked.sell_usd, "25");

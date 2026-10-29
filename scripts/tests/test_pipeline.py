@@ -358,6 +358,11 @@ def test_s06_held_and_reprice_do_not_publish() -> None:
     assert locked.pickup[0].flags == ()
     assert locked.guards_pass
 
+    lower, _lower_payload = _report([_complete(" s06 ", action="update", sell_usd="30")])
+    assert lower.pickup[0].publish is False
+    assert lower.pickup[0].flags == ("s06_lock",)
+    assert lower.guards_pass is False
+
     same, _payload = _report(
         [
             _complete(

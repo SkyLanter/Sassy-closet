@@ -46,7 +46,13 @@ function stagedItem(overrides: Partial<Submission> = {}): Submission {
 test("normalize find code trims and uppers without inventing a new mã", () => {
   assert.equal(normalizeFindCode("  a01  "), "A01");
   assert.equal(normalizeFindCode("p05"), "P05");
+  assert.equal(normalizeFindCode("  s06 "), "S06");
+  assert.equal(normalizeFindCode("s006"), "S06");
+  assert.equal(normalizeFindCode("a015"), "A15");
+  assert.equal(normalizeFindCode("a1"), "A1");
+  assert.equal(normalizeFindCode("x99"), "X99");
   assert.equal(normalizeFindCode(""), "");
+  assert.equal(normalizeFindCode("  "), "");
 });
 
 test("missing cost/sell/notes display as dash — never invent $", () => {
