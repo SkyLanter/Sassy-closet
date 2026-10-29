@@ -109,9 +109,9 @@ describe("durable / local store", { concurrency: 1 }, () => {
     assert.ok(fs.existsSync(path.join(tmp, "photos", "A01", "001.jpg")));
   });
 
-  test("kind G mints G01 with shoe size and export size_options 35–41", async () => {
-    const saved = await saveSubmission({
-      kind: "G",
+  test("kind G stops on held G01 and a later shoe mã still exports sizes 35–41", async () => {
+    const shoe = {
+      kind: "G" as const,
       size: "37 38",
       link: "",
       color: "Đen",
@@ -125,17 +125,19 @@ describe("durable / local store", { concurrency: 1 }, () => {
       sell_currency: "USD",
       keep_photos: [],
       photos: [],
-    });
-    assert.equal(saved.ma, "G01");
+    };
+    await assert.rejects(() => saveSubmission(shoe), /Không mint G01 \(held\)/);
+    const saved = await saveSubmission({ ...shoe, newMa: "G02" });
+    assert.equal(saved.ma, "G02");
     assert.equal(saved.kind, "G");
     assert.equal(saved.size, "37 38");
     const csv = await exportCsv();
-    assert.match(csv, /G01/);
+    assert.match(csv, /G02/);
     assert.match(csv, /Giày \/ Cao gót/);
     assert.match(csv, /35 36 37 38 39 40 41/);
     const listed = await listSubmissions();
     assert.equal(listed.length, 1);
-    assert.equal(listed[0].ma, "G01");
+    assert.equal(listed[0].ma, "G02");
   });
 
   test("kind D mints D01 and does not invent extra mãs", async () => {
