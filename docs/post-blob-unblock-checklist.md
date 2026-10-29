@@ -6,7 +6,7 @@ Read-only. Run only AFTER Boss unblocks the Vercel Blob store. One command does 
 | # | URL | PASS looks like |
 |---|-----|-----------------|
 | 1 | https://sassy-closet.vercel.app/ | 200, form shows. The FX label is the real one, not "Tỷ giá mặc định … kho đang không đọc được" |
-| 2 | https://sassy-closet.vercel.app/api/submissions | **200** with no login and no cookie. Header `X-Robots-Tag: noindex, nofollow`. A real mã list, no `"storeUnavailable":true`. Not in the sitemap or nav |
+| 2 | https://sassy-closet.vercel.app/api/submissions | **200** with no login and no cookie. Header `X-Robots-Tag: noindex, nofollow, nosnippet`. A real mã list, no `"storeUnavailable":true`. Not in the sitemap or nav |
 | 3 | https://sassy-closet.vercel.app/api/fx | 200 with `usd_cny` |
 | 4 | https://sassy-closet.vercel.app/api/ma/S06 | **200** with no login. Same noindex header. `/api/submissions/S06` is 200 when that mã is stored, otherwise 404, and still noindex |
 | 5 | https://sassy-closet.vercel.app/api/export | **200** CSV with no login. Same noindex header. The script does not print the CSV |

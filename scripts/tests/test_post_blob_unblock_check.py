@@ -35,7 +35,7 @@ def _serve(routes):
     return srv
 
 
-ROBOTS = {"X-Robots-Tag": "noindex, nofollow"}
+ROBOTS = {"X-Robots-Tag": "noindex, nofollow, nosnippet"}
 
 
 def _healthy():

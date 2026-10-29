@@ -6,7 +6,7 @@ import test from "node:test";
 
 // Direct-link GETs are public and noindex. Writes stay 401 with no cost/source leak.
 const LEAK = /cost_cny|cost_usd|costCny|costUsd|source_?link|sourceLink|taobao|supplier|\bnhung\b|@[a-z0-9-]+\.[a-z]/i;
-const NOINDEX = /noindex,\s*nofollow/i;
+const NOINDEX = /noindex,\s*nofollow,\s*nosnippet/i;
 const MODES: Array<[string, string | undefined]> = [["json-default", undefined], ["json-0", "0"], ["empty-1", "1"], ["empty-true", "true"]];
 
 async function writeRoutes() {

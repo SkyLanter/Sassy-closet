@@ -15,7 +15,7 @@ const COST_CUR = ["cost", "currency"].join("_");
 
 function assertDirectLink(res: Response) {
   assert.equal(res.status, 200);
-  assert.match(res.headers.get("x-robots-tag") ?? "", /noindex,\s*nofollow/i);
+  assert.match(res.headers.get("x-robots-tag") ?? "", /noindex,\s*nofollow,\s*nosnippet/i);
   assert.match(res.headers.get("cache-control") ?? "", /no-store/);
   assert.equal(res.headers.get("set-cookie"), null);
 }

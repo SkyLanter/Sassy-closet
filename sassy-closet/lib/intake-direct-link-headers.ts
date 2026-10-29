@@ -4,8 +4,15 @@
  */
 export const INTAKE_DIRECT_LINK_HEADERS: Record<string, string> = {
   "Cache-Control": "private, no-store, no-cache, max-age=0, must-revalidate",
-  "X-Robots-Tag": "noindex, nofollow",
+  "X-Robots-Tag": "noindex, nofollow, nosnippet",
 };
+
+/** HTML pages that list intake rows or the CSV. Same robots intent as the data APIs. */
+export const INTAKE_LISTING_ROBOTS = {
+  index: false,
+  follow: false,
+  nosnippet: true,
+} as const;
 
 export const INTAKE_DIRECT_LINK_SOURCES = [
   "/api/submissions",
