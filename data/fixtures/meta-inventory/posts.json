@@ -1,0 +1,8 @@
+{"posts":[
+{"id":"r1","url":"https://example.test/reel/1","platform":"facebook","created_at":"2026-01-02","caption":"","media_type":"reel"},
+{"id":"p1","url":"https://example.test/p/1","platform":"fb","created_at":"2026-01-01","caption":"Mã A09\nÁo\nGiá $30","media_type":"photo"},
+{"id":"p2","url":"https://example.test/p/2","platform":"fb","created_at":"2026-01-01","caption":"Mã A09\nGiá $30","media_type":"photo"},
+{"id":"p3","url":"https://example.test/p/3","platform":"fb","created_at":"2026-01-01","caption":"Mã S19\nĐồ ngủ","media_type":"photo"},
+{"id":"i1","url":"https://example.test/ig/1","platform":"instagram","created_at":"2026-01-01","caption":"Mã S06\nGiá $25","media_type":"carousel"},
+{"id":"i2","url":"https://example.test/ig/2","platform":"ig","created_at":"2026-01-01","caption":"Mã D06\nGiá $29","media_type":"photo"}
+]}

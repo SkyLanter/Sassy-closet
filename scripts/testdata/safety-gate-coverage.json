@@ -1,0 +1,595 @@
+{
+ "about": "Piece 211 safety-gate coverage map. COVERED = a test asserts the gate blocks a bad input AND allows a good one (incl. variant spellings where relevant); PARTIAL = one side or canonical-only; UNCOVERED = none. Guarded by scripts/tests/test_safety_gate_coverage.py.",
+ "gates": [
+  {
+   "id": "s06-lock-publish",
+   "location": "sassy-closet/lib/publish-guard.ts:32",
+   "protects": "S06 $25 lock on intake create/update/sync",
+   "symbol": "publishBlock",
+   "tests": [
+    "sassy-closet/tests/gate-verdict-parity.test.ts",
+    "sassy-closet/tests/held-never-list-parity.test.ts",
+    "sassy-closet/tests/ma-variant-fuzz.test.ts",
+    "sassy-closet/tests/publish-guard-padded-s06.test.ts",
+    "sassy-closet/tests/publish-guard.test.ts",
+    "sassy-closet/tests/short-ma-gates.test.ts"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "held-block-publish",
+   "location": "sassy-closet/lib/publish-guard.ts:31",
+   "protects": "held mã cannot be published from intake",
+   "symbol": "publishBlock",
+   "tests": [
+    "sassy-closet/tests/gate-verdict-parity.test.ts",
+    "sassy-closet/tests/held-never-list-parity.test.ts",
+    "sassy-closet/tests/ma-variant-fuzz.test.ts",
+    "sassy-closet/tests/publish-guard-padded-s06.test.ts",
+    "sassy-closet/tests/publish-guard.test.ts",
+    "sassy-closet/tests/short-ma-gates.test.ts"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "never-list-publish",
+   "location": "sassy-closet/lib/publish-guard.ts:30",
+   "protects": "never-list mã cannot be published",
+   "symbol": "publishBlock",
+   "tests": [
+    "sassy-closet/tests/gate-verdict-parity.test.ts",
+    "sassy-closet/tests/held-never-list-parity.test.ts",
+    "sassy-closet/tests/ma-variant-fuzz.test.ts",
+    "sassy-closet/tests/publish-guard-padded-s06.test.ts",
+    "sassy-closet/tests/publish-guard.test.ts",
+    "sassy-closet/tests/short-ma-gates.test.ts"
+   ],
+   "verdict": "PARTIAL",
+   "suggested_test": "neverList empty: never-list fixtures skipped; real block only proven with synthetic lists"
+  },
+  {
+   "id": "reuse-duplicate-publish",
+   "location": "sassy-closet/lib/publish-guard.ts:27",
+   "protects": "reused/duplicate mã refused",
+   "symbol": "publishBlock",
+   "tests": [
+    "sassy-closet/tests/gate-verdict-parity.test.ts",
+    "sassy-closet/tests/held-never-list-parity.test.ts",
+    "sassy-closet/tests/ma-variant-fuzz.test.ts",
+    "sassy-closet/tests/publish-guard-padded-s06.test.ts",
+    "sassy-closet/tests/publish-guard.test.ts",
+    "sassy-closet/tests/short-ma-gates.test.ts"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "mint-block",
+   "location": "sassy-closet/lib/publish-guard.ts:51",
+   "protects": "minted mã must pass publishBlock",
+   "symbol": "mintBlock",
+   "tests": [
+    "sassy-closet/tests/publish-guard.test.ts"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "intake-nextMa",
+   "location": "sassy-closet/lib/mint.ts:40",
+   "protects": "next mã never reuses a taken/held/never number",
+   "symbol": "nextMa",
+   "tests": [
+    "sassy-closet/tests/ask-and-saved.test.ts",
+    "sassy-closet/tests/fx.test.ts",
+    "sassy-closet/tests/ma-variant-fuzz.test.ts",
+    "sassy-closet/tests/publish-guard.test.ts",
+    "sassy-closet/tests/short-ma-gates.test.ts"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "intake-normalizeMa",
+   "location": "sassy-closet/lib/mint.ts:31",
+   "protects": "intake canonical mã spelling",
+   "symbol": "normalizeMa",
+   "tests": [
+    "sassy-closet/tests/ma-normalization-parity.test.ts",
+    "sassy-closet/tests/ma-variant-fuzz.test.ts",
+    "sassy-closet/tests/publish-guard-padded-s06.test.ts",
+    "sassy-closet/tests/short-ma-gates.test.ts"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "intake-held-list",
+   "location": "sassy-closet/lib/held-incomplete.ts:26",
+   "protects": "intake held-incomplete membership",
+   "symbol": "isHeldIncompleteMa",
+   "tests": [
+    "sassy-closet/tests/held-incomplete.test.ts",
+    "sassy-closet/tests/held-never-list-parity.test.ts",
+    "sassy-closet/tests/held-padded-ma.test.ts",
+    "sassy-closet/tests/ma-variant-fuzz.test.ts"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "intake-q02-never",
+   "location": "sassy-closet/lib/intake-sell-backfill.ts:23",
+   "protects": "Q02 + never-list kept out of sell backfill",
+   "symbol": "NEVER_LIST_MAS",
+   "tests": [
+    "sassy-closet/tests/held-incomplete.test.ts",
+    "sassy-closet/tests/held-never-list-parity.test.ts",
+    "sassy-closet/tests/intake-sell-backfill.test.ts"
+   ],
+   "verdict": "PARTIAL",
+   "suggested_test": "once neverList has entries, assert backfill excludes every spelling of them (today only canonical Q02)"
+  },
+  {
+   "id": "shop-canonical-spelling",
+   "location": "sassy-closet-shop/lib/ma.ts:33",
+   "protects": "one canonical mã spelling (S006/s6 -> S06)",
+   "symbol": "canonicalMaSpelling",
+   "tests": [
+    "sassy-closet-shop/tests/gate-verdict-parity.test.ts",
+    "sassy-closet-shop/tests/ma-normalization-parity.test.ts",
+    "sassy-closet-shop/tests/ma-variant-fuzz.test.ts",
+    "sassy-closet-shop/tests/normalizeMa-audit.test.ts"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "shop-nextMaForLetter",
+   "location": "sassy-closet-shop/lib/ma.ts:77",
+   "protects": "shop next mã skips taken/never-list numbers",
+   "symbol": "nextMaForLetter",
+   "tests": [
+    "sassy-closet-shop/tests/publish-mint.test.ts",
+    "sassy-closet-shop/tests/safety-gate-gaps.test.ts"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": "",
+   "note": "piece 211 added block+allow test (mutation-proved)"
+  },
+  {
+   "id": "shop-held-list",
+   "location": "sassy-closet-shop/lib/held-incomplete.ts:21",
+   "protects": "held mã detection (canonical)",
+   "symbol": "isHeldIncompleteMa",
+   "tests": [
+    "sassy-closet-shop/tests/gate-verdict-parity.test.ts",
+    "sassy-closet-shop/tests/held-incomplete.test.ts",
+    "sassy-closet-shop/tests/held-never-list-parity.test.ts",
+    "sassy-closet-shop/tests/held-padded-ma.test.ts",
+    "sassy-closet-shop/tests/ma-variant-fuzz.test.ts"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "shop-off-live-sell",
+   "location": "sassy-closet-shop/lib/held-incomplete.ts:26",
+   "protects": "held/never-list kept off public sell",
+   "symbol": "isOffLiveSell",
+   "tests": [
+    "sassy-closet-shop/tests/gate-verdict-parity.test.ts",
+    "sassy-closet-shop/tests/held-incomplete.test.ts",
+    "sassy-closet-shop/tests/held-never-list-parity.test.ts",
+    "sassy-closet-shop/tests/held-padded-ma.test.ts",
+    "sassy-closet-shop/tests/ma-variant-fuzz.test.ts"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "shop-maTaken",
+   "location": "sassy-closet-shop/lib/admin-ops.ts:62",
+   "protects": "no two rows share a canonical mã",
+   "symbol": "renameProductInCatalog",
+   "tests": [
+    "sassy-closet-shop/tests/ma-variant-fuzz.test.ts",
+    "sassy-closet-shop/tests/padded-ma-paths.test.ts",
+    "sassy-closet-shop/tests/padded-s06-save-lock.test.ts",
+    "sassy-closet-shop/tests/rename-held-target.test.ts",
+    "sassy-closet-shop/tests/rename-s06-lock.test.ts"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "admin-save",
+   "location": "sassy-closet-shop/lib/admin-ops.ts:194",
+   "protects": "save: sellable mã, S06 $25 on canonical",
+   "symbol": "saveProductInCatalog",
+   "tests": [
+    "sassy-closet-shop/tests/gate-verdict-parity.test.ts",
+    "sassy-closet-shop/tests/held-never-list-parity.test.ts",
+    "sassy-closet-shop/tests/ma-variant-fuzz.test.ts",
+    "sassy-closet-shop/tests/padded-s06-save-lock.test.ts",
+    "sassy-closet-shop/tests/publish-mint.test.ts"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "admin-change-ma",
+   "location": "sassy-closet-shop/lib/admin-ops.ts:223",
+   "protects": "change-mã order: canonical -> held/never -> S06 $25",
+   "symbol": "renameProductInCatalog",
+   "tests": [
+    "sassy-closet-shop/tests/ma-variant-fuzz.test.ts",
+    "sassy-closet-shop/tests/padded-ma-paths.test.ts",
+    "sassy-closet-shop/tests/padded-s06-save-lock.test.ts",
+    "sassy-closet-shop/tests/rename-held-target.test.ts",
+    "sassy-closet-shop/tests/rename-s06-lock.test.ts"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "admin-remove",
+   "location": "sassy-closet-shop/lib/admin-ops.ts:277",
+   "protects": "remove: hub mãs stay, canonical lookup",
+   "symbol": "removeProductFromCatalog",
+   "tests": [
+    "sassy-closet-shop/tests/admin-remove-bulk-hold-gates.test.ts",
+    "sassy-closet-shop/tests/ma-variant-fuzz.test.ts"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "admin-bulk-hold",
+   "location": "sassy-closet-shop/lib/admin-ops.ts:299",
+   "protects": "bulk hold by canonical mã",
+   "symbol": "bulkHoldInCatalog",
+   "tests": [
+    "sassy-closet-shop/tests/admin-remove-bulk-hold-gates.test.ts",
+    "sassy-closet-shop/tests/ma-variant-fuzz.test.ts"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "unique-mas",
+   "location": "sassy-closet-shop/lib/catalog-integrity.ts:57",
+   "protects": "K03/K003 never coexist",
+   "symbol": "assertUniqueNormalizedMas",
+   "tests": [
+    "sassy-closet-shop/tests/ma-variant-fuzz.test.ts"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "integrity-report-duplicates",
+   "location": "sassy-closet-shop/lib/catalog-integrity.ts:31",
+   "protects": "duplicate report uses canonical key",
+   "symbol": "inspectCatalogIntegrity",
+   "tests": [
+    "sassy-closet-shop/tests/normalizeMa-audit.test.ts"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "live-catalog-integrity",
+   "location": "sassy-closet-shop/lib/catalog-integrity.ts:93",
+   "protects": "live doc: unique, hub ten present, no Official alphabet",
+   "symbol": "assertLiveCatalogIntegrity",
+   "tests": [
+    "sassy-closet-shop/tests/boss-price-lock.test.ts",
+    "sassy-closet-shop/tests/safety-gate-gaps.test.ts"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": "",
+   "note": "piece 211 added block+allow test (mutation-proved)"
+  },
+  {
+   "id": "import-sell-contract",
+   "location": "sassy-closet-shop/lib/sell-contract.ts:110",
+   "protects": "import: hub present, no dup, canonical spelling, S06 $25",
+   "symbol": "assertImportSellContract",
+   "tests": [
+    "sassy-closet-shop/tests/import-s06-lock.test.ts",
+    "sassy-closet-shop/tests/ma-variant-fuzz.test.ts",
+    "sassy-closet-shop/tests/padded-ma-paths.test.ts"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "hold-price-pairing",
+   "location": "sassy-closet-shop/lib/sell-contract.ts:30",
+   "protects": "hold <=> no price; available needs price",
+   "symbol": "assertHoldPricePairing",
+   "tests": [
+    "sassy-closet-shop/tests/boss-price-lock.test.ts"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "sellable-ma",
+   "location": "sassy-closet-shop/lib/sell-contract.ts:24",
+   "protects": "refuse Official/invalid alphabet",
+   "symbol": "isSellableMa",
+   "tests": [
+    "sassy-closet-shop/tests/cache-policy.test.ts",
+    "sassy-closet-shop/tests/ma-variant-fuzz.test.ts"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "hub-color-lock",
+   "location": "sassy-closet-shop/lib/hub-colors.ts:69",
+   "protects": "hub mã colours locked (any spelling)",
+   "symbol": "hubColorLocked",
+   "tests": [
+    "sassy-closet-shop/tests/normalizeMa-audit.test.ts"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "product-parse-duplicates",
+   "location": "sassy-closet-shop/lib/product-parse.ts:200",
+   "protects": "parsed catalog rejects canonical duplicates",
+   "symbol": "parseCatalog",
+   "tests": [
+    "sassy-closet-shop/tests/ma-variant-fuzz.test.ts"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "corrupt-blob-refusal",
+   "location": "sassy-closet-shop/lib/blob-catalog.ts:101",
+   "protects": "corrupt Blob never falls back to seed",
+   "symbol": "corrupt",
+   "tests": [
+    "sassy-closet-shop/tests/blob-catalog-corrupt.test.ts",
+    "sassy-closet-shop/tests/intake-prefill-corrupt.test.ts"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "canonical-ma-path",
+   "location": "sassy-closet-shop/lib/ma-url.ts:21",
+   "protects": "/m/ padded paths redirect to canonical",
+   "symbol": "canonicalMaPath",
+   "tests": [
+    "sassy-closet-shop/tests/ma-url-canonical-spelling.test.ts",
+    "sassy-closet-shop/tests/ma-url-malformed.test.ts",
+    "sassy-closet-shop/tests/ma-url.test.ts"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "margin-floor",
+   "location": "sassy-closet-shop/lib/pricing.ts:100",
+   "protects": "under 35% margin -> Inbox giá",
+   "symbol": "marginVerdict",
+   "tests": [
+    "sassy-closet-shop/tests/safety-gate-gaps.test.ts"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": "",
+   "note": "piece 211 added block+allow test (mutation-proved)"
+  },
+  {
+   "id": "py-norm-ma",
+   "location": "scripts/held_policy.py:20",
+   "protects": "Python canonical mã spelling",
+   "symbol": "norm_ma",
+   "tests": [
+    "scripts/tests/test_ma_normalization_audit.py",
+    "scripts/tests/test_ma_normalization_parity.py",
+    "scripts/tests/test_ma_variant_fuzz.py"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "py-skip-reason",
+   "location": "scripts/held_policy.py:36",
+   "protects": "held/never-list skip",
+   "symbol": "skip_reason",
+   "tests": [
+    "scripts/tests/test_gate_verdict_parity.py",
+    "scripts/tests/test_held_never_list_parity.py",
+    "scripts/tests/test_ma_variant_fuzz.py",
+    "scripts/tests/test_too_cheap_check.py"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "autolist-quote",
+   "location": "scripts/autolist.py:139",
+   "protects": "held/never skip, S06 $25, no invented price",
+   "symbol": "listing_quote",
+   "tests": [
+    "scripts/tests/test_autolist.py",
+    "scripts/tests/test_gate_verdict_parity.py",
+    "scripts/tests/test_held_never_list_parity.py",
+    "scripts/tests/test_ma_variant_fuzz.py",
+    "scripts/tests/test_pipeline.py",
+    "scripts/tests/test_size_wiring.py"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "autolist-price",
+   "location": "scripts/autolist.py:112",
+   "protects": "non-undercutting sell; refuse bad landed",
+   "symbol": "price(",
+   "tests": [
+    "scripts/tests/test_autolist.py",
+    "scripts/tests/test_autolist_money_nonfinite.py",
+    "scripts/tests/test_cost_basis_reconcile.py",
+    "scripts/tests/test_export_price_nan.py",
+    "scripts/tests/test_freshness_check.py",
+    "scripts/tests/test_held_price_proposal.py",
+    "scripts/tests/test_host_health_check.py",
+    "scripts/tests/test_price_approval_queue.py",
+    "scripts/tests/test_size_wiring.py",
+    "scripts/tests/test_summary_grouped_dedupe.py",
+    "scripts/tests/test_too_cheap_check.py"
+   ],
+   "verdict": "PARTIAL",
+   "suggested_test": "pricing parity with shop is a Boss decision (item 4); no cross-app test"
+  },
+  {
+   "id": "too-cheap",
+   "location": "scripts/too_cheap_check.py:91",
+   "protects": "under-target live price, S06 drift, held skip",
+   "symbol": "tcc.evaluate|too_cheap_check import|evaluate(",
+   "tests": [
+    "scripts/tests/test_freshness_check.py",
+    "scripts/tests/test_gate_verdict_parity.py",
+    "scripts/tests/test_headroom_flag.py",
+    "scripts/tests/test_held_never_list_parity.py",
+    "scripts/tests/test_ma_variant_fuzz.py",
+    "scripts/tests/test_pipeline.py",
+    "scripts/tests/test_too_cheap_check.py",
+    "scripts/tests/test_too_cheap_nonfinite.py"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "daily-snapshot",
+   "location": "scripts/daily_shop_check.py:183",
+   "protects": "held live / S06 off $25 FAIL",
+   "symbol": "judge_snapshot",
+   "tests": [
+    "scripts/tests/test_gate_verdict_parity.py",
+    "scripts/tests/test_held_never_list_parity.py",
+    "scripts/tests/test_ma_normalization_audit.py",
+    "scripts/tests/test_ma_variant_fuzz.py"
+   ],
+   "verdict": "PARTIAL",
+   "suggested_test": "held-live uses snapshot flag (Boss item 6); add today's-list check only if Boss picks (b)"
+  },
+  {
+   "id": "daily-too-cheap",
+   "location": "scripts/daily_shop_check.py:91",
+   "protects": "too-cheap/S06 drift -> FAIL",
+   "symbol": "judge_too_cheap",
+   "tests": [
+    "scripts/tests/test_daily_shop_check.py"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "held-price-proposal",
+   "location": "scripts/held_price_proposal.py:91",
+   "protects": "S06 never proposed; held only",
+   "symbol": "select",
+   "tests": [
+    "scripts/tests/test_held_never_list_parity.py",
+    "scripts/tests/test_held_price_proposal.py",
+    "scripts/tests/test_ma_variant_fuzz.py"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "freshness-held",
+   "location": "scripts/freshness_check.py:392",
+   "protects": "freshness report honours held policy",
+   "symbol": "freshness_check",
+   "tests": [
+    "scripts/tests/test_freshness_check.py",
+    "scripts/tests/test_freshness_default_date_pt.py",
+    "scripts/tests/test_freshness_parse_usd_nonfinite.py",
+    "scripts/tests/test_pipeline.py",
+    "scripts/tests/test_runtime_check.py"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "held-photo-check",
+   "location": "scripts/held_photo_check.py:42",
+   "protects": "held photo load canonical",
+   "symbol": "held_photo_check",
+   "tests": [
+    "scripts/tests/test_held_never_list_parity.py",
+    "scripts/tests/test_held_photo_check.py",
+    "scripts/tests/test_held_photo_public_watch.py"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "held-photo-exposure",
+   "location": "scripts/held_photo_exposure.py:56",
+   "protects": "held set from data/held.json",
+   "symbol": "held_photo_exposure",
+   "tests": [
+    "scripts/tests/test_held_never_list_parity.py",
+    "scripts/tests/test_held_photo_exposure.py",
+    "scripts/tests/test_held_photo_exposure_default.py",
+    "scripts/tests/test_ma_normalization_audit.py",
+    "scripts/tests/test_ma_variant_fuzz.py"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "price-approval-queue",
+   "location": "scripts/price_approval_queue.py:35",
+   "protects": "held mãs out of approval queue",
+   "symbol": "price_approval_queue",
+   "tests": [
+    "scripts/tests/test_held_never_list_parity.py",
+    "scripts/tests/test_ma_normalization_audit.py",
+    "scripts/tests/test_ma_variant_fuzz.py",
+    "scripts/tests/test_price_approval_queue.py"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "intake-code-reuse",
+   "location": "scripts/intake_code_reuse_check.py",
+   "protects": "no mã reuse in intake",
+   "symbol": "intake_code_reuse_check",
+   "tests": [
+    "scripts/tests/test_csv_bom_loaders.py",
+    "scripts/tests/test_intake_code_reuse_check.py",
+    "scripts/tests/test_run_shop_drafts.py"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  },
+  {
+   "id": "intake-flags",
+   "location": "scripts/intake_flags.py",
+   "protects": "bad intake cost flagged to Boss",
+   "symbol": "intake_flags",
+   "tests": [
+    "scripts/tests/test_intake_flags.py",
+    "scripts/tests/test_intake_flags_nonfinite_public.py",
+    "scripts/tests/test_ma_variant_fuzz.py"
+   ],
+   "verdict": "COVERED",
+   "suggested_test": ""
+  }
+ ]
+}

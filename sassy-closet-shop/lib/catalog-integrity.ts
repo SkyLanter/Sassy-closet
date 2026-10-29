@@ -1,5 +1,5 @@
 import { KNOWN_SEED_MAS, isKnownSeedMa } from "@/lib/catalog-contract";
-import { normalizeMa } from "@/lib/ma";
+import { canonicalMaSpelling, normalizeMa } from "@/lib/ma";
 import { assertHoldPricePairing } from "@/lib/sell-contract";
 import type { Product } from "@/lib/types";
 
@@ -35,7 +35,9 @@ export function inspectCatalogIntegrity(products: Product[]): CatalogIntegrity {
   const soldHidden: string[] = [];
   for (const product of products) {
     const ma = normalizeMa(product.ma);
-    seen.set(ma, (seen.get(ma) ?? 0) + 1);
+    // Canonical key: "K03" and "K003" / "k3" are one mã, so twins show as duplicates.
+    const key = canonicalMaSpelling(product.ma);
+    seen.set(key, (seen.get(key) ?? 0) + 1);
     if (!isKnownSeedMa(ma)) {
       extras.push(product.ma);
     }
@@ -55,7 +57,8 @@ export function inspectCatalogIntegrity(products: Product[]): CatalogIntegrity {
 export function assertUniqueNormalizedMas(products: Product[]): void {
   const seen = new Set<string>();
   for (const product of products) {
-    const ma = normalizeMa(product.ma);
+    // Canonical spelling: "K03" and "K003" are the same mã and must never coexist.
+    const ma = canonicalMaSpelling(product.ma);
     if (seen.has(ma)) {
       throw new Error(`Duplicate mã ${ma}. Do not gộp two pieces. Pick a Boss-assigned code.`);
     }

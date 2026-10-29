@@ -140,3 +140,27 @@ def test_held_file_override_is_the_only_list(tmp_path: Path) -> None:
     assert "V05" not in source
     assert "Q02" not in source
     assert "Q02" not in pickup
+
+
+SYNCED_HELD_21 = (
+    "S14 A24 A25 S15 A26 K02 K03 K04 K05 V04 K06 V05 "
+    "S16 A27 A28 S17 S18 S19 A29 H02 G01"
+).split()
+
+
+def test_held_file_lists_the_21_held_mas_and_q02_is_quotable() -> None:
+    policy = load_held_policy()
+    assert sorted(policy.held) == sorted(SYNCED_HELD_21)
+    assert len(set(policy.held)) == 21
+    assert "Q02" not in policy.held and "Q02" not in policy.never_list
+    assert "S06" not in policy.held
+
+
+def test_every_held_ma_is_skipped_never_quoted_for_sell() -> None:
+    policy = load_held_policy()
+    for code in policy.held:
+        for spelled in (code, code.lower()):
+            quote = listing_quote(spelled, Decimal("20"), policy)
+            assert quote.action == "skip", code
+            assert quote.sell_usd is None, code
+    assert listing_quote("Q02", Decimal("20"), policy).action == "quote"

@@ -1,4 +1,5 @@
 import { buildCaptionVi, kindColorsLine } from "./captions";
+import { isHeldIncompleteMa, NEVER_LIST_MAS } from "./held-incomplete";
 import { CLOTHING_SIZES, KIND_CODES, SHOE_SIZES } from "./kinds";
 import { getSubmission, listSubmissions } from "./store";
 import type { AskCopy } from "./types";
@@ -15,6 +16,14 @@ export async function localAskAnswer(question: string): Promise<FallbackAnswer> 
   const q = question.trim();
   const ma = extractMa(q);
   const item = ma ? await getSubmission(ma) : null;
+
+  // Held and never-list mãs never list: no caption/inbox copy, never called "on site".
+  if (item && isOffList(item.ma)) {
+    return {
+      reply: `${item.ma} đang held — không đăng, không caption, không inbox. Hỏi Boss. ${HARD_STOP}`,
+      copies: [],
+    };
+  }
 
   if (/caption|viết caption|title/i.test(q) && item) {
     const caption = item.caption_vi || buildCaptionVi(item);
@@ -83,4 +92,9 @@ export async function localAskAnswer(question: string): Promise<FallbackAnswer> 
 function extractMa(question: string): string | null {
   const match = question.toUpperCase().match(new RegExp(`\\b([${KIND_CODES.join("")}]\\d{2,3})\\b`));
   return match ? match[1] : null;
+}
+
+function isOffList(ma: string): boolean {
+  const key = ma.trim().toUpperCase();
+  return isHeldIncompleteMa(key) || NEVER_LIST_MAS.some((m) => m.toUpperCase() === key);
 }

@@ -1,5 +1,6 @@
 import { after } from "next/server";
 import { assertNever } from "./kinds";
+import { normalizeMa } from "./mint";
 import { publishBlock } from "./publish-guard";
 
 export const NEW_MA_WEBHOOK_TIMEOUT_MS = 3_000;
@@ -43,22 +44,23 @@ export function buildNewMaWebhookPayload(input: NewMaWebhookInput): NewMaWebhook
     default:
       assertNever(input.event, "unknown new-mã webhook event");
   }
+  const ma = normalizeMa(input.ma);
   const payload: NewMaWebhookPayload = {
     event: input.event,
-    ma: input.ma,
+    ma,
     updated_at: input.updated_at,
     source: "intake",
     photo_count: input.photo_count,
   };
-  const previous = input.previous_ma?.trim() ?? "";
-  if (previous && previous !== input.ma) payload.previous_ma = previous;
+  const previous = input.previous_ma?.trim() ? normalizeMa(input.previous_ma) : "";
+  if (previous && previous !== ma) payload.previous_ma = previous;
   return payload;
 }
 
 /** One POST. Never throws. One try, 3s timeout, no retry. */
 export async function notifyNewMaWebhook(input: NewMaWebhookInput): Promise<void> {
   const event = input.event;
-  const ma = input.ma;
+  const ma = normalizeMa(input.ma);
   try {
     switch (event) {
       case "create":

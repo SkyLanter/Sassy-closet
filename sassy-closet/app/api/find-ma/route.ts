@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { findByPhotoHash, hashBytes } from "@/lib/store";
+import { storeUnavailableResponse } from "@/lib/store-unavailable";
 
 export async function POST(request: Request) {
   const form = await request.formData();
@@ -11,7 +12,13 @@ export async function POST(request: Request) {
     );
   }
   const bytes = Buffer.from(await photo.arrayBuffer());
-  const matches = (await findByPhotoHash(hashBytes(bytes))).map((row) => ({
+  let rows;
+  try {
+    rows = await findByPhotoHash(hashBytes(bytes));
+  } catch (error) {
+    return storeUnavailableResponse(error);
+  }
+  const matches = rows.map((row) => ({
     ma: row.ma,
     kind: row.kind,
     color: row.color,

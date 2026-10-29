@@ -1,4 +1,5 @@
 import { kindLabel } from "./kinds";
+import { normalizeMa } from "./mint";
 import { DEFAULT_FX, captionPriceLine } from "./pricing";
 import type { Submission } from "./types";
 
@@ -107,5 +108,5 @@ function priceLine(
 }
 
 function normalizeCaptionMa(ma: string): string {
-  return ma.trim().toUpperCase();
+  return normalizeMa(ma);
 }

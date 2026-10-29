@@ -1,11 +1,11 @@
 import { IntakeApp } from "@/components/IntakeApp";
 import { newMaWebhookConfigured } from "@/lib/newMaWebhook";
-import { getFx } from "@/lib/store";
+import { getHomeFx } from "@/lib/home-fx";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const fx = await getFx();
+  const fx = await getHomeFx();
   return (
     <IntakeApp
       initialFxRate={fx.usd_cny}

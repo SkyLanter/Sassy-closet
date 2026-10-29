@@ -43,8 +43,15 @@ export const SHOP_SEARCH_HEADER = "x-sassy-q";
 
 const SHOP_SEARCH_MAX = 80;
 
+/** Cap at 80 UTF-16 units without leaving a lone high surrogate (split emoji). */
+function capSearch(text: string): string {
+  const cut = text.slice(0, SHOP_SEARCH_MAX);
+  const last = cut.charCodeAt(cut.length - 1);
+  return last >= 0xd800 && last <= 0xdbff ? cut.slice(0, -1) : cut;
+}
+
 export function encodeShopSearchHeader(query: string): string {
-  return encodeURIComponent(query.trim().slice(0, SHOP_SEARCH_MAX));
+  return encodeURIComponent(capSearch(query.trim()));
 }
 
 /**
@@ -52,7 +59,7 @@ export function encodeShopSearchHeader(query: string): string {
  * Trimmed, capped at 80 characters. Blank queries are not events.
  */
 export function searchSubmitQuery(raw: string): string | null {
-  const query = raw.trim().slice(0, SHOP_SEARCH_MAX);
+  const query = capSearch(raw.trim());
   if (!query) {
     return null;
   }
@@ -64,7 +71,7 @@ export function decodeShopSearchHeader(raw: string | null): string {
     return "";
   }
   try {
-    return decodeURIComponent(raw).trim().slice(0, SHOP_SEARCH_MAX);
+    return capSearch(decodeURIComponent(raw).trim());
   } catch {
     return "";
   }

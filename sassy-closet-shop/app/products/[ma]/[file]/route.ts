@@ -4,8 +4,9 @@ import { NextResponse } from "next/server";
 import { NO_STORE_HEADERS } from "@/lib/http-no-store";
 import { isValidMa, normalizeMa } from "@/lib/ma";
 import { coverSrc } from "@/lib/product-media";
-import { readLiveCatalogDocument } from "@/lib/catalog-store";
+import { readLiveCatalogDocumentForShop } from "@/lib/catalog-store";
 import { isSellableMa } from "@/lib/sell-contract";
+import { isOffLiveSell } from "@/lib/held-incomplete";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -121,7 +122,7 @@ export async function GET(
 ) {
   const { ma: rawMa, file } = await context.params;
   const ma = normalizeMa(rawMa);
-  if (!isValidMa(ma) || !isSellableMa(ma) || !FILE_RE.test(file)) {
+  if (!isValidMa(ma) || !isSellableMa(ma) || isOffLiveSell(ma) || !FILE_RE.test(file)) {
     return new NextResponse("Not found", { status: 404, headers: NO_STORE_HEADERS });
   }
 
@@ -130,7 +131,7 @@ export async function GET(
     return imageResponse(named);
   }
 
-  const document = await readLiveCatalogDocument();
+  const document = await readLiveCatalogDocumentForShop();
   const product = document.products.find((item) => item.ma === ma);
   if (!product) {
     return new NextResponse("Not found", { status: 404, headers: NO_STORE_HEADERS });

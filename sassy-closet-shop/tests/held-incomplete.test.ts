@@ -58,3 +58,17 @@ test("public catalog hides held mãs and keeps Q02, A07, and S10", () => {
   ]).map((item) => item.ma);
   assert.deepEqual(visible, ["Q02", "A07", "S10", "S06"]);
 });
+
+test("every held mã in data/held.json stays off the public sell catalog", () => {
+  assert.equal(HELD_INCOMPLETE_MAS.length, 21);
+  for (const ma of ["S16", "A27", "A28", "S17", "S18", "S19", "A29", "H02", "G01"]) { // held-list-ok: piece 05 asserts its nine new mãs explicitly
+    assert.equal(isHeldIncompleteMa(ma), true, ma);
+    assert.equal(isOffLiveSell(ma), true, ma);
+  }
+  const all = [...HELD_INCOMPLETE_MAS, "Q02", "S06", "A07"].map((ma, i) => product(ma, 20 + i));
+  const visible = shopVisibleProducts(all).map((item) => item.ma);
+  for (const ma of HELD_INCOMPLETE_MAS) {
+    assert.equal(visible.includes(ma), false, `${ma} leaked into sell output`);
+  }
+  assert.deepEqual(visible, ["Q02", "S06", "A07"]);
+});

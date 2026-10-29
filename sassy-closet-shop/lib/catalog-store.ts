@@ -1,3 +1,4 @@
+import { CATALOG_MEMO_TTL_MS, createTtlMemo } from "@/lib/cache-policy";
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -501,7 +502,7 @@ export async function readStoredCatalogRecord(): Promise<CatalogReadRecord | nul
   return null;
 }
 
-export async function readLiveCatalogRecord(): Promise<CatalogReadRecord> {
+async function readLiveCatalogRecordFresh(): Promise<CatalogReadRecord> {
   try {
     const fromBlob = await readBlobCatalog();
     if (fromBlob) {
@@ -541,6 +542,31 @@ export async function readLiveCatalogRecord(): Promise<CatalogReadRecord> {
   return { document: presentLockedBossPrices(getSeedDocument()), source: "seed" };
 }
 
+const liveCatalogMemo = createTtlMemo<CatalogReadRecord>(CATALOG_MEMO_TTL_MS);
+
+/** Drop the per-instance catalog memo (after any write / refreshShop). */
+export function invalidateLiveCatalogMemo(): void {
+  liveCatalogMemo.clear();
+}
+
+/** Always-fresh read (admin, save, rename, import). */
+export async function readLiveCatalogRecord(): Promise<CatalogReadRecord> {
+  return readLiveCatalogRecordFresh();
+}
+
+/**
+ * Shop read: at most one Blob/KV catalog read per instance per
+ * CATALOG_MEMO_TTL_MS. Same document, same prices — only fewer fetches.
+ */
+export async function readLiveCatalogRecordForShop(): Promise<CatalogReadRecord> {
+  return liveCatalogMemo.get(readLiveCatalogRecordFresh);
+}
+
+export async function readLiveCatalogDocumentForShop(): Promise<CatalogDocument> {
+  const record = await readLiveCatalogRecordForShop();
+  return record.document;
+}
+
 export async function readLiveCatalogDocument(): Promise<CatalogDocument> {
   const record = await readLiveCatalogRecord();
   return record.document;
@@ -574,6 +600,7 @@ function writeResult(document: CatalogDocument, backend: CatalogBackend): Catalo
 }
 
 export async function writeLiveCatalogDocument(document: CatalogDocument): Promise<CatalogWriteResult> {
+  invalidateLiveCatalogMemo();
   const parsed = stampCatalogUpdatedAt(hydrateLiveCatalog(document));
   const info = getCatalogStorageInfo();
   if (!info.canWrite) {

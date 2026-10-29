@@ -42,6 +42,8 @@ type PhotoDraft = {
 };
 
 const LISTING_REFRESH_AFTER_SAVE_MS = 1500;
+const INTAKE_LOGIN_VI =
+  "Cần đăng nhập để xem mã đã lưu (có giá vốn) — vào /admin/shop/login rồi quay lại nha.";
 
 export function IntakeApp({
   initialFxRate,
@@ -303,7 +305,15 @@ export function IntakeApp({
   async function refreshMas(): Promise<string[]> {
     try {
       const response = await fetch("/api/submissions");
-      const data = (await response.json()) as { submissions?: Submission[] };
+      const data = (await response.json()) as { submissions?: Submission[]; error?: string };
+      if (response.status === 401) {
+        setError(INTAKE_LOGIN_VI);
+        return knownMas;
+      }
+      if (!response.ok) {
+        setError(data.error ?? "Kho mã đang không đọc được — báo Mini Boss nha.");
+        return knownMas;
+      }
       const rows = data.submissions ?? [];
       setSavedRows(rows);
       const mas = rows.map((row) => String(row.ma ?? "")).filter(Boolean);
@@ -321,7 +331,7 @@ export function IntakeApp({
       const response = await fetch(`/api/submissions/${encodeURIComponent(raw.trim())}`);
       const data = (await response.json()) as { submission?: Submission; error?: string };
       if (!response.ok || !data.submission) {
-        setError(data.error || "Không tìm thấy mã này 🥺");
+        setError(response.status === 401 ? INTAKE_LOGIN_VI : data.error || "Không tìm thấy mã này 🥺");
         setLoadedMa(null);
         return null;
       }
@@ -469,6 +479,10 @@ export function IntakeApp({
     try {
       const response = await fetch(`/api/ma/${encodeURIComponent(code)}`);
       const data = (await response.json()) as MaLookup & { error?: string };
+      if (response.status === 401) {
+        setError(INTAKE_LOGIN_VI);
+        return;
+      }
       if (!response.ok || !data.staged) {
         setFindMiss(true);
         return;

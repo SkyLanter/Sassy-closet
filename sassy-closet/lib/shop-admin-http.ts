@@ -13,9 +13,32 @@ export function shopAdminJson(body: unknown, status = 200, extra?: Record<string
   });
 }
 
-export async function requireShopAdmin(request: Request): Promise<NextResponse | null> {
+/**
+ * 401 body mode for gated shop/intake routes.
+ * Default "json" keeps `{ ok:false, error:"Unauthorized." }` (matches middleware).
+ * Set env SHOP_ADMIN_401_EMPTY=1 (Boss choice) for a truly empty 401 body.
+ * Only the response body changes; who is authorized never changes.
+ */
+export type ShopAdmin401Mode = "json" | "empty";
+
+export function shopAdmin401Mode(): ShopAdmin401Mode {
+  const v = (process.env.SHOP_ADMIN_401_EMPTY ?? "").trim().toLowerCase();
+  return v === "1" || v === "true" || v === "yes" ? "empty" : "json";
+}
+
+export function shopAdminUnauthorized(mode: ShopAdmin401Mode = shopAdmin401Mode()): NextResponse {
+  if (mode === "empty") {
+    return new NextResponse(null, { status: 401, headers: { ...SHOP_ADMIN_NO_STORE } });
+  }
+  return shopAdminJson({ ok: false, error: "Unauthorized." }, 401);
+}
+
+export async function requireShopAdmin(
+  request: Request,
+  opts?: { mode?: ShopAdmin401Mode },
+): Promise<NextResponse | null> {
   if (await requestHasAdminSession(request)) {
     return null;
   }
-  return shopAdminJson({ ok: false, error: "Unauthorized." }, 401);
+  return shopAdminUnauthorized(opts?.mode);
 }

@@ -11,10 +11,18 @@ export const NEVER_LIST_MAS: readonly string[] = held.neverList;
 
 export type HeldIncompleteMa = (typeof HELD_INCOMPLETE_MAS)[number];
 
+/** Canonical key: trim, upper-case, drop zero padding to two digits ("A024" -> "A24"). Local to avoid an import cycle with mint.ts. */
+export function canonicalHeldKey(ma: string): string {
+  const code = ma.trim().toUpperCase();
+  const match = code.match(/^([A-Z])(\d+)$/);
+  if (!match) return code;
+  return `${match[1]}${String(Number(match[2])).padStart(2, "0")}`;
+}
+
 const HELD_INCOMPLETE_SET: ReadonlySet<string> = new Set(
-  HELD_INCOMPLETE_MAS.map((ma) => ma.toUpperCase()),
+  HELD_INCOMPLETE_MAS.map(canonicalHeldKey),
 );
 
 export function isHeldIncompleteMa(ma: string): ma is HeldIncompleteMa {
-  return HELD_INCOMPLETE_SET.has(ma.trim().toUpperCase());
+  return HELD_INCOMPLETE_SET.has(canonicalHeldKey(ma));
 }

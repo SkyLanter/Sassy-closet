@@ -1,6 +1,6 @@
 import { connection } from "next/server";
 import { CATALOG_CACHE_TAG } from "@/lib/catalog-tag";
-import { readLiveCatalogDocument, readLiveCatalogRecord } from "@/lib/catalog-store";
+import { readLiveCatalogDocument, readLiveCatalogDocumentForShop, readLiveCatalogRecord } from "@/lib/catalog-store";
 import { normalizeMa, type MaLetter } from "@/lib/ma";
 import { shopVisibleLooks } from "@/lib/site-settings";
 import type { CatalogBackend } from "@/lib/storage-info";
@@ -17,8 +17,10 @@ async function loadRequestCatalog(): Promise<CatalogDocument> {
   return readLiveCatalogDocument();
 }
 
+/** Shop pages: memoized catalog read (see lib/cache-policy.ts). */
 export async function getCatalogDocument(): Promise<CatalogDocument> {
-  return loadRequestCatalog();
+  await connection();
+  return readLiveCatalogDocumentForShop();
 }
 
 export async function getCatalogDocumentUncached(): Promise<CatalogDocument> {

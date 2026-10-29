@@ -1,4 +1,5 @@
 import { assertNever } from "./kinds";
+import { normalizeMa } from "./mint";
 import { publishBlock } from "./publish-guard";
 import type { Submission } from "./types";
 
@@ -44,7 +45,7 @@ export function buildIntakeDatasetSyncPayload(
 
   const payload: IntakeDatasetSyncPayload = {
     event,
-    ma: row.ma,
+    ma: normalizeMa(row.ma),
     timestamp: row.updated_at || new Date().toISOString(),
     source: "intake",
   };
@@ -90,7 +91,7 @@ export async function notifyIntakeDatasetSyncWebhook(
     if (
       publishBlock({
         action: event === "create" ? "create" : "sync",
-        ma: row.ma,
+        ma: normalizeMa(row.ma),
         sellUsd: resolvedSell(row),
         sellCurrency: row.sell_currency,
       })

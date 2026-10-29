@@ -1,11 +1,11 @@
 import type { MetadataRoute } from "next";
 import { categoryHref } from "@/lib/categories";
-import { readLiveCatalogDocument } from "@/lib/catalog-store";
+import { readLiveCatalogDocumentForShop as readLiveCatalogDocument } from "@/lib/catalog-store";
 import { catalogTypesFrom } from "@/lib/products";
 import { coverSrc } from "@/lib/product-media";
 import { shopVisibleProducts } from "@/lib/site-settings";
 import { resolvableShopOrigin } from "@/lib/shop-origin";
-import { normalizeMa } from "@/lib/ma";
+import { canonicalMaSpelling } from "@/lib/ma";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +26,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified,
     })),
     ...products.map((product) => {
-      const ma = normalizeMa(product.ma);
+      const ma = canonicalMaSpelling(product.ma);
       const cover = coverSrc(product);
       const images = cover
         ? [cover.startsWith("http") ? cover : `${origin}${cover}`]

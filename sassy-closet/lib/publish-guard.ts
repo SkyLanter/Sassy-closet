@@ -4,7 +4,7 @@
  */
 import type { KindCode } from "./kinds";
 import { isHeldIncompleteMa, NEVER_LIST_MAS } from "./held-incomplete";
-import { nextMa } from "./mint";
+import { nextMa, normalizeMa } from "./mint";
 
 export type PublishAction = "create" | "update" | "mint" | "sync";
 
@@ -17,12 +17,13 @@ export type PublishIntent = {
   duplicate?: boolean;
 };
 
-const NEVER_LIST = new Set(NEVER_LIST_MAS.map((ma) => ma.toUpperCase()));
+const NEVER_LIST = new Set(NEVER_LIST_MAS.map((ma) => normalizeMa(ma)));
 const S06 = "S06";
 
 export function publishBlock(intent: PublishIntent): string | null {
   knownAction(intent.action);
-  const ma = intent.ma.trim().toUpperCase();
+  // Canonical padding too, so "S006" cannot dodge the S06 / held / never-list blocks.
+  const ma = normalizeMa(intent.ma);
   if (intent.duplicate || intent.reused) {
     return intent.reused ? "reused" : "duplicate";
   }

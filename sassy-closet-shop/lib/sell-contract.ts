@@ -1,5 +1,5 @@
 import { KNOWN_SEED_MAS, isKnownSeedMa } from "@/lib/catalog-contract";
-import { isValidMa, normalizeMa } from "@/lib/ma";
+import { canonicalMaSpelling, isCanonicalMaSpelling, isValidMa, normalizeMa } from "@/lib/ma";
 import type { CatalogDocument, Product, ProductStatus } from "@/lib/types";
 
 const OFFICIAL_MA_RE = /^(AO|QU|VA|AK|GI|PK|SET)\d+$/i;
@@ -118,10 +118,13 @@ export function assertImportSellContract(products: Product[]): void {
   const seen = new Set<string>();
   for (const product of products) {
     const ma = normalizeMa(product.ma);
-    if (seen.has(ma)) {
-      throw new Error(`Import rejected duplicate mã ${ma}. Do not gộp.`);
+    if (seen.has(canonicalMaSpelling(ma))) {
+      throw new Error(`Import rejected duplicate mã ${canonicalMaSpelling(ma)}. Do not gộp.`);
     }
-    seen.add(ma);
+    seen.add(canonicalMaSpelling(ma));
+    if (!isCanonicalMaSpelling(ma)) {
+      throw new Error(`Import rejected padded mã ${product.ma}. Use ${canonicalMaSpelling(ma)}.`);
+    }
     if (!isSellableMa(ma)) {
       throw new Error(
         isOfficialAlphabetMa(ma)
@@ -130,5 +133,9 @@ export function assertImportSellContract(products: Product[]): void {
       );
     }
     assertHoldPricePairing(product.ma, product.status, product.priceUsd);
+    // Same lock as the editor (admin-ops): S06 never imports at another dollar amount.
+    if (ma === "S06" && product.priceUsd !== null && product.priceUsd !== 25) {
+      throw new Error("Import rejected S06 price. S06 stays $25.");
+    }
   }
 }

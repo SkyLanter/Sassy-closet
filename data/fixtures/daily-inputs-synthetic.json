@@ -1,0 +1,11 @@
+{
+  "schema": "daily-inputs/v1",
+  "date": "2026-01-02",
+  "items": [
+    {"ma": "Z01", "live": true, "sellUsd": 30, "held": false},
+    {"ma": "Z02", "live": true, "sellUsd": 41.5, "held": false},
+    {"ma": "S06", "live": true, "sellUsd": 25, "held": false},
+    {"ma": "Z90", "live": false, "sellUsd": null, "held": true}
+  ],
+  "counts": {"mas": 4, "live": 3, "held": 1}
+}

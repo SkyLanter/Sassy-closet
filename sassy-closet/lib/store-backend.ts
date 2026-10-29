@@ -239,11 +239,27 @@ export function parseStore(raw: string): StoreFile {
   }
   const rec = parsed as StoreFile;
   return {
-    nextId: typeof rec.nextId === "number" ? rec.nextId : 1,
+    nextId: safeNextId(rec.nextId, rec.submissions),
     submissions: rec.submissions,
     fx: rec.fx ?? { usd_cny: 6.71, updated: "2026-09-07" },
     on_hand: rec.on_hand,
   };
+}
+
+/**
+ * Next id must be a positive integer above every id already in the file.
+ * A missing, stale, or invalid nextId would reuse an id, and an update by id
+ * would then overwrite the other row. Read-side only; the file is not rewritten here.
+ */
+function safeNextId(raw: unknown, submissions: readonly unknown[]): number {
+  let maxId = 0;
+  for (const row of submissions) {
+    const id = row && typeof row === "object" ? (row as { id?: unknown }).id : undefined;
+    if (typeof id === "number" && Number.isSafeInteger(id) && id > maxId) maxId = id;
+  }
+  const floor = maxId + 1;
+  if (typeof raw === "number" && Number.isSafeInteger(raw) && raw >= floor) return raw;
+  return floor;
 }
 
 function resolveLocalPhoto(photosRoot: string, rel: string): string | null {

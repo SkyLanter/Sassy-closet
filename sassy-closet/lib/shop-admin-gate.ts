@@ -8,6 +8,11 @@ export function isShopCatalogApi(pathname: string): boolean {
   return pathname === "/api/shop-catalog" || pathname.startsWith("/api/shop-catalog/");
 }
 
+/** CSV export has costs + source links: admin-only. */
+export function isAdminExportApi(pathname: string): boolean {
+  return pathname === "/api/export" || pathname.startsWith("/api/export/");
+}
+
 export function isShopAdminLoginPath(pathname: string): boolean {
   return pathname === "/admin/shop/login";
 }
@@ -23,13 +28,13 @@ export function isShopAdminLogoutApi(pathname: string): boolean {
 export type ShopAdminGateDecision = "public" | "allow" | "deny";
 
 /**
- * `public` — intake pages, including the CSV export at /admin.
+ * `public` — intake pages (the /admin page itself; its /api/export CSV needs a session).
  * `allow` — login, logout, or a shop-tools route with a valid session.
  * `deny` — shop tools without a session.
  */
 export function shopAdminGate(pathname: string, hasSession: boolean): ShopAdminGateDecision {
   const page = isShopAdminPage(pathname);
-  const api = isShopCatalogApi(pathname);
+  const api = isShopCatalogApi(pathname) || isAdminExportApi(pathname);
   if (!page && !api) {
     return "public";
   }

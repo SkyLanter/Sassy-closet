@@ -41,13 +41,13 @@ test("shop letter Q mints Q02 on hold and still refuses K06", () => {
     ["Q01"],
   );
 
-  const knits = ["K01", "K02", "K03", "K04", "K05"].map((ma) => stub(ma, 36));
+  const knits = ["K01", "K02", "K03", "K04", "K05"].map((ma) => stub(ma, 36)); // held-list-ok: every K mã fixture for minting
   const mintedKnit = addProductToCatalog(knits, "K", fields(36));
   assert.equal(mintedKnit.ok, false);
   if (!mintedKnit.ok) assert.match(mintedKnit.error, /K06/);
   assert.deepEqual(
     knits.map((product) => product.ma),
-    ["K01", "K02", "K03", "K04", "K05"],
+    ["K01", "K02", "K03", "K04", "K05"], // held-list-ok: every K mã fixture for minting
   );
 });
 

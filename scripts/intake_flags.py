@@ -9,6 +9,9 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from decimal import Decimal
+from held_policy import norm_ma
+
+from held_policy import norm_ma
 
 CNY_RE = re.compile(r"^\d+(?:\.\d+)?$")
 
@@ -53,7 +56,7 @@ def flag_intake(rows: list[IntakeRow], public: dict[str, PublicCny] | None = Non
     for row in rows:
         stored = "" if row.cost_cny is None else str(row.cost_cny)
         stripped = stored.strip()
-        code = row.ma.strip().upper()
+        code = norm_ma(row.ma)
         if stripped == "":
             flags.append(IntakeFlag(code, "blank_cny", stored))
             continue
@@ -61,7 +64,7 @@ def flag_intake(rows: list[IntakeRow], public: dict[str, PublicCny] | None = Non
             flags.append(IntakeFlag(code, "garbled_cny", stored))
             continue
         listed = known.get(code)
-        if listed is None or listed.state != "ok" or listed.value is None:
+        if listed is None or listed.state != "ok" or listed.value is None or not listed.value.is_finite():
             continue
         if Decimal(stripped) > listed.value:
             flags.append(

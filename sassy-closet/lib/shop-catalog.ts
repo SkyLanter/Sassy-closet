@@ -1,3 +1,4 @@
+import { normalizeMa as canonicalMa } from "@/lib/mint";
 import { callShopRevalidate, readShopRevalidateConfig } from "@/lib/shop-revalidate";
 
 export const SHOP_CATALOG_BLOB_PATH = "sassy-closet-shop/catalog.v1.json";
@@ -54,8 +55,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+/** Shared intake canonical mã (trim, upper, padding) so "S006" cannot dodge the S06 lock. */
 function normalizeMa(ma: string): string {
-  return ma.trim().toUpperCase();
+  return canonicalMa(ma);
 }
 
 function isStatus(value: string): value is ShopCatalogStatus {

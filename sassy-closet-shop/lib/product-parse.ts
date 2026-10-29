@@ -5,7 +5,7 @@ import { isColorId, parseProductColor } from "@/lib/colors";
 import { sortImagesByOrder } from "@/lib/hub-colors";
 import { parseFulfillment } from "@/lib/fulfillment";
 import { assertKitAllowlist, isBlobDraftSrc, isHqDiskPhotoPath, sellTypeAccepted } from "@/lib/kit-catalog";
-import { isValidMa, maLetter, normalizeMa } from "@/lib/ma";
+import { canonicalMaSpelling, isValidMa, maLetter, normalizeMa } from "@/lib/ma";
 import { parseSiteSettings } from "@/lib/site-settings";
 import { siteId } from "@/lib/site-runtime";
 import { parseSourceLink } from "@/lib/source-link";
@@ -204,10 +204,12 @@ export function parseCatalog(raw: unknown): Product[] {
   const products = raw.map((row, index) => parseProduct(row, index));
   const seen = new Set<string>();
   for (const product of products) {
-    if (seen.has(product.ma)) {
+    // Canonical key: identical for canonical mãs, and also catches "K03" + "K003".
+    const key = canonicalMaSpelling(product.ma);
+    if (seen.has(key)) {
       throw new Error(`Duplicate mã ${product.ma}`);
     }
-    seen.add(product.ma);
+    seen.add(key);
   }
   if (products.length === 0) {
     throw new Error("Catalog cannot be empty");

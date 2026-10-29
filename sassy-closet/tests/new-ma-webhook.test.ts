@@ -13,6 +13,10 @@ import {
   type NewMaWebhookInput,
 } from "../lib/newMaWebhook";
 import { resetStoreBackendForTests } from "../lib/store-backend";
+import { adminRequest } from "./admin-request";
+
+// piece-245: save routes need an admin session; tests carry a test-only cookie.
+let adminCookie = "";
 
 const ENV_KEYS = ["NEW_MA_WEBHOOK_URL", "NEW_MA_WEBHOOK_TOKEN"] as const;
 
@@ -203,13 +207,14 @@ describe("save routes stay 200 when the new-mã webhook fails", { concurrency: 1
   let errors: unknown[][] = [];
   let originalError: typeof console.error;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     tmp = fs.mkdtempSync(path.join(os.tmpdir(), "sassy-new-ma-"));
-    for (const key of [...STORE_ENV_KEYS, ...ENV_KEYS]) {
+    for (const key of [...STORE_ENV_KEYS, ...ENV_KEYS, "ADMIN_PASSWORD", "ADMIN_SESSION_SECRET"]) {
       prev[key] = process.env[key];
       delete process.env[key];
     }
     process.env.SASSY_DATA_DIR = tmp;
+    adminCookie = (await adminRequest()).headers.get("cookie") ?? "";
     resetStoreBackendForTests();
     fetchCalls = [];
     originalFetch = globalThis.fetch;
@@ -311,7 +316,8 @@ describe("save routes stay 200 when the new-mã webhook fails", { concurrency: 1
     await flush();
     assert.equal(fetchCalls.length, 1);
     const sameBody = JSON.parse(String(fetchCalls[0].init.body)) as { ma: string; previous_ma?: string };
-    assert.equal(sameBody.ma, "a03");
+    // Piece 147: the webhook keys on the canonical mã even when the stored row is lowercase.
+    assert.equal(sameBody.ma, "A03");
     assert.equal("previous_ma" in sameBody, false);
 
     const renamedRes = await PATCH(jsonForm("PATCH", "/api/submissions/a03", { new_ma: "A09" }), {
@@ -354,36 +360,49 @@ describe("save routes stay 200 when the new-mã webhook fails", { concurrency: 1
     assert.equal(disk.submissions[0].color, "Hồng");
   });
 
-  test("a webhook that sleeps does not hold the save response", async () => {
+  // No wall clock here: the webhook is gated shut and only opened after the save
+  // returns. If the handler awaited the webhook it could never return, so the
+  // generous per-test timeout below is a hang backstop, not a speed threshold.
+  test("a webhook that sleeps does not hold the save response", { timeout: 60_000 }, async () => {
     process.env.NEW_MA_WEBHOOK_URL = TEST_URL;
     process.env.NEW_MA_WEBHOOK_TOKEN = TEST_TOKEN;
     let release = () => {};
+    let released = false;
+    let webhookCalls = 0;
     const gate = new Promise<void>((resolve) => {
-      release = resolve;
+      release = () => {
+        released = true;
+        resolve();
+      };
     });
     globalThis.fetch = (async () => {
+      webhookCalls += 1;
       await gate;
       return new Response("slow", { status: 500 });
     }) as typeof fetch;
 
-    const started = Date.now();
     const pending = POST(jsonForm("POST", "/api/submissions"));
     try {
-      const response = await Promise.race([
-        pending,
-        new Promise<Response>((_resolve, reject) => {
-          setTimeout(() => reject(new Error("save blocked on webhook")), 1000);
-        }),
-      ]);
-      const elapsed = Date.now() - started;
+      const response = await pending;
+      assert.equal(released, false, "save returned only after the webhook was let go");
       assert.equal(response.status, 200);
       const body = (await response.json()) as { submission: { ma: string } };
       assert.equal(body.submission.ma, "A01");
-      assert.ok(elapsed < 1000, `save took ${elapsed}ms`);
+      await flush();
+      assert.equal(webhookCalls, 1, "webhook fired exactly once, still in flight");
+      assert.equal(errors.length, 0);
     } finally {
       release();
       await pending;
     }
+    await flush();
+    assert.equal(webhookCalls, 1);
+    assert.deepEqual(errors[0][1], { event: "create", ma: "A01", status: 500 });
+    assertNoSecret(errors);
+    const disk = JSON.parse(fs.readFileSync(path.join(tmp, "submissions.json"), "utf8")) as {
+      submissions: { ma: string }[];
+    };
+    assert.deepEqual(disk.submissions.map((row) => row.ma), ["A01"]);
   });
 
   test("HTTP 500 from the webhook still returns the submission", async () => {
@@ -421,11 +440,18 @@ function jsonForm(method: "POST" | "PATCH", pathname: string, fields: Record<str
   form.set("pieces", "[]");
   form.set("keep_photos", "[]");
   for (const [key, value] of Object.entries(fields)) form.set(key, value);
-  return new Request(`http://127.0.0.1${pathname}`, { method, body: form });
+  return new Request(`http://127.0.0.1${pathname}`, { method, body: form, headers: { cookie: adminCookie } });
 }
 
-function flush(): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, 30));
+/**
+ * Drain the detached webhook promise. Its path after the save is promise-only
+ * (mocked fetch, no I/O), so a few macrotask turns finish it whatever the box
+ * load; no real-clock sleep.
+ */
+async function flush(): Promise<void> {
+  for (let turn = 0; turn < 10; turn += 1) {
+    await new Promise<void>((resolve) => setImmediate(resolve));
+  }
 }
 
 function assertNoSecret(logs: unknown[][]): void {

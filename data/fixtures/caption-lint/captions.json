@@ -1,0 +1,12 @@
+[
+ {"url": "fb/ok", "platform": "fb", "text": "Mã A09\nÁo croptop xinh\nGiá $30"},
+ {"url": "ig/no-ma", "platform": "ig", "text": "Áo xinh lắm nè\nGiá $30"},
+ {"url": "fb/no-gia", "platform": "fb", "text": "Mã A09\nInbox shop nha"},
+ {"url": "fb/gia-space", "platform": "fb", "text": "Mã A09\nGiá $ 30"},
+ {"url": "fb/ma-no-diacritic", "platform": "fb", "text": "Ma D06\nGiá $28"},
+ {"url": "ig/ma-typo", "platform": "ig", "text": "Mã A90\nGiá $30"},
+ {"url": "fb/held-differs", "platform": "fb", "text": "Mã S15\nGiá $35"},
+ {"url": "fb/held-ok", "platform": "fb", "text": "Mã S15\nGiá $30"},
+ {"url": "ig/s06-wrong", "platform": "ig", "text": "Mã S06\nGiá $27"},
+ {"url": "fb/live-differs", "platform": "fb", "text": "Mã D06\nGiá $31"}
+]

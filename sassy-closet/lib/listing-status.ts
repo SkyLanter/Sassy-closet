@@ -1,4 +1,5 @@
 import { assertNever } from "./kinds";
+import { normalizeMa } from "./mint";
 
 export const LISTING_TEXT_CAP = 300;
 export const LISTING_STATUS_TIMEOUT_MS = 2_000;
@@ -52,7 +53,7 @@ export function parseListingItems(value: unknown): Record<string, ListingItem> |
   if (!isRecord(value)) return null;
   const items: Record<string, ListingItem> = {};
   for (const [rawKey, rawItem] of Object.entries(value)) {
-    const key = rawKey.trim().toUpperCase();
+    const key = normalizeMa(rawKey);
     if (!key || key.length > LISTING_MA_CAP) continue;
     const item = parseListingItem(rawItem);
     if (!item) continue;
@@ -82,7 +83,7 @@ export function listingItemForMa(
 ): ListingItem | undefined {
   const direct = items[ma];
   if (direct) return direct;
-  const key = ma.trim().toUpperCase();
+  const key = normalizeMa(ma);
   if (!key || key === ma) return undefined;
   return items[key];
 }

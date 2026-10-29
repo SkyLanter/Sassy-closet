@@ -1,0 +1,683 @@
+{
+ "about": "Piece 204 gate-verdict parity fixtures. FAKE mãs/prices only. held_index/never_index resolve against data/held.json at test time (spelling applied to that canonical code), so verdicts track the single held source. skip = held_policy.skip_reason / TS isHeldIncompleteMa+isOffLiveSell / intake publishBlock held|never-list. s06 = S06 $25 lock verdict for an explicit sell price (too_cheap_check, daily_shop_check snapshot, intake publishBlock s06-lock, shop admin-ops save).",
+ "spellings": "canonical padded spaced lower short short-lower padded-lower-spaced",
+ "fixtures": [
+  {
+   "id": "S06-canonical-25",
+   "ma": "S06",
+   "sell_usd": 25,
+   "expect": {
+    "skip": null,
+    "s06": "pass"
+   }
+  },
+  {
+   "id": "S06-canonical-30",
+   "ma": "S06",
+   "sell_usd": 30,
+   "expect": {
+    "skip": null,
+    "s06": "fail"
+   }
+  },
+  {
+   "id": "S06-canonical-24",
+   "ma": "S06",
+   "sell_usd": 24,
+   "expect": {
+    "skip": null,
+    "s06": "fail"
+   }
+  },
+  {
+   "id": "S06-canonical-25.5",
+   "ma": "S06",
+   "sell_usd": 25.5,
+   "expect": {
+    "skip": null,
+    "s06": "fail"
+   }
+  },
+  {
+   "id": "S06-canonical-99",
+   "ma": "S06",
+   "sell_usd": 99,
+   "expect": {
+    "skip": null,
+    "s06": "fail"
+   }
+  },
+  {
+   "id": "S06-padded-25",
+   "ma": "S006",
+   "sell_usd": 25,
+   "expect": {
+    "skip": null,
+    "s06": "pass"
+   }
+  },
+  {
+   "id": "S06-padded-30",
+   "ma": "S006",
+   "sell_usd": 30,
+   "expect": {
+    "skip": null,
+    "s06": "fail"
+   }
+  },
+  {
+   "id": "S06-padded-24",
+   "ma": "S006",
+   "sell_usd": 24,
+   "expect": {
+    "skip": null,
+    "s06": "fail"
+   }
+  },
+  {
+   "id": "S06-padded-25.5",
+   "ma": "S006",
+   "sell_usd": 25.5,
+   "expect": {
+    "skip": null,
+    "s06": "fail"
+   }
+  },
+  {
+   "id": "S06-padded-99",
+   "ma": "S006",
+   "sell_usd": 99,
+   "expect": {
+    "skip": null,
+    "s06": "fail"
+   }
+  },
+  {
+   "id": "S06-spaced-25",
+   "ma": " S06 ",
+   "sell_usd": 25,
+   "expect": {
+    "skip": null,
+    "s06": "pass"
+   }
+  },
+  {
+   "id": "S06-spaced-30",
+   "ma": " S06 ",
+   "sell_usd": 30,
+   "expect": {
+    "skip": null,
+    "s06": "fail"
+   }
+  },
+  {
+   "id": "S06-spaced-24",
+   "ma": " S06 ",
+   "sell_usd": 24,
+   "expect": {
+    "skip": null,
+    "s06": "fail"
+   }
+  },
+  {
+   "id": "S06-spaced-25.5",
+   "ma": " S06 ",
+   "sell_usd": 25.5,
+   "expect": {
+    "skip": null,
+    "s06": "fail"
+   }
+  },
+  {
+   "id": "S06-spaced-99",
+   "ma": " S06 ",
+   "sell_usd": 99,
+   "expect": {
+    "skip": null,
+    "s06": "fail"
+   }
+  },
+  {
+   "id": "S06-lower-25",
+   "ma": "s06",
+   "sell_usd": 25,
+   "expect": {
+    "skip": null,
+    "s06": "pass"
+   }
+  },
+  {
+   "id": "S06-lower-30",
+   "ma": "s06",
+   "sell_usd": 30,
+   "expect": {
+    "skip": null,
+    "s06": "fail"
+   }
+  },
+  {
+   "id": "S06-lower-24",
+   "ma": "s06",
+   "sell_usd": 24,
+   "expect": {
+    "skip": null,
+    "s06": "fail"
+   }
+  },
+  {
+   "id": "S06-lower-25.5",
+   "ma": "s06",
+   "sell_usd": 25.5,
+   "expect": {
+    "skip": null,
+    "s06": "fail"
+   }
+  },
+  {
+   "id": "S06-lower-99",
+   "ma": "s06",
+   "sell_usd": 99,
+   "expect": {
+    "skip": null,
+    "s06": "fail"
+   }
+  },
+  {
+   "id": "S06-padded-lower-spaced-25",
+   "ma": " s006 ",
+   "sell_usd": 25,
+   "expect": {
+    "skip": null,
+    "s06": "pass"
+   }
+  },
+  {
+   "id": "S06-padded-lower-spaced-30",
+   "ma": " s006 ",
+   "sell_usd": 30,
+   "expect": {
+    "skip": null,
+    "s06": "fail"
+   }
+  },
+  {
+   "id": "S06-padded-lower-spaced-24",
+   "ma": " s006 ",
+   "sell_usd": 24,
+   "expect": {
+    "skip": null,
+    "s06": "fail"
+   }
+  },
+  {
+   "id": "S06-padded-lower-spaced-25.5",
+   "ma": " s006 ",
+   "sell_usd": 25.5,
+   "expect": {
+    "skip": null,
+    "s06": "fail"
+   }
+  },
+  {
+   "id": "S06-padded-lower-spaced-99",
+   "ma": " s006 ",
+   "sell_usd": 99,
+   "expect": {
+    "skip": null,
+    "s06": "fail"
+   }
+  },
+  {
+   "id": "S06-short-25",
+   "ma": "S6",
+   "sell_usd": 25,
+   "expect": {
+    "skip": null,
+    "s06": "pass"
+   }
+  },
+  {
+   "id": "S06-short-30",
+   "ma": "S6",
+   "sell_usd": 30,
+   "expect": {
+    "skip": null,
+    "s06": "fail"
+   }
+  },
+  {
+   "id": "S06-short-24",
+   "ma": "S6",
+   "sell_usd": 24,
+   "expect": {
+    "skip": null,
+    "s06": "fail"
+   }
+  },
+  {
+   "id": "S06-short-25.5",
+   "ma": "S6",
+   "sell_usd": 25.5,
+   "expect": {
+    "skip": null,
+    "s06": "fail"
+   }
+  },
+  {
+   "id": "S06-short-99",
+   "ma": "S6",
+   "sell_usd": 99,
+   "expect": {
+    "skip": null,
+    "s06": "fail"
+   }
+  },
+  {
+   "id": "S06-short-lower-25",
+   "ma": "s6",
+   "sell_usd": 25,
+   "expect": {
+    "skip": null,
+    "s06": "pass"
+   }
+  },
+  {
+   "id": "S06-short-lower-30",
+   "ma": "s6",
+   "sell_usd": 30,
+   "expect": {
+    "skip": null,
+    "s06": "fail"
+   }
+  },
+  {
+   "id": "S06-short-lower-24",
+   "ma": "s6",
+   "sell_usd": 24,
+   "expect": {
+    "skip": null,
+    "s06": "fail"
+   }
+  },
+  {
+   "id": "S06-short-lower-25.5",
+   "ma": "s6",
+   "sell_usd": 25.5,
+   "expect": {
+    "skip": null,
+    "s06": "fail"
+   }
+  },
+  {
+   "id": "S06-short-lower-99",
+   "ma": "s6",
+   "sell_usd": 99,
+   "expect": {
+    "skip": null,
+    "s06": "fail"
+   }
+  },
+  {
+   "id": "held0-canonical",
+   "held_index": 0,
+   "spelling": "canonical",
+   "sell_usd": 30,
+   "expect": {
+    "skip": "held",
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "held0-padded",
+   "held_index": 0,
+   "spelling": "padded",
+   "sell_usd": 30,
+   "expect": {
+    "skip": "held",
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "held0-spaced",
+   "held_index": 0,
+   "spelling": "spaced",
+   "sell_usd": 30,
+   "expect": {
+    "skip": "held",
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "held0-lower",
+   "held_index": 0,
+   "spelling": "lower",
+   "sell_usd": 30,
+   "expect": {
+    "skip": "held",
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "held0-short",
+   "held_index": 0,
+   "spelling": "short",
+   "sell_usd": 30,
+   "expect": {
+    "skip": "held",
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "held0-short-lower",
+   "held_index": 0,
+   "spelling": "short-lower",
+   "sell_usd": 30,
+   "expect": {
+    "skip": "held",
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "held0-padded-lower-spaced",
+   "held_index": 0,
+   "spelling": "padded-lower-spaced",
+   "sell_usd": 30,
+   "expect": {
+    "skip": "held",
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "held1-canonical",
+   "held_index": 1,
+   "spelling": "canonical",
+   "sell_usd": 30,
+   "expect": {
+    "skip": "held",
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "held1-padded",
+   "held_index": 1,
+   "spelling": "padded",
+   "sell_usd": 30,
+   "expect": {
+    "skip": "held",
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "held1-spaced",
+   "held_index": 1,
+   "spelling": "spaced",
+   "sell_usd": 30,
+   "expect": {
+    "skip": "held",
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "held1-lower",
+   "held_index": 1,
+   "spelling": "lower",
+   "sell_usd": 30,
+   "expect": {
+    "skip": "held",
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "held1-short",
+   "held_index": 1,
+   "spelling": "short",
+   "sell_usd": 30,
+   "expect": {
+    "skip": "held",
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "held1-short-lower",
+   "held_index": 1,
+   "spelling": "short-lower",
+   "sell_usd": 30,
+   "expect": {
+    "skip": "held",
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "held1-padded-lower-spaced",
+   "held_index": 1,
+   "spelling": "padded-lower-spaced",
+   "sell_usd": 30,
+   "expect": {
+    "skip": "held",
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "never0-canonical",
+   "never_index": 0,
+   "spelling": "canonical",
+   "sell_usd": 30,
+   "expect": {
+    "skip": "never-list",
+    "s06": "n/a"
+   },
+   "note": "skipped at runtime while data/held.json neverList is empty"
+  },
+  {
+   "id": "never0-padded",
+   "never_index": 0,
+   "spelling": "padded",
+   "sell_usd": 30,
+   "expect": {
+    "skip": "never-list",
+    "s06": "n/a"
+   },
+   "note": "skipped at runtime while data/held.json neverList is empty"
+  },
+  {
+   "id": "never0-short-lower",
+   "never_index": 0,
+   "spelling": "short-lower",
+   "sell_usd": 30,
+   "expect": {
+    "skip": "never-list",
+    "s06": "n/a"
+   },
+   "note": "skipped at runtime while data/held.json neverList is empty"
+  },
+  {
+   "id": "A93-canonical",
+   "ma": "A93",
+   "sell_usd": 19,
+   "expect": {
+    "skip": null,
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "A93-padded",
+   "ma": "A093",
+   "sell_usd": 19,
+   "expect": {
+    "skip": null,
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "A93-spaced",
+   "ma": " A93 ",
+   "sell_usd": 19,
+   "expect": {
+    "skip": null,
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "A93-lower",
+   "ma": "a93",
+   "sell_usd": 19,
+   "expect": {
+    "skip": null,
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "A93-padded-lower-spaced",
+   "ma": " a093 ",
+   "sell_usd": 19,
+   "expect": {
+    "skip": null,
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "Q120-canonical",
+   "ma": "Q120",
+   "sell_usd": 19,
+   "expect": {
+    "skip": null,
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "Q120-padded",
+   "ma": "Q0120",
+   "sell_usd": 19,
+   "expect": {
+    "skip": null,
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "Q120-spaced",
+   "ma": " Q120 ",
+   "sell_usd": 19,
+   "expect": {
+    "skip": null,
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "Q120-lower",
+   "ma": "q120",
+   "sell_usd": 19,
+   "expect": {
+    "skip": null,
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "Q120-padded-lower-spaced",
+   "ma": " q0120 ",
+   "sell_usd": 19,
+   "expect": {
+    "skip": null,
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "K91-canonical",
+   "ma": "K91",
+   "sell_usd": 19,
+   "expect": {
+    "skip": null,
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "K91-padded",
+   "ma": "K091",
+   "sell_usd": 19,
+   "expect": {
+    "skip": null,
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "K91-spaced",
+   "ma": " K91 ",
+   "sell_usd": 19,
+   "expect": {
+    "skip": null,
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "K91-lower",
+   "ma": "k91",
+   "sell_usd": 19,
+   "expect": {
+    "skip": null,
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "K91-padded-lower-spaced",
+   "ma": " k091 ",
+   "sell_usd": 19,
+   "expect": {
+    "skip": null,
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "garbage-blank-0",
+   "ma": "",
+   "sell_usd": 30,
+   "expect": {
+    "skip": null,
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "garbage-blank-3",
+   "ma": "   ",
+   "sell_usd": 30,
+   "expect": {
+    "skip": null,
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "garbage-hello-5",
+   "ma": "hello",
+   "sell_usd": 30,
+   "expect": {
+    "skip": null,
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "garbage-AO001-5",
+   "ma": "AO001",
+   "sell_usd": 30,
+   "expect": {
+    "skip": null,
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "garbage-S-1",
+   "ma": "S",
+   "sell_usd": 30,
+   "expect": {
+    "skip": null,
+    "s06": "n/a"
+   }
+  },
+  {
+   "id": "garbage-06-2",
+   "ma": "06",
+   "sell_usd": 30,
+   "expect": {
+    "skip": null,
+    "s06": "n/a"
+   }
+  }
+ ]
+}
