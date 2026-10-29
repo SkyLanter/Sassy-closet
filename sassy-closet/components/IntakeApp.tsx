@@ -21,17 +21,7 @@ import {
   type ListingStatusClient,
 } from "@/lib/listing-status";
 import { normalizeFindCode } from "@/lib/on-hand";
-import {
-  computeAutoPrice,
-  sellPriceFlag,
-  type SellPriceFlag,
-  DEBOX_LOCKED,
-  MARGIN_DIVISOR,
-  MARGIN_FLOOR,
-  TARGET_MARGIN,
-  UNDER_TEN_BUMP_USD,
-  UNDER_TEN_LIMIT_USD,
-} from "@/lib/pricing";
+import { MARGIN_FLOOR, sellPriceFlag, type SellPriceFlag } from "@/lib/pricing";
 import type { PriceBreakdown } from "@/lib/pricing";
 import type { TaobaoItem } from "@/lib/taobao";
 import type { KindCode } from "@/lib/kinds";
@@ -83,10 +73,7 @@ export function IntakeApp({
   const [tbReason, setTbReason] = useState("");
   const [sellerColors, setSellerColors] = useState<string[]>([]);
   const [needsResearch, setNeedsResearch] = useState(false);
-  // --- Auto-price calculator ---
-  const [calcCny, setCalcCny] = useState("");
-  const [calcFx, setCalcFx] = useState(String(initialFxRate));
-  const [calcDebox, setCalcDebox] = useState("");
+  // Stored breakdown only. The form does not calculate a sell price or require one.
   const [autoPrice, setAutoPrice] = useState<PriceBreakdown | null>(null);
   const [findPreview, setFindPreview] = useState<string | null>(null);
   const [findMatches, setFindMatches] = useState<{ ma: string; kind: string; color: string }[]>([]);
@@ -155,26 +142,6 @@ export function IntakeApp({
 
   const colorLine = useMemo(() => [...colors, ...sellerColors].join(", "), [colors, sellerColors]);
 
-  const deboxLocked = useMemo(() => kind.toUpperCase() in DEBOX_LOCKED, [kind]);
-
-  const priceBreakdown = useMemo<PriceBreakdown | null>(() => {
-    const deboxNum = Number(calcDebox);
-    return computeAutoPrice({
-      costCny: Number(calcCny),
-      fxRate: Number(calcFx),
-      kind,
-      deboxOverrides:
-        !deboxLocked && Number.isFinite(deboxNum) && deboxNum >= 0 && calcDebox.trim() !== ""
-          ? { [kind]: deboxNum }
-          : undefined,
-    });
-  }, [calcCny, calcFx, calcDebox, kind, deboxLocked]);
-
-  // Keep the calculator's CNY in sync with the cost field until it computes.
-  useEffect(() => {
-    setCalcCny((current) => (current === "" ? costCny : current));
-  }, [costCny]);
-
   async function onTaobaoLookup() {
     if (!link.trim()) {
       setError("Dán link Taobao trước nha iu ơi.");
@@ -213,7 +180,6 @@ export function IntakeApp({
           setCostCny(item.listCny);
           const usd = convertCnyToUsd(item.listCny, fxRate);
           if (usd !== null) setCostUsd(usd);
-          setCalcCny(item.listCny);
         }
       } else {
         setTbState("blocked");
@@ -226,15 +192,6 @@ export function IntakeApp({
       setTbReason("Không gọi được server, thử lại nha.");
       setNeedsResearch(true);
     }
-  }
-
-  function onUseAutoPrice() {
-    if (!priceBreakdown) return;
-    const sell = String(priceBreakdown.sellUsd);
-    setSellUsd(sell);
-    const cny = convertUsdToCny(sell, fxRate);
-    if (cny !== null) setSellCny(cny);
-    setAutoPrice(priceBreakdown);
   }
 
   function resetForm() {
@@ -256,9 +213,6 @@ export function IntakeApp({
     setTbItem(null);
     setTbReason("");
     setNeedsResearch(false);
-    setCalcCny("");
-    setCalcFx(String(initialFxRate));
-    setCalcDebox("");
     setAutoPrice(null);
   }
 
@@ -371,7 +325,6 @@ export function IntakeApp({
     setTbItem(item.taobao_snapshot ?? null);
     setTbState(item.taobao_snapshot ? "ok" : "idle");
     setAutoPrice(item.auto_price ?? null);
-    setCalcCny(item.cost_cny);
     setPhotos(
       (item.photo_paths ?? []).map((rel) => ({
         id: `keep:${rel}`,
@@ -607,15 +560,6 @@ export function IntakeApp({
           needsResearch,
           setNeedsResearch,
           toggleSize,
-          calcCny,
-          setCalcCny,
-          calcFx,
-          setCalcFx,
-          calcDebox,
-          setCalcDebox,
-          deboxLocked,
-          priceBreakdown,
-          onUseAutoPrice,
           findPreview,
           findMatches,
           findCopied,
@@ -725,15 +669,6 @@ function renderTab(props: {
   needsResearch: boolean;
   setNeedsResearch: (value: boolean) => void;
   toggleSize: (value: string) => void;
-  calcCny: string;
-  setCalcCny: (value: string) => void;
-  calcFx: string;
-  setCalcFx: (value: string) => void;
-  calcDebox: string;
-  setCalcDebox: (value: string) => void;
-  deboxLocked: boolean;
-  priceBreakdown: PriceBreakdown | null;
-  onUseAutoPrice: () => void;
   findPreview: string | null;
   findMatches: { ma: string; kind: string; color: string }[];
   findCopied: string | null;
@@ -849,15 +784,6 @@ function ItemForm(props: {
   needsResearch: boolean;
   setNeedsResearch: (value: boolean) => void;
   toggleSize: (value: string) => void;
-  calcCny: string;
-  setCalcCny: (value: string) => void;
-  calcFx: string;
-  setCalcFx: (value: string) => void;
-  calcDebox: string;
-  setCalcDebox: (value: string) => void;
-  deboxLocked: boolean;
-  priceBreakdown: PriceBreakdown | null;
-  onUseAutoPrice: () => void;
 }) {
   return (
     <div data-testid="intake-grid" className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-x-10">
@@ -1055,7 +981,7 @@ function ItemForm(props: {
             />
           </div>
         </fieldset>
-        <fieldset className="mb-4">
+        <fieldset className="mb-4" data-testid="sell-price">
           <label className="mb-2 block text-sm font-medium">Giá bán / sell (tuỳ chọn)</label>
           <div className="grid grid-cols-2 gap-2">
             <input
@@ -1083,20 +1009,11 @@ function ItemForm(props: {
               className="h-11 rounded-xl bg-white px-3 ring-1 ring-rose-100"
             />
           </div>
+          <p data-testid="sell-optional" className="mt-2 text-[12px] text-[#7d5360]">
+            Để trống vẫn lưu. Mini Boss tính giá bán sau, hoặc báo Boss nếu dưới margin.
+          </p>
         </fieldset>
         <p className="mb-4 text-center text-[11px] text-rose-700/70">{props.fxLabel}</p>
-        <PricePanel
-          calcCny={props.calcCny}
-          setCalcCny={props.setCalcCny}
-          calcFx={props.calcFx}
-          setCalcFx={props.setCalcFx}
-          calcDebox={props.calcDebox}
-          setCalcDebox={props.setCalcDebox}
-          deboxLocked={props.deboxLocked}
-          kind={props.kind}
-          breakdown={props.priceBreakdown}
-          onUse={props.onUseAutoPrice}
-        />
         <fieldset className="mb-5">
           <label className="mb-2 block text-sm font-medium" htmlFor="link">
             Link shop / Taobao <span className="font-normal text-rose-700/60">(tuỳ chọn)</span>
@@ -1283,101 +1200,6 @@ function TaobaoPanel({
   );
 }
 
-function PricePanel({
-  calcCny,
-  setCalcCny,
-  calcFx,
-  setCalcFx,
-  calcDebox,
-  setCalcDebox,
-  deboxLocked,
-  kind,
-  breakdown,
-  onUse,
-}: {
-  calcCny: string;
-  setCalcCny: (value: string) => void;
-  calcFx: string;
-  setCalcFx: (value: string) => void;
-  calcDebox: string;
-  setCalcDebox: (value: string) => void;
-  deboxLocked: boolean;
-  kind: string;
-  breakdown: PriceBreakdown | null;
-  onUse: () => void;
-}) {
-  return (
-    <div data-testid="price-panel" className="mb-5 rounded-2xl bg-white p-3 ring-1 ring-rose-100">
-      <p className="text-sm font-medium">💰 Tính giá tự động <span className="font-normal text-rose-700/60">(tuỳ chọn · margin {Math.round(TARGET_MARGIN * 100)}%)</span></p>
-      <p className="mt-1 text-[11px] text-rose-700/70">Không bắt buộc. Giá bán để trống vẫn lưu — tính sau.</p>
-      <div className="mt-2 grid grid-cols-3 gap-2">
-        <label className="block">
-          <span className="mb-1 block text-[11px] text-rose-700">Giá vốn ¥</span>
-          <input
-            data-testid="calc-cny"
-            value={calcCny}
-            onChange={(event) => setCalcCny(event.target.value)}
-            placeholder="¥"
-            inputMode="decimal"
-            className="h-11 w-full rounded-xl bg-[oklch(0.995_0.01_50)] px-2 text-base ring-1 ring-rose-100 md:text-sm"
-          />
-        </label>
-        <label className="block">
-          <span className="mb-1 block text-[11px] text-rose-700">Tỷ giá</span>
-          <input
-            data-testid="calc-fx"
-            value={calcFx}
-            onChange={(event) => setCalcFx(event.target.value)}
-            placeholder="6.723"
-            inputMode="decimal"
-            className="h-11 w-full rounded-xl bg-[oklch(0.995_0.01_50)] px-2 text-base ring-1 ring-rose-100 md:text-sm"
-          />
-        </label>
-        <label className="block">
-          <span className="mb-1 block text-[11px] text-rose-700">
-            Debox $ {deboxLocked ? "🔒" : ""}
-          </span>
-          <input
-            data-testid="calc-debox"
-            value={deboxLocked ? "7.50" : calcDebox}
-            onChange={(event) => setCalcDebox(event.target.value)}
-            disabled={deboxLocked}
-            placeholder="$0"
-            inputMode="decimal"
-            className="h-11 w-full rounded-xl bg-[oklch(0.995_0.01_50)] px-2 text-base ring-1 ring-rose-100 disabled:opacity-60 md:text-sm"
-          />
-        </label>
-      </div>
-      <p className="mt-1 text-[11px] text-rose-700/70">
-        {deboxLocked
-          ? `Debox ${kind} cố định $7.50 (bảng khoá V/Q/D).`
-          : "Debox các loại khác mặc định $0 — sửa được."}{" "}
-        Giá bán = ceil(giá vốn $ ÷ {MARGIN_DIVISOR}). Dưới ${UNDER_TEN_LIMIT_USD} thì +${UNDER_TEN_BUMP_USD}.
-      </p>
-      {breakdown ? (
-        <div data-testid="price-breakdown" className="mt-2 rounded-xl bg-rose-50 p-2 text-xs text-rose-900 ring-1 ring-rose-100">
-          <p>Giá vốn (landed): <span className="font-bold">${breakdown.landedUsd.toFixed(2)}</span>
-            <span className="text-rose-700/70"> = ¥{calcCny} ÷ {calcFx} + debox ${breakdown.deboxUsd.toFixed(2)}</span>
-          </p>
-          <p className="mt-1">Giá bán gợi ý: <span className="text-sm font-bold">${breakdown.sellUsd}</span>
-            <span className="text-rose-700/70"> · lãi ${breakdown.marginUsd.toFixed(2)} ({(breakdown.marginPct * 100).toFixed(1)}%)</span>
-          </p>
-          <p className="mt-1 text-rose-700/70">Gợi ý thôi. Bấm chỉ khi muốn ghi vào giá bán.</p>
-          <button
-            type="button"
-            data-testid="price-use"
-            onClick={onUse}
-            className="mt-2 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-white text-sm font-bold text-[#5c3d48] ring-1 ring-[#eadfdc]"
-          >
-            Dùng giá ${breakdown.sellUsd}
-          </button>
-        </div>
-      ) : (
-        <p className="mt-2 text-xs text-rose-700/70">Bỏ qua cũng được. Giá bán không bắt buộc.</p>
-      )}
-    </div>
-  );
-}
 
 function FindPreview({ src }: { src: string }) {
   const [open, setOpen] = useState(false);
@@ -1504,18 +1326,8 @@ function intakeSellFlag(props: {
   costUsd: string;
   costCny: string;
   kind: KindCode;
-  calcFx: string;
-  calcDebox: string;
-  deboxLocked: boolean;
   fxRate: number;
 }): SellPriceFlag {
-  const typedFx = Number(props.calcFx);
-  const fxRate = Number.isFinite(typedFx) && typedFx > 0 ? typedFx : props.fxRate;
-  const deboxNum = Number(props.calcDebox);
-  const deboxOverrides =
-    !props.deboxLocked && Number.isFinite(deboxNum) && deboxNum >= 0 && props.calcDebox.trim() !== ""
-      ? { [props.kind]: deboxNum }
-      : undefined;
   return sellPriceFlag({
     sellUsd: props.sellUsd,
     sellCny: props.sellCny,
@@ -1524,8 +1336,7 @@ function intakeSellFlag(props: {
     costCny: props.costCny,
     costCurrency: props.costUsd.trim() ? "USD" : props.costCny.trim() ? "CNY" : "USD",
     kind: props.kind,
-    fxRate,
-    deboxOverrides,
+    fxRate: props.fxRate,
   });
 }
 

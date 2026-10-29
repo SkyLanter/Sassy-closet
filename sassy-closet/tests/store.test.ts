@@ -177,9 +177,44 @@ describe("durable / local store", { concurrency: 1 }, () => {
     });
     assert.equal(saved.ma, "D01");
     assert.equal(saved.kind, "D");
+    assert.equal(saved.sell_usd, "");
+    assert.equal(saved.sell_cny, "");
+    assert.equal(saved.price, "");
+    assert.equal(saved.auto_price ?? null, null);
+    assert.match(saved.caption_vi, /Inbox giá/);
+    assert.doesNotMatch(saved.caption_vi, /\$\d/);
     const listed = await listSubmissions();
     assert.equal(listed.length, 1);
     assert.equal(listed[0].ma, "D01");
+  });
+
+  test("blank sell price saves S06 and does not invent a calculated sell", async () => {
+    const saved = await saveSubmission({
+      kind: "S",
+      size: "M",
+      link: "",
+      color: "Den",
+      color_note: "",
+      pieces: [],
+      cost_usd: "",
+      cost_cny: "",
+      cost_currency: "USD",
+      sell_usd: "",
+      sell_cny: "",
+      sell_currency: "USD",
+      keep_photos: [],
+      photos: [],
+      needs_research: false,
+      taobao_snapshot: null,
+      auto_price: null,
+      newMa: "S06",
+    });
+    assert.equal(saved.ma, "S06");
+    assert.equal(saved.sell_usd, "");
+    assert.equal(saved.price, "");
+    assert.equal(saved.auto_price ?? null, null);
+    assert.match(saved.caption_vi, /Inbox giá/);
+    assert.doesNotMatch(saved.caption_vi, /\$\d/);
   });
 
   test("second save mints A02 and find-by-hash only matches the real photo", async () => {
