@@ -54,6 +54,30 @@ test("publish guard allows Q02 and still blocks held mãs, a reused mã, and S06
   assert.equal(mintBlock("A", []), null);
 });
 
+test("holding G01 refuses that shoe and the next code is G02 once G01 exists", () => {
+  assert.equal(nextMa("G", []), "G01");
+  assert.equal(mintBlock("G", []), "held");
+  assert.equal(publishBlock({ action: "create", ma: "G01" }), "held");
+  assert.equal(publishBlock({ action: "update", ma: "G01" }), "held");
+  assert.equal(nextMa("G", ["G01"]), "G02");
+  assert.equal(mintBlock("G", ["G01"]), null);
+  assert.equal(publishBlock({ action: "create", ma: "G02" }), null);
+});
+
+test("holding H02 and A29 blocks those codes and leaves the following number free", () => {
+  assert.equal(nextMa("H", ["H01"]), "H02");
+  assert.equal(mintBlock("H", ["H01"]), "held");
+  assert.equal(nextMa("H", ["H01", "H02"]), "H03");
+  assert.equal(mintBlock("H", ["H01", "H02"]), null);
+  const throughA28 = Array.from({ length: 28 }, (_, index) => `A${String(index + 1).padStart(2, "0")}`);
+  assert.equal(nextMa("A", throughA28), "A29");
+  assert.equal(mintBlock("A", throughA28), "held");
+  assert.equal(nextMa("A", [...throughA28, "A29"]), "A30");
+  assert.equal(mintBlock("A", [...throughA28, "A29"]), null);
+  assert.equal(publishBlock({ action: "create", ma: "S16" }), "held");
+  assert.equal(publishBlock({ action: "create", ma: "S19" }), "held");
+});
+
 test("save persists Q02 and still refuses K06 or S06 at another dollar", async () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "sassy-guard-"));
   rememberEnv();

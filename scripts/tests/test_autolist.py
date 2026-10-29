@@ -96,6 +96,12 @@ def test_real_held_file_skips_k06_and_v05_and_quotes_q02() -> None:
     assert default_held_path() == ROOT / "data" / "held.json"
     assert "K06" in policy.held
     assert "V05" in policy.held
+    assert len(policy.held) == 21
+    for code in ("A27", "A28", "A29", "G01", "H02", "S16", "S17", "S18", "S19"):
+        assert code in policy.held
+        skipped_gap = listing_quote(code, Decimal("20"), policy)
+        assert skipped_gap.action == "skip"
+        assert skipped_gap.sell_usd is None
     assert "A07" not in policy.held
     assert "S10" not in policy.held
     assert policy.never_list == ()
