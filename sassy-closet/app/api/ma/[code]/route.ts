@@ -1,10 +1,17 @@
 import { NextResponse } from "next/server";
 import { lookupMaCard } from "@/lib/ma-card";
+import { requireShopAdmin } from "@/lib/shop-admin-http";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ code: string }> },
 ) {
+  const denied = await requireShopAdmin(request);
+  if (denied) {
+    return denied;
+  }
   const { code } = await context.params;
   const card = await lookupMaCard(decodeURIComponent(code ?? ""));
   if (!card) {

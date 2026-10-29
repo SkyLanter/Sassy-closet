@@ -6,7 +6,7 @@ import { safeShopAdminNext, shopAdminGate } from "@/lib/shop-admin-gate";
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const hasSession = await verifyAdminSession(request.cookies.get(ADMIN_SESSION_COOKIE)?.value ?? "");
-  const decision = shopAdminGate(pathname, hasSession);
+  const decision = shopAdminGate(pathname, hasSession, request.method);
   if (decision === "public" || decision === "allow") {
     return NextResponse.next();
   }
@@ -37,5 +37,14 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/shop", "/admin/shop/:path*", "/api/shop-catalog", "/api/shop-catalog/:path*"],
+  matcher: [
+    "/admin/shop",
+    "/admin/shop/:path*",
+    "/api/shop-catalog",
+    "/api/shop-catalog/:path*",
+    "/api/export",
+    "/api/submissions",
+    "/api/submissions/:path*",
+    "/api/ma/:path*",
+  ],
 };

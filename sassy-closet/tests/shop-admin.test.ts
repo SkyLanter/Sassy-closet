@@ -190,7 +190,7 @@ test("login locks after repeated failures and stays locked when unset", async ()
   assert.equal(locked.status, 503);
 });
 
-test("middleware locks shop tools and leaves intake admin export open", async () => {
+test("middleware locks shop tools and intake cost reads, and leaves the /admin page open", async () => {
   process.env.ADMIN_PASSWORD = PASSWORD;
   process.env.ADMIN_SESSION_SECRET = SESSION_SECRET;
   const token = await createAdminSessionToken();
@@ -200,9 +200,15 @@ test("middleware locks shop tools and leaves intake admin export open", async ()
   assert.match(denied.headers.get("location") ?? "", /\/admin\/shop\/login$/);
   const api = await middleware(new NextRequest("http://127.0.0.1/api/shop-catalog"));
   assert.equal(api.status, 401);
-  const csv = await middleware(new NextRequest("http://127.0.0.1/admin"));
-  assert.equal(csv.status, 200);
+  const csvPage = await middleware(new NextRequest("http://127.0.0.1/admin"));
+  assert.equal(csvPage.status, 200);
+  const exportApi = await middleware(new NextRequest("http://127.0.0.1/api/export"));
+  assert.equal(exportApi.status, 401);
+  const save = await middleware(new NextRequest("http://127.0.0.1/api/submissions", { method: "POST" }));
+  assert.equal(save.status, 200);
   assert.equal(shopAdminGate("/", false), "public");
+  assert.equal(shopAdminGate("/api/export", false), "deny");
+  assert.equal(shopAdminGate("/api/submissions", false, "POST"), "public");
   const signed = await middleware(
     new NextRequest("http://127.0.0.1/admin/shop", {
       headers: { cookie: `${ADMIN_SESSION_COOKIE}=${token}` },
