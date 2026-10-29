@@ -116,6 +116,8 @@ def test_s06_stays_25_and_blank_landed_is_not_invented() -> None:
     locked = listing_quote("S06", Decimal("3.9"), policy)
     assert locked.action == "locked"
     assert locked.sell_usd == 25
+    assert listing_quote(" s06 ", Decimal("30"), policy).sell_usd == 25
+    assert listing_quote("s06", Decimal("99"), policy).action == "locked"
     blank = listing_quote("A01", None, policy)
     assert blank.sell_usd is None
     assert blank.action == "no-price"

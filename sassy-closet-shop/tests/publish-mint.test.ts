@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { messageReadyAddFields } from "../lib/admin-add";
-import { addProductToCatalog, saveProductInCatalog, type ProductFieldsInput } from "../lib/admin-ops";
+import {
+  addProductToCatalog,
+  renameProductInCatalog,
+  saveProductInCatalog,
+  type ProductFieldsInput,
+} from "../lib/admin-ops";
 import { nextMaForLetter } from "../lib/ma";
 import type { Product } from "../lib/types";
 
@@ -13,6 +18,19 @@ function fields(priceUsd: number | null): ProductFieldsInput {
   return {
     titleEn: "",
     titleVn: "",
+    descriptionEn: "",
+    descriptionVn: "",
+    status: "available",
+    priceUsd,
+    colors: [],
+    images: [],
+  };
+}
+
+function priced(priceUsd: number | null): ProductFieldsInput {
+  return {
+    titleEn: "Set",
+    titleVn: "Set",
     descriptionEn: "",
     descriptionVn: "",
     status: "available",
@@ -66,4 +84,52 @@ test("shop save refuses an S06 dollar other than 25", () => {
   assert.equal(kept.ok, false);
   if (!kept.ok) assert.equal(kept.error.includes("$25"), false);
   assert.equal(catalog[0]?.priceUsd, 25);
+
+  const spaced = saveProductInCatalog([stub("S06", 25)], " s06 ", fields(30));
+  assert.equal(spaced.ok, false);
+  if (!spaced.ok) assert.match(spaced.error, /\$25/);
+});
+
+test("shop add and rename cannot put S06 on the catalog except at $25", () => {
+  const sets = ["S01", "S02", "S03", "S04", "S05"].map((ma) => stub(ma, 20));
+  const before = sets.map((row) => ({ ma: row.ma, priceUsd: row.priceUsd }));
+  for (const priceUsd of [null, 0, 24, 26, 40]) {
+    const added = addProductToCatalog(sets, "S", priced(priceUsd));
+    assert.equal(added.ok, false, String(priceUsd));
+    if (!added.ok) assert.match(added.error, /\$25/);
+  }
+  const held = addProductToCatalog(sets, "S", messageReadyAddFields("S"));
+  assert.equal(held.ok, false);
+  if (!held.ok) assert.match(held.error, /\$25/);
+  assert.deepEqual(
+    sets.map((row) => ({ ma: row.ma, priceUsd: row.priceUsd })),
+    before,
+  );
+
+  const minted = addProductToCatalog(sets, "S", priced(25));
+  assert.equal(minted.ok, true);
+  if (minted.ok) {
+    assert.equal(minted.ma, "S06");
+    assert.equal(minted.products.find((product) => product.ma === "S06")?.priceUsd, 25);
+    assert.equal(minted.products.some((product) => product.ma === "A04"), false);
+  }
+  assert.equal(sets.length, 5);
+  assert.equal(sets.some((product) => product.ma === "S06"), false);
+
+  const extra = [stub("A04", 40)];
+  const blocked = renameProductInCatalog(extra, "A04", " s06 ", priced(40));
+  assert.equal(blocked.ok, false);
+  if (!blocked.ok) assert.match(blocked.error, /\$25/);
+  assert.equal(extra[0]?.ma, "A04");
+  assert.equal(extra[0]?.priceUsd, 40);
+  assert.equal(extra.length, 1);
+
+  const renamed = renameProductInCatalog([stub("A04", 40)], "a04", "s06", priced(25));
+  assert.equal(renamed.ok, true);
+  if (renamed.ok) {
+    assert.equal(renamed.ma, "S06");
+    const row = renamed.products.find((product) => product.ma === "S06");
+    assert.equal(row?.priceUsd, 25);
+    assert.equal(renamed.products.some((product) => product.ma === "A04"), false);
+  }
 });

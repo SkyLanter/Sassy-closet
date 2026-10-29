@@ -360,6 +360,9 @@ test("shop save refuses every S06 dollar other than 25", async () => {
     if (!saved.ok) assert.match(saved.error, /\$25/);
     assert.equal(saved.blobWritten, false);
     assert.equal(port.snapshot(), snapshot);
+    const spaced = applyShopCatalogPatch(s06Catalog(), { ma: " s06 ", priceUsd }, "t");
+    assert.equal(spaced.ok, false, String(priceUsd));
+    if (!spaced.ok) assert.match(spaced.error, /\$25/);
   }
 
   const kept = applyShopCatalogPatch(s06Catalog(), { ma: "S06", priceUsd: 25, titleEn: "Still twenty-five" }, "t");

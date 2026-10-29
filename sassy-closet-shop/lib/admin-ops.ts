@@ -145,6 +145,14 @@ export function productFromFields(ma: string, input: ProductFieldsInput): Produc
   return applyRecordedHubColors(product);
 }
 
+/** Public S06 stays $25. Null and every other dollar are refused. */
+function s06PublicPriceLock(ma: string, priceUsd: number | null): string | null {
+  if (ma === "S06" && priceUsd !== 25) {
+    return "S06 stays $25.";
+  }
+  return null;
+}
+
 export function addProductToCatalog(
   catalog: Product[],
   letter: string,
@@ -165,6 +173,10 @@ export function addProductToCatalog(
   }
   if (catalog.some((product) => normalizeMa(product.ma) === ma)) {
     return { ok: false, error: `Mã ${ma} already exists. Do not gộp. Pick an unused mã.` };
+  }
+  const s06Lock = s06PublicPriceLock(ma, input.priceUsd);
+  if (s06Lock) {
+    return { ok: false, error: s06Lock };
   }
   try {
     const created = productFromFields(ma, input);
@@ -189,8 +201,9 @@ export function saveProductInCatalog(
   if (index < 0) {
     return { ok: false, error: `Mã ${ma} is not in the catalog` };
   }
-  if (ma === "S06" && input.priceUsd !== 25) {
-    return { ok: false, error: "S06 stays $25." };
+  const s06Lock = s06PublicPriceLock(ma, input.priceUsd);
+  if (s06Lock) {
+    return { ok: false, error: s06Lock };
   }
   try {
     const next = productFromFields(ma, input);
@@ -236,6 +249,10 @@ export function renameProductInCatalog(
   }
   if (catalog.some((product) => normalizeMa(product.ma) === to)) {
     return { ok: false, error: `Mã ${to} already exists. Do not gộp. Pick an unused mã.` };
+  }
+  const s06Lock = s06PublicPriceLock(to, input.priceUsd);
+  if (s06Lock) {
+    return { ok: false, error: s06Lock };
   }
   try {
     const renamed = productFromFields(to, input);

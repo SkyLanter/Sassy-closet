@@ -4,7 +4,7 @@
  */
 import type { KindCode } from "./kinds";
 import { isHeldIncompleteMa, NEVER_LIST_MAS } from "./held-incomplete";
-import { nextMa } from "./mint";
+import { nextMa, normalizeMa } from "./mint";
 
 export type PublishAction = "create" | "update" | "mint" | "sync";
 
@@ -22,7 +22,7 @@ const S06 = "S06";
 
 export function publishBlock(intent: PublishIntent): string | null {
   knownAction(intent.action);
-  const ma = intent.ma.trim().toUpperCase();
+  const ma = normalizeMa(intent.ma);
   if (intent.duplicate || intent.reused) {
     return intent.reused ? "reused" : "duplicate";
   }
