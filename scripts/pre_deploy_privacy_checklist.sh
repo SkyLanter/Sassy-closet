@@ -45,7 +45,7 @@ echo "[4] Post-deploy steps (ONLY after explicit Boss yes)"
 cat <<'L'
     a. Boss deploys intake app (this script never deploys)
     b. scripts/post_deploy_privacy_check.sh            -> direct-link GETs 200, X-Robots-Tag noindex, nofollow, nosnippet; bodies not printed
-    c. WRITE_PROBES=1 scripts/post_deploy_privacy_check.sh -> POST/PATCH still 401 unauthenticated
+    c. Do not POST /api/submissions as a probe. Writes are open by link and would save a mã.
     d. scripts/live_shop_smoke.sh --with-privacy        -> 62 mas, S06 $25, held 404
     e. Any FAIL -> report to Boss; do not fix live silently
 L

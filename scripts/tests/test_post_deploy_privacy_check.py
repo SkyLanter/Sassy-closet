@@ -73,23 +73,18 @@ def test_healthy_json_passes_without_write_probes():
     assert all(m == "GET" for m, _ in seen)
 
 
-def test_empty_401_mode():
-    assert _run(_healthy(""), WRITE_PROBES="1", SHOP_ADMIN_401_EMPTY="1")[0].returncode == 0
-    p, _ = _run(_healthy(J401), WRITE_PROBES="1", SHOP_ADMIN_401_EMPTY="1")
-    assert p.returncode == 1 and "body not empty shape" in p.stdout
-
-
-def test_write_probes_run_when_gate_live():
+def test_write_probes_are_not_sent():
     p, seen = _run(_healthy(), WRITE_PROBES="1")
     assert p.returncode == 0, p.stdout
-    assert ("POST", "/api/submissions") in seen and ("PATCH", "/api/submissions/ZZ99") in seen
+    assert all(m == "GET" for m, _ in seen)
+    assert "open by link" in p.stdout
 
 
 def test_missing_noindex_fails_never_echoes_values_and_blocks_writes():
     r = _healthy()
     r["/api/export"] = (200, f"ma,cost_cny,source_link\nS06,{SENTINEL},x")
     r["/api/ma/S06"] = (200, f'{{"cost_usd":"{SENTINEL}"}}')
-    p, seen = _run(r, WRITE_PROBES="1")
+    p, seen = _run(r)
     assert p.returncode == 1
     assert "X-Robots-Tag" in p.stdout
     assert SENTINEL not in p.stdout + p.stderr

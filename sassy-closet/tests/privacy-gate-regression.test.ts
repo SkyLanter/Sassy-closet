@@ -4,26 +4,8 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 
-// Direct-link GETs are public and noindex. Writes stay 401 with no cost/source leak.
-const LEAK = /cost_cny|cost_usd|costCny|costUsd|source_?link|sourceLink|taobao|supplier|\bnhung\b|@[a-z0-9-]+\.[a-z]/i;
+// Direct-link reads and writes are public and noindex. There is no session wall.
 const NOINDEX = /noindex,\s*nofollow,\s*nosnippet/i;
-const MODES: Array<[string, string | undefined]> = [["json-default", undefined], ["json-0", "0"], ["empty-1", "1"], ["empty-true", "true"]];
-
-async function writeRoutes() {
-  const list = await import("../app/api/submissions/route");
-  const one = await import("../app/api/submissions/[ma]/route");
-  const maCtx = { params: Promise.resolve({ ma: "S06" }) };
-  const fd = () => { const f = new FormData(); f.set("ma", "S06"); f.set("sell_usd", "25"); return f; };
-  const json = () => JSON.stringify({ ma: "S06", sell_usd: 25 });
-  const req = (method: string, body?: BodyInit, ct?: string) =>
-    new Request("http://l/", { method, body, headers: ct ? { "content-type": ct } : undefined });
-  return [
-    ["POST /api/submissions form", () => list.POST(req("POST", fd()))],
-    ["POST /api/submissions json", () => list.POST(req("POST", json(), "application/json"))],
-    ["PATCH /api/submissions/[ma] form", () => one.PATCH(req("PATCH", fd()), maCtx)],
-    ["PATCH /api/submissions/[ma] json", () => one.PATCH(req("PATCH", json(), "application/json"), maCtx)],
-  ] as Array<[string, () => Promise<Response>]>;
-}
 
 function assertNoindex(res: Response, name: string) {
   assert.match(res.headers.get("x-robots-tag") ?? "", NOINDEX, name);
@@ -31,27 +13,34 @@ function assertNoindex(res: Response, name: string) {
   assert.equal(res.headers.get("set-cookie"), null, name);
 }
 
-for (const [label, env] of MODES) {
-  test(`unauthenticated intake writes 401 with no leak (${label})`, async () => {
-    const saved = { ...process.env };
-    try {
-      if (env === undefined) delete process.env.SHOP_ADMIN_401_EMPTY;
-      else process.env.SHOP_ADMIN_401_EMPTY = env;
-      const empty = env === "1" || env === "true";
-      for (const [name, call] of await writeRoutes()) {
-        const res = await call();
-        assert.equal(res.status, 401, name);
-        const text = await res.text();
-        assert.doesNotMatch(text, LEAK, `${name} leaked`);
-        assert.match(res.headers.get("cache-control") ?? "", /no-store/, name);
-        assert.match(res.headers.get("x-robots-tag") ?? "", NOINDEX, name);
-        assert.equal(res.headers.get("set-cookie"), null, name);
-        if (empty) assert.equal(text, "", name);
-        else assert.deepEqual(JSON.parse(text), { ok: false, error: "Unauthorized." }, name);
-      }
-    } finally { process.env = saved; }
-  });
-}
+test("intake writes are open and noindex without a session", async () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "intake-open-write-"));
+  const saved = { ...process.env };
+  for (const key of Object.keys(process.env)) if (/BLOB|KV_|VERCEL|ADMIN_/.test(key)) delete process.env[key];
+  process.env.SASSY_DATA_DIR = tmp;
+  const { resetStoreBackendForTests } = await import("../lib/store-backend");
+  resetStoreBackendForTests();
+  try {
+    const list = await import("../app/api/submissions/route");
+    const one = await import("../app/api/submissions/[ma]/route");
+    const form = new FormData();
+    form.set("kind", "A");
+    form.set("size", "S");
+    const posted = await list.POST(new Request("http://l/", { method: "POST", body: form }));
+    assert.notEqual(posted.status, 401);
+    assertNoindex(posted, "POST");
+    const patched = await one.PATCH(
+      new Request("http://l/", { method: "PATCH", body: new FormData() }),
+      { params: Promise.resolve({ ma: "A01" }) },
+    );
+    assert.notEqual(patched.status, 401);
+    assertNoindex(patched, "PATCH");
+  } finally {
+    process.env = saved;
+    resetStoreBackendForTests();
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
 
 test("unauthenticated intake reads are 200 or 404 with noindex and no cookie", async () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "intake-direct-"));

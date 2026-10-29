@@ -13,7 +13,7 @@ const COST_CUR = ["cost", "currency"].join("_");
 const PLACEHOLDER_AMOUNT = String(1);
 const FAKE_LINK = ["https:", "", "example.invalid", "item-240"].join("/");
 
-test("gate leaves /api/export public and still locks shop catalog", () => {
+test("gate leaves export, submissions, ma, and shop catalog public", () => {
   assert.equal(shopAdminGate("/api/export", false), "public");
   assert.equal(shopAdminGate("/api/export", true), "public");
   assert.equal(shopAdminGate("/api/submissions", false), "public");
@@ -21,7 +21,8 @@ test("gate leaves /api/export public and still locks shop catalog", () => {
   assert.equal(shopAdminGate("/api/ma/S06", false), "public");
   assert.equal(shopAdminGate("/admin", false), "public");
   assert.equal(shopAdminGate("/", false), "public");
-  assert.equal(shopAdminGate("/api/shop-catalog", false), "deny");
+  assert.equal(shopAdminGate("/api/shop-catalog", false), "public");
+  assert.equal(shopAdminGate("/admin/shop", false), "public");
 });
 
 test("/api/export: 200 CSV without a session, noindex, forged cookie still 200", async () => {

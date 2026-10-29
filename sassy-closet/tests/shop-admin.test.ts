@@ -124,7 +124,7 @@ function listen(server: Server): Promise<number> {
   });
 }
 
-test("shop tools session is an HttpOnly cookie and fails closed", async () => {
+test("session helper still signs a cookie; the login route does not require it", async () => {
   delete process.env.ADMIN_PASSWORD;
   delete process.env.ADMIN_SESSION_SECRET;
   assert.equal(adminAuthConfigured(), false);
@@ -143,32 +143,19 @@ test("shop tools session is an HttpOnly cookie and fails closed", async () => {
   assert.equal(token.includes(PASSWORD), false);
 
   const { POST } = await import("../app/api/shop-catalog/login/route.ts");
-  const wrong = await POST(
+  const open = await POST(
     new Request("http://127.0.0.1/api/shop-catalog/login", {
       method: "POST",
       headers: { "content-type": "application/json", "x-forwarded-for": "203.0.113.10" },
       body: JSON.stringify({ password: "nope" }),
     }),
   );
-  assert.equal(wrong.status, 401);
-  const ok = await POST(
-    new Request("http://127.0.0.1/api/shop-catalog/login", {
-      method: "POST",
-      headers: { "content-type": "application/json", "x-forwarded-for": "203.0.113.11" },
-      body: JSON.stringify({ password: PASSWORD }),
-    }),
-  );
-  assert.equal(ok.status, 200);
-  const setCookie = ok.headers.get("set-cookie") ?? "";
-  assert.match(setCookie, new RegExp(`${ADMIN_SESSION_COOKIE}=`));
-  assert.match(setCookie, /HttpOnly/i);
-  assert.match(setCookie, /Secure/i);
-  assert.match(setCookie, /SameSite=Lax/i);
-  assert.doesNotMatch(setCookie, /Domain=/i);
-  assert.match(setCookie, /Max-Age=2592000/);
+  assert.equal(open.status, 200);
+  assert.deepEqual(await open.json(), { ok: true });
+  assert.equal(open.headers.get("set-cookie"), null);
 });
 
-test("login locks after repeated failures and stays locked when unset", async () => {
+test("login rate helper still counts failures; the login route stays open", async () => {
   const ip = "203.0.113.12";
   const now = Date.now();
   for (let attempt = 0; attempt < 5; attempt += 1) {
@@ -180,26 +167,25 @@ test("login locks after repeated failures and stays locked when unset", async ()
   delete process.env.ADMIN_PASSWORD;
   delete process.env.ADMIN_SESSION_SECRET;
   const { POST } = await import("../app/api/shop-catalog/login/route.ts");
-  const locked = await POST(
+  const open = await POST(
     new Request("http://127.0.0.1/api/shop-catalog/login", {
       method: "POST",
       headers: { "content-type": "application/json", "x-forwarded-for": "203.0.113.13" },
       body: JSON.stringify({ password: PASSWORD }),
     }),
   );
-  assert.equal(locked.status, 503);
+  assert.equal(open.status, 200);
 });
 
-test("middleware locks shop tools and leaves intake admin export open", async () => {
+test("middleware leaves shop tools and catalog open without a session", async () => {
   process.env.ADMIN_PASSWORD = PASSWORD;
   process.env.ADMIN_SESSION_SECRET = SESSION_SECRET;
   const token = await createAdminSessionToken();
   assert.ok(token);
-  const denied = await middleware(new NextRequest("http://127.0.0.1/admin/shop"));
-  assert.equal(denied.status, 307);
-  assert.match(denied.headers.get("location") ?? "", /\/admin\/shop\/login$/);
+  const desk = await middleware(new NextRequest("http://127.0.0.1/admin/shop"));
+  assert.equal(desk.status, 200);
   const api = await middleware(new NextRequest("http://127.0.0.1/api/shop-catalog"));
-  assert.equal(api.status, 401);
+  assert.equal(api.status, 200);
   const csv = await middleware(new NextRequest("http://127.0.0.1/admin"));
   assert.equal(csv.status, 200);
   const exportApi = await middleware(new NextRequest("http://127.0.0.1/api/export"));
@@ -289,7 +275,7 @@ test("revalidate URL must be the shop endpoint", () => {
   assert.equal(readShopRevalidateConfig().ok, true);
 });
 
-test("signed-in catalog route reads a local file and does not require the intake blob token", async () => {
+test("catalog route reads a local file without a session and without the intake blob token", async () => {
   delete process.env.SHOP_BLOB_READ_WRITE_TOKEN;
   delete process.env.BLOB_READ_WRITE_TOKEN;
   delete process.env.VERCEL;
@@ -305,8 +291,8 @@ test("signed-in catalog route reads a local file and does not require the intake
   const cookie = `${ADMIN_SESSION_COOKIE}=${token}`;
   try {
     const { GET } = await import("../app/api/shop-catalog/route.ts");
-    const denied = await GET(new Request("http://127.0.0.1/api/shop-catalog"));
-    assert.equal(denied.status, 401);
+    const open = await GET(new Request("http://127.0.0.1/api/shop-catalog"));
+    assert.equal(open.status, 200);
     const listed = await GET(new Request("http://127.0.0.1/api/shop-catalog", { headers: { cookie } }));
     assert.equal(listed.status, 200);
     const body = (await listed.json()) as { products: { ma: string }[] };

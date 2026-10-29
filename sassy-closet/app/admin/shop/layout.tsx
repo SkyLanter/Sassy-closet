@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Shop tools",
-  robots: { index: false, follow: false },
+  robots: { index: false, follow: false, nosnippet: true },
 };
 
 export default function ShopToolsLayout({ children }: { children: ReactNode }) {
