@@ -2,18 +2,23 @@ import { NextResponse } from "next/server";
 import { saveFromForm } from "@/lib/form-save";
 import { normalizeMa } from "@/lib/mint";
 import { scheduleNewMaWebhookFromRow } from "@/lib/newMaWebhook";
+import { requireShopAdmin, shopAdminJson } from "@/lib/shop-admin-http";
 import { getSubmission } from "@/lib/store";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ ma: string }> },
 ) {
+  const denied = await requireShopAdmin(request);
+  if (denied) {
+    return denied;
+  }
   const { ma } = await context.params;
   const submission = await getSubmission(ma);
   if (!submission) {
-    return NextResponse.json({ error: "Không tìm thấy mã này 🥺" }, { status: 404 });
+    return shopAdminJson({ error: "Không tìm thấy mã này 🥺" }, 404);
   }
-  return NextResponse.json({
+  return shopAdminJson({
     ma: submission.ma,
     caption_vi: submission.caption_vi,
     submission,
