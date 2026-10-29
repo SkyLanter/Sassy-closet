@@ -21,6 +21,7 @@ import {
   type ListingStatusClient,
 } from "@/lib/listing-status";
 import { normalizeFindCode } from "@/lib/on-hand";
+import { MARGIN_FLOOR, sellPriceFlag, type SellPriceFlag } from "@/lib/pricing";
 import type { PriceBreakdown } from "@/lib/pricing";
 import type { TaobaoItem } from "@/lib/taobao";
 import type { KindCode } from "@/lib/kinds";
@@ -1053,6 +1054,7 @@ function ItemForm(props: {
         <StatusChips
           photos={props.photos.length}
           sizes={props.sizes.length}
+          priceFlag={intakeSellFlag(props)}
           needsResearch={props.needsResearch}
         />
         <button
@@ -1198,6 +1200,7 @@ function TaobaoPanel({
   );
 }
 
+
 function FindPreview({ src }: { src: string }) {
   const [open, setOpen] = useState(false);
   return (
@@ -1317,20 +1320,56 @@ function FindPanel({
   );
 }
 
+function intakeSellFlag(props: {
+  sellUsd: string;
+  sellCny: string;
+  costUsd: string;
+  costCny: string;
+  kind: KindCode;
+  fxRate: number;
+}): SellPriceFlag {
+  return sellPriceFlag({
+    sellUsd: props.sellUsd,
+    sellCny: props.sellCny,
+    sellCurrency: props.sellUsd.trim() ? "USD" : props.sellCny.trim() ? "CNY" : "USD",
+    costUsd: props.costUsd,
+    costCny: props.costCny,
+    costCurrency: props.costUsd.trim() ? "USD" : props.costCny.trim() ? "CNY" : "USD",
+    kind: props.kind,
+    fxRate: props.fxRate,
+  });
+}
+
 function StatusChips({
   photos,
   sizes,
+  priceFlag,
   needsResearch,
 }: {
   photos: number;
   sizes: number;
+  priceFlag: SellPriceFlag;
   needsResearch: boolean;
 }) {
   const chips: { tone: "warn" | "info" | "ok"; label: string }[] = [];
   if (photos === 0) chips.push({ tone: "warn", label: "Thiếu ảnh" });
   if (sizes === 0) chips.push({ tone: "warn", label: "Thiếu size" });
+  switch (priceFlag) {
+    case "later":
+      chips.push({ tone: "info", label: "Tính giá sau" });
+      break;
+    case "under-margin":
+      chips.push({ tone: "warn", label: `Dưới ${Math.round(MARGIN_FLOOR * 100)}%` });
+      break;
+    case "ok":
+      break;
+    default: {
+      const neverFlag: never = priceFlag;
+      throw new Error(`unknown sell price flag ${String(neverFlag)}`);
+    }
+  }
   if (needsResearch) chips.push({ tone: "info", label: "Cần xem tay" });
-  if (chips.length === 0) chips.push({ tone: "ok", label: "Đủ để lưu" });
+  if (!chips.some((chip) => chip.tone === "warn")) chips.unshift({ tone: "ok", label: "Đủ để lưu" });
   const toneClass = {
     warn: "bg-[#fbf3e4] text-[#8a5a12]",
     info: "bg-[#e7f1f6] text-[#1f5670]",
@@ -1399,7 +1438,7 @@ function SavedList({
         <ul className="mt-3 divide-y divide-[#eadfdc] overflow-hidden rounded-2xl bg-white ring-1 ring-[#eadfdc]">
           {rows.map((row) => {
             const thumb = row.photo_paths?.[0];
-            const price = row.sell_usd ? `$${row.sell_usd}` : row.sell_cny ? `¥${row.sell_cny}` : "Giá để sau";
+            const price = row.sell_usd ? `$${row.sell_usd}` : row.sell_cny ? `¥${row.sell_cny}` : "Tính giá sau";
             return (
               <li key={row.ma}>
                 <button
