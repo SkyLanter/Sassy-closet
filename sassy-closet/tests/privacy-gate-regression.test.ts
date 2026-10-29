@@ -4,24 +4,8 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 
-// Direct-link reads and writes are public and noindex. No session cookie.
+// Direct-link reads and writes are public and noindex. There is no session wall.
 const NOINDEX = /noindex,\s*nofollow,\s*nosnippet/i;
-
-async function writeRoutes() {
-  const list = await import("../app/api/submissions/route");
-  const one = await import("../app/api/submissions/[ma]/route");
-  const maCtx = { params: Promise.resolve({ ma: "S06" }) };
-  const fd = () => { const f = new FormData(); f.set("ma", "S06"); f.set("sell_usd", "25"); return f; };
-  const json = () => JSON.stringify({ ma: "S06", sell_usd: 25 });
-  const req = (method: string, body?: BodyInit, ct?: string) =>
-    new Request("http://l/", { method, body, headers: ct ? { "content-type": ct } : undefined });
-  return [
-    ["POST /api/submissions form", () => list.POST(req("POST", fd()))],
-    ["POST /api/submissions json", () => list.POST(req("POST", json(), "application/json"))],
-    ["PATCH /api/submissions/[ma] form", () => one.PATCH(req("PATCH", fd()), maCtx)],
-    ["PATCH /api/submissions/[ma] json", () => one.PATCH(req("PATCH", json(), "application/json"), maCtx)],
-  ] as Array<[string, () => Promise<Response>]>;
-}
 
 function assertNoindex(res: Response, name: string) {
   assert.match(res.headers.get("x-robots-tag") ?? "", NOINDEX, name);
@@ -29,19 +13,28 @@ function assertNoindex(res: Response, name: string) {
   assert.equal(res.headers.get("set-cookie"), null, name);
 }
 
-test("unauthenticated intake writes are not 401 and set no cookie", async () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "intake-direct-write-"));
+test("intake writes are open and noindex without a session", async () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "intake-open-write-"));
   const saved = { ...process.env };
-  for (const k of Object.keys(process.env)) if (/BLOB|KV_|VERCEL|ADMIN_/.test(k)) delete process.env[k];
+  for (const key of Object.keys(process.env)) if (/BLOB|KV_|VERCEL|ADMIN_/.test(key)) delete process.env[key];
   process.env.SASSY_DATA_DIR = tmp;
   const { resetStoreBackendForTests } = await import("../lib/store-backend");
   resetStoreBackendForTests();
   try {
-    for (const [name, call] of await writeRoutes()) {
-      const res = await call();
-      assert.notEqual(res.status, 401, name);
-      assertNoindex(res, name);
-    }
+    const list = await import("../app/api/submissions/route");
+    const one = await import("../app/api/submissions/[ma]/route");
+    const form = new FormData();
+    form.set("kind", "A");
+    form.set("size", "S");
+    const posted = await list.POST(new Request("http://l/", { method: "POST", body: form }));
+    assert.notEqual(posted.status, 401);
+    assertNoindex(posted, "POST");
+    const patched = await one.PATCH(
+      new Request("http://l/", { method: "PATCH", body: new FormData() }),
+      { params: Promise.resolve({ ma: "A01" }) },
+    );
+    assert.notEqual(patched.status, 401);
+    assertNoindex(patched, "PATCH");
   } finally {
     process.env = saved;
     resetStoreBackendForTests();

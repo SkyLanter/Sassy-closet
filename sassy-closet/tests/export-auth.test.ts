@@ -13,7 +13,7 @@ const COST_CUR = ["cost", "currency"].join("_");
 const PLACEHOLDER_AMOUNT = String(1);
 const FAKE_LINK = ["https:", "", "example.invalid", "item-240"].join("/");
 
-test("gate leaves /api/export public and still locks shop catalog", () => {
+test("gate leaves export, submissions, ma, and shop catalog public", () => {
   assert.equal(shopAdminGate("/api/export", false), "public");
   assert.equal(shopAdminGate("/api/export", true), "public");
   assert.equal(shopAdminGate("/api/submissions", false), "public");

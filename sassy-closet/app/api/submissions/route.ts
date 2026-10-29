@@ -6,7 +6,7 @@ import { scheduleNewMaWebhookFromRow } from "@/lib/newMaWebhook";
 import { listSubmissions, storeHealth } from "@/lib/store";
 import { storeUnavailableResponse } from "@/lib/store-unavailable";
 
-// Direct link, no session, including saves. noindex, not in nav.
+// Direct link, no session, reads and writes. noindex, not in nav.
 export async function GET() {
   let submissions;
   try {

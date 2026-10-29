@@ -8,7 +8,7 @@ export function isShopCatalogApi(pathname: string): boolean {
   return pathname === "/api/shop-catalog" || pathname.startsWith("/api/shop-catalog/");
 }
 
-/** Intake rows, CSV, mã cards, and shop tools. Open by direct link. No session. */
+/** Intake rows, CSV, mã cards, and shop tools. Open by direct link. */
 export function isDirectLinkIntakeApi(pathname: string): boolean {
   return (
     pathname === "/api/submissions" ||
@@ -35,11 +35,10 @@ export function isShopAdminLogoutApi(pathname: string): boolean {
 export type ShopAdminGateDecision = "public" | "allow" | "deny";
 
 /**
- * Every intake path is public. There is no admin session and no login redirect.
- * `hasSession` is ignored so a cookie cannot change the decision.
+ * Every intake path is public, including shop tools and catalog APIs.
+ * `pathname` and `hasSession` stay in the signature so callers do not grow a wall again.
  */
-export function shopAdminGate(pathname: string, _hasSession: boolean): ShopAdminGateDecision {
-  void pathname;
+export function shopAdminGate(_pathname: string, _hasSession: boolean): ShopAdminGateDecision {
   return "public";
 }
 

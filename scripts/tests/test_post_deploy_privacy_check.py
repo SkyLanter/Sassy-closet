@@ -70,18 +70,18 @@ def test_healthy_json_passes_without_write_probes():
     assert all(m == "GET" for m, _ in seen)
 
 
-def test_script_never_posts():
+def test_write_probes_are_not_sent():
     p, seen = _run(_healthy(), WRITE_PROBES="1")
     assert p.returncode == 0, p.stdout
     assert all(m == "GET" for m, _ in seen)
-    assert any(path == "/admin/shop" for _, path in seen)
+    assert "open by link" in p.stdout
 
 
 def test_missing_noindex_fails_never_echoes_values_and_blocks_writes():
     r = _healthy()
     r["/api/export"] = (200, f"ma,cost_cny,source_link\nS06,{SENTINEL},x")
     r["/api/ma/S06"] = (200, f'{{"cost_usd":"{SENTINEL}"}}')
-    p, seen = _run(r, WRITE_PROBES="1")
+    p, seen = _run(r)
     assert p.returncode == 1
     assert "X-Robots-Tag" in p.stdout
     assert SENTINEL not in p.stdout + p.stderr

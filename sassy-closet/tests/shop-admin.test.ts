@@ -124,7 +124,7 @@ function listen(server: Server): Promise<number> {
   });
 }
 
-test("shop tools session is an HttpOnly cookie and fails closed", async () => {
+test("session helper still signs a cookie; the login route does not require it", async () => {
   delete process.env.ADMIN_PASSWORD;
   delete process.env.ADMIN_SESSION_SECRET;
   assert.equal(adminAuthConfigured(), false);
@@ -151,12 +151,11 @@ test("shop tools session is an HttpOnly cookie and fails closed", async () => {
     }),
   );
   assert.equal(open.status, 200);
+  assert.deepEqual(await open.json(), { ok: true });
   assert.equal(open.headers.get("set-cookie"), null);
-  const body = (await open.json()) as { ok: boolean };
-  assert.equal(body.ok, true);
 });
 
-test("login locks after repeated failures and stays locked when unset", async () => {
+test("login rate helper still counts failures; the login route stays open", async () => {
   const ip = "203.0.113.12";
   const now = Date.now();
   for (let attempt = 0; attempt < 5; attempt += 1) {
@@ -178,9 +177,13 @@ test("login locks after repeated failures and stays locked when unset", async ()
   assert.equal(open.status, 200);
 });
 
-test("middleware leaves shop tools and intake data open without a session", async () => {
-  const shop = await middleware(new NextRequest("http://127.0.0.1/admin/shop"));
-  assert.equal(shop.status, 200);
+test("middleware leaves shop tools and catalog open without a session", async () => {
+  process.env.ADMIN_PASSWORD = PASSWORD;
+  process.env.ADMIN_SESSION_SECRET = SESSION_SECRET;
+  const token = await createAdminSessionToken();
+  assert.ok(token);
+  const desk = await middleware(new NextRequest("http://127.0.0.1/admin/shop"));
+  assert.equal(desk.status, 200);
   const api = await middleware(new NextRequest("http://127.0.0.1/api/shop-catalog"));
   assert.equal(api.status, 200);
   const csv = await middleware(new NextRequest("http://127.0.0.1/admin"));
@@ -268,7 +271,7 @@ test("revalidate URL must be the shop endpoint", () => {
   assert.equal(readShopRevalidateConfig().ok, true);
 });
 
-test("signed-in catalog route reads a local file and does not require the intake blob token", async () => {
+test("catalog route reads a local file without a session and without the intake blob token", async () => {
   delete process.env.SHOP_BLOB_READ_WRITE_TOKEN;
   delete process.env.BLOB_READ_WRITE_TOKEN;
   delete process.env.VERCEL;

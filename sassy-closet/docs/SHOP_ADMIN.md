@@ -2,11 +2,11 @@
 
 The customer shop (`sassy-closet-shop`, https://sassycloset.vercel.app and https://sassy-closet-shop.vercel.app) has no `/admin` page and no Shop tools button. Catalog edits live here, on the intake app, at `/admin/shop`.
 
-Nhung’s intake tabs stay **Món mới**, **Sửa theo mã**, **Tìm mã**, **Hỏi Mini Boss**. Shop tools is a direct link at `/admin/shop`. There is no password and no session. `/admin` CSV export stays open. Those pages and the intake data APIs send `X-Robots-Tag: noindex, nofollow, nosnippet`.
+Nhung’s intake tabs stay **Món mới**, **Sửa theo mã**, **Tìm mã**, **Hỏi Mini Boss**. Shop tools is the link `/admin/shop`. There is no password and no session. `/admin` CSV export stays open.
 
 ## Password
 
-Intake does not ask for a password. `/admin/shop/login` redirects to the desk.
+Shop tools, `/api/shop-catalog`, `/api/submissions`, `/api/export`, and `/api/ma/*` do not check `ADMIN_PASSWORD`. Anyone with the link can open and edit. Responses stay `noindex`. `ADMIN_PASSWORD` and `ADMIN_SESSION_SECRET` are not a login wall.
 
 ## Catalog
 
