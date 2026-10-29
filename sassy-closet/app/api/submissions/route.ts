@@ -2,10 +2,15 @@ import { NextResponse } from "next/server";
 import { saveFromForm } from "@/lib/form-save";
 import { intakeCatalog } from "@/lib/kinds";
 import { scheduleNewMaWebhookFromRow } from "@/lib/newMaWebhook";
+import { requireShopAdmin, shopAdminJson } from "@/lib/shop-admin-http";
 import { listSubmissions, storeHealth } from "@/lib/store";
 
-export async function GET() {
-  return NextResponse.json({
+export async function GET(request: Request) {
+  const denied = await requireShopAdmin(request);
+  if (denied) {
+    return denied;
+  }
+  return shopAdminJson({
     submissions: await listSubmissions(),
     storage: storeHealth(),
     catalog: intakeCatalog(),
