@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { requireShopAdmin } from "@/lib/shop-admin-http";
 import { saveFromForm } from "@/lib/form-save";
 import { intakeDirectJson, withIntakeDirectLinkHeaders } from "@/lib/intake-direct-link";
 import { intakeCatalog } from "@/lib/kinds";
@@ -7,7 +6,7 @@ import { scheduleNewMaWebhookFromRow } from "@/lib/newMaWebhook";
 import { listSubmissions, storeHealth } from "@/lib/store";
 import { storeUnavailableResponse } from "@/lib/store-unavailable";
 
-// Direct link, no session. Writes stay on the shop-admin session. noindex, not in nav.
+// Direct link, no session, reads and writes. noindex, not in nav.
 export async function GET() {
   let submissions;
   try {
@@ -23,8 +22,6 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const denied = await requireShopAdmin(request);
-  if (denied) return denied;
   try {
     const form = await request.formData();
     const submission = await saveFromForm(form);

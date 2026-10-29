@@ -2,13 +2,11 @@
 
 The customer shop (`sassy-closet-shop`, https://sassycloset.vercel.app and https://sassy-closet-shop.vercel.app) has no `/admin` page and no Shop tools button. Catalog edits live here, on the intake app, at `/admin/shop`.
 
-Nhung’s intake tabs stay **Món mới**, **Sửa theo mã**, **Tìm mã**, **Hỏi Mini Boss**. Shop tools is a separate password page linked from the intake footer and from the CSV export page. `/admin` CSV export stays open.
+Nhung’s intake tabs stay **Món mới**, **Sửa theo mã**, **Tìm mã**, **Hỏi Mini Boss**. Shop tools is the link `/admin/shop`. There is no password and no session. `/admin` CSV export stays open.
 
 ## Password
 
-Sign-in checks `ADMIN_PASSWORD` on the server. A matching password sets cookie `sc_admin`: HttpOnly, Secure, SameSite=Lax, path `/`, 30 days, no Domain. The cookie value is a MAC, not the password. The MAC key is `HMAC-SHA256(ADMIN_SESSION_SECRET, ADMIN_PASSWORD)`. If either variable is missing, shop tools stay locked. There is no default password.
-
-Five failures from the same IP in 10 minutes return 429. A wrong password waits briefly.
+Shop tools, `/api/shop-catalog`, `/api/submissions`, `/api/export`, and `/api/ma/*` do not check `ADMIN_PASSWORD`. Anyone with the link can open and edit. Responses stay `noindex`. `ADMIN_PASSWORD` and `ADMIN_SESSION_SECRET` are not a login wall.
 
 ## Catalog
 
