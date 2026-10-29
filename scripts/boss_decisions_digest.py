@@ -84,7 +84,9 @@ def blob_hits(kind, unit):
     for m in MA_RE.finditer(unit):
         win = unit[max(0, m.start() - NEAR): m.end() + NEAR]
         if BLOB_KW.search(win) and ACT_KW.search(win):
-            out.append((m.group(1), f"blob_near_ma_{'line' if '\n' not in unit else 'bullet'}"))
+            # Label from the unit shape. Keep the backslash out of the f-string so Python 3.11 can parse it.
+            where = "line" if "\n" not in unit else "bullet"
+            out.append((m.group(1), f"blob_near_ma_{where}"))
     return out
 
 
