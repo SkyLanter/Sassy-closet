@@ -50,7 +50,7 @@ test("/api/export: 200 CSV without a session, noindex, forged cookie still 200",
       assert.equal(res.status, 200);
       assert.match(res.headers.get("content-type") ?? "", /text\/csv/);
       assert.match(res.headers.get("cache-control") ?? "", /no-store/);
-      assert.match(res.headers.get("x-robots-tag") ?? "", /noindex,\s*nofollow/i);
+      assert.match(res.headers.get("x-robots-tag") ?? "", /noindex,\s*nofollow,\s*nosnippet/i);
       assert.equal(res.headers.get("set-cookie"), null);
       const csv = await res.text();
       assert.match(csv.split("\n")[0] ?? "", /cost_usd/);

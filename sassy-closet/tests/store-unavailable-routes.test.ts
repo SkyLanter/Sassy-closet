@@ -33,7 +33,7 @@ async function is503(res: Response, directLink = false) {
   const body = await res.json();
   assert.equal(body.error, STORE_UNAVAILABLE_VI);
   assert.equal(body.storeUnavailable, true);
-  if (directLink) assert.match(res.headers.get("x-robots-tag") ?? "", /noindex,\s*nofollow/i);
+  if (directLink) assert.match(res.headers.get("x-robots-tag") ?? "", /noindex,\s*nofollow,\s*nosnippet/i);
 }
 
 function photoForm() {
@@ -64,11 +64,11 @@ test("success paths unchanged on an empty healthy store", async () => {
     const one = await import("../app/api/submissions/[ma]/route");
     const missing = await one.GET(plainReq(), { params: Promise.resolve({ ma: "Z99" }) });
     assert.equal(missing.status, 404);
-    assert.match(missing.headers.get("x-robots-tag") ?? "", /noindex,\s*nofollow/i);
+    assert.match(missing.headers.get("x-robots-tag") ?? "", /noindex,\s*nofollow,\s*nosnippet/i);
     const exp = await import("../app/api/export/route");
     const r = await exp.GET();
     assert.equal(r.status, 200);
-    assert.match(r.headers.get("x-robots-tag") ?? "", /noindex,\s*nofollow/i);
+    assert.match(r.headers.get("x-robots-tag") ?? "", /noindex,\s*nofollow,\s*nosnippet/i);
     assert.match(r.headers.get("content-type") ?? "", /text\/csv/);
     const find = await import("../app/api/find-ma/route");
     const f = await find.POST(photoForm());

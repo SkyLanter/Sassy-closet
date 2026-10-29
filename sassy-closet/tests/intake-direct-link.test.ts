@@ -2,10 +2,15 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
-import { INTAKE_DIRECT_LINK_HEADERS, INTAKE_DIRECT_LINK_SOURCES } from "../lib/intake-direct-link-headers";
+import { INTAKE_DIRECT_LINK_HEADERS, INTAKE_DIRECT_LINK_SOURCES, INTAKE_LISTING_ROBOTS } from "../lib/intake-direct-link-headers";
+
+const ROBOTS = "noindex, nofollow, nosnippet";
 
 test("direct-link header config covers submissions, export, and ma only", async () => {
-  assert.equal(INTAKE_DIRECT_LINK_HEADERS["X-Robots-Tag"], "noindex, nofollow");
+  assert.equal(INTAKE_DIRECT_LINK_HEADERS["X-Robots-Tag"], ROBOTS);
+  assert.equal(INTAKE_LISTING_ROBOTS.index, false);
+  assert.equal(INTAKE_LISTING_ROBOTS.follow, false);
+  assert.equal(INTAKE_LISTING_ROBOTS.nosnippet, true);
   assert.match(INTAKE_DIRECT_LINK_HEADERS["Cache-Control"] ?? "", /no-store/);
   assert.deepEqual(INTAKE_DIRECT_LINK_SOURCES, [
     "/api/submissions",
@@ -23,7 +28,7 @@ test("direct-link header config covers submissions, export, and ma only", async 
   );
   for (const rule of rules) {
     const robots = rule.headers.find((header) => header.key === "X-Robots-Tag");
-    assert.equal(robots?.value, "noindex, nofollow");
+    assert.equal(robots?.value, ROBOTS);
   }
   assert.equal(rules.some((rule) => rule.source === "/" || rule.source === "/admin"), false);
 });
@@ -37,4 +42,6 @@ test("direct-link routes are not added to a sitemap or the home nav", () => {
   assert.equal(header.includes("/api/submissions"), false);
   assert.equal(header.includes("/api/export"), false);
   assert.equal(header.includes("/api/ma"), false);
+  const layout = fs.readFileSync(path.join(root, "app/layout.tsx"), "utf8");
+  assert.equal(layout.includes("INTAKE_LISTING_ROBOTS"), true);
 });
