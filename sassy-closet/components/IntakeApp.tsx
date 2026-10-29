@@ -21,7 +21,7 @@ import {
   type ListingStatusClient,
 } from "@/lib/listing-status";
 import { normalizeFindCode } from "@/lib/on-hand";
-import { MARGIN_FLOOR, sellPriceFlag, type SellPriceFlag } from "@/lib/pricing";
+import { intakePriceView, type SellPriceFlag } from "@/lib/pricing";
 import type { PriceBreakdown } from "@/lib/pricing";
 import type { TaobaoItem } from "@/lib/taobao";
 import type { KindCode } from "@/lib/kinds";
@@ -341,9 +341,23 @@ export function IntakeApp({
       form.set("cost_usd", costUsd);
       form.set("cost_cny", costCny);
       form.set("cost_currency", costUsd ? "USD" : costCny ? "CNY" : "USD");
-      form.set("sell_usd", sellUsd);
-      form.set("sell_cny", sellCny);
-      form.set("sell_currency", sellUsd ? "USD" : sellCny ? "CNY" : "USD");
+      const priced = intakePriceView({
+        ma: (editingMa || (tab === "edit" ? loadedMa : "") || "").trim(),
+        kind,
+        costCny,
+        costUsd,
+        costCurrency: costUsd ? "USD" : costCny ? "CNY" : "USD",
+        sellUsd,
+        sellCny,
+        sellCurrency: sellUsd.trim() ? "USD" : sellCny.trim() ? "CNY" : "USD",
+        fxRate,
+      });
+      const fillCalculated = !sellUsd.trim() && !sellCny.trim() && priced.dollars != null;
+      const nextSellUsd = fillCalculated ? String(priced.dollars) : sellUsd;
+      const nextSellCny = fillCalculated ? (convertUsdToCny(nextSellUsd, fxRate) ?? "") : sellCny;
+      form.set("sell_usd", nextSellUsd);
+      form.set("sell_cny", nextSellCny);
+      form.set("sell_currency", nextSellUsd.trim() ? "USD" : nextSellCny.trim() ? "CNY" : "USD");
       form.set("color", colorLine);
       form.set("color_note", colorNote);
       form.set("pieces", JSON.stringify([]));
@@ -571,6 +585,7 @@ export function IntakeApp({
       <SavedList
         rows={savedRows}
         listing={listing}
+        fxRate={fxRate}
         onOpen={(ma) => {
           setTab("edit");
           setLookupMa(ma);
@@ -1001,7 +1016,7 @@ function ItemForm(props: {
             />
           </div>
           <p data-testid="sell-optional" className="mt-2 text-[12px] text-[#7d5360]">
-            Để trống vẫn lưu. Mini Boss tính giá bán sau, hoặc báo Boss nếu dưới margin.
+            {sellHint(props)}
           </p>
         </fieldset>
         <p className="mb-4 text-center text-[11px] text-rose-700/70">{props.fxLabel}</p>
@@ -1311,7 +1326,30 @@ function FindPanel({
   );
 }
 
+function formPriceView(props: {
+  loadedMa: string | null;
+  sellUsd: string;
+  sellCny: string;
+  costUsd: string;
+  costCny: string;
+  kind: KindCode;
+  fxRate: number;
+}) {
+  return intakePriceView({
+    ma: props.loadedMa ?? "",
+    kind: props.kind,
+    sellUsd: props.sellUsd,
+    sellCny: props.sellCny,
+    sellCurrency: props.sellUsd.trim() ? "USD" : props.sellCny.trim() ? "CNY" : "USD",
+    costUsd: props.costUsd,
+    costCny: props.costCny,
+    costCurrency: props.costUsd.trim() ? "USD" : props.costCny.trim() ? "CNY" : "USD",
+    fxRate: props.fxRate,
+  });
+}
+
 function intakeSellFlag(props: {
+  loadedMa: string | null;
   sellUsd: string;
   sellCny: string;
   costUsd: string;
@@ -1319,16 +1357,25 @@ function intakeSellFlag(props: {
   kind: KindCode;
   fxRate: number;
 }): SellPriceFlag {
-  return sellPriceFlag({
-    sellUsd: props.sellUsd,
-    sellCny: props.sellCny,
-    sellCurrency: props.sellUsd.trim() ? "USD" : props.sellCny.trim() ? "CNY" : "USD",
-    costUsd: props.costUsd,
-    costCny: props.costCny,
-    costCurrency: props.costUsd.trim() ? "USD" : props.costCny.trim() ? "CNY" : "USD",
-    kind: props.kind,
-    fxRate: props.fxRate,
-  });
+  return formPriceView(props).flag;
+}
+
+function sellHint(props: {
+  loadedMa: string | null;
+  sellUsd: string;
+  sellCny: string;
+  costUsd: string;
+  costCny: string;
+  kind: KindCode;
+  fxRate: number;
+}): string {
+  const view = formPriceView(props);
+  if (view.flag === "later") return "Để trống vẫn lưu. Chưa đủ giá vốn để tính.";
+  if (!props.sellUsd.trim() && !props.sellCny.trim() && view.dollars != null) {
+    return `Tự tính ${view.label}. Để trống vẫn lưu — không cần gõ giá.`;
+  }
+  if (view.flag === "under-margin") return "Dưới margin — vẫn lưu được. Không bắt buộc sửa giá.";
+  return "Để trống vẫn lưu. Giá bán không bắt buộc.";
 }
 
 function StatusChips({
@@ -1350,7 +1397,7 @@ function StatusChips({
       chips.push({ tone: "info", label: "Tính giá sau" });
       break;
     case "under-margin":
-      chips.push({ tone: "warn", label: `Dưới ${Math.round(MARGIN_FLOOR * 100)}%` });
+      chips.push({ tone: "warn", label: "Dưới margin" });
       break;
     case "ok":
       break;
@@ -1400,11 +1447,13 @@ function ListingChip({ item, ma }: { item: ListingItem | undefined; ma: string }
 function SavedList({
   rows,
   listing,
+  fxRate,
   onOpen,
   onCreate,
 }: {
   rows: Submission[];
   listing: ListingStatusClient;
+  fxRate: number;
   onOpen: (ma: string) => void;
   onCreate: () => void;
 }) {
@@ -1429,7 +1478,18 @@ function SavedList({
         <ul className="mt-3 divide-y divide-[#eadfdc] overflow-hidden rounded-2xl bg-white ring-1 ring-[#eadfdc]">
           {rows.map((row) => {
             const thumb = row.photo_paths?.[0];
-            const price = row.sell_usd ? `$${row.sell_usd}` : row.sell_cny ? `¥${row.sell_cny}` : "Tính giá sau";
+            const view = intakePriceView({
+              ma: row.ma,
+              kind: row.kind,
+              costCny: row.cost_cny,
+              costUsd: row.cost_usd,
+              costCurrency: row.cost_currency,
+              sellUsd: row.sell_usd,
+              sellCny: row.sell_cny,
+              sellCurrency: row.sell_currency,
+              fxRate,
+            });
+            const price = view.label;
             return (
               <li key={row.ma}>
                 <button
@@ -1467,7 +1527,14 @@ function SavedList({
                       {listing.enabled ? <ListingChip item={listingItemForMa(listing.items, row.ma)} ma={row.ma} /> : null}
                     </span>
                   </span>
-                  <span className="shrink-0 text-[13.5px] font-semibold tabular text-[#3c2a2e]">{price}</span>
+                  <span className="shrink-0 text-right" data-testid={`saved-price-${row.ma}`}>
+                    <span className="block text-[13.5px] font-semibold tabular text-[#3c2a2e]">{price}</span>
+                    {view.flag === "under-margin" ? (
+                      <span className="mt-1 inline-flex rounded-full bg-[#fbf3e4] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#8a5a12]">
+                        Dưới margin
+                      </span>
+                    ) : null}
+                  </span>
                 </button>
               </li>
             );

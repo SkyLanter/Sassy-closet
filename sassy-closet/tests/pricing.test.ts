@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   captionPriceLine,
+  intakePriceView,
   sellPriceFlag,
+  tieredSellUsd,
   computeAutoPrice,
   deboxFor,
   DEFAULT_FX,
@@ -63,6 +65,98 @@ test("auto price returns null for bad inputs instead of inventing a price", () =
   assert.equal(computeAutoPrice({ costCny: 0, fxRate: FX, kind: "A" }), null);
   assert.equal(computeAutoPrice({ costCny: NaN, fxRate: FX, kind: "A" }), null);
   assert.equal(computeAutoPrice({ costCny: 50, fxRate: 0, kind: "A" }), null);
+});
+
+test("tiered sell matches auto-list fixed points", () => {
+  assert.equal(tieredSellUsd(16.26), 26);
+  assert.equal(tieredSellUsd(19.5), 30);
+  assert.equal(tieredSellUsd(19.51), 30);
+  assert.equal(tieredSellUsd(19.58), 30);
+  assert.equal(tieredSellUsd(30), 42);
+  assert.equal(tieredSellUsd(33), 45);
+  assert.equal(tieredSellUsd(0), null);
+});
+
+test("blank sell with cost shows the calculated dollar, not calculate-later", () => {
+  const view = intakePriceView({
+    ma: "A01",
+    kind: "A",
+    sellUsd: "",
+    sellCny: "",
+    sellCurrency: "USD",
+    costCny: "",
+    costUsd: "16.26",
+    costCurrency: "USD",
+    fxRate: FX,
+  });
+  assert.equal(view.label, "$26");
+  assert.equal(view.flag, "ok");
+  assert.notEqual(view.label, "Tính giá sau");
+});
+
+test("a calculated sell under the 35% floor is flagged and still shown", () => {
+  const view = intakePriceView({
+    ma: "A04",
+    kind: "A",
+    sellUsd: "",
+    sellCny: "",
+    sellCurrency: "USD",
+    costCny: "",
+    costUsd: "33",
+    costCurrency: "USD",
+    fxRate: FX,
+  });
+  assert.equal(view.label, "$45");
+  assert.equal(view.flag, "under-margin");
+});
+
+test("blank sell without cost stays calculate-later", () => {
+  const view = intakePriceView({
+    ma: "A02",
+    kind: "A",
+    sellUsd: "",
+    sellCny: "",
+    sellCurrency: "USD",
+    costCny: "",
+    costUsd: "",
+    costCurrency: "USD",
+    fxRate: FX,
+  });
+  assert.equal(view.flag, "later");
+  assert.equal(view.label, "Tính giá sau");
+});
+
+test("S06 blank sell stays $25", () => {
+  const view = intakePriceView({
+    ma: "s6",
+    kind: "S",
+    sellUsd: "",
+    sellCny: "",
+    sellCurrency: "USD",
+    costCny: "80",
+    costUsd: "12",
+    costCurrency: "USD",
+    fxRate: FX,
+  });
+  assert.equal(view.dollars, 25);
+  assert.equal(view.label, "$25");
+  assert.equal(view.flag, "ok");
+});
+
+test("a typed sell under the tiered quote is flagged and still priced", () => {
+  const view = intakePriceView({
+    ma: "A03",
+    kind: "A",
+    sellUsd: "20",
+    sellCny: "",
+    sellCurrency: "USD",
+    costCny: "",
+    costUsd: "16.26",
+    costCurrency: "USD",
+    fxRate: FX,
+  });
+  assert.equal(view.label, "$20");
+  assert.equal(view.flag, "under-margin");
 });
 
 test("blank sell is later, not a forced price", () => {
