@@ -15,6 +15,7 @@
  * the 35% floor, the price caption stays "Inbox giá".
  */
 import type { KindCode } from "./kinds";
+import { normalizeMa } from "./mint";
 
 /** Target gross margin baked into the auto price (25%). */
 export const TARGET_MARGIN = 0.25;
@@ -72,6 +73,45 @@ export type PriceBreakdown = {  /** Landed cost in USD: CNY/FX + debox. */
   captionEligible: boolean;
 };
 
+const TIER_LOW_SELL = 25;
+const TIER_HIGH_SELL = 45;
+const TIER_LOW_MARGIN = 0.35;
+const TIER_HIGH_MARGIN = 0.25;
+const S06_LOCK_USD = 25;
+
+function ceilQuote(value: number): number {
+  const scaled = Math.round(value * 1e8) / 1e8;
+  return Math.ceil(scaled - 1e-9);
+}
+
+/** Margin for a whole-dollar sell. Same bands as auto-list. */
+export function tieredMarginForSell(sell: number): number {
+  if (sell <= TIER_LOW_SELL) return TIER_LOW_MARGIN;
+  if (sell >= TIER_HIGH_SELL) return TIER_HIGH_MARGIN;
+  const span = TIER_HIGH_SELL - TIER_LOW_SELL;
+  return TIER_LOW_MARGIN + (TIER_HIGH_MARGIN - TIER_LOW_MARGIN) * ((sell - TIER_LOW_SELL) / span);
+}
+
+function quoteFromLanded(landedUsd: number, sellForMargin: number): number {
+  const divisor = 1 - tieredMarginForSell(sellForMargin);
+  const quoted = ceilQuote(landedUsd / divisor);
+  if (quoted < UNDER_TEN_LIMIT_USD) return quoted + UNDER_TEN_BUMP_USD;
+  return quoted;
+}
+
+/**
+ * Smallest whole-dollar sell that does not undercut the tiered margin.
+ * Same fixed point as scripts/autolist.py price().
+ */
+export function tieredSellUsd(landedUsd: number): number | null {
+  if (!Number.isFinite(landedUsd) || landedUsd <= 0) return null;
+  const ceiling = quoteFromLanded(landedUsd, 1) + UNDER_TEN_BUMP_USD;
+  for (let sell = 1; sell <= ceiling; sell += 1) {
+    if (sell >= quoteFromLanded(landedUsd, sell)) return sell;
+  }
+  return null;
+}
+
 export function sellUsdFromLanded(landedUsd: number): number {
   const quoted = Math.ceil(landedUsd / MARGIN_DIVISOR);
   if (quoted < UNDER_TEN_LIMIT_USD) {
@@ -116,6 +156,88 @@ export type SellPriceInput = {
  * known and the margin is under the caption floor. Unknown cost does not block.
  */
 export type SellPriceFlag = "later" | "under-margin" | "ok";
+
+export type IntakePriceView = {
+  label: string;
+  dollars: number | null;
+  flag: SellPriceFlag;
+};
+
+function positiveAmount(raw: string): number | null {
+  const value = Number(String(raw).trim());
+  if (!Number.isFinite(value) || value <= 0) return null;
+  return value;
+}
+
+/** Goods cost in USD plus the letter debox. CNY is converted with the weekly FX. */
+export function landedUsdFromCosts(input: {
+  kind: string;
+  costCny: string;
+  costUsd: string;
+  costCurrency: string;
+  fxRate: number;
+  deboxOverrides?: DeboxOverrides;
+}): number | null {
+  const fx = input.fxRate;
+  if (!Number.isFinite(fx) || fx <= 0) return null;
+  const cny = positiveAmount(input.costCny);
+  const usd = positiveAmount(input.costUsd);
+  const currency = input.costCurrency.trim().toUpperCase();
+  let goodsUsd: number | null = null;
+  if (currency === "CNY" && cny) goodsUsd = cny / fx;
+  else if (usd) goodsUsd = usd;
+  else if (cny) goodsUsd = cny / fx;
+  if (goodsUsd == null) return null;
+  const landed = goodsUsd + deboxFor(input.kind, input.deboxOverrides);
+  return landed > 0 ? landed : null;
+}
+
+function storedSellUsd(input: SellPriceInput): number | null {
+  const currency = input.sellCurrency.trim().toUpperCase();
+  if (currency === "CNY") {
+    const cny = positiveAmount(input.sellCny);
+    if (!cny || !Number.isFinite(input.fxRate) || input.fxRate <= 0) return null;
+    return cny / input.fxRate;
+  }
+  return positiveAmount(input.sellUsd);
+}
+
+function underTieredMargin(sellUsd: number, landed: number | null, quote: number | null): boolean {
+  if (landed == null || quote == null || !(sellUsd > 0)) return false;
+  if (sellUsd + 1e-6 < quote) return true;
+  return (sellUsd - landed) / sellUsd < MARGIN_FLOOR;
+}
+
+/**
+ * What the intake list should show. A blank sell with enough cost becomes the
+ * tiered dollar. "Tính giá sau" is only when that dollar cannot be computed.
+ * S06 is always $25. A price under the margin is flagged and still shown.
+ */
+export function intakePriceView(input: SellPriceInput & { ma: string }): IntakePriceView {
+  if (normalizeMa(input.ma) === "S06") {
+    return { label: `$${S06_LOCK_USD}`, dollars: S06_LOCK_USD, flag: "ok" };
+  }
+  const landed = landedUsdFromCosts(input);
+  const quote = landed == null ? null : tieredSellUsd(landed);
+  const stored = storedSellUsd(input);
+  if (stored != null) {
+    const currency = input.sellCurrency.trim().toUpperCase();
+    const label = currency === "CNY" && input.sellCny.trim() ? `¥${input.sellCny.trim()}` : `$${input.sellUsd.trim()}`;
+    return {
+      label,
+      dollars: stored,
+      flag: underTieredMargin(stored, landed, quote) ? "under-margin" : "ok",
+    };
+  }
+  if (quote != null && landed != null) {
+    return {
+      label: `$${quote}`,
+      dollars: quote,
+      flag: underTieredMargin(quote, landed, quote) ? "under-margin" : "ok",
+    };
+  }
+  return { label: "Tính giá sau", dollars: null, flag: "later" };
+}
 
 export function sellPriceFlag(input: SellPriceInput): SellPriceFlag {
   const currency = input.sellCurrency.toUpperCase();
