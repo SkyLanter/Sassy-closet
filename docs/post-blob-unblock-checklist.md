@@ -6,10 +6,10 @@ Read-only. Run only AFTER Boss unblocks the Vercel Blob store. One command does 
 | # | URL | PASS looks like |
 |---|-----|-----------------|
 | 1 | https://sassy-closet.vercel.app/ | 200, form shows. The FX label is the real one, not "Tỷ giá mặc định … kho đang không đọc được" |
-| 2 | https://sassy-closet.vercel.app/api/submissions | **401** logged out (240b: rows have costs). Logged in at /admin/shop/login: 200 with a real mã list, no `"storeUnavailable":true` |
+| 2 | https://sassy-closet.vercel.app/api/submissions | **200** with no login and no cookie. Header `X-Robots-Tag: noindex, nofollow`. A real mã list, no `"storeUnavailable":true`. Not in the sitemap or nav |
 | 3 | https://sassy-closet.vercel.app/api/fx | 200 with `usd_cny` |
-| 4 | https://sassy-closet.vercel.app/api/submissions/S06 and /api/ma/S06 | **401** logged out. Logged in: 200 with mã S06 |
-| 5 | https://sassy-closet.vercel.app/api/export | **401** without login (piece 240 locks the costs CSV). If you're logged in at /admin/shop/login, it's a 200 CSV. The script only checks the logged-out status |
+| 4 | https://sassy-closet.vercel.app/api/ma/S06 | **200** with no login. Same noindex header. `/api/submissions/S06` is 200 when that mã is stored, otherwise 404, and still noindex |
+| 5 | https://sassy-closet.vercel.app/api/export | **200** CSV with no login. Same noindex header. The script does not print the CSV |
 | 6 | https://sassy-closet.vercel.app/api/photos/<photo path> | Manual: 200 image (needs a path from the logged-in list) |
 | 7 | Find-mã (POST photo) | Manual: on the intake page, use "find mã" with a known photo. It should return a match, not the store-down message. The script skips it because it's a POST |
 | 8 | https://sassy-closet-shop.vercel.app/api/health | `"reading":"blob"`, `"blob":{"readable":true}` (not `"seed"`) |

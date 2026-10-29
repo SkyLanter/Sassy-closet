@@ -202,6 +202,9 @@ test("middleware locks shop tools and leaves intake admin export open", async ()
   assert.equal(api.status, 401);
   const csv = await middleware(new NextRequest("http://127.0.0.1/admin"));
   assert.equal(csv.status, 200);
+  const exportApi = await middleware(new NextRequest("http://127.0.0.1/api/export"));
+  assert.equal(exportApi.status, 200);
+  assert.equal(shopAdminGate("/api/export", false), "public");
   assert.equal(shopAdminGate("/", false), "public");
   const signed = await middleware(
     new NextRequest("http://127.0.0.1/admin/shop", {

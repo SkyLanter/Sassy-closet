@@ -3,15 +3,10 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { ADMIN_SESSION_COOKIE, createAdminSessionToken } from "../lib/admin-auth";
 import { STORE_UNAVAILABLE_VI } from "../lib/store-unavailable";
 
-// /api/export is admin-only (piece 240): build an authed request with a test-only secret.
-async function adminReq(): Promise<Request> {
-  process.env.ADMIN_PASSWORD = ["test", "pw", "233"].join("-");
-  process.env.ADMIN_SESSION_SECRET = ["test", "session", "secret", "0123456789abcdef"].join("-");
-  const token = await createAdminSessionToken();
-  return new Request("http://l/api/export", { headers: { cookie: `${ADMIN_SESSION_COOKIE}=${token}` } });
+function plainReq(): Request {
+  return new Request("http://l/api/export");
 }
 
 // Simulate "store can't be read" with a corrupt local store file: same throw path
@@ -33,11 +28,12 @@ async function withStore(raw: string | null, fn: () => Promise<void>) {
   }
 }
 
-async function is503(res: Response) {
+async function is503(res: Response, directLink = false) {
   assert.equal(res.status, 503);
   const body = await res.json();
   assert.equal(body.error, STORE_UNAVAILABLE_VI);
   assert.equal(body.storeUnavailable, true);
+  if (directLink) assert.match(res.headers.get("x-robots-tag") ?? "", /noindex,\s*nofollow/i);
 }
 
 function photoForm() {
@@ -49,27 +45,30 @@ function photoForm() {
 test("store read failure -> 503 + Vietnamese message on read routes", async () => {
   await withStore("{not json", async () => {
     const one = await import("../app/api/submissions/[ma]/route");
-    await is503(await one.GET(await adminReq(), { params: Promise.resolve({ ma: "S06" }) }));
+    await is503(await one.GET(plainReq(), { params: Promise.resolve({ ma: "S06" }) }), true);
     const list = await import("../app/api/submissions/route");
-    await is503(await list.GET(await adminReq()));
+    await is503(await list.GET(), true);
     const fx = await import("../app/api/fx/route");
     await is503(await fx.GET());
     const exp = await import("../app/api/export/route");
-    await is503(await exp.GET(await adminReq()));
+    await is503(await exp.GET(), true);
     const find = await import("../app/api/find-ma/route");
     await is503(await find.POST(photoForm()));
     const ma = await import("../app/api/ma/[code]/route");
-    await is503(await ma.GET(await adminReq(), { params: Promise.resolve({ code: "A01" }) }));
+    await is503(await ma.GET(plainReq(), { params: Promise.resolve({ code: "A01" }) }), true);
   });
 });
 
 test("success paths unchanged on an empty healthy store", async () => {
   await withStore(null, async () => {
     const one = await import("../app/api/submissions/[ma]/route");
-    assert.equal((await one.GET(await adminReq(), { params: Promise.resolve({ ma: "Z99" }) })).status, 404);
+    const missing = await one.GET(plainReq(), { params: Promise.resolve({ ma: "Z99" }) });
+    assert.equal(missing.status, 404);
+    assert.match(missing.headers.get("x-robots-tag") ?? "", /noindex,\s*nofollow/i);
     const exp = await import("../app/api/export/route");
-    const r = await exp.GET(await adminReq());
+    const r = await exp.GET();
     assert.equal(r.status, 200);
+    assert.match(r.headers.get("x-robots-tag") ?? "", /noindex,\s*nofollow/i);
     assert.match(r.headers.get("content-type") ?? "", /text\/csv/);
     const find = await import("../app/api/find-ma/route");
     const f = await find.POST(photoForm());

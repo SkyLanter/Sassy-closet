@@ -9,17 +9,20 @@ SHOP="${SHOP_BASE:-https://sassy-closet-shop.vercel.app}"
 T="${CHECK_TIMEOUT:-20}"
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 FAILS=0
-get() { curl -s -m "$T" -o "$TMP/body" -w '%{http_code}' "$1" 2>/dev/null || echo 000; }
+get() { curl -s -D "$TMP/hdr" -m "$T" -o "$TMP/body" -w '%{http_code}' "$1" 2>/dev/null || echo 000; }
 res() { if [ "$1" = ok ]; then echo "PASS  $2"; else echo "FAIL  $2  ($3)"; FAILS=$((FAILS+1)); fi; }
 down() { grep -q '"storeUnavailable":true' "$TMP/body"; }
+noindex() { tr -d '\r' < "$TMP/hdr" | grep -qiE '^x-robots-tag:[[:space:]]*noindex,[[:space:]]*nofollow'; }
 
 c=$(get "$INTAKE/"); { [ "$c" = 200 ] && ! grep -q "kho đang không đọc được" "$TMP/body"; } && res ok "intake home 200, real FX" || res no "intake home" "http $c or default-FX fallback shown"
 c=$(get "$INTAKE/api/fx"); { [ "$c" = 200 ] && grep -q usd_cny "$TMP/body" && ! down; } && res ok "intake /api/fx 200 (store readable)" || res no "intake /api/fx" "http $c"
-# Cost-bearing reads are admin-only (piece 240/240b): logged out they must be 401.
-for path in /api/submissions /api/submissions/S06 /api/ma/S06 /api/export; do
+# Direct links, no session. Bodies are not printed. S06 sell lock is checked on the shop page.
+for path in /api/submissions /api/ma/S06 /api/export; do
   c=$(get "$INTAKE$path")
-  { [ "$c" = 401 ] && ! grep -q 'cost_' "$TMP/body"; } && res ok "intake $path locked (401 without login)" || res no "intake $path locked" "http $c - costs may be public, tell Boss"
+  { [ "$c" = 200 ] && noindex && ! down; } && res ok "intake $path 200 noindex without login" || res no "intake $path" "http $c, expected 200 with X-Robots-Tag noindex, nofollow"
 done
+c=$(get "$INTAKE/api/submissions/S06")
+{ { [ "$c" = 200 ] || [ "$c" = 404 ]; } && noindex && ! down; } && res ok "intake /api/submissions/S06 $c noindex without login" || res no "intake /api/submissions/S06" "http $c, expected 200 or 404 with X-Robots-Tag noindex, nofollow"
 
 c=$(get "$SHOP/api/health")
 r=$(python3 -c 'import json,sys;d=json.load(open(sys.argv[1]));print(d.get("reading"),(d.get("blob") or {}).get("readable"))' "$TMP/body" 2>/dev/null || echo "? ?")

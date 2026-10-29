@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
 import { requestHasAdminSession } from "@/lib/admin-auth";
+import { INTAKE_DIRECT_LINK_HEADERS } from "@/lib/intake-direct-link-headers";
 
-export const SHOP_ADMIN_NO_STORE = {
-  "Cache-Control": "private, no-store, no-cache, max-age=0, must-revalidate",
-  "X-Robots-Tag": "noindex, nofollow",
-} as const;
+export const SHOP_ADMIN_NO_STORE = INTAKE_DIRECT_LINK_HEADERS;
 
 export function shopAdminJson(body: unknown, status = 200, extra?: Record<string, string>): NextResponse {
   return NextResponse.json(body, {

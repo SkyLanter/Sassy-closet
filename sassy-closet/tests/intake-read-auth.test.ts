@@ -13,12 +13,14 @@ const COST_USD = ["cost", "usd"].join("_");
 const COST_CNY = ["cost", "cny"].join("_");
 const COST_CUR = ["cost", "currency"].join("_");
 
-function noLeak(text: string) {
-  assert.ok(!text.includes(FAKE_HOST), "no source link in 401");
-  assert.ok(!text.includes("cost_"), "no cost fields in 401");
+function assertDirectLink(res: Response) {
+  assert.equal(res.status, 200);
+  assert.match(res.headers.get("x-robots-tag") ?? "", /noindex,\s*nofollow/i);
+  assert.match(res.headers.get("cache-control") ?? "", /no-store/);
+  assert.equal(res.headers.get("set-cookie"), null);
 }
 
-test("GET /api/submissions, /api/submissions/[ma], /api/ma/[code]: 401 unauth, 200 with session", async () => {
+test("GET /api/submissions, /api/submissions/[ma], /api/ma/[code]: 200 without a session", async () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "intake-240b-"));
   const saved = { ...process.env };
   for (const k of Object.keys(process.env)) if (/BLOB|KV_|VERCEL|ADMIN_/.test(k)) delete process.env[k];
@@ -41,24 +43,17 @@ test("GET /api/submissions, /api/submissions/[ma], /api/ma/[code]: 401 unauth, 2
       (r: Request) => ma.GET(r, { params: Promise.resolve({ code: "A01" }) }),
     ];
 
-    // auth not configured, no cookie, forged cookie -> 401, no leak
+    // no cookie, auth configured with no cookie, forged cookie -> still the row
     for (const call of calls) {
-      const a = await call(new Request("http://l/"));
-      assert.equal(a.status, 401);
-      noLeak(await a.text());
+      assertDirectLink(await call(new Request("http://l/")));
     }
-    const authed = await adminRequest(); // configures auth for the rest
+    const authed = await adminRequest(); // configures auth; the read does not use it
     for (const call of calls) {
-      const b = await call(new Request("http://l/"));
-      assert.equal(b.status, 401);
-      noLeak(await b.text());
-      const c = await call(new Request("http://l/", { headers: { cookie: `${ADMIN_SESSION_COOKIE}=forged` } }));
-      assert.equal(c.status, 401);
-      noLeak(await c.text());
+      assertDirectLink(await call(new Request("http://l/")));
+      assertDirectLink(await call(new Request("http://l/", { headers: { cookie: `${ADMIN_SESSION_COOKIE}=forged` } })));
     }
 
-    // with session -> same shape as before
-    const l = await list.GET(authed);
+    const l = await list.GET();
     assert.equal(l.status, 200);
     const lb = await l.json();
     assert.equal(lb.submissions[0].ma, "A01");

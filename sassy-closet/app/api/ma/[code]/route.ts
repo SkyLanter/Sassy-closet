@@ -1,14 +1,11 @@
-import { NextResponse } from "next/server";
-import { requireShopAdmin } from "@/lib/shop-admin-http";
+import { intakeDirectJson, withIntakeDirectLinkHeaders } from "@/lib/intake-direct-link";
 import { lookupMaCard } from "@/lib/ma-card";
 import { storeUnavailableResponse } from "@/lib/store-unavailable";
 
 export async function GET(
-  request: Request,
+  _request: Request,
   context: { params: Promise<{ code: string }> },
 ) {
-  const denied = await requireShopAdmin(request);
-  if (denied) return denied;
   const { code } = await context.params;
   let decoded = code ?? "";
   try {
@@ -20,12 +17,12 @@ export async function GET(
   try {
     card = await lookupMaCard(decoded);
   } catch (error) {
-    return storeUnavailableResponse(error);
+    return withIntakeDirectLinkHeaders(storeUnavailableResponse(error));
   }
   if (!card) {
-    return NextResponse.json({ error: "Không tìm thấy mã" }, { status: 404 });
+    return intakeDirectJson({ error: "Không tìm thấy mã" }, 404);
   }
-  return NextResponse.json({
+  return intakeDirectJson({
     code: card.code,
     staged: card.staged,
     on_hand: card.on_hand,
