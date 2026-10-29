@@ -68,6 +68,10 @@ Both required or the helper no-ops (save still succeeds). Header: `Authorization
 - `INTAKE_DATASET_SYNC_WEBHOOK_URL`
 - `INTAKE_DATASET_SYNC_WEBHOOK_KEY`
 
+Auto-list machine read of the mã list. Logged-out browsers stay **401**. The pipeline sends `Authorization: Bearer <INTAKE_PIPELINE_SECRET>` on GET `/api/submissions` (also one mã, `/api/ma/<mã>`, and `/api/export`). Boss sets that name on the intake Vercel project before deploy, and the same name on the auto-list machine. Writes ignore the bearer. Details: [docs/INTAKE_PIPELINE.md](docs/INTAKE_PIPELINE.md).
+
+- `INTAKE_PIPELINE_SECRET`
+
 Local only:
 
 - optional `SASSY_DATA_DIR` — data root. Default local: `sassy-closet/data/` (gitignored). On Vercel *without* Blob: `/tmp/sassy-closet-data` (ephemeral).

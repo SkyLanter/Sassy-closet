@@ -1,13 +1,19 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { ADMIN_SESSION_COOKIE, verifyAdminSession } from "@/lib/admin-auth";
-import { safeShopAdminNext, shopAdminGate } from "@/lib/shop-admin-gate";
+import { pipelineBearerOk } from "@/lib/pipeline-auth";
+import { isAdminExportApi, safeShopAdminNext, shopAdminGate } from "@/lib/shop-admin-gate";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const hasSession = await verifyAdminSession(request.cookies.get(ADMIN_SESSION_COOKIE)?.value ?? "");
   const decision = shopAdminGate(pathname, hasSession);
   if (decision === "public" || decision === "allow") {
+    return NextResponse.next();
+  }
+  // /api/export is in the matcher, so a machine GET has to pass here or the route never runs.
+  // Shop pages and /api/shop-catalog stay on the session cookie.
+  if (request.method === "GET" && isAdminExportApi(pathname) && (await pipelineBearerOk(request))) {
     return NextResponse.next();
   }
   if (pathname.startsWith("/api/")) {
