@@ -2,12 +2,19 @@ import { NextResponse } from "next/server";
 import { saveFromForm } from "@/lib/form-save";
 import { normalizeMa } from "@/lib/mint";
 import { scheduleNewMaWebhookFromRow } from "@/lib/newMaWebhook";
+import { requireShopAdmin } from "@/lib/shop-admin-http";
 import { getSubmission } from "@/lib/store";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ ma: string }> },
 ) {
+  const denied = await requireShopAdmin(request);
+  if (denied) {
+    return denied;
+  }
   const { ma } = await context.params;
   const submission = await getSubmission(ma);
   if (!submission) {

@@ -20,14 +20,34 @@ export function isShopAdminLogoutApi(pathname: string): boolean {
   return pathname === "/api/shop-catalog/logout";
 }
 
+/** GET reads that return Nhung cost or Taobao source fields. Writes stay off this list. */
+export function isIntakeCostReadApi(pathname: string): boolean {
+  return (
+    pathname === "/api/export" ||
+    pathname === "/api/submissions" ||
+    pathname.startsWith("/api/submissions/") ||
+    pathname.startsWith("/api/ma/")
+  );
+}
+
 export type ShopAdminGateDecision = "public" | "allow" | "deny";
 
 /**
- * `public` — intake pages, including the CSV export at /admin.
- * `allow` — login, logout, or a shop-tools route with a valid session.
- * `deny` — shop tools without a session.
+ * `public` — intake pages and submission writes.
+ * `allow` — login, logout, or an admin route with a valid session.
+ * `deny` — shop tools, or a cost/source GET, without a session.
  */
-export function shopAdminGate(pathname: string, hasSession: boolean): ShopAdminGateDecision {
+export function shopAdminGate(
+  pathname: string,
+  hasSession: boolean,
+  method = "GET",
+): ShopAdminGateDecision {
+  if (isIntakeCostReadApi(pathname)) {
+    if (method.toUpperCase() !== "GET") {
+      return "public";
+    }
+    return hasSession ? "allow" : "deny";
+  }
   const page = isShopAdminPage(pathname);
   const api = isShopCatalogApi(pathname);
   if (!page && !api) {

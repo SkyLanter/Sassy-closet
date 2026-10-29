@@ -2,7 +2,7 @@
 
 The customer shop (`sassy-closet-shop`, https://sassycloset.vercel.app and https://sassy-closet-shop.vercel.app) has no `/admin` page and no Shop tools button. Catalog edits live here, on the intake app, at `/admin/shop`.
 
-Nhung’s intake tabs stay **Món mới**, **Sửa theo mã**, **Tìm mã**, **Hỏi Mini Boss**. Shop tools is a separate password page linked from the intake footer and from the CSV export page. `/admin` CSV export stays open.
+Nhung’s intake tabs stay **Món mới**, **Sửa theo mã**, **Tìm mã**, **Hỏi Mini Boss**. Shop tools is a separate password page linked from the intake footer and from the CSV export page. The `/admin` page stays open. `GET /api/export`, `GET /api/submissions`, `GET /api/submissions/[ma]`, and `GET /api/ma/[code]` require the same `sc_admin` cookie. Without it they return 401 and no cost or source fields. `POST` and `PATCH` on submissions still save without that cookie.
 
 ## Password
 
