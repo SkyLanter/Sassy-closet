@@ -96,5 +96,9 @@ def test_live_prices_would_become_the_tiered_quote_and_s06_stays_25() -> None:
     shop = (ROOT / "sassy-closet-shop" / "lib" / "pricing.ts").read_text(encoding="utf-8")
     assert "tiered-pricing" not in closet
     assert "tiered-pricing" not in shop
-    assert "0.75" in closet
-    assert "0.75" in shop
+    assert 0.75 in _decimals(closet)
+    assert 0.75 in _decimals(shop)
+
+
+def _decimals(source: str) -> set[float]:
+    return {float(m) for m in re.findall(r"\d+\.\d+", source)}
