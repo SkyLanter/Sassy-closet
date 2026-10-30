@@ -1,0 +1,28 @@
+{
+  "products": [
+    {
+      "ma": "S06",
+      "titleEn": "Washed distressed overalls",
+      "titleVn": "Yếm jean wash rách",
+      "priceUsd": 25
+    },
+    {
+      "ma": "A01",
+      "titleEn": "A01",
+      "titleVn": "Áo len puppy A01",
+      "priceUsd": 27
+    },
+    {
+      "ma": "H01",
+      "titleEn": "Rabbit hair bows H01",
+      "titleVn": "Nơ tóc thỏ",
+      "priceUsd": 8
+    },
+    {
+      "ma": "k06",
+      "titleEn": "K06",
+      "titleVn": "  k06 ",
+      "priceUsd": null
+    }
+  ]
+}
