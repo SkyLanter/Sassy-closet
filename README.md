@@ -61,6 +61,14 @@ python3 scripts/desk_status.py --fixture ./desk.json --page ./out/desk.html
 
 `--page` writes HTML only from files already loaded. `--read-prs` asks `gh` for open pull-request numbers and does not write that page.
 
+## Restock note
+
+Read-only list of catalog mãs whose status is sold. The command reads a local fixture and writes a markdown note. It does not change catalog rows, prices, or `data/held.json`. Held mãs stay held. S06 stays $25. It does not post to Meta or mark a mã sold or available.
+
+```bash
+python3 scripts/restock_note.py --fixture ./catalog.json --note ./out/restock-note.md
+```
+
 ## Sell shop
 
 Next.js sell shop in [`sassy-closet-shop/`](sassy-closet-shop/). Live URL stays [https://sassy-closet-shop.vercel.app](https://sassy-closet-shop.vercel.app).

@@ -1,0 +1,30 @@
+{
+  "catalog": [
+    {"ma": "Z01", "sizes": ["S", "M", "S"]},
+    {"ma": "Z02", "sizes": ["S", "M", "L"]},
+    {"ma": "Z03", "sizes": ["M"]},
+    {"ma": "Z04", "sizes": ["S"]},
+    {"ma": "Z05", "sizes": ["36"]},
+    {"ma": "Z06", "sizes": ["36", "38"]},
+    {"ma": "Z07", "sizes": ["36", "38", "36"]},
+    {"ma": "Z08", "size": "free 80cm"},
+    {"ma": "Z09", "size": "S 84cm"},
+    {"ma": "S06", "sizes": ["S", "M", "L"], "priceUsd": 25},
+    {"ma": "Z10", "sizes": ["s", "M", "S"]},
+    {"ma": "Z11", "sizes": ["S", "M", "S", "M"]},
+    {"ma": "Z12", "sizes": ["S", "S", "S"]},
+    {"ma": "Z13", "sizes": ["XL", "2XL"]},
+    {"ma": "Z14", "sizes": ["2XL", "XXL"]},
+    {"ma": "Z15", "sizes": ["S", "S 84cm"]}
+  ],
+  "intake": [
+    {"ma": "Z16", "size": "S, M, S"},
+    {"ma": "Z17", "size": "M"},
+    {"ma": "Z18", "size": "S / M / S"},
+    {"ma": "Z19", "sizes": ["L"]},
+    {"ma": "Z20", "size": null},
+    {"ma": "Z21", "sizes": []},
+    {"ma": "Z22", "size": " "},
+    {"ma": "Z23", "sizes": ["S", "M", "L"]}
+  ]
+}

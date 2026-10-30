@@ -1,0 +1,24 @@
+{
+  "schema": "catalog.v1",
+  "version": 1,
+  "siteId": "fixture",
+  "products": [
+    {"ma": "A24", "priceUsd": null, "status": "hold"},
+    {"ma": "A25", "priceUsd": null, "status": "hold"},
+    {"ma": "A26", "priceUsd": null, "status": "hold"},
+    {"ma": "D05", "priceUsd": 26, "status": "available"},
+    {"ma": "K02", "priceUsd": null, "status": "hold"},
+    {"ma": "K03", "priceUsd": null, "status": "hold"},
+    {"ma": "K04", "priceUsd": null, "status": "hold"},
+    {"ma": "K05", "priceUsd": null, "status": "hold"},
+    {"ma": "K06", "priceUsd": null, "status": "hold"},
+    {"ma": "S06", "priceUsd": 25, "status": "available"},
+    {"ma": "S10", "priceUsd": 37, "status": "available"},
+    {"ma": "S14", "priceUsd": null, "status": "hold"},
+    {"ma": "S15", "priceUsd": null, "status": "hold"},
+    {"ma": "V04", "priceUsd": null, "status": "hold"},
+    {"ma": "V05", "priceUsd": null, "status": "hold"},
+    {"ma": "Z01", "priceUsd": 18, "status": "available"},
+    {"ma": "Z03", "priceUsd": 20, "status": "available"}
+  ]
+}

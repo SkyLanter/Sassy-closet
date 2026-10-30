@@ -47,6 +47,9 @@ ALLOWED = {
     ('unknown_letter.py', 'present = any(row.ma.strip().upper() == "Q02" for row in rows)'),
     ('unknown_letter.py', 'if row.ma.strip().upper() == "S06":'),
     ("intake_gaps.py", 'cur = str(row.get("cost_currency") or "").strip().upper()'),
+    # letter of a mã, not the mã key itself
+    ("next_free_ma.py", "kind = letter.strip().upper()"),
+    ("next_ma_skip_intake.py", "kind = letter.strip().upper()"),
 }
 
 
