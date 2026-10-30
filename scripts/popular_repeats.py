@@ -14,6 +14,7 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from held_policy import norm_ma
 
 MA_RE = re.compile(r"^[A-Z][0-9]{2}$")
 S06 = "S06"
@@ -160,7 +161,7 @@ def _entry(item: object) -> PopularEntry:
 
 
 def _code(ma: str) -> str:
-    code = ma.strip().upper()
+    code = norm_ma(ma)
     if MA_RE.fullmatch(code) is None:
         raise ValueError(f"invalid mã {ma!r}")
     return code

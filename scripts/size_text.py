@@ -17,6 +17,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
+from held_policy import norm_ma
 
 Source = Literal["catalog", "intake"]
 SOURCES: tuple[Source, ...] = ("catalog", "intake")
@@ -51,7 +52,7 @@ def flag_sizes(rows: list[SizeText]) -> list[SizeFlag]:
     for row in rows:
         _check_source(row.source)
         stored = "" if row.size_text is None else row.size_text
-        code = row.ma.strip().upper()
+        code = norm_ma(row.ma)
         if stored.strip() == "":
             flags.append(SizeFlag(code, row.source, "blank_size", stored))
             continue

@@ -15,6 +15,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
+from held_policy import norm_ma
 
 _HEX = re.compile(r"^#?(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$")
 Reason = Literal["missing", "null", "blank"]
@@ -65,7 +66,7 @@ def flag_hex_blank_names(rows: list[CatalogRow]) -> list[HexNameFlag]:
     """Return flags. Leave every CatalogRow as it was passed in."""
     flags: list[HexNameFlag] = []
     for row in rows:
-        code = row.ma.strip().upper()
+        code = norm_ma(row.ma)
         for index, color in enumerate(row.colors):
             if color.hex is None or not _is_hex(color.hex):
                 continue
@@ -257,7 +258,7 @@ def _status(item: dict[str, object], ma: str) -> str | None:
 
 
 def _row_json(row: CatalogRow) -> dict[str, object]:
-    body: dict[str, object] = {"ma": row.ma.strip().upper()}
+    body: dict[str, object] = {"ma": norm_ma(row.ma)}
     if row.price_set and _price_is_copyable(row.price_usd):
         body["priceUsd"] = row.price_usd
     if row.status is not None:

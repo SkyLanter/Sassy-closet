@@ -1,6 +1,7 @@
 """Photo path mãs from fixtures. Lists, prices, and held.json stay put."""
 
 from __future__ import annotations
+import re
 
 import io
 import json
@@ -23,6 +24,12 @@ CLEAN_BYTES = CLEAN.read_bytes()
 MISMATCH_BYTES = MISMATCH.read_bytes()
 S06_COVER = "/products/S06/cover.jpg"
 A01_COVER = "/products/A01/cover.jpg"
+
+
+def _bare_numbers(text: str) -> set[str]:
+    """Standalone numbers in output, ignoring anything inside a path-like token (temp dirs carry digits)."""
+    words = [w for w in text.split() if "/" not in w and "\\" not in w]
+    return set(re.findall(r"(?<![\w.])\d+(?:\.\d+)?(?![\w.])", " ".join(words)))
 
 
 def test_a01_pointing_at_s06_is_flagged_and_the_list_stays() -> None:
@@ -269,7 +276,7 @@ def test_cli_mismatch_fixture_exits_1_and_writes_nothing() -> None:
         {"ma": "V05", "url": "/products/K06/cover.jpg", "pathMa": "K06", "index": 0},
     ]
     assert "priceUsd" not in result.stdout
-    assert "25" not in result.stdout
+    assert _bare_numbers(result.stdout).isdisjoint({"25"})
     assert "tesla" not in result.stdout.casefold()
     assert MISMATCH.read_bytes() == before == MISMATCH_BYTES
     assert CLEAN.read_bytes() == CLEAN_BYTES

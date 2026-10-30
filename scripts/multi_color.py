@@ -14,6 +14,7 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from held_policy import norm_ma
 
 MA_RE = re.compile(r"^[A-Z][0-9]{2}$")
 
@@ -72,7 +73,7 @@ def list_multi_color(document: dict[str, object]) -> list[MultiColorMa]:
 def _ma(value: object) -> str | None:
     if not isinstance(value, str):
         return None
-    code = value.strip().upper()
+    code = norm_ma(value)
     if MA_RE.fullmatch(code) is None:
         return None
     return code

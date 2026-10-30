@@ -19,7 +19,7 @@ _SCRIPTS = Path(__file__).resolve().parent
 if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
 
-from held_policy import HeldPolicy, load_held_policy
+from held_policy import HeldPolicy, load_held_policy, norm_ma
 
 _BLANK = frozenset(
     {
@@ -268,7 +268,7 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _flag_row(row: dict[str, object], policy: HeldPolicy) -> LinkRow:
-    ma = str(row["ma"]).strip().upper()
+    ma = norm_ma(str(row["ma"]))
     held = policy.skip_reason(ma) == "held"
     field, raw = _link_field(row)
     if raw is _MISSING:

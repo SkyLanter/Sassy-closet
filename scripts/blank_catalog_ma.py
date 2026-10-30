@@ -19,7 +19,7 @@ _SCRIPTS = Path(__file__).resolve().parent
 if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
 
-from held_policy import load_held_policy
+from held_policy import load_held_policy, norm_ma
 
 BlankReason = Literal["missing", "null", "blank", "not_a_string"]
 
@@ -161,7 +161,7 @@ def _has_ma(row: CatalogRow) -> bool:
 def _row_json(row: CatalogRow, held: frozenset[str]) -> dict[str, object]:
     body: dict[str, object] = {"index": row.index}
     if _has_ma(row) and isinstance(row.ma, str):
-        code = row.ma.strip().upper()
+        code = norm_ma(row.ma)
         body["ma"] = code
         body["held"] = code in held
     else:

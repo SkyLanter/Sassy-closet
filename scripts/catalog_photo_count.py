@@ -17,7 +17,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-from held_policy import HeldPolicy, load_held_policy
+from held_policy import HeldPolicy, load_held_policy, norm_ma
 
 MIN_PHOTOS = 2
 S06 = "S06"
@@ -269,7 +269,7 @@ def _src(item: object) -> str | None:
 def _ma(value: object) -> str:
     if not isinstance(value, str):
         raise ValueError("catalog product needs a mã")
-    code = value.strip().upper()
+    code = norm_ma(value)
     if MA_RE.fullmatch(code) is None:
         raise ValueError(f"catalog product has an invalid mã {value!r}")
     return code

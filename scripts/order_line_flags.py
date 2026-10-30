@@ -19,7 +19,7 @@ from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
-from held_policy import HeldPolicy, default_held_path, load_held_policy
+from held_policy import HeldPolicy, default_held_path, load_held_policy, norm_ma
 
 MA_RE = re.compile(r"^[A-Z][0-9]{2}$")
 S06_USD = Decimal("25")
@@ -250,7 +250,7 @@ def _order_id(payload: dict[str, object]) -> str | None:
 def _ma(value: object) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ValueError("fixture order line needs a mã")
-    code = value.strip().upper()
+    code = norm_ma(value)
     if MA_RE.fullmatch(code) is None:
         raise ValueError(f"fixture order line has an invalid mã {value!r}")
     return code

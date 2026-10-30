@@ -13,6 +13,7 @@ import json
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from held_policy import norm_ma
 
 
 @dataclass(frozen=True)
@@ -61,7 +62,7 @@ def flag_case_colors(rows: list[CatalogRow]) -> list[ColorCaseFlag]:
     groups = _colliding_spellings(rows)
     flags: list[ColorCaseFlag] = []
     for row in rows:
-        code = row.ma.strip().upper()
+        code = norm_ma(row.ma)
         if not code:
             raise ValueError("catalog row needs a mã")
         for stored, index, piece in _named_slots(row):

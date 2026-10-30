@@ -17,6 +17,7 @@ from dataclasses import dataclass
 from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Literal
+from held_policy import norm_ma
 
 NEAR_RATIO = 0.92
 _PUNCT = re.compile(r"[^a-z0-9\s]+")
@@ -66,7 +67,7 @@ def flag_title_overlap(rows: list[CatalogRow]) -> list[TitleFlag]:
     """Return title pairs across different mãs. Row objects are not edited."""
     flags: list[TitleFlag] = []
     seen: set[tuple[str, str, TitleField, TitleKind]] = set()
-    prepared = [(row.ma.strip().upper(), row) for row in rows]
+    prepared = [(norm_ma(row.ma), row) for row in rows]
     fields: tuple[TitleField, ...] = ("titleEn", "titleVn")
     for field in fields:
         folded: list[tuple[str, str, str]] = []

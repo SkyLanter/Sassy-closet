@@ -19,7 +19,7 @@ _SCRIPTS = Path(__file__).resolve().parent
 if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
 
-from held_policy import HeldPolicy, load_held_policy
+from held_policy import HeldPolicy, load_held_policy, norm_ma
 
 # "hold" is the catalog.v1 spelling of the held status.
 KNOWN_STATUSES = frozenset({"available", "sold", "held", "hold"})
@@ -92,7 +92,7 @@ class StatusReport:
         return len(self.flags)
 
     def price_for(self, ma: str) -> str | None:
-        code = ma.strip().upper()
+        code = norm_ma(ma)
         for row in self.rows:
             if row.ma == code:
                 return row.price_usd
@@ -221,7 +221,7 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _flag_row(row: dict[str, object], policy: HeldPolicy) -> StatusRow:
-    ma = str(row["ma"]).strip().upper()
+    ma = norm_ma(str(row["ma"]))
     held = policy.skip_reason(ma) == "held"
     present = "status" in row
     status = row.get("status")

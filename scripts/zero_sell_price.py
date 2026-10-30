@@ -19,7 +19,7 @@ _SCRIPTS = Path(__file__).resolve().parent
 if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
 
-from held_policy import default_held_path, load_held_policy
+from held_policy import default_held_path, load_held_policy, norm_ma
 
 _ROOT = _SCRIPTS.parent
 SHOP_CATALOG = _ROOT / "sassy-closet-shop" / "data" / "products.json"
@@ -61,7 +61,7 @@ def flag_zero_sell_prices(
     """Return zero-price flags. Row objects are not edited."""
     flags: list[ZeroSellPriceFlag] = []
     for row in rows:
-        code = row.ma.strip().upper()
+        code = norm_ma(row.ma)
         shape = _shape(row.price_usd, row.price_set)
         if not _is_zero_flag(shape):
             continue
@@ -162,7 +162,7 @@ def _is_zero_price(value: object) -> bool:
 
 
 def _row_json(row: CatalogRow, held: frozenset[str]) -> dict[str, object]:
-    code = row.ma.strip().upper()
+    code = norm_ma(row.ma)
     body: dict[str, object] = {"ma": code, "held": code in held}
     if row.price_set:
         body["priceUsd"] = row.price_usd

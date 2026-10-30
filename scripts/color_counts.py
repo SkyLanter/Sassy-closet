@@ -13,6 +13,7 @@ import json
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from held_policy import norm_ma
 
 
 @dataclass(frozen=True)
@@ -60,7 +61,7 @@ def count_color_names(rows: list[CatalogRow]) -> list[ColorCount]:
     """Return one tally per stored color name. Leave every row as it was passed in."""
     used: dict[str, set[str]] = {}
     for row in rows:
-        code = row.ma.strip().upper()
+        code = norm_ma(row.ma)
         if not code:
             raise ValueError("catalog row needs a mã")
         used.setdefault(code, set()).update(_names_used(row))

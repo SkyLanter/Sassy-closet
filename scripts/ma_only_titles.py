@@ -20,7 +20,7 @@ _SCRIPTS = Path(__file__).resolve().parent
 if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
 
-from held_policy import load_held_policy
+from held_policy import load_held_policy, norm_ma
 
 TitleField = Literal["titleEn", "titleVn"]
 
@@ -59,7 +59,7 @@ def flag_ma_only_titles(rows: list[CatalogRow], held: frozenset[str] = frozenset
     """Return mã-only title flags. Row objects are not edited."""
     flags: list[MaOnlyFlag] = []
     for row in rows:
-        code = row.ma.strip().upper()
+        code = norm_ma(row.ma)
         is_held = code in held
         fields: tuple[TitleField, ...] = ("titleEn", "titleVn")
         for field in fields:
@@ -149,15 +149,15 @@ def _field_value(row: CatalogRow, field: TitleField) -> tuple[object, bool]:
 def _only_ma_text(value: object, present: bool, code: str) -> str | None:
     if not present or not isinstance(value, str) or code == "":
         return None
-    if value.strip().upper() != code:
+    if norm_ma(value) != code:
         return None
     return value
 
 
 def _row_json(row: CatalogRow, held: frozenset[str]) -> dict[str, object]:
     body: dict[str, object] = {
-        "ma": row.ma.strip().upper(),
-        "held": row.ma.strip().upper() in held,
+        "ma": norm_ma(row.ma),
+        "held": norm_ma(row.ma) in held,
     }
     if row.price_set and _price_is_copyable(row.price_usd):
         body["priceUsd"] = row.price_usd

@@ -1,6 +1,7 @@
 """Photo-path extension flags from fixtures. Paths, prices, and held.json stay put."""
 
 from __future__ import annotations
+import re
 
 import io
 import json
@@ -34,6 +35,12 @@ PNG = "/products/S06/photo-3.png"
 WEBP = "/products/S06/photo-4.webp"
 BARE = "/products/A01/cover"
 KIND = "no_image_extension"
+
+
+def _bare_numbers(text: str) -> set[str]:
+    """Standalone numbers in output, ignoring anything inside a path-like token (temp dirs carry digits)."""
+    words = [w for w in text.split() if "/" not in w and "\\" not in w]
+    return set(re.findall(r"(?<![\w.])\d+(?:\.\d+)?(?![\w.])", " ".join(words)))
 
 
 def test_image_extensions_stay_quiet_and_a_bare_path_is_flagged() -> None:
@@ -229,7 +236,7 @@ def test_cli_bad_fixture_exits_1_and_writes_nothing() -> None:
     assert PNG not in {flag["path"] for flag in report["flags"]}
     assert WEBP not in {flag["path"] for flag in report["flags"]}
     assert "priceUsd" not in result.stdout
-    assert "25" not in result.stdout
+    assert _bare_numbers(result.stdout).isdisjoint({"25"})
     assert BAD.read_bytes() == before == BAD_BYTES
     assert CLEAN.read_bytes() == CLEAN_BYTES
     assert HELD.read_bytes() == HELD_BYTES

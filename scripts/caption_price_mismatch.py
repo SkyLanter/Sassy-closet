@@ -12,6 +12,7 @@ import re
 from dataclasses import dataclass
 from decimal import Decimal
 from pathlib import Path
+from held_policy import norm_ma
 
 MISMATCH = "mismatch"
 KINDS = (MISMATCH,)
@@ -254,7 +255,7 @@ def _catalog_from_json(value: object) -> dict[str, CatalogPrice]:
         raw_ma = row.get("ma")
         if not isinstance(raw_ma, str):
             raise ValueError("fixture catalog row needs a mã")
-        code = raw_ma.strip().upper()
+        code = norm_ma(raw_ma)
         if _MA_CODE.fullmatch(code) is None:
             raise ValueError(f"fixture catalog mã is invalid: {raw_ma!r}")
         if code in catalog:

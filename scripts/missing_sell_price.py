@@ -19,7 +19,7 @@ _SCRIPTS = Path(__file__).resolve().parent
 if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
 
-from held_policy import load_held_policy
+from held_policy import load_held_policy, norm_ma
 
 BlankReason = Literal["missing", "null", "blank"]
 
@@ -58,7 +58,7 @@ def flag_missing_sell_prices(
     """Return missing-price flags. Row objects are not edited."""
     flags: list[MissingSellPriceFlag] = []
     for row in rows:
-        code = row.ma.strip().upper()
+        code = norm_ma(row.ma)
         reason = _reason(row.price_usd, row.price_set)
         if reason is None:
             continue
@@ -158,7 +158,7 @@ def _stored(value: object, present: bool) -> str:
 
 
 def _row_json(row: CatalogRow, held: frozenset[str]) -> dict[str, object]:
-    code = row.ma.strip().upper()
+    code = norm_ma(row.ma)
     body: dict[str, object] = {"ma": code, "held": code in held}
     if row.price_set:
         body["priceUsd"] = row.price_usd

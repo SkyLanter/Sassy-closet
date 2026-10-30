@@ -20,7 +20,7 @@ _SCRIPTS = Path(__file__).resolve().parent
 if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
 
-from held_policy import HeldPolicy, load_held_policy
+from held_policy import HeldPolicy, load_held_policy, norm_ma
 
 _ROOT = Path(__file__).resolve().parents[1]
 STALE_DAYS = 7
@@ -164,7 +164,7 @@ def catalog_index(payload: object) -> dict[str, str | None]:
     for item in rows:
         if not isinstance(item, dict) or not isinstance(item.get("ma"), str) or item.get("ma", "").strip() == "":
             raise ValueError("catalog fixture row needs a mã")
-        code = str(item["ma"]).strip().upper()
+        code = norm_ma(str(item["ma"]))
         if code in index:
             continue
         index[code] = _price_text(item)
@@ -296,7 +296,7 @@ def _flag_row(
     policy: HeldPolicy,
     as_of: datetime,
 ) -> StaleRow:
-    ma = str(row["ma"]).strip().upper()
+    ma = norm_ma(str(row["ma"]))
     held = policy.skip_reason(ma) == "held"
     field, raw = _saved_field(row)
     saved = None if raw is _MISSING else _stored(raw)

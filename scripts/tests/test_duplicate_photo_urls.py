@@ -1,6 +1,7 @@
 """Duplicate photo URLs from fixtures. Lists, prices, and held.json stay put."""
 
 from __future__ import annotations
+import re
 
 import io
 import json
@@ -28,6 +29,12 @@ PRODUCTS_BYTES = PRODUCTS.read_bytes()
 CLEAN_BYTES = CLEAN.read_bytes()
 DUPES_BYTES = DUPES.read_bytes()
 COVER = "/products/A01/cover.jpg"
+
+
+def _bare_numbers(text: str) -> set[str]:
+    """Standalone numbers in output, ignoring anything inside a path-like token (temp dirs carry digits)."""
+    words = [w for w in text.split() if "/" not in w and "\\" not in w]
+    return set(re.findall(r"(?<![\w.])\d+(?:\.\d+)?(?![\w.])", " ".join(words)))
 
 
 def test_repeated_url_is_flagged_and_the_list_stays() -> None:
@@ -248,7 +255,7 @@ def test_cli_dup_fixture_exits_1_and_writes_nothing() -> None:
         },
     ]
     assert "priceUsd" not in result.stdout
-    assert "25" not in result.stdout
+    assert _bare_numbers(result.stdout).isdisjoint({"25"})
     assert DUPES.read_bytes() == before == DUPES_BYTES
     assert CLEAN.read_bytes() == CLEAN_BYTES
     assert HELD.read_bytes() == HELD_BYTES

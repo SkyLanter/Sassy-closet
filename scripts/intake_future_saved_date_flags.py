@@ -22,7 +22,7 @@ _SCRIPTS = Path(__file__).resolve().parent
 if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
 
-from held_policy import HeldPolicy, load_held_policy
+from held_policy import HeldPolicy, load_held_policy, norm_ma
 
 _ROOT = Path(__file__).resolve().parents[1]
 _SAVED_KEYS = ("saved_at", "savedAt", "saved_date", "savedDate", "updated_at", "updatedAt")
@@ -243,7 +243,7 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _flag_row(row: dict[str, object], policy: HeldPolicy, as_of: datetime) -> FutureSavedRow:
-    ma = str(row["ma"]).strip().upper()
+    ma = norm_ma(str(row["ma"]))
     held = policy.skip_reason(ma) == "held"
     field, raw = _saved_field(row)
     kind, saved = _classify(raw, as_of)

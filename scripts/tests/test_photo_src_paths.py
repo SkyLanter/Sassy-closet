@@ -1,6 +1,7 @@
 """Photo src site-path flags from fixtures. Srcs, prices, and held.json stay put."""
 
 from __future__ import annotations
+import re
 
 import io
 import json
@@ -32,6 +33,12 @@ COVER = "/products/S06/cover.jpg"
 HTTP_SRC = "https://cdn.example.test/s06/photo-2.jpg"
 DATA_SRC = "data:image/jpeg;base64,aaaa"
 TRAVERSAL = "/products/../etc/passwd"
+
+
+def _bare_numbers(text: str) -> set[str]:
+    """Standalone numbers in output, ignoring anything inside a path-like token (temp dirs carry digits)."""
+    words = [w for w in text.split() if "/" not in w and "\\" not in w]
+    return set(re.findall(r"(?<![\w.])\d+(?:\.\d+)?(?![\w.])", " ".join(words)))
 
 
 def test_site_path_stays_quiet_and_http_data_blank_are_flagged() -> None:
@@ -245,7 +252,7 @@ def test_cli_bad_fixture_exits_1_and_writes_nothing() -> None:
     assert {"ma": "A01", "src": "/etc/passwd", "index": 3, "kind": "not_site_path"} in report["flags"]
     assert COVER not in result.stdout
     assert "priceUsd" not in result.stdout
-    assert "25" not in result.stdout
+    assert _bare_numbers(result.stdout).isdisjoint({"25"})
     assert BAD.read_bytes() == before == BAD_BYTES
     assert CLEAN.read_bytes() == CLEAN_BYTES
     assert HELD.read_bytes() == HELD_BYTES

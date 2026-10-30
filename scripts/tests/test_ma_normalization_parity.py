@@ -30,6 +30,22 @@ ALLOWED = {
     ("held_price_proposal.py", "out[kind.strip().upper()] = n"),
     ("intake_gaps.py", 'code = str(k.get("code", "")).strip().upper()'),
     ("intake_gaps.py", 'kind = str(row.get("kind", "") or "").strip().upper()'),
+    # shape checks: must see the raw spelling so K003 / k3 still fail the one-letter-two-digit rule
+    ("letter_type.py", "match = MA_RE.fullmatch(ma.strip().upper())"),
+    ("unknown_letter.py", "match = MA_RE.fullmatch(ma.strip().upper())"),
+    # fixture-only scripts: their own tests ban importing held_policy; unknown_letter keeps raw spelling in its report
+    ('duplicate_photo_urls.py', 'code = row.ma.strip().upper()'),
+    ('http_shop_link_flags.py', 'ma = str(row["ma"]).strip().upper()'),
+    ('photo_path_ext.py', 'code = row.ma.strip().upper()'),
+    ('photo_path_ma.py', 'code = row.ma.strip().upper()'),
+    ('photo_src_paths.py', 'code = row.ma.strip().upper()'),
+    ('space_newline_shop_link_flags.py', 'ma = str(row["ma"]).strip().upper()'),
+    ('unknown_letter.py', 'match = MA_RE.fullmatch(ma.strip().upper())'),
+    ('unknown_letter.py', 'code = row.ma.strip().upper()'),
+    ('unknown_letter.py', '"checked": [row.ma.strip().upper() for row in rows],'),
+    ('unknown_letter.py', 'raise ValueError(f"mã {ma.strip().upper()} priceUsd must be a whole dollar amount")'),
+    ('unknown_letter.py', 'present = any(row.ma.strip().upper() == "Q02" for row in rows)'),
+    ('unknown_letter.py', 'if row.ma.strip().upper() == "S06":'),
     ("intake_gaps.py", 'cur = str(row.get("cost_currency") or "").strip().upper()'),
 }
 

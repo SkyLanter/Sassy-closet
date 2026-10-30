@@ -19,7 +19,7 @@ _SCRIPTS = Path(__file__).resolve().parent
 if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
 
-from held_policy import load_held_policy
+from held_policy import load_held_policy, norm_ma
 
 TitleField = Literal["titleEn", "titleVn"]
 BlankReason = Literal["missing", "null", "blank", "not_a_string"]
@@ -61,7 +61,7 @@ def flag_blank_titles(rows: list[CatalogRow], held: frozenset[str] = frozenset()
     """Return blank-title flags. Row objects are not edited."""
     flags: list[BlankTitleFlag] = []
     for row in rows:
-        code = row.ma.strip().upper()
+        code = norm_ma(row.ma)
         is_held = code in held
         for field in ("titleEn", "titleVn"):
             value, present = _field_value(row, field)
@@ -172,8 +172,8 @@ def _stored(value: object, present: bool) -> str:
 
 def _row_json(row: CatalogRow, held: frozenset[str]) -> dict[str, object]:
     body: dict[str, object] = {
-        "ma": row.ma.strip().upper(),
-        "held": row.ma.strip().upper() in held,
+        "ma": norm_ma(row.ma),
+        "held": norm_ma(row.ma) in held,
     }
     if row.price_set and _price_is_copyable(row.price_usd):
         body["priceUsd"] = row.price_usd

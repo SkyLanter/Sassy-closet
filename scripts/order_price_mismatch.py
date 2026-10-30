@@ -14,6 +14,7 @@ import sys
 from dataclasses import dataclass
 from decimal import Decimal
 from pathlib import Path
+from held_policy import norm_ma
 
 MISMATCH = "mismatch"
 NO_PRICE = "no-price"
@@ -264,7 +265,7 @@ def _price(value: object, *, required: bool) -> tuple[Decimal, str] | None:
 def _ma(value: object) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ValueError("fixture row needs a mã")
-    code = value.strip().upper()
+    code = norm_ma(value)
     if _MA_CODE.fullmatch(code) is None:
         raise ValueError(f"fixture mã is invalid: {value!r}")
     return code

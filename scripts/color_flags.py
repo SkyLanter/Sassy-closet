@@ -13,6 +13,7 @@ import json
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from held_policy import norm_ma
 
 
 @dataclass(frozen=True)
@@ -58,7 +59,7 @@ def flag_blank_colors(rows: list[CatalogRow]) -> list[ColorFlag]:
     """Return flags. Leave every CatalogRow as it was passed in."""
     flags: list[ColorFlag] = []
     for row in rows:
-        code = row.ma.strip().upper()
+        code = norm_ma(row.ma)
         colors = row.colors
         if not colors:
             flags.append(ColorFlag(code, "blank_color", ""))

@@ -20,7 +20,7 @@ _SCRIPTS = Path(__file__).resolve().parent
 if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
 
-from held_policy import load_held_policy
+from held_policy import load_held_policy, norm_ma
 
 _FRACTION = re.compile(r"\d+\.(\d+)")
 
@@ -59,7 +59,7 @@ def flag_non_whole_dollars(
     for row in rows:
         if not _is_non_whole_dollar(row.price_usd):
             continue
-        code = row.ma.strip().upper()
+        code = norm_ma(row.ma)
         flags.append(NonWholeDollarFlag(code, _stored(row.price_usd), code in held))
     return flags
 
@@ -168,7 +168,7 @@ def _stored(value: object) -> str:
 
 
 def _row_json(row: CatalogRow, held: frozenset[str]) -> dict[str, object]:
-    code = row.ma.strip().upper()
+    code = norm_ma(row.ma)
     body: dict[str, object] = {"ma": code, "held": code in held}
     if row.price_set:
         body["priceUsd"] = row.price_usd

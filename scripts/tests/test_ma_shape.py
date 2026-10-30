@@ -1,6 +1,7 @@
 """Shape flags from fixtures. Stored mãs, the S06 dollar, and held.json stay put."""
 
 from __future__ import annotations
+import re
 
 import json
 import subprocess
@@ -36,6 +37,12 @@ WRONG = (
     ("AA01", "AA01"),
     ("a01", "a01"),
 )
+
+
+def _bare_numbers(text: str) -> set[str]:
+    """Standalone numbers in output, ignoring anything inside a path-like token (temp dirs carry digits)."""
+    words = [w for w in text.split() if "/" not in w and "\\" not in w]
+    return set(re.findall(r"(?<![\w.])\d+(?:\.\d+)?(?![\w.])", " ".join(words)))
 
 
 def test_shape_is_one_uppercase_letter_and_two_digits() -> None:
@@ -231,9 +238,9 @@ def test_cli_reports_the_fixture_and_writes_nothing(tmp_path: Path) -> None:
         ],
         "writes": [],
     }
-    assert "41" not in result.stdout
-    assert "42" not in result.stdout
-    assert "43" not in result.stdout
+    assert _bare_numbers(result.stdout).isdisjoint({"41"})
+    assert _bare_numbers(result.stdout).isdisjoint({"42"})
+    assert _bare_numbers(result.stdout).isdisjoint({"43"})
     assert "rename" not in result.stdout
     assert list(tmp_path.iterdir()) == []
     assert FIXTURE.read_bytes() == before_fixture == FIXTURE_BYTES

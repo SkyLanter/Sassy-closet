@@ -16,6 +16,7 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from held_policy import norm_ma
 
 # Hash, then exactly three or exactly six hex digits. No spaces, no extra marks.
 _HEX_SHAPE = re.compile(r"^#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$")
@@ -65,7 +66,7 @@ def flag_hex_shapes(rows: list[CatalogRow]) -> list[HexShapeFlag]:
     """Return flags. Leave every hex as it was passed in."""
     flags: list[HexShapeFlag] = []
     for row in rows:
-        code = row.ma.strip().upper()
+        code = norm_ma(row.ma)
         for index, color in enumerate(row.colors):
             stored = color.hex
             if _is_blank_hex(stored) or _matches_shape(stored):
@@ -248,7 +249,7 @@ def _status(item: dict[str, object], ma: str) -> str | None:
 
 
 def _row_json(row: CatalogRow) -> dict[str, object]:
-    body: dict[str, object] = {"ma": row.ma.strip().upper()}
+    body: dict[str, object] = {"ma": norm_ma(row.ma)}
     if row.price_set and _price_is_copyable(row.price_usd):
         body["priceUsd"] = row.price_usd
     if row.status is not None:

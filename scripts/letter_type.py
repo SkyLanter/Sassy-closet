@@ -15,6 +15,7 @@ import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
+from held_policy import norm_ma
 
 LETTERS = "AQVDKGBPHJSO"
 MA_RE = re.compile(rf"^([{LETTERS}])(\d+)$")
@@ -146,7 +147,7 @@ def flag_letter_type(rows: list[CatalogRow]) -> list[LetterTypeFlag]:
     """
     flags: list[LetterTypeFlag] = []
     for row in rows:
-        code = row.ma.strip().upper()
+        code = norm_ma(row.ma)
         letter = catalog_letter(code)
         if letter is None:
             continue
@@ -183,7 +184,7 @@ def load_catalog(path: Path) -> list[CatalogRow]:
         if not isinstance(ma, str) or not ma.strip():
             raise ValueError("each catalog row needs a mã")
         if "type" in item and item["type"] is not None and not isinstance(item["type"], str):
-            raise ValueError(f"mã {ma.strip().upper()} type must be a string")
+            raise ValueError(f"mã {norm_ma(ma)} type must be a string")
         stored = item.get("type")
         rows.append(CatalogRow(ma, stored if isinstance(stored, str) else "", _price(item.get("priceUsd"))))
     return rows

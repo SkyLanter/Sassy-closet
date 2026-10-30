@@ -1,6 +1,7 @@
 """Unknown-letter flags from fixtures. Mãs, prices, and held.json stay put."""
 
 from __future__ import annotations
+import re
 
 import json
 import subprocess
@@ -26,6 +27,12 @@ PRODUCTS_BYTES = PRODUCTS.read_bytes()
 MINT_BYTES = MINT.read_bytes()
 FIXTURE_BYTES = FIXTURE.read_bytes()
 OUTSIDE = tuple("CEFILMNRTUWXYZ")
+
+
+def _bare_numbers(text: str) -> set[str]:
+    """Standalone numbers in output, ignoring anything inside a path-like token (temp dirs carry digits)."""
+    words = [w for w in text.split() if "/" not in w and "\\" not in w]
+    return set(re.findall(r"(?<![\w.])\d+(?:\.\d+)?(?![\w.])", " ".join(words)))
 
 
 def test_known_letters_are_the_shop_set() -> None:
@@ -148,7 +155,7 @@ def test_cli_reports_the_fixture_and_writes_nothing(tmp_path: Path) -> None:
     assert "C01" in report["checked"]
     assert all("priceUsd" not in flag for flag in report["flags"])
     assert "rename" not in result.stdout
-    assert "19" not in result.stdout
+    assert _bare_numbers(result.stdout).isdisjoint({"19"})
     assert list(tmp_path.iterdir()) == []
     assert FIXTURE.read_bytes() == before_fixture == FIXTURE_BYTES
     assert HELD.read_bytes() == before_held == HELD_BYTES

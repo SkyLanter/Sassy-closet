@@ -20,7 +20,7 @@ _SCRIPTS = Path(__file__).resolve().parent
 if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
 
-from held_policy import HeldPolicy, load_held_policy
+from held_policy import HeldPolicy, load_held_policy, norm_ma
 
 _IMAGE_RE = re.compile(
     r"^[A-Za-z0-9][A-Za-z0-9_-]*(?:/[A-Za-z0-9][A-Za-z0-9_-]*)*\.(?:jpe?g|png|webp)$",
@@ -215,7 +215,7 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _flag_row(row: dict[str, object], policy: HeldPolicy) -> PhotoRow:
-    ma = str(row["ma"]).strip().upper()
+    ma = norm_ma(str(row["ma"]))
     held = policy.skip_reason(ma) == "held"
     sell = row.get("sell_usd")
     sell_usd = None if sell is None else sell if isinstance(sell, str) else str(sell)
