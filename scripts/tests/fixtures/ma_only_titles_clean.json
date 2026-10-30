@@ -1,0 +1,22 @@
+{
+  "products": [
+    {
+      "ma": "S06",
+      "titleEn": "Washed distressed overalls",
+      "titleVn": "Yếm jean wash rách",
+      "priceUsd": 25
+    },
+    {
+      "ma": "A01",
+      "titleEn": "Puppy cardigan A01",
+      "titleVn": "Áo len puppy",
+      "priceUsd": 27
+    },
+    {
+      "ma": "K06",
+      "titleEn": "Set",
+      "titleVn": "Set",
+      "priceUsd": null
+    }
+  ]
+}

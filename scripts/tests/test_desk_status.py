@@ -83,7 +83,6 @@ def test_fixture_counts_prs_freshness_and_boss_wait() -> None:
     assert "PR 104 (S06 shop-save lock)" in text
     assert "Z99 (no Boss yes; quoted and held; not live)" in text
     assert "S06: $25" in text
-    assert "87" in text
     assert "S14" not in text.split("waiting on Boss:", maxsplit=1)[1]
     body = json.dumps(render_json(status))
     assert "A07" not in text

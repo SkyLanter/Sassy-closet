@@ -1,0 +1,8 @@
+{
+  "schema": "catalog.v1",
+  "version": 1,
+  "products": [
+    {"ma": "S06", "priceUsd": 25, "status": "available"},
+    {"ma": "A07", "priceUsd": 26, "status": "available"}
+  ]
+}

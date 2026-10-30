@@ -2,7 +2,10 @@
 
 Read-only. The only files this writes are out/dataset-freshness-YYYY-MM-DD.md
 and the JSON sibling. Guard failures exit 1. A Taobao login wall is SKIP,
-not FAIL. Intake ¥ flags are reported and do not change the exit code.
+not FAIL. A public list ¥ on an e.tb.cn bridge page is the price= value on
+the item URL. Promo and final ¥ are login-mode flags and do not replace
+intake ¥. A SKU size table is parsed when the page has one. No Taobao
+sign-in. Intake ¥ flags are reported and do not change the exit code.
 Meta is fixture-only: logged out is NOTE, and login reads captions. No
 Meta sign-in, create, delete, or edit. Pickup decisions do not publish.
 
@@ -23,6 +26,7 @@ import urllib.request
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from decimal import Decimal
+from html import unescape
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -303,11 +307,24 @@ def taobao_blocked(html: str) -> bool:
     return False
 
 
-_ITEM_URL_PRICE_RE = re.compile(
-    r"""https?://(?:item\.taobao\.com|detail\.tmall\.com)/item\.htm\?"""
-    r"""(?:[^'"\s<>]|&amp;)*?(?:\?|&|&amp;)price=(\d+(?:\.\d{1,2})?)""",
+_ITEM_URL_RE = re.compile(
+    r"""https?://(?:"""
+    r"""(?:item\.taobao\.com|detail\.tmall\.com)/item\.htm"""
+    r"""|h5\.m\.taobao\.com/awp/core/detail\.htm"""
+    r""")\?([^'"\s<>]+)""",
     flags=re.IGNORECASE,
 )
+_QUERY_PRICE_RE = re.compile(r"(?:^|&)price=(\d+(?:\.\d{1,2})?)(?!\d)")
+
+
+def _price_from_item_url(html: str) -> Decimal | None:
+    """List ¥ from price= on an item URL embedded in an e.tb.cn bridge page."""
+    for match in _ITEM_URL_RE.finditer(html):
+        query = match.group(1).replace("\\u0026", "&").replace("&amp;", "&")
+        found = _QUERY_PRICE_RE.search(query)
+        if found:
+            return Decimal(found.group(1))
+    return None
 
 
 def parse_taobao_cny(html: str) -> Decimal | None:
@@ -320,10 +337,7 @@ def parse_taobao_cny(html: str) -> Decimal | None:
         match = re.search(pattern, html)
         if match:
             return Decimal(match.group(1))
-    embedded = _ITEM_URL_PRICE_RE.search(html)
-    if embedded:
-        return Decimal(embedded.group(1))
-    return None
+    return _price_from_item_url(html)
 
 
 def parse_taobao_promo(html: str) -> Decimal | None:
@@ -339,6 +353,112 @@ def parse_taobao_promo(html: str) -> Decimal | None:
 
 def parse_taobao_final(html: str) -> Decimal | None:
     return _first_decimal(html, (r'"finalPrice"\s*:\s*"(\d+(?:\.\d{1,2})?)"',))
+
+
+_SIZE_AXIS_RE = re.compile(r"尺码|尺寸|sizes?", re.IGNORECASE)
+_SKU_PROP_RE = re.compile(
+    r'\{[^{}]*"pid"\s*:\s*"\d+"[^{}]*"name"\s*:\s*"((?:[^"\\]|\\.)*)"[^{}]*"values"\s*:\s*\[([^\]]*)\]'
+)
+_SKU_VALUE_RE = re.compile(r'"name"\s*:\s*"((?:[^"\\]|\\.)*)"')
+_SCRIPT_RE = re.compile(r"<script\b[^>]*>.*?</script>", re.IGNORECASE | re.DOTALL)
+_TABLE_RE = re.compile(r"<table\b[^>]*>(.*?)</table>", re.IGNORECASE | re.DOTALL)
+_ROW_RE = re.compile(r"<tr\b[^>]*>(.*?)</tr>", re.IGNORECASE | re.DOTALL)
+_CELL_RE = re.compile(r"<t[hd]\b[^>]*>(.*?)</t[hd]>", re.IGNORECASE | re.DOTALL)
+_TAG_RE = re.compile(r"<[^>]+>")
+_CM_RE = re.compile(r"^\d+(?:\.\d+)?$")
+_MEASUREMENT_LABELS = frozenset({"胸围", "衣长", "腰围", "肩宽", "臀围", "袖长", "裤长", "身高", "体重", "裙长"})
+
+
+def parse_taobao_sizes(html: str) -> tuple[str, ...] | None:
+    """Seller size labels from a SKU prop or a size table. None when absent."""
+    sku_sizes = _sizes_from_sku_props(html)
+    if sku_sizes:
+        return sku_sizes
+    return _sizes_from_tables(html)
+
+
+def _unescape_sku(value: str) -> str:
+    return unescape(value.replace("\\/", "/").replace('\\"', '"')).strip()
+
+
+def _sizes_from_sku_props(html: str) -> tuple[str, ...] | None:
+    labels: list[str] = []
+    for match in _SKU_PROP_RE.finditer(html):
+        name = _unescape_sku(match.group(1))
+        if _SIZE_AXIS_RE.fullmatch(name) is None:
+            continue
+        for value_match in _SKU_VALUE_RE.finditer(match.group(2)):
+            label = _unescape_sku(value_match.group(1))
+            if label and label not in labels:
+                labels.append(label)
+    if not labels:
+        return None
+    return tuple(labels)
+
+
+def _sizes_from_tables(html: str) -> tuple[str, ...] | None:
+    body = _SCRIPT_RE.sub(" ", html)
+    for table_match in _TABLE_RE.finditer(body):
+        found = _sizes_from_rows(_table_rows(table_match.group(1)))
+        if found:
+            return found
+    return None
+
+
+def _table_rows(table_html: str) -> list[list[str]]:
+    rows: list[list[str]] = []
+    for row_match in _ROW_RE.finditer(table_html):
+        cells = [_cell_plain(cell) for cell in _CELL_RE.findall(row_match.group(1))]
+        if any(cell != "" for cell in cells):
+            rows.append(cells)
+    return rows
+
+
+def _cell_plain(raw: str) -> str:
+    return re.sub(r"\s+", " ", unescape(_TAG_RE.sub(" ", raw))).strip()
+
+
+def _is_size_label(text: str) -> bool:
+    if text == "" or len(text) > 16:
+        return False
+    if _CM_RE.fullmatch(text) or _SIZE_AXIS_RE.fullmatch(text):
+        return False
+    if text in _MEASUREMENT_LABELS:
+        return False
+    return True
+
+
+def _unique_labels(labels: list[str]) -> tuple[str, ...]:
+    seen: list[str] = []
+    for label in labels:
+        if label not in seen:
+            seen.append(label)
+    return tuple(seen)
+
+
+def _sizes_from_rows(rows: list[list[str]]) -> tuple[str, ...] | None:
+    for row in rows:
+        if not row or _SIZE_AXIS_RE.fullmatch(row[0]) is None:
+            continue
+        rest = [cell for cell in row[1:] if cell != ""]
+        if rest and all(_is_size_label(cell) for cell in rest):
+            return _unique_labels(rest)
+    if not rows:
+        return None
+    header = rows[0]
+    for index, cell in enumerate(header):
+        if _SIZE_AXIS_RE.fullmatch(cell) is None:
+            continue
+        labels: list[str] = []
+        aligned = True
+        for row in rows[1:]:
+            if index >= len(row) or not _is_size_label(row[index]):
+                aligned = False
+                break
+            labels.append(row[index])
+        if aligned and labels:
+            return _unique_labels(labels)
+    return None
 
 
 def _first_decimal(html: str, patterns: tuple[str, ...]) -> Decimal | None:
@@ -405,9 +525,12 @@ def classify_taobao(status: int, html: str) -> TaobaoView:
     if status != 200 or taobao_blocked(html):
         return TaobaoView("", "skip", None, "login-walled or unreachable")
     price = parse_taobao_cny(html)
+    promo = parse_taobao_promo(html)
+    final = parse_taobao_final(html)
+    sizes = parse_taobao_sizes(html)
     if price is None:
-        return TaobaoView("", "skip", None, "no public ¥ on the page")
-    return TaobaoView("", "ok", price, "")
+        return TaobaoView("", "skip", None, "no public ¥ on the page", promo, final, sizes)
+    return TaobaoView("", "ok", price, "", promo, final, sizes)
 
 
 def _index(rows: list[MoneyRow] | None) -> dict[str, Decimal | None]:
@@ -1087,12 +1210,15 @@ def _fetch_taobao(row: IntakeRow) -> TaobaoView:
     if error:
         return TaobaoView(code, "skip", None, "login-walled or unreachable")
     classified = classify_taobao(status, body)
-    promo = None
-    final = None
-    if status == 200 and body and not taobao_blocked(body):
-        promo = parse_taobao_promo(body)
-        final = parse_taobao_final(body)
-    return TaobaoView(code, classified.state, classified.public_cny, classified.detail, promo, final)
+    return TaobaoView(
+        code,
+        classified.state,
+        classified.public_cny,
+        classified.detail,
+        classified.promo_cny,
+        classified.final_cny,
+        classified.sizes,
+    )
 
 
 def _http_get(url: str, timeout: float = 20) -> tuple[int, str, str | None]:

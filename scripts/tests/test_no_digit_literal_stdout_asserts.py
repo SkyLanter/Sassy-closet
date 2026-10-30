@@ -22,8 +22,16 @@ EXEMPT = {
     ("test_cost_basis_reconcile.py", "300.00"): "positive check on the LOCAL ONLY report body, which never contains the out path",
     ("test_summary_new_findings.py", "9.00"): "build() text from in-memory inputs and a fixed date; no paths",
     ("test_size_wiring.py", "38"): "q.reason is a built reason string, not output that includes paths",
+    ("test_caption_price_format.py", "36"): "checks finding excerpts built in memory; no paths",
+    ("test_caption_price_mismatch.py", "36"): "checks finding excerpts built in memory; no paths",
+    ("test_non_whole_dollar.py", "25.50"): "reads the committed fixture file body; no paths",
+    ("test_order_line_flags.py", "33.75"): "render_text() of an in-memory report; no paths",
+    ("test_packing_slip.py", "33.75"): "render_text() of an in-memory slip; no paths",
+    ("test_packing_slip.py", "45"): "render_text() of an in-memory slip; no paths",
+    ("test_taobao_fixtures.py", "84"): "membership in the parsed sizes tuple, not text",
+    ("test_taobao_fixtures.py", "88"): "membership in the parsed sizes tuple, not text",
+    ("test_taobao_fixtures.py", "92"): "membership in the parsed sizes tuple, not text",
 }
-
 
 def hits():
     found = []

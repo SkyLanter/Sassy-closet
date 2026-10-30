@@ -21,7 +21,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import NoReturn
 
-from held_policy import default_held_path, policy_from_mapping
+from held_policy import default_held_path, norm_ma, policy_from_mapping
 
 _FORBIDDEN_PAGE_NAMES = frozenset({"held.json", "submissions.json", "catalog.v1.json"})
 
@@ -370,7 +370,7 @@ def _s06_price(rows: Sequence[object]) -> str | None:
         if not isinstance(item, dict):
             continue
         ma = item.get("ma")
-        if not isinstance(ma, str) or ma.strip().upper() != "S06":
+        if not isinstance(ma, str) or norm_ma(ma) != "S06":
             continue
         for key in ("priceUsd", "price_usd"):
             if key not in item:
@@ -444,7 +444,7 @@ def _explicit_waits(value: object) -> list[BossWait]:
             ma = item.get("ma", item.get("ref"))
             if not isinstance(ma, str) or not ma.strip():
                 raise ValueError("waiting mã needs a mã")
-            waits.append(BossWait("ma", ma.strip().upper(), detail))
+            waits.append(BossWait("ma", norm_ma(ma), detail))
         else:
             _unexpected_kind(kind)
     return waits
@@ -466,7 +466,7 @@ def _pickup_waits(value: object) -> list[BossWait]:
         if not isinstance(ma, str) or not ma.strip():
             raise ValueError("pickup row needs a mã")
         detail = "" if item.get("detail") is None else str(item.get("detail"))
-        waits.append(BossWait("ma", ma.strip().upper(), detail))
+        waits.append(BossWait("ma", norm_ma(ma), detail))
     return waits
 
 
