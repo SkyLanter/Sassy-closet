@@ -13,15 +13,10 @@ test("direct-link header config covers intake data and shop tools", async () => 
   assert.equal(INTAKE_LISTING_ROBOTS.nosnippet, true);
   assert.match(INTAKE_DIRECT_LINK_HEADERS["Cache-Control"] ?? "", /no-store/);
   assert.deepEqual(INTAKE_DIRECT_LINK_SOURCES, [
+    "/api",
+    "/api/:path*",
     "/admin",
     "/admin/:path*",
-    "/api/submissions",
-    "/api/submissions/:path*",
-    "/api/export",
-    "/api/export/:path*",
-    "/api/ma/:path*",
-    "/api/shop-catalog",
-    "/api/shop-catalog/:path*",
   ]);
   const config = (await import("../next.config")).default;
   assert.equal(typeof config.headers, "function");
@@ -36,7 +31,7 @@ test("direct-link header config covers intake data and shop tools", async () => 
   }
   assert.equal(rules.some((rule) => rule.source === "/"), false);
   assert.equal(rules.some((rule) => rule.source === "/admin"), true);
-  assert.equal(rules.some((rule) => rule.source === "/api/shop-catalog"), true);
+  assert.equal(rules.some((rule) => rule.source === "/api/:path*"), true);
 });
 
 test("direct-link routes are not added to a sitemap or the home nav", () => {

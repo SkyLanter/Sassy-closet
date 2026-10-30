@@ -5,12 +5,10 @@ async function main(): Promise<void> {
   const body = (await response.json()) as {
     ok: boolean;
     schema: string;
-    backend: string;
+    reading?: string;
     missingKnown: string[];
     knownMas: string[];
-    blob?: { configured: boolean; prefix: string; path: string };
-    dropship?: number;
-    sourceLinks?: number;
+    blob?: { configured?: boolean; readable?: boolean; path?: string; prefix?: string; listed?: unknown };
     hubMessageReady?: number;
   };
   if (response.status !== 200 || !body.ok) {
@@ -19,19 +17,26 @@ async function main(): Promise<void> {
   if (body.schema !== "catalog.v1") {
     throw new Error(`health schema ${body.schema}`);
   }
+  if (body.reading !== "blob" && body.reading !== "kv" && body.reading !== "local" && body.reading !== "seed") {
+    throw new Error(`health reading ${String(body.reading)}`);
+  }
   if (!body.knownMas?.includes("A01") || body.missingKnown?.length) {
     throw new Error("health missing known mãs");
   }
-  if (!body.blob || !body.blob.path.endsWith("catalog.v1.json") || !body.blob.prefix.endsWith("/")) {
-    throw new Error("health missing Blob prefix/path");
+  if (!body.blob || typeof body.blob.configured !== "boolean" || typeof body.blob.readable !== "boolean") {
+    throw new Error("health blob flags missing");
   }
-  if (typeof body.dropship !== "number" || typeof body.sourceLinks !== "number") {
-    throw new Error("health missing dropship counts");
+  if ("path" in body.blob || "prefix" in body.blob || "listed" in body.blob) {
+    throw new Error("health leaked blob layout");
+  }
+  const robots = response.headers.get("x-robots-tag") ?? "";
+  if (!/noindex,\s*nofollow,\s*nosnippet/i.test(robots)) {
+    throw new Error("health missing noindex");
   }
   if (body.hubMessageReady !== 10) {
     throw new Error(`health hub Message-ready must be 10, got ${String(body.hubMessageReady)}`);
   }
-  console.log("health ok", { backend: body.backend, schema: body.schema, blob: body.blob.path });
+  console.log("health ok", { schema: body.schema, reading: body.reading, readable: body.blob.readable });
 }
 
 main().catch((error) => {

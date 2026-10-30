@@ -6,8 +6,8 @@ local catalog/product data and report which ones still answer HTTP 200.
 
 URL sources (all local files, any combination):
   --catalog    catalog JSON (products[].images[].src, e.g. /products/S14/cover.jpg)
-  --health     /api/health JSON (blob.listed object paths, e.g.
-               sassy-closet-shop/products/S14/cover.jpg)
+  --health     saved health JSON that still has blob.listed object paths.
+               Public /api/health no longer returns those paths.
   --files      local-product-files.json style list ("S14/cover.jpg")
   --probe-default  also probe <mã>/cover.jpg and <mã>/photo-2.jpg per held mã
 Paths are turned into URLs under --blob-base (+ --prefix for relative paths).

@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { customerAdminProxyDecision } from "@/lib/customer-admin-closed";
 import { encodeShopSearchHeader, SHOP_SEARCH_HEADER } from "@/lib/look-search";
 import { canonicalCategoryPath, canonicalMaPath } from "@/lib/ma-url";
+import { isShopPrivateSurface, PRIVATE_ROBOTS_TAG } from "@/lib/private-robots";
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -13,7 +14,7 @@ export function proxy(request: NextRequest) {
         "Cache-Control": "private, no-store, no-cache, max-age=0, must-revalidate",
         "CDN-Cache-Control": "private, no-store",
         "Vercel-CDN-Cache-Control": "private, no-store",
-        "X-Robots-Tag": "noindex, nofollow",
+        "X-Robots-Tag": PRIVATE_ROBOTS_TAG,
       },
     });
   }
@@ -44,6 +45,9 @@ export function proxy(request: NextRequest) {
   response.headers.set("Cache-Control", "private, no-store, no-cache, max-age=0, must-revalidate");
   response.headers.set("CDN-Cache-Control", "private, no-store");
   response.headers.set("Vercel-CDN-Cache-Control", "private, no-store");
+  if (isShopPrivateSurface(pathname)) {
+    response.headers.set("X-Robots-Tag", PRIVATE_ROBOTS_TAG);
+  }
   return response;
 }
 

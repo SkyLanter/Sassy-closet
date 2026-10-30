@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export const metadata: Metadata = {
-  robots: { index: false, follow: false },
+  robots: { index: false, follow: false, nosnippet: true },
 };
 
 /** Customer shop has no admin desk. Catalog edits live on the intake app. */

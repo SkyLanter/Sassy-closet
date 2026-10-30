@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import path from "node:path";
 import { SHOP_REMOTE_IMAGE_PATTERNS } from "./lib/image-hosts";
+import { PRIVATE_ROBOTS_TAG } from "./lib/private-robots";
 
 const nextConfig: NextConfig = {
   turbopack: {
@@ -39,15 +40,20 @@ const nextConfig: NextConfig = {
       { key: "Cache-Control", value: "private, no-store, no-cache, max-age=0, must-revalidate" },
       { key: "Pragma", value: "no-cache" },
     ];
+    const privateSurface = [
+      ...noStore,
+      { key: "X-Robots-Tag", value: PRIVATE_ROBOTS_TAG },
+    ];
     return [
       { source: "/", headers: noStore },
       { source: "/m/:path*", headers: noStore },
       { source: "/c/:path*", headers: noStore },
       { source: "/how-to-buy", headers: noStore },
       { source: "/meetup-ship", headers: noStore },
-      { source: "/admin/:path*", headers: noStore },
-      { source: "/admin", headers: noStore },
-      { source: "/api/admin/:path*", headers: noStore },
+      { source: "/admin", headers: privateSurface },
+      { source: "/admin/:path*", headers: privateSurface },
+      { source: "/api", headers: privateSurface },
+      { source: "/api/:path*", headers: privateSurface },
       { source: "/products/:path*", headers: noStore },
     ];
   },

@@ -1,11 +1,19 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { INTAKE_DIRECT_LINK_HEADERS, isIntakePrivateSurface } from "./lib/intake-direct-link-headers";
 
-/** Shop tools and catalog APIs are direct links. No session, no login redirect. */
-export function middleware(_request: NextRequest) {
-  return NextResponse.next();
+/** Direct link. No session and no login redirect. Private surfaces stay noindex. */
+export function middleware(request: NextRequest) {
+  const response = NextResponse.next();
+  if (!isIntakePrivateSurface(request.nextUrl.pathname)) {
+    return response;
+  }
+  for (const [key, value] of Object.entries(INTAKE_DIRECT_LINK_HEADERS)) {
+    response.headers.set(key, value);
+  }
+  return response;
 }
 
 export const config = {
-  matcher: ["/admin/shop", "/admin/shop/:path*", "/api/shop-catalog", "/api/shop-catalog/:path*"],
+  matcher: ["/api/:path*", "/admin", "/admin/:path*"],
 };

@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Sell ops",
-  robots: { index: false, follow: false },
+  robots: { index: false, follow: false, nosnippet: true },
 };
 
 export default async function AdminPage({

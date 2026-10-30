@@ -4,9 +4,15 @@ The customer shop (`sassy-closet-shop`, https://sassycloset.vercel.app and https
 
 Nhung’s intake tabs stay **Món mới**, **Sửa theo mã**, **Tìm mã**, **Hỏi Mini Boss**. Shop tools is the link `/admin/shop`. There is no password and no session. `/admin` CSV export stays open.
 
-## Password
+## Open by link
 
-Shop tools, `/api/shop-catalog`, `/api/submissions`, `/api/export`, and `/api/ma/*` do not check `ADMIN_PASSWORD`. Anyone with the link can open and edit. Responses stay `noindex`. `ADMIN_PASSWORD` and `ADMIN_SESSION_SECRET` are not a login wall.
+Shop tools, `/api/shop-catalog`, `/api/submissions`, `/api/export`, `/api/ma/*`, and `/api/health` do not ask for a password. Anyone with the link can open them. There is no session wall and no sign-in form. Old env names for a session are not a gate.
+
+`/api/ma/<mã>` still returns cost fields and the shop link. That stays, because the link is the access. Do not add a password to hide them. Those URLs send `X-Robots-Tag: noindex, nofollow, nosnippet`. `robots.txt` disallows `/api` and `/admin`. They are not in the sitemap or the nav.
+
+`/api/health` says whether intake is reading blob, local disk, or ephemeral tmp. It does not return costs, shop links, tokens, or storage paths. The sell shop `/api/health` says `reading` (`blob`, `kv`, `local`, or `seed`) and whether blob is readable, and it does not list object paths.
+
+Sell price on the intake form stays optional.
 
 ## Catalog
 

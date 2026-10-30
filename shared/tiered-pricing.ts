@@ -196,12 +196,26 @@ export function tieredSellUsd(landedUsd: string): number {
   return tieredFromLanded(landed);
 }
 
+/** Same padding as autolist `norm_ma`: S6 / S006 / s006 → S06. Non-mã text stays trimmed. */
+function canonicalQuoteMa(raw: string): string {
+  const code = raw.trim().toUpperCase();
+  const match = code.match(/^([A-Z])(\d+)$/);
+  if (!match?.[1] || match[2] == null) {
+    return code;
+  }
+  return `${match[1]}${String(Number(match[2])).padStart(2, "0")}`;
+}
+
 /**
  * What a live catalog dollar would become under the tiered quote.
- * S06 stays $25. A missing cost keeps the live dollar. Nothing is stored.
+ * S06 stays $25, including S6 / S006 / s006. A missing cost keeps the live dollar.
+ * Nothing is stored. Other short spellings (A1) stay invalid so they do not
+ * become a quote for a different mã.
  */
 export function wouldBeLiveUsd(input: IntakePriceInput): WouldBePrice {
-  const ma = input.ma.trim().toUpperCase();
+  const trimmed = input.ma.trim().toUpperCase();
+  const spelled = canonicalQuoteMa(trimmed);
+  const ma = spelled === "S06" ? spelled : trimmed;
   if (!/^[A-Z][0-9]{2}$/.test(ma)) {
     throw new Error(`invalid mã ${input.ma}`);
   }
