@@ -19,3 +19,5 @@ jobs:
         run: python -m pytest scripts/tests -q
       - name: Intake shop link flags (fixtures, no live intake)
         run: python scripts/intake_shop_link_flags.py --fixture scripts/tests/fixtures/intake_shop_links_clean.json --out out
+      - name: HTTP shop link flags (fixtures, no live catalog)
+        run: python scripts/http_shop_link_flags.py --fixture scripts/tests/fixtures/shop_link_https_clean.json --out out
