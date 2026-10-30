@@ -1,0 +1,77 @@
+{
+  "products": [
+    {
+      "ma": "S06",
+      "priceUsd": 25,
+      "held": false,
+      "status": "available",
+      "images": [
+        {
+          "src": "/products/S06/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/S06/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        }
+      ]
+    },
+    {
+      "ma": "K06",
+      "priceUsd": null,
+      "held": true,
+      "status": "hold",
+      "images": [
+        {
+          "src": "/products/K06/cover.jpg",
+          "colorId": null,
+          "order": 1
+        }
+      ]
+    },
+    {
+      "ma": "A01",
+      "priceUsd": 27,
+      "held": false,
+      "status": "available",
+      "images": [
+        {
+          "src": "/products/S06/cover.jpg",
+          "colorId": "ca0101",
+          "order": 1
+        },
+        {
+          "src": "/products/A01/photo-2.jpg",
+          "colorId": "ca0100",
+          "order": 2
+        }
+      ]
+    },
+    {
+      "ma": "V05",
+      "priceUsd": null,
+      "held": true,
+      "status": "hold",
+      "images": [
+        {
+          "src": "/products/K06/cover.jpg",
+          "colorId": null,
+          "order": 1
+        }
+      ]
+    },
+    {
+      "ma": "Z81",
+      "priceUsd": null,
+      "held": false,
+      "status": "available",
+      "photos": [
+        "https://photos.example.test/z81/a.jpg",
+        "/uploads/S06/cover.jpg",
+        "/products/shared/cover.jpg"
+      ]
+    }
+  ]
+}
