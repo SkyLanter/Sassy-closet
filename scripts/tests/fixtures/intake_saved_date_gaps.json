@@ -1,0 +1,85 @@
+[
+  {
+    "ma": "S06",
+    "saved_at": "2026-10-05T00:00:00.000Z",
+    "sell_usd": "25"
+  },
+  {
+    "ma": "A01",
+    "updated_at": "2026-10-02T00:00:00Z",
+    "sell_usd": "27"
+  },
+  {
+    "ma": "K06",
+    "sell_usd": "48",
+    "created_at": "2026-09-01T00:00:00Z"
+  },
+  {
+    "ma": "V05",
+    "saved_at": "   "
+  },
+  {
+    "ma": "Z01",
+    "saved_at": null,
+    "sell_usd": "20"
+  },
+  {
+    "ma": "Z02",
+    "saved_at": "yesterday",
+    "sell_usd": "21"
+  },
+  {
+    "ma": "Z03",
+    "saved_at": "2026/10/01",
+    "sell_usd": "22"
+  },
+  {
+    "ma": "Z04",
+    "saved_at": 1760000000,
+    "sell_usd": "23"
+  },
+  {
+    "ma": "Z05",
+    "saved_at": "",
+    "sell_usd": "24"
+  },
+  {
+    "ma": "Z06",
+    "saved_date": "2026-10-14",
+    "updated_at": "nope",
+    "sell_usd": "26"
+  },
+  {
+    "ma": "Z07",
+    "saved_at": "not-a-date",
+    "updated_at": "2026-10-14T00:00:00Z",
+    "sell_usd": "28"
+  },
+  {
+    "ma": "Z08",
+    "created_at": "2026-10-14T00:00:00Z",
+    "sell_usd": "29"
+  },
+  {
+    "ma": "Z09",
+    "savedAt": "2026-10-15T12:00:00Z",
+    "sell_usd": "31"
+  },
+  {
+    "ma": "D05",
+    "updatedAt": "2026-09-30T00:00:00+00:00",
+    "sell_usd": "32"
+  },
+  {
+    "ma": "Z10",
+    "saved_at": "2026-13-40",
+    "sell_usd": "33"
+  },
+  {
+    "ma": "Z11",
+    "saved_at": {
+      "date": "2026-10-01"
+    },
+    "sell_usd": "34"
+  }
+]
