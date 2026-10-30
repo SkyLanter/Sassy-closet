@@ -126,10 +126,11 @@ function NativeLookPhoto({
       ref={imgRef}
       src={src}
       alt={alt}
-      width={fill ? undefined : width}
-      height={fill ? undefined : height}
+      width={width}
+      height={height}
       sizes={sizes}
       draggable={false}
+      decoding="async"
       loading={priority ? "eager" : "lazy"}
       fetchPriority={fetchPriority}
       data-loaded={pending ? "false" : "true"}
