@@ -39,7 +39,8 @@ from runtime_check import ensure_runtime
 ensure_runtime(_ROOT / "out")
 
 from openpyxl import load_workbook
-from schema import header_row_for_sheet, read_headers, resolve_header_key
+from openpyxl.worksheet.worksheet import Worksheet
+from schema import header_row_for_sheet, normalize_header, read_headers, resolve_header_key
 
 from held_policy import HeldPolicy, load_held_policy, norm_ma
 from intake_flags import IntakeFlag, IntakeRow, PublicCny, flag_intake
@@ -190,18 +191,16 @@ def parse_blob_catalog(payload: object) -> list[MoneyRow]:
     return rows
 
 
+_HEADER_SCAN_ROWS = 6
+
+
 def read_hub_official(path: Path) -> list[MoneyRow]:
     workbook = load_workbook(path, data_only=True)
     try:
         if "Official" not in workbook.sheetnames:
             raise ValueError("hub workbook has no Official sheet")
         sheet = workbook["Official"]
-        header_row = header_row_for_sheet("Official")
-        headers = read_headers(sheet, header_row)
-        ma_idx = resolve_header_key(headers, "ma")
-        price_idx = resolve_header_key(headers, "list_price")
-        if ma_idx is None or price_idx is None:
-            raise ValueError("Official sheet is missing ma or list_price")
+        header_row, ma_idx, price_idx = _official_price_columns(sheet)
         rows: list[MoneyRow] = []
         for cells in sheet.iter_rows(min_row=header_row + 1, values_only=True):
             if ma_idx >= len(cells) or cells[ma_idx] is None:
@@ -214,6 +213,38 @@ def read_hub_official(path: Path) -> list[MoneyRow]:
         return rows
     finally:
         workbook.close()
+
+
+def _official_price_columns(sheet: Worksheet) -> tuple[int, int, int]:
+    """Header row, mã column, and USD column.
+
+    Schema Official books keep headers on the configured row and USD in
+    list_price. That row wins when both columns are there. The live hub
+    Official sheet keeps headers on row 1 and the same USD in sell_usd.
+    """
+    schema_row = header_row_for_sheet("Official")
+    candidates = [schema_row]
+    for row in range(1, _HEADER_SCAN_ROWS + 1):
+        if row != schema_row:
+            candidates.append(row)
+    for header_row in candidates:
+        headers = read_headers(sheet, header_row)
+        ma_idx = resolve_header_key(headers, "ma")
+        price_idx = _list_price_column(headers)
+        if ma_idx is not None and price_idx is not None:
+            return header_row, ma_idx, price_idx
+    raise ValueError("Official sheet is missing ma or list_price")
+
+
+def _list_price_column(headers: list[str]) -> int | None:
+    """Schema list_price, or live-hub sell_usd when that header is absent."""
+    listed = resolve_header_key(headers, "list_price")
+    if listed is not None:
+        return listed
+    for index, header in enumerate(headers):
+        if normalize_header(header) == "sell_usd":
+            return index
+    return None
 
 
 def parse_pdp_price(html: str) -> Decimal | None:
