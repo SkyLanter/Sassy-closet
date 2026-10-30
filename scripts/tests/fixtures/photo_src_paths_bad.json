@@ -1,0 +1,111 @@
+{
+  "schema": "catalog.v1",
+  "version": 1,
+  "products": [
+    {
+      "ma": "S06",
+      "priceUsd": 25,
+      "status": "available",
+      "images": [
+        {
+          "src": "/products/S06/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "https://cdn.example.test/s06/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        },
+        {
+          "src": "/products/../etc/passwd",
+          "colorId": null,
+          "order": 3
+        }
+      ]
+    },
+    {
+      "ma": "K06",
+      "priceUsd": 48,
+      "status": "hold",
+      "images": [
+        {
+          "src": "/products/K06/cover.jpg",
+          "colorId": null,
+          "order": 1
+        }
+      ]
+    },
+    {
+      "ma": "A01",
+      "priceUsd": 27,
+      "status": "available",
+      "images": [
+        {
+          "src": "http://photos.example.test/a01/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/A01/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        },
+        {
+          "src": "images/a01.jpg",
+          "colorId": null,
+          "order": 3
+        },
+        {
+          "src": "/etc/passwd",
+          "colorId": null,
+          "order": 4
+        }
+      ]
+    },
+    {
+      "ma": "V05",
+      "priceUsd": 36,
+      "status": "hold",
+      "images": [
+        {
+          "src": "",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "  ",
+          "colorId": null,
+          "order": 2
+        },
+        {
+          "src": null,
+          "colorId": null,
+          "order": 3
+        }
+      ]
+    },
+    {
+      "ma": "Z81",
+      "priceUsd": 40,
+      "status": "available",
+      "images": [
+        {
+          "src": "data:image/jpeg;base64,aaaa",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "products/Z81/cover.jpg",
+          "colorId": null,
+          "order": 2
+        },
+        {
+          "src": "//cdn.example.test/z81.jpg",
+          "colorId": null,
+          "order": 3
+        }
+      ]
+    }
+  ]
+}
