@@ -14,6 +14,7 @@ import { ShopEmpty } from "@/components/shop-empty";
 import { SizeFilterChips } from "@/components/size-filter";
 import { useShopSearch } from "@/components/shop-search";
 import type { AsiaSizeLetter } from "@/lib/asia-size";
+import { categoryGridLooks, homeLooks } from "@/lib/category-grid";
 import { categoryAriaLabel, categoryFilterLabel, categorySectionId, TYPE_SLUGS } from "@/lib/categories";
 import { DEFAULT_SHOP_SORT, sortShopLooks, type ShopSortId } from "@/lib/fb-rank";
 import { scrollChromeChildIntoView } from "@/lib/gallery-snap";
@@ -55,13 +56,17 @@ export function FeaturedBoard({
   const browsing = needle.trim() === "";
   const order = useMemo(() => ["all" as const, ...types], [types]);
   const searched = useMemo(() => filterLooksByQuery(products, needle), [needle, products]);
+  const listed = useMemo(
+    () => (browsing ? homeLooks(searched) : searched),
+    [browsing, searched],
+  );
   const inCategory = useMemo(
     () => (filter === "all" ? searched : searched.filter((product) => product.type === filter)),
     [filter, searched],
   );
   const sizeOptions = useMemo(
-    () => collectShopSizes(browsing ? searched : inCategory),
-    [browsing, inCategory, searched],
+    () => collectShopSizes(browsing ? listed : inCategory),
+    [browsing, inCategory, listed],
   );
   const activeSize = size && sizeOptions.includes(size) ? size : null;
   const visible = useMemo(() => {
@@ -73,21 +78,22 @@ export function FeaturedBoard({
   const sections = useMemo(() => {
     const next = new Map<MaLetter, ShopLook[]>();
     for (const type of types) {
-      const inType = searched.filter((product) => product.type === type);
+      const inType = categoryGridLooks(listed, type);
       const sized = activeSize
         ? inType.filter((product) => product.sizes.includes(activeSize))
         : inType;
       next.set(type, sortShopLooks(sized, sort));
     }
     return next;
-  }, [activeSize, searched, sort, types]);
+  }, [activeSize, listed, sort, types]);
   const counts = useMemo(() => {
-    const next: Record<string, number> = { all: searched.length };
+    const source = browsing ? listed : searched;
+    const next: Record<string, number> = { all: source.length };
     for (const type of types) {
-      next[type] = searched.filter((product) => product.type === type).length;
+      next[type] = source.filter((product) => product.type === type).length;
     }
     return next;
-  }, [searched, types]);
+  }, [browsing, listed, searched, types]);
   const browseCount = useMemo(() => {
     let total = 0;
     for (const type of types) {
