@@ -56,14 +56,18 @@ def default_held_path() -> Path:
 
 def load_held_policy(path: Path | None = None) -> HeldPolicy:
     file = path or default_held_path()
-    payload = json.loads(file.read_text(encoding="utf-8"))
+    return policy_from_mapping(json.loads(file.read_text(encoding="utf-8")), source=str(file))
+
+
+def policy_from_mapping(payload: object, *, source: str = "held policy") -> HeldPolicy:
+    """Read a held policy object already in memory. Does not write a file."""
     if not isinstance(payload, dict):
-        raise ValueError(f"{file} must be a JSON object")
+        raise ValueError(f"{source} must be a JSON object")
     held = _codes(payload.get("heldIncomplete"), "heldIncomplete")
     never = _codes(payload.get("neverList"), "neverList", allow_empty=True)
     overlap = sorted(set(held) & set(never))
     if overlap:
-        raise ValueError(f"{file} lists {overlap} in both heldIncomplete and neverList")
+        raise ValueError(f"{source} lists {overlap} in both heldIncomplete and neverList")
     return HeldPolicy(held=tuple(held), never_list=tuple(never))
 
 

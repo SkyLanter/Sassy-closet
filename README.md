@@ -50,6 +50,17 @@ python3 excel-kit/tests/run_checks.py
 
 Prompts also live in `excel-kit/prompts/` (`BOUTIQUE_DESKTOP_EFFICIENT.md`, `BOUTIQUE_PHONE_SAFE.md`, `GF_CLOTHES_INTAKE.md`, `SAVED_CARD_AND_REAL_MINIBOSS_ASK_2026-09-07.md`).
 
+## Desk status
+
+Read-only counts: intake, catalog, held mãs, open pull-request numbers, freshness, and what is waiting on Boss. The command does not write Blob, intake, Meta, or `data/held.json`.
+
+```bash
+python3 scripts/desk_status.py --fixture ./desk.json
+python3 scripts/desk_status.py --fixture ./desk.json --page ./out/desk.html
+```
+
+`--page` writes HTML only from files already loaded. `--read-prs` asks `gh` for open pull-request numbers and does not write that page.
+
 ## Sell shop
 
 Next.js sell shop in [`sassy-closet-shop/`](sassy-closet-shop/). Live URL stays [https://sassy-closet-shop.vercel.app](https://sassy-closet-shop.vercel.app).
