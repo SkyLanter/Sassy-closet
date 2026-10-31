@@ -44,7 +44,7 @@ ROBOTS = {"X-Robots-Tag": "noindex, nofollow, nosnippet"}
 
 
 def _healthy():
-    r = {p: (200, '{"ok":true}', ROBOTS) for p in ("/api/export", "/api/submissions", "/api/submissions/S06", "/api/ma/S06", "/admin/shop")}
+    r = {p: (200, '{"ok":true}', ROBOTS) for p in ("/admin", "/api/export", "/api/submissions", "/api/submissions/S06", "/api/ma/S06", "/admin/shop")}
     r["/api/health"] = (200, '{"reading":"blob","blob":{"readable":true}}')
     r["/m/S06"] = (200, "<p>$25</p>")
     return r

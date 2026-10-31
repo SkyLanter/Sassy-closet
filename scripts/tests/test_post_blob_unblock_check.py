@@ -51,6 +51,7 @@ def _healthy():
     }
     for m in ("A01", "A02", "S01", "P01"):
         r[f"/m/{m}"] = (200, "ok")
+    r["/admin"] = (200, "<main>Kit export CSV</main>", ROBOTS)
     return r
 
 
