@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { NO_STORE_HEADERS } from "@/lib/http-no-store";
+import { PRIVATE_ROBOTS_TAG } from "@/lib/private-robots";
 
 /**
  * Customer shop does not serve catalog admin.
@@ -14,7 +15,7 @@ export function customerAdminApiClosed(): NextResponse | null {
       status: 404,
       headers: {
         ...NO_STORE_HEADERS,
-        "X-Robots-Tag": "noindex, nofollow",
+        "X-Robots-Tag": PRIVATE_ROBOTS_TAG,
       },
     },
   );

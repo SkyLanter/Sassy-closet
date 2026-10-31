@@ -26,6 +26,20 @@ export function isSellableMa(ma: string): boolean {
   return isValidMa(normalized) && !isOfficialAlphabetMa(normalized);
 }
 
+/**
+ * S06 stays $25 under S06 / S6 / s006. A blank price is not a second dollar.
+ * Padded spellings are still rejected by the import gate before this runs.
+ */
+export function s06PriceLockError(ma: string, priceUsd: number | null): string | null {
+  if (canonicalMaSpelling(ma) !== "S06") {
+    return null;
+  }
+  if (priceUsd !== null && priceUsd !== 25) {
+    return "Import rejected S06 price. S06 stays $25.";
+  }
+  return null;
+}
+
 /** Hold ⇔ priceUsd null. Available needs the catalog USD. Sold may keep a price. */
 export function assertHoldPricePairing(
   ma: string,
@@ -133,9 +147,9 @@ export function assertImportSellContract(products: Product[]): void {
       );
     }
     assertHoldPricePairing(product.ma, product.status, product.priceUsd);
-    // Same lock as the editor (admin-ops): S06 never imports at another dollar amount.
-    if (ma === "S06" && product.priceUsd !== null && product.priceUsd !== 25) {
-      throw new Error("Import rejected S06 price. S06 stays $25.");
+    const locked = s06PriceLockError(ma, product.priceUsd);
+    if (locked) {
+      throw new Error(locked);
     }
   }
 }

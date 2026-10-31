@@ -14,14 +14,19 @@ export const INTAKE_LISTING_ROBOTS = {
   nosnippet: true,
 } as const;
 
+/** Every `/api` and `/admin` URL, including health, submissions, export, and mã cards. */
+export function isIntakePrivateSurface(pathname: string): boolean {
+  return (
+    pathname === "/api" ||
+    pathname.startsWith("/api/") ||
+    pathname === "/admin" ||
+    pathname.startsWith("/admin/")
+  );
+}
+
 export const INTAKE_DIRECT_LINK_SOURCES = [
+  "/api",
+  "/api/:path*",
   "/admin",
   "/admin/:path*",
-  "/api/submissions",
-  "/api/submissions/:path*",
-  "/api/export",
-  "/api/export/:path*",
-  "/api/ma/:path*",
-  "/api/shop-catalog",
-  "/api/shop-catalog/:path*",
 ] as const;

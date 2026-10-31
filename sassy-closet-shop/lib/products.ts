@@ -1,7 +1,7 @@
 import { connection } from "next/server";
 import { CATALOG_CACHE_TAG } from "@/lib/catalog-tag";
 import { readLiveCatalogDocument, readLiveCatalogDocumentForShop, readLiveCatalogRecord } from "@/lib/catalog-store";
-import { normalizeMa, type MaLetter } from "@/lib/ma";
+import { canonicalMaSpelling, type MaLetter } from "@/lib/ma";
 import { shopVisibleLooks } from "@/lib/site-settings";
 import type { CatalogBackend } from "@/lib/storage-info";
 import type { CatalogDocument, Product, SiteSettings } from "@/lib/types";
@@ -57,10 +57,17 @@ export async function getSiteSettingsUncached(): Promise<SiteSettings> {
   return document.settings;
 }
 
+/** Listed row for a mã under S06 / S6 / s006. Misses stay undefined so the PDP 404s. */
+export function findShopProduct<T extends { ma: string }>(
+  products: readonly T[],
+  ma: string,
+): T | undefined {
+  const key = canonicalMaSpelling(ma);
+  return products.find((product) => canonicalMaSpelling(product.ma) === key);
+}
+
 export async function getProduct(ma: string): Promise<ShopLook | undefined> {
-  const normalized = normalizeMa(ma);
-  const products = await getProducts();
-  return products.find((product) => product.ma === normalized);
+  return findShopProduct(await getProducts(), ma);
 }
 
 export function catalogTypesFrom(products: Array<{ type: MaLetter }>): MaLetter[] {
