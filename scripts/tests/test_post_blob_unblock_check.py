@@ -42,11 +42,11 @@ def _healthy():
     r = {
         "/": (200, "<html>Tỷ giá: 1 USD</html>"),
         "/api/submissions": (200, '{"submissions":[]}', ROBOTS),
-        "/api/fx": (200, '{"usd_cny":6.71}'),
+        "/api/fx": (200, '{"usd_cny":6.71}', ROBOTS),
         "/api/submissions/S06": (200, "{}", ROBOTS),
         "/api/ma/S06": (200, '{"code":"S06"}', ROBOTS),
         "/api/export": (200, "ma\n", ROBOTS),
-        "/api/health": (200, '{"reading":"blob","blob":{"readable":true}}'),
+        "/api/health": (200, '{"reading":"blob","blob":{"configured":true,"readable":true}}', ROBOTS),
         "/m/S06": (200, "<p>$25</p>"),
     }
     for m in ("A01", "A02", "S01", "P01"):
@@ -87,3 +87,38 @@ def test_store_down_and_seed_and_held_visible_fail():
     assert p.returncode == 1
     for frag in ("FAIL  intake /api/fx", "FAIL  intake /api/submissions", "FAIL  shop health", "FAIL  shop /m/S06", "HELD MÃ VISIBLE", "X-Robots-Tag"):
         assert frag in p.stdout, p.stdout
+
+
+def test_fx_without_noindex_fails():
+    routes = _healthy()
+    routes["/api/fx"] = (200, '{"usd_cny":6.71}')
+    p = _run(routes)
+    assert p.returncode == 1
+    assert "FAIL  intake /api/fx" in p.stdout
+    assert "X-Robots-Tag" in p.stdout
+
+
+def test_shop_health_short_robots_fails():
+    routes = _healthy()
+    routes["/api/health"] = (
+        200,
+        '{"reading":"blob","blob":{"configured":true,"readable":true}}',
+        {"X-Robots-Tag": "noindex, nofollow"},
+    )
+    p = _run(routes)
+    assert p.returncode == 1
+    assert "FAIL  shop health" in p.stdout
+
+
+def test_shop_health_blob_path_fails_without_echoing_it():
+    secret = "SECRET-BLOB-PATH"
+    routes = _healthy()
+    routes["/api/health"] = (
+        200,
+        '{"reading":"blob","blob":{"configured":true,"readable":true,"path":"%s"}}' % secret,
+        ROBOTS,
+    )
+    p = _run(routes)
+    assert p.returncode == 1
+    assert "FAIL  shop health" in p.stdout
+    assert secret not in p.stdout + p.stderr

@@ -45,7 +45,8 @@ ROBOTS = {"X-Robots-Tag": "noindex, nofollow, nosnippet"}
 
 def _healthy():
     r = {p: (200, '{"ok":true}', ROBOTS) for p in ("/api/export", "/api/submissions", "/api/submissions/S06", "/api/ma/S06", "/admin/shop")}
-    r["/api/health"] = (200, '{"reading":"blob","blob":{"readable":true}}')
+    r["/api/fx"] = (200, '{"usd_cny":6.71}', ROBOTS)
+    r["/api/health"] = (200, '{"reading":"blob","blob":{"configured":true,"readable":true}}', ROBOTS)
     r["/m/S06"] = (200, "<p>$25</p>")
     return r
 
@@ -108,7 +109,34 @@ def test_shop_regressions_fail():
         assert frag in p.stdout
 
 
+def test_fx_without_noindex_fails_and_does_not_post():
+    r = _healthy()
+    r["/api/fx"] = (200, '{"usd_cny":6.71,"cost_cny":"%s"}' % SENTINEL)
+    p, seen = _run(r)
+    assert p.returncode == 1
+    assert "FAIL  intake GET /api/fx" in p.stdout
+    assert "X-Robots-Tag" in p.stdout
+    assert SENTINEL not in p.stdout + p.stderr
+    assert all(m == "GET" for m, _ in seen)
+
+
+def test_shop_health_blob_path_fails_without_echoing_it():
+    secret = "SECRET-BLOB-PATH"
+    r = _healthy()
+    r["/api/health"] = (
+        200,
+        '{"reading":"blob","blob":{"configured":true,"readable":true,"path":"%s"}}' % secret,
+        ROBOTS,
+    )
+    p, _ = _run(r)
+    assert p.returncode == 1
+    assert "FAIL  shop health" in p.stdout
+    assert secret not in p.stdout + p.stderr
+
+
 def test_dry_run_no_network():
     p, seen = _run({}, ["--dry-run"], INTAKE_BASE="http://127.0.0.1:9", SHOP_BASE="http://127.0.0.1:9")
     assert p.returncode == 0 and "DRY RUN" in p.stdout and "/api/ma/S06" in p.stdout
+    assert "/api/fx" in p.stdout
+    assert "public blob keys" in p.stdout
     assert seen == []

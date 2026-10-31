@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 # Read-only check after intake data links are open without a session.
-# GET /api/submissions, /api/export, /api/ma/S06, and /admin/shop must be 200
+# GET /api/submissions, /api/export, /api/ma/S06, /api/fx, and /admin/shop must be 200
 # with no cookie and X-Robots-Tag: noindex, nofollow, nosnippet.
 # GET /api/submissions/S06 may be 200 or 404.
+# GET /api/fx must also show a rate (usd_cny) and must not be the Blob-down body.
+# Shop /api/health must be 200, noindex, reading=blob, blob readable, and only the
+# public blob keys (configured, readable). Paths and tokens are not printed.
 # POST/PATCH are open by link. This script does not send them (a probe would save a mã).
 # Never prints response bodies (so cost values never reach logs).
 #
@@ -13,6 +16,7 @@
 # Exit 0 only when every check PASSes.
 set -u
 DRY=0; [ "${1:-}" = "--dry-run" ] && DRY=1
+HERE="$(cd "$(dirname "$0")" && pwd)"
 INTAKE="${INTAKE_BASE:-https://sassy-closet.vercel.app}"
 SHOP="${SHOP_BASE:-https://sassy-closet-shop.vercel.app}"
 T="${CHECK_TIMEOUT:-20}"
@@ -23,8 +27,9 @@ if [ "$DRY" = 1 ]; then
   echo "DRY RUN (no network). intake=$INTAKE shop=$SHOP"
   for p in $OPEN; do echo "CHECK GET  $INTAKE$p -> 200 without auth, X-Robots-Tag: noindex, nofollow, nosnippet"; done
   echo "CHECK GET  $INTAKE/api/submissions/S06 -> 200 or 404, X-Robots-Tag: noindex, nofollow, nosnippet"
+  echo "CHECK GET  $INTAKE/api/fx -> 200 without auth, usd_cny, X-Robots-Tag: noindex, nofollow, nosnippet"
   echo "SKIP  POST/PATCH (open by link; a probe would save a mã)"
-  echo "CHECK GET  $SHOP/api/health -> 200 reading=blob, blob readable"
+  echo "CHECK GET  $SHOP/api/health -> 200 reading=blob, blob readable, noindex, public blob keys only"
   echo "CHECK GET  $SHOP/m/S06 -> 200 shows \$25"
   for m in $HELD; do echo "CHECK GET  $SHOP/m/$m -> 404 (held)"; done
   exit 0
@@ -48,11 +53,18 @@ for p in $OPEN; do
 done
 c=$(req GET "$INTAKE/api/submissions/S06"); check_open "intake GET /api/submissions/S06" "$c" 1
 
+c=$(req GET "$INTAKE/api/fx")
+if [ "$c" != 200 ]; then res no "intake GET /api/fx" "http $c, expected 200 without auth"
+elif ! has_noindex; then res no "intake GET /api/fx" "http $c missing X-Robots-Tag: noindex, nofollow, nosnippet"
+elif ! grep -q usd_cny "$TMP/body"; then res no "intake GET /api/fx" "http $c missing usd_cny"
+elif grep -q '"storeUnavailable":true' "$TMP/body"; then res no "intake GET /api/fx" "store unavailable"
+else res ok "intake GET /api/fx ($c, noindex, store readable)"; fi
+
 echo "SKIP  intake POST/PATCH (open by link; not probed)"
 
 c=$(req GET "$SHOP/api/health")
-r=$(python3 -c 'import json,sys;d=json.load(open(sys.argv[1]));print(d.get("reading"),(d.get("blob") or {}).get("readable"))' "$TMP/body" 2>/dev/null || echo "? ?")
-{ [ "$c" = 200 ] && [ "$r" = "blob True" ]; } && res ok "shop health reading=blob, blob readable" || res no "shop health" "http $c, reading/readable=$r"
+r=$(python3 "$HERE/shop_health_public.py" "$TMP/body" 2>/dev/null || echo "? False yes")
+{ [ "$c" = 200 ] && [ "$r" = "blob True no" ] && has_noindex; } && res ok "shop health reading=blob, blob readable, noindex" || res no "shop health" "http $c, reading/readable/leak=$r"
 c=$(req GET "$SHOP/m/S06"); { [ "$c" = 200 ] && grep -q '\$25' "$TMP/body"; } && res ok "shop /m/S06 200 shows \$25" || res no "shop /m/S06 \$25" "http $c"
 for m in $HELD; do c=$(req GET "$SHOP/m/$m"); [ "$c" = 404 ] && res ok "shop /m/$m 404 (held)" || res no "shop /m/$m held" "http $c - HELD MÃ VISIBLE, tell Boss"; done
 
