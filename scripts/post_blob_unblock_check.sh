@@ -20,7 +20,7 @@ noindex() { tr -d '\r' < "$TMP/hdr" | grep -qiE '^x-robots-tag:[[:space:]]*noind
 c=$(get "$INTAKE/"); { [ "$c" = 200 ] && ! grep -q "kho đang không đọc được" "$TMP/body"; } && res ok "intake home 200, real FX" || res no "intake home" "http $c or default-FX fallback shown"
 c=$(get "$INTAKE/api/fx"); { [ "$c" = 200 ] && grep -q usd_cny "$TMP/body" && noindex && ! down; } && res ok "intake /api/fx 200 noindex (store readable)" || res no "intake /api/fx" "http $c, expected 200 with X-Robots-Tag noindex, nofollow, nosnippet"
 # Direct links, no session. Bodies are not printed. S06 sell lock is checked on the shop page.
-for path in /api/submissions /api/ma/S06 /api/export; do
+for path in /admin /api/submissions /api/ma/S06 /api/export; do
   c=$(get "$INTAKE$path")
   { [ "$c" = 200 ] && noindex && ! down; } && res ok "intake $path 200 noindex without login" || res no "intake $path" "http $c, expected 200 with X-Robots-Tag noindex, nofollow, nosnippet"
 done

@@ -44,7 +44,9 @@ ROBOTS = {"X-Robots-Tag": "noindex, nofollow, nosnippet"}
 
 
 def _healthy():
-    r = {p: (200, '{"ok":true}', ROBOTS) for p in ("/api/export", "/api/submissions", "/api/submissions/S06", "/api/ma/S06", "/admin/shop")}
+    # #209 adds /admin to the open-by-link set. #208 still requires FX noindex
+    # and the public shop-health blob shape (configured + readable, no leak).
+    r = {p: (200, '{"ok":true}', ROBOTS) for p in ("/admin", "/api/export", "/api/submissions", "/api/submissions/S06", "/api/ma/S06", "/admin/shop")}
     r["/api/fx"] = (200, '{"usd_cny":6.71}', ROBOTS)
     r["/api/health"] = (200, '{"reading":"blob","blob":{"configured":true,"readable":true}}', ROBOTS)
     r["/m/S06"] = (200, "<p>$25</p>")
