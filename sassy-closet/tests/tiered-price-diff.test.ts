@@ -55,15 +55,6 @@ function loadSnapshot(): Snapshot {
   return value;
 }
 
-function positive(raw: string | null): number | null {
-  if (raw == null) return null;
-  const text = raw.trim();
-  if (!/^\d+(?:\.\d+)?$/.test(text)) return null;
-  const amount = Number(text);
-  if (!Number.isFinite(amount) || amount <= 0) return null;
-  return amount;
-}
-
 function walk(dir: string): string[] {
   const found: string[] = [];
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -123,7 +114,7 @@ test("intake calculator stays on flat 25% and does not quote the tiered sell", (
   assert.notEqual(puppy.sellUsd, tiered.wouldBeUsd);
 });
 
-test("each live catalog price would become the tiered quote, and S06 stays $25", () => {
+test("snapshot keeps sell dollars, redacts supplier costs, and S06 stays $25", () => {
   const snapshot = loadSnapshot();
   assert.equal(snapshot.readOnly, true);
   assert.equal(snapshot.writesCatalog, false);
@@ -141,27 +132,22 @@ test("each live catalog price would become the tiered quote, and S06 stays $25",
     seen.add(row.ma);
     const debox = deboxFor(row.kind);
     assert.equal(row.deboxUsd, debox === 0 ? "0" : debox.toFixed(2), row.ma);
-    const cny = positive(row.costCny);
-    const usd = positive(row.costUsd);
-    const landed = cny != null ? cny / DEFAULT_FX + debox : usd != null ? usd + debox : null;
-    if (landed == null) {
-      assert.equal(row.flat25Usd, null, row.ma);
+    assert.equal(row.costCny, null, row.ma);
+    assert.equal(row.costUsd, null, row.ma);
+    assert.equal(row.costSource, null, row.ma);
+    assert.equal(row.landedUsd, null, row.ma);
+    assert.equal(Number.isInteger(row.liveUsd) && row.liveUsd > 0, true, row.ma);
+    assert.equal(Number.isInteger(row.wouldBeUsd) && row.wouldBeUsd > 0, true, row.ma);
+    if (row.ma === "S06") {
+      assert.equal(row.applied, false, row.ma);
+      assert.equal(row.liveUsd, 25, row.ma);
+      assert.equal(row.wouldBeUsd, 25, row.ma);
+    } else if (row.flat25Usd == null) {
+      assert.equal(row.applied, false, row.ma);
+      assert.equal(row.wouldBeUsd, row.liveUsd, row.ma);
     } else {
-      assert.equal(sellUsdFromLanded(landed), row.flat25Usd, row.ma);
-    }
-
-    const got = wouldBeLiveUsd({
-      ma: row.ma,
-      kind: row.kind,
-      liveUsd: row.liveUsd,
-      costCny: row.costCny,
-      costUsd: row.costUsd,
-    });
-    assert.equal(got.liveUsd, row.liveUsd, row.ma);
-    assert.equal(got.wouldBeUsd, row.wouldBeUsd, row.ma);
-    assert.equal(got.applied, row.applied, row.ma);
-    if (row.landedUsd != null && row.applied) {
-      assert.equal(tieredSellUsd(row.landedUsd), row.wouldBeUsd, row.ma);
+      assert.equal(row.applied, true, row.ma);
+      assert.equal(Number.isInteger(row.flat25Usd) && row.flat25Usd > 0, true, row.ma);
     }
   }
 
@@ -171,17 +157,18 @@ test("each live catalog price would become the tiered quote, and S06 stays $25",
   assert.equal(s06.wouldBeUsd, S06_LOCK_USD);
   assert.equal(s06.applied, false);
   assert.equal(s06.note, "Locked. Shown price stays $25.");
+  assert.equal(s06.flat25Usd, 12);
   const locked = wouldBeLiveUsd({
     ma: "s06",
     kind: "S",
     liveUsd: s06.liveUsd,
-    costCny: s06.costCny,
-    costUsd: s06.costUsd,
+    costCny: null,
+    costUsd: null,
   });
   assert.equal(locked.reason, "locked");
   assert.equal(locked.wouldBeUsd, 25);
-  assert.ok(s06.landedUsd);
-  assert.notEqual(tieredSellUsd(s06.landedUsd), locked.wouldBeUsd);
+  assert.equal(s06.landedUsd, null);
+  assert.notEqual(tieredSellUsd("30"), locked.wouldBeUsd);
 
   const blank = snapshot.rows.find((row) => row.ma === "O04");
   assert.ok(blank);
@@ -189,6 +176,9 @@ test("each live catalog price would become the tiered quote, and S06 stays $25",
   assert.equal(blank.wouldBeUsd, 12);
   assert.equal(blank.applied, false);
   assert.equal(blank.landedUsd, null);
+  assert.equal(blank.flat25Usd, null);
+  assert.equal(blank.costCny, null);
+  assert.equal(blank.costUsd, null);
 });
 
 test("sell-site code does not import the tiered quote", () => {
