@@ -9,7 +9,7 @@ import { intakeHealthReport } from "../lib/intake-health";
 import { isIntakePrivateSurface } from "../lib/intake-direct-link-headers";
 import { publishBlock } from "../lib/publish-guard";
 import { intakePriceView } from "../lib/pricing";
-import { middleware } from "../middleware";
+import { config as intakeMiddlewareConfig, middleware } from "../middleware";
 import robots from "../app/robots";
 
 const OPEN_ROUTES = [
@@ -118,6 +118,10 @@ test("held spellings never publish", () => {
     assert.equal(publishBlock({ action: "create", ma, sellUsd: "25" }), "held", ma);
     assert.equal(publishBlock({ action: "sync", ma, sellUsd: "" }), "held", ma);
   }
+});
+
+test("middleware matcher covers every api and admin path", () => {
+  assert.deepEqual(intakeMiddlewareConfig.matcher, ["/api/:path*", "/admin", "/admin/:path*"]);
 });
 
 test("middleware and health stay open and noindex without secrets", async () => {

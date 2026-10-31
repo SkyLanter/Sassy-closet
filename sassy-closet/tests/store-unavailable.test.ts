@@ -7,9 +7,15 @@ test("blocked Blob store read maps to 503 with no secrets", async () => {
   assert.equal(storeErrorReason(err), "store-blocked");
   const res = storeUnavailableResponse(err);
   assert.equal(res.status, 503);
+  assert.notEqual(res.status, 401);
+  assert.match(res.headers.get("x-robots-tag") ?? "", /noindex,\s*nofollow,\s*nosnippet/i);
+  assert.match(res.headers.get("cache-control") ?? "", /no-store/);
   const body = await res.json();
   assert.equal(body.storeUnavailable, true);
-  assert.ok(!JSON.stringify(body).includes("SECRET"));
+  const text = JSON.stringify(body);
+  assert.equal(text.includes("SECRET"), false);
+  assert.equal(text.toLowerCase().includes("vercel_blob"), false);
+  assert.equal(text.toLowerCase().includes("token"), false);
 });
 
 test("other failures classify without leaking", () => {
