@@ -28,12 +28,14 @@ async function withStore(raw: string | null, fn: () => Promise<void>) {
   }
 }
 
-async function is503(res: Response, directLink = false) {
+async function is503(res: Response) {
   assert.equal(res.status, 503);
+  assert.notEqual(res.status, 401);
   const body = await res.json();
   assert.equal(body.error, STORE_UNAVAILABLE_VI);
   assert.equal(body.storeUnavailable, true);
-  if (directLink) assert.match(res.headers.get("x-robots-tag") ?? "", /noindex,\s*nofollow,\s*nosnippet/i);
+  assert.match(res.headers.get("x-robots-tag") ?? "", /noindex,\s*nofollow,\s*nosnippet/i);
+  assert.equal(JSON.stringify(body).toLowerCase().includes("token"), false);
 }
 
 function photoForm() {
@@ -45,17 +47,17 @@ function photoForm() {
 test("store read failure -> 503 + Vietnamese message on read routes", async () => {
   await withStore("{not json", async () => {
     const one = await import("../app/api/submissions/[ma]/route");
-    await is503(await one.GET(plainReq(), { params: Promise.resolve({ ma: "S06" }) }), true);
+    await is503(await one.GET(plainReq(), { params: Promise.resolve({ ma: "S06" }) }));
     const list = await import("../app/api/submissions/route");
-    await is503(await list.GET(), true);
+    await is503(await list.GET());
     const fx = await import("../app/api/fx/route");
     await is503(await fx.GET());
     const exp = await import("../app/api/export/route");
-    await is503(await exp.GET(), true);
+    await is503(await exp.GET());
     const find = await import("../app/api/find-ma/route");
     await is503(await find.POST(photoForm()));
     const ma = await import("../app/api/ma/[code]/route");
-    await is503(await ma.GET(plainReq(), { params: Promise.resolve({ code: "A01" }) }), true);
+    await is503(await ma.GET(plainReq(), { params: Promise.resolve({ code: "A01" }) }));
   });
 });
 
@@ -74,6 +76,25 @@ test("success paths unchanged on an empty healthy store", async () => {
     const f = await find.POST(photoForm());
     assert.equal(f.status, 200);
     assert.deepEqual((await f.json()).matches, []);
+    const fx = await import("../app/api/fx/route");
+    const rate = await fx.GET();
+    assert.equal(rate.status, 200);
+    assert.notEqual(rate.status, 401);
+    assert.match(rate.headers.get("x-robots-tag") ?? "", /noindex,\s*nofollow,\s*nosnippet/i);
+    const rateBody = (await rate.json()) as { usd_cny?: unknown; submissions?: unknown };
+    assert.equal(typeof rateBody.usd_cny, "number");
+    assert.equal("submissions" in rateBody, false);
+    assert.equal(JSON.stringify(rateBody).toLowerCase().includes("token"), false);
+    const badRate = await fx.POST(
+      new Request("http://l/api/fx", {
+        method: "POST",
+        body: "not-json",
+        headers: { "content-type": "application/json" },
+      }),
+    );
+    assert.equal(badRate.status, 400);
+    assert.notEqual(badRate.status, 401);
+    assert.match(badRate.headers.get("x-robots-tag") ?? "", /noindex,\s*nofollow,\s*nosnippet/i);
     const ph = await import("../app/api/photos/[...path]/route");
     assert.equal((await ph.GET(new Request("http://l/"), { params: Promise.resolve({ path: ["A01", "001.jpg"] }) })).status, 404);
     assert.equal((await ph.GET(new Request("http://l/"), { params: Promise.resolve({ path: ["..", "x.jpg"] }) })).status, 404);
