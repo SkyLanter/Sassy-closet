@@ -1,10 +1,16 @@
-"""Live catalog dollars versus the tiered quote. Fixture only — no catalog write."""
+"""Live catalog dollars versus the tiered quote. Fixture only — no catalog write.
+
+Supplier cost fields in the committed snapshot are null. Sell dollars stay.
+The tiered formula is checked with a synthetic landed amount, not a shop cost.
+"""
 
 from __future__ import annotations
 
 import json
 import re
-from decimal import Decimal, ROUND_CEILING
+import subprocess
+import sys
+from decimal import Decimal
 from pathlib import Path
 
 from autolist import listing_quote, price
@@ -12,43 +18,10 @@ from held_policy import load_held_policy
 
 ROOT = Path(__file__).resolve().parents[2]
 SNAPSHOT = ROOT / "shared" / "live-price-snapshot.json"
-FX = Decimal("6.723")
-DEBOX = {"V": Decimal("7.50"), "Q": Decimal("7.50"), "D": Decimal("7.50")}
-_DECIMAL = re.compile(r"^\d+(?:\.\d+)?$")
+REDACTED = ("costCny", "costUsd", "costSource", "landedUsd")
 
 
-def _positive(raw: object) -> Decimal | None:
-    if raw is None:
-        return None
-    text = str(raw).strip()
-    if _DECIMAL.fullmatch(text) is None:
-        return None
-    value = Decimal(text)
-    if value <= 0:
-        return None
-    return value
-
-
-def _landed(row: dict[str, object]) -> Decimal | None:
-    kind = str(row["kind"]).strip().upper()[:1]
-    debox = DEBOX.get(kind, Decimal("0"))
-    cny = _positive(row.get("costCny"))
-    if cny is not None:
-        return cny / FX + debox
-    usd = _positive(row.get("costUsd"))
-    if usd is not None:
-        return usd + debox
-    return None
-
-
-def _flat(landed: Decimal) -> int:
-    quoted = int((landed / Decimal("0.75")).to_integral_value(rounding=ROUND_CEILING))
-    if quoted < 10:
-        return quoted + 2
-    return quoted
-
-
-def test_live_prices_would_become_the_tiered_quote_and_s06_stays_25() -> None:
+def test_snapshot_keeps_sell_dollars_redacts_costs_and_s06_stays_25() -> None:
     payload = json.loads(SNAPSHOT.read_text(encoding="utf-8"))
     assert payload["readOnly"] is True
     assert payload["writesCatalog"] is False
@@ -64,30 +37,32 @@ def test_live_prices_would_become_the_tiered_quote_and_s06_stays_25() -> None:
     assert "Q02" not in codes
 
     for row in rows:
-        landed = _landed(row)
+        for key in REDACTED:
+            assert row[key] is None, row["ma"]
+        assert isinstance(row["liveUsd"], int) and row["liveUsd"] >= 1
+        assert isinstance(row["wouldBeUsd"], int) and row["wouldBeUsd"] >= 1
         if row["ma"] == "S06":
             assert row["liveUsd"] == 25
             assert row["wouldBeUsd"] == 25
             assert row["applied"] is False
-            assert landed is not None
-            assert format(landed, "f") == row["landedUsd"]
-            assert _flat(landed) == row["flat25Usd"]
-            locked = listing_quote("S06", landed)
-            assert locked.action == "locked"
-            assert locked.sell_usd == 25
-            assert price(landed) != row["wouldBeUsd"]
+            assert row["flat25Usd"] == 12
+            assert row["note"] == "Locked. Shown price stays $25."
             continue
-        if landed is None:
+        if row["flat25Usd"] is None:
             assert row["applied"] is False
             assert row["wouldBeUsd"] == row["liveUsd"]
-            assert row["flat25Usd"] is None
-            assert row["landedUsd"] is None
+            assert row["ma"] == "O04"
+            assert row["liveUsd"] == 12
+            assert row["note"] == "No usable intake cost. Live price stays."
             continue
         assert row["applied"] is True
-        assert format(landed, "f") == row["landedUsd"]
-        assert price(landed) == row["wouldBeUsd"]
-        assert _flat(landed) == row["flat25Usd"]
-        assert price(landed) >= 1
+        assert isinstance(row["flat25Usd"], int) and row["flat25Usd"] >= 1
+
+    locked = listing_quote("S06", Decimal("30"))
+    assert locked.action == "locked"
+    assert locked.sell_usd == 25
+    assert price(Decimal("30")) == 42
+    assert price(Decimal("30")) != locked.sell_usd
 
     module = (ROOT / "shared" / "tiered-pricing.ts").read_text(encoding="utf-8")
     assert "held.json" not in module
@@ -98,6 +73,18 @@ def test_live_prices_would_become_the_tiered_quote_and_s06_stays_25() -> None:
     assert "tiered-pricing" not in shop
     assert 0.75 in _decimals(closet)
     assert 0.75 in _decimals(shop)
+
+
+def test_committed_snapshot_has_no_supplier_cost_hits() -> None:
+    proc = subprocess.run(
+        [sys.executable, str(ROOT / "scripts" / "privacy_scan.py"), "--no-allowlist", str(SNAPSHOT)],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert proc.returncode == 0
+    assert "privacy_scan: CLEAN" in proc.stdout
+    assert proc.stderr == ""
 
 
 def _decimals(source: str) -> set[float]:
