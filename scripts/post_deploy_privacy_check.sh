@@ -17,7 +17,8 @@ INTAKE="${INTAKE_BASE:-https://sassy-closet.vercel.app}"
 SHOP="${SHOP_BASE:-https://sassy-closet-shop.vercel.app}"
 T="${CHECK_TIMEOUT:-20}"
 HELD="${HELD_MAS:-K03 K04 K05 V04 Q02 G01 H02 A27 S16}"
-OPEN="/api/export /api/submissions /api/ma/S06 /admin/shop"
+# /admin is the CSV page. /admin/shop is shop tools. Both stay open and noindex.
+OPEN="/admin /api/export /api/submissions /api/ma/S06 /admin/shop"
 
 if [ "$DRY" = 1 ]; then
   echo "DRY RUN (no network). intake=$INTAKE shop=$SHOP"
