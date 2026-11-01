@@ -4,7 +4,8 @@
 #
 # Usage: scripts/hard_recheck.sh [--json] [--base SHA] [extra pytest args]
 #   --json       also write summary.json in the log dir
-#   --base SHA   diff/privacy/held.json base (default eb8a143, else root commit)
+#   --base SHA   diff/privacy/held.json base (default eb8a143 if an ancestor, else
+#                merge-base with origin/main or main, else root commit)
 #   other args   passed through to scripts/run_tests.sh (e.g. --basetemp=/tmp/x-300)
 # Env: HARD_RECHECK_PYTHON (default /tmp/venv08/bin/python, else python3),
 #      HARD_RECHECK_TIMEOUT seconds per step (default 1200),
@@ -29,8 +30,18 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(git -C "$HERE" rev-parse --show-toplevel 2>/dev/null || (cd "$HERE/.." && pwd))"
 cd "$ROOT" || exit 2
 if [ -z "$BASE" ]; then
-  if git rev-parse -q --verify eb8a143^{commit} >/dev/null; then BASE=eb8a143
-  else BASE="$(git rev-list --max-parents=0 HEAD | tail -1)"; fi
+  # eb8a143 only counts when it is an ancestor of HEAD (it is not on squash-merged main).
+  # Else diff against the merge-base with origin/main (or main); root commit last.
+  if git rev-parse -q --verify eb8a143^{commit} >/dev/null && git merge-base --is-ancestor eb8a143 HEAD 2>/dev/null; then
+    BASE=eb8a143
+  else
+    for ref in origin/main main; do
+      if git rev-parse -q --verify "$ref^{commit}" >/dev/null; then
+        BASE="$(git merge-base HEAD "$ref" 2>/dev/null)"; [ -n "$BASE" ] && break
+      fi
+    done
+    [ -z "$BASE" ] && BASE="$(git rev-list --max-parents=0 HEAD | tail -1)"
+  fi
 fi
 PY="${HARD_RECHECK_PYTHON:-}"
 [ -z "$PY" ] && { [ -x /tmp/venv08/bin/python ] && PY=/tmp/venv08/bin/python || PY=python3; }
