@@ -59,7 +59,10 @@ for s in $SHOPS; do
   r=$(python3 -c 'import json,sys;d=json.load(open(sys.argv[1]));print(d.get("reading"),int(d.get("productCount") or 0))' "$TMP/body" 2>/dev/null || echo "? 0")
   rd=${r% *}; n=${r#* }
   { [ "$c" = 200 ] && [ "$rd" = blob ] && [ "$n" -ge "$MIN" ]; } && res ok "$s health reading=blob, catalog=$n" || res no "$s health" "http $c reading=$rd catalog=$n"
-  c=$(get "$s/m/S06"); { [ "$c" = 200 ] && grep -q '\$25' "$TMP/body"; } && res ok "$s /m/S06 shows \$25" || res no "$s /m/S06 \$25" "http $c - S06 MUST BE \$25, tell Boss"
+  # The page also lists other mãs ($26 neighbours etc.), so a bare "$25" grep can pass
+  # while S06 itself drifts. Read S06's own offer price from its Product JSON-LD.
+  c=$(get "$s/m/S06"); p=$(python3 "$HERE/s06_offer_price.py" "$TMP/body" 2>/dev/null || echo "?")
+  { [ "$c" = 200 ] && [ "$p" = 25 ]; } && res ok "$s /m/S06 shows \$25" || res no "$s /m/S06 \$25" "http $c offer=$p - S06 MUST BE \$25, tell Boss"
   for m in $HELD; do c=$(get "$s/m/$m"); [ "$c" = 404 ] && res ok "$s /m/$m 404 (held)" || res no "$s /m/$m held" "http $c - HELD MÃ VISIBLE, tell Boss"; done
 done
 c=$(get "$INTAKE/"); f=$(grep -oiE "$LEAK_RE" "$TMP/body" | sort -u | tr '\n' ' ')
