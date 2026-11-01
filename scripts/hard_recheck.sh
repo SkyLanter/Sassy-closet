@@ -101,7 +101,8 @@ for pair in "intake:sassy-closet" "shop:sassy-closet-shop"; do
     record "$tag-npm-test" 1 SKIP 0 0 "" "$why"; record "$tag-tsc" 1 SKIP 0 0 "" "$why"; continue
   fi
   timed "$LOG/$tag-npm-test.log" bash -c "cd '$app' && npm test"
-  n() { grep -E "^# $1 " "$LOG/$tag-npm-test.log" | tail -1 | awk '{print $3}'; }
+  # node --test prints "# tests 5" (TAP) or "ℹ tests 5" (spec reporter, Node 20+).
+  n() { grep -E "^(#|ℹ) $1 [0-9]+" "$LOG/$tag-npm-test.log" | tail -1 | awk '{print $3}'; }
   record "$tag-npm-test" 1 "$([ "$RC" = 0 ] && echo PASS || echo FAIL)" "$RC" "$SECS" "tests $(n tests) pass $(n pass) fail $(n fail) skipped $(n skipped)" ""
   timed "$LOG/$tag-tsc.log" bash -c "cd '$app' && npx tsc --noEmit"
   record "$tag-tsc" 1 "$([ "$RC" = 0 ] && echo PASS || echo FAIL)" "$RC" "$SECS" "$([ "$RC" = 0 ] && echo ok || echo "err $(grep -c 'error TS' "$LOG/$tag-tsc.log")")" ""
