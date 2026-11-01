@@ -38,9 +38,14 @@ def _run(routes, *args, held="k3 Q02"):
     return p, seen
 
 
+def _pdp(price: str, shown: str = "$25") -> str:
+    ld = '{"@context":"https://schema.org","@type":"Product","sku":"S06","offers":{"@type":"Offer","price":"%s"}}' % price
+    return f'<script type="application/ld+json">{ld}</script><p>{shown}</p>'
+
+
 GOOD = {
     "/api/health": (200, '{"reading":"blob","productCount":62}'),
-    "/m/S06": (200, "<p>$25</p>"),
+    "/m/S06": (200, _pdp("25.00")),
     "/": (200, "<h1>intake</h1>"),
 }
 
@@ -54,9 +59,22 @@ def test_pass_and_get_only_and_norm():
 
 
 def test_s06_wrong_price_fails():
-    r = dict(GOOD, **{"/m/S06": (200, "<p>$16</p>")})
+    r = dict(GOOD, **{"/m/S06": (200, _pdp("16.00", "$16"))})
     p, _ = _run(r)
     assert p.returncode == 1 and "S06 MUST BE $25" in p.stdout
+
+
+def test_s06_drift_hidden_by_neighbour_25_fails():
+    # S06 itself is $26; a neighbour card still shows $25. The old grep passed this.
+    r = dict(GOOD, **{"/m/S06": (200, _pdp("26.00", "$26 ... $25"))})
+    p, _ = _run(r)
+    assert p.returncode == 1 and "offer=26" in p.stdout and "S06 MUST BE $25" in p.stdout
+
+
+def test_s06_without_offer_fails():
+    r = dict(GOOD, **{"/m/S06": (200, "<p>$25</p>")})
+    p, _ = _run(r)
+    assert p.returncode == 1 and "offer=?" in p.stdout
 
 
 def test_held_visible_and_not_blob_fail():
