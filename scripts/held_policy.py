@@ -14,7 +14,8 @@ from pathlib import Path
 MA_RE = re.compile(r"^[A-Z][0-9]{2}$")
 
 
-_SPELLING = re.compile(r"^([A-Z])(\d+)$")
+# ASCII digits only, like JS \d in ma.ts. Python \d also takes fullwidth ２４.
+_SPELLING = re.compile(r"^([A-Z])(\d+)$", re.ASCII)
 
 
 def norm_ma(value: object) -> str:
@@ -24,6 +25,9 @@ def norm_ma(value: object) -> str:
     'A100' stays. Non-mã text is returned trimmed + upper-cased; None -> ''.
     """
     code = "" if value is None else str(value).strip().upper()
+    # JS trim() also drops a BOM (CSV first cell); Python strip() does not.
+    while code[:1] == "\ufeff" or code[-1:] == "\ufeff":
+        code = code.strip("\ufeff").strip()
     m = _SPELLING.match(code)
     return f"{m.group(1)}{int(m.group(2)):02d}" if m else code
 
