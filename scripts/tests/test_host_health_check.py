@@ -142,3 +142,29 @@ def test_daily_without_hosts_has_no_hosts_section(tmp_path, capsys):
     snap.write_text('{"schema":"daily-inputs/v1","date":"x","items":[]}')
     assert dsc.main(["--reduced", "--snapshot", str(snap)]) == 0
     assert "hosts" not in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("ma,alias", [("S19", "s019"), ("G01", "g001"), ("a024", "a024"), ("K3", "k003"), (" S19 ", "s019")])
+def test_held_alias_spelling(ma, alias):
+    from held_policy import norm_ma
+    assert hh.held_alias(ma) == alias and norm_ma(alias) == norm_ma(ma)
+
+
+def test_held_alias_checked_and_404_pass(monkeypatch):
+    fake(monkeypatch)
+    s = hh.run()
+    assert s["overall"] == "PASS"
+    assert all(r["held_alias_pdp"] == {"ma": "s019", "status": 404} for r in s["hosts"])
+
+
+def test_held_alias_served_is_fail(monkeypatch):
+    # Canonical /m/S19 is 404 but the alias spelling serves the held piece.
+    fake(monkeypatch, pages={"https://sassycloset.vercel.app/m/s019": (200, "S19", "")})
+    s = hh.run()
+    assert s["overall"] == "FAIL" and s["fail"] == ["sassycloset.vercel.app: held S19 alias /m/s019 -> 200 (want 404)"]
+
+
+def test_held_alias_network_error_is_fail(monkeypatch):
+    fake(monkeypatch, pages={"https://sassy-closet-shop.vercel.app/m/s019": (None, "", "URLError: timed out")})
+    s = hh.run()
+    assert s["overall"] == "FAIL" and "alias /m/s019 -> URLError" in s["fail"][0]
