@@ -116,6 +116,21 @@ def plan_pickups(events: list[PickupEvent], policy: HeldPolicy) -> list[PickupDe
             )
             continue
         quote = listing_quote(code, _landed_for_quote(code, event), policy)
+        if quote.sell_usd is None:
+            # A blank or garbled ¥ has no quote. Boss approval alone must not
+            # leave it unheld with no price.
+            decisions.append(
+                _decision(
+                    event,
+                    code,
+                    held=True,
+                    quoted=None,
+                    flags=("no_price",),
+                    reprice=False,
+                    detail="no usable landed cost; held, no invented price",
+                )
+            )
+            continue
         if not event.boss_approved:
             decisions.append(
                 _decision(
