@@ -114,3 +114,44 @@ def test_no_network_imports():
     src = Path(tc.__file__).read_text(encoding="utf-8")
     for bad in ("urllib", "requests", "http.client", "socket", "subprocess"):
         assert f"import {bad}" not in src and f"from {bad}" not in src
+
+
+def test_full_catalog_missing_s06_is_lock_drift():
+    c = {"A50": {"intake_cny": "100", "list_cny": "", "kg": "0.3"}}
+    rows = tc.evaluate({"A50": 999}, c, POLICY, require_s06=True)
+    drift = [r for r in rows if r.decision == "lock-drift"]
+    assert [r.ma for r in drift] == ["S06"] and "missing from live catalog" in drift[0].reason
+    s = tc.summarize(rows)
+    assert s["outcome"] == "LOCK_DRIFT" and s["counts"]["lock-drift"] == 1
+    json.dumps(s, allow_nan=False)  # strict-JSON safe
+
+
+def test_full_catalog_with_s06_spelled_s6_is_fine():
+    rows = tc.evaluate({"s6": 25}, {}, POLICY, require_s06=True)
+    assert [(r.ma, r.decision) for r in rows] == [("S06", "locked")]
+    assert tc.summarize(rows)["outcome"] == "QUIET_OK"
+
+
+def test_partial_input_does_not_require_s06():
+    assert tc.evaluate({}, {}, POLICY) == []
+
+
+def test_s06_off_25_outcome_is_lock_drift_not_quiet():
+    s = tc.summarize(tc.evaluate({"S06": 27}, {}, POLICY))
+    assert s["outcome"] == "LOCK_DRIFT"
+
+
+def test_under_outranks_lock_drift_outcome():
+    c = {"A50": {"intake_cny": "100", "list_cny": "", "kg": "0.3"}}
+    s = tc.summarize(tc.evaluate({"A50": 1, "S06": 27}, c, POLICY))
+    assert s["outcome"] == "UNDER_FOUND" and s["counts"]["lock-drift"] == 1
+
+
+def test_main_requires_s06_in_live_file(tmp_path):
+    live = tmp_path / "live.json"
+    live.write_text(json.dumps({"prices": {"A50": 999}}), encoding="utf-8")
+    costs = tmp_path / "c.csv"
+    costs.write_text("ma,intake_cny,kg\nA50,100,0.3\n", encoding="utf-8")
+    out = tmp_path / "o.json"
+    tc.main(["--live", str(live), "--costs", str(costs), "--out-json", str(out), "--out-md", str(tmp_path / "o.md")])
+    assert json.loads(out.read_text())["outcome"] == "LOCK_DRIFT"
