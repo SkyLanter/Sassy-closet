@@ -126,3 +126,14 @@ def test_node_modules_link_is_noted_not_failed(fake):
     r = run(repo, base, env)
     assert r.returncode == 0, r.stdout
     assert "node_modules link (ignored)" in r.stdout
+
+
+def test_node_spec_reporter_counts_parsed(fake, tmp_path):
+    # Node 20+ default spec reporter prints "ℹ tests N", not TAP "# tests N".
+    repo, base, env = fake
+    _x(tmp_path / "bin" / "npm", '#!/usr/bin/env bash\nprintf "ℹ tests 218\\nℹ pass 215\\nℹ fail 0\\nℹ skipped 3\\n"\n')
+    r = run(repo, base, env)
+    assert r.returncode == 0, r.stdout + r.stderr
+    summary = (latest(repo) / "summary.txt").read_text()
+    assert "tests 218 pass 215 fail 0 skipped 3" in summary
+    assert "tests  pass" not in summary
