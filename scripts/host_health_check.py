@@ -5,7 +5,11 @@ For each of the two vercel.app sell hosts it reports:
   dns      resolves (getaddrinfo) -> ok / error text
   tls      TLS handshake on :443 with cert verification -> ok / error text
   status   HTTP status of GET /
-  held     a held mã PDP (default /m/S19) returns 404 (not live)
+  held     a held mã PDP (default /m/S19) returns 404 (not live), and so does a
+           mis-spelled alias of it (/m/s019: lowercase + zero-padded). The shop
+           redirects aliases to the canonical mã; urllib follows that redirect,
+           so this catches a redirect/normalisation regression that would serve
+           a held piece under another spelling.
   s06      the S06 PDP (/m/S06) returns 200 and shows $25
 
 Severity: any host problem is FAIL. (There is no custom domain: sassycloset.shop
@@ -67,6 +71,14 @@ def shows_price(body: str, usd: int) -> bool:
     return re.search(rf"\$\s?{usd}(?:\.00)?(?![0-9])", body) is not None
 
 
+def held_alias(ma: str) -> str:
+    """S19 -> s019: lowercase letters, digits zero-padded to 3. Same mã after norm_ma."""
+    m = re.fullmatch(r"([A-Za-z]+)0*([0-9]+)", ma.strip())
+    if not m:
+        return ma.strip().lower()
+    return m.group(1).lower() + m.group(2).zfill(3)
+
+
 def check_host(host: str, held_ma: str = HELD_MA) -> dict:
     r = {"host": host, "kind": "vercel", "problems": []}
     r["dns_ok"], r["dns"] = check_dns(host)
@@ -87,6 +99,11 @@ def check_host(host: str, held_ma: str = HELD_MA) -> dict:
     r["held_pdp"] = {"ma": held_ma, "status": st if st is not None else err}
     if st != 404:
         r["problems"].append(f"held {held_ma} PDP -> {r['held_pdp']['status']} (want 404)")
+    alias = held_alias(held_ma)
+    st, _, err = fetch(base + PDP.format(ma=alias))
+    r["held_alias_pdp"] = {"ma": alias, "status": st if st is not None else err}
+    if st != 404:
+        r["problems"].append(f"held {held_ma} alias /m/{alias} -> {r['held_alias_pdp']['status']} (want 404)")
     st, body, err = fetch(base + PDP.format(ma="S06"))
     ok = st == 200 and shows_price(body, S06_LOCK)
     r["s06_pdp"] = {"status": st if st is not None else err, "shows_25": ok}
