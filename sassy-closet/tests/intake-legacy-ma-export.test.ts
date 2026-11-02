@@ -7,8 +7,8 @@ import { GET } from "../app/api/export/route";
 import { resetStoreBackendForTests } from "../lib/store-backend";
 import { exportCsv, getSubmission, listSubmissions, saveSubmission, type SaveInput } from "../lib/store";
 
-const COLOR = 'Kem, "Xanh"';
-const NOTE = "note\nline";
+const COLOR = "Kem, Xanh";
+const NOTE = 'say "hi"\nline';
 
 function saveInput(overrides: Partial<SaveInput> = {}): SaveInput {
   return {
@@ -114,9 +114,19 @@ describe("intake save and export under a legacy mã", { concurrency: 1 }, () => 
     const created = await saveSubmission(saveInput());
     assert.equal(created.ma, "A01");
 
+    const recolored = await saveSubmission(
+      saveInput({
+        existingMa: "a1",
+        color: COLOR,
+      }),
+    );
+    assert.equal(recolored.id, created.id);
+    assert.equal(recolored.ma, "A01");
+    assert.equal(recolored.color, COLOR);
+
     const updated = await saveSubmission(
       saveInput({
-        existingMa: "a001",
+        existingMa: "a0001",
         color: COLOR,
         color_note: NOTE,
       }),
@@ -130,7 +140,7 @@ describe("intake save and export under a legacy mã", { concurrency: 1 }, () => 
     assert.equal(listed.length, 1);
     assert.equal(listed[0]?.ma, "A01");
 
-    for (const spelling of ["A01", "a01", "a1", "a001"]) {
+    for (const spelling of ["A01", "a01", "a1", "a001", "a0001"]) {
       const found = await getSubmission(spelling);
       assert.equal(found?.id, created.id, spelling);
       assert.equal(found?.color, COLOR, spelling);

@@ -171,3 +171,36 @@ test("a corrupt catalog.v1.json on another site does not use the shared shop cat
     assert.deepEqual(blob.reads, [current]);
   });
 });
+
+test("a corrupt legacy catalog.json does not fall through to a later good file", async () => {
+  await withSite(OFFICIAL, async () => {
+    const current = catalogBlobPath();
+    const ownLegacy = `${OFFICIAL}/catalog.json`;
+    const shared = `${SHOP}/catalog.json`;
+    const blob = port({
+      [ownLegacy]: { kind: "syntax" },
+      [shared]: { kind: "json", body: [row("A01", 21)] },
+    });
+    await assert.rejects(readCatalogFromBlobPort(blob), (error: unknown) => {
+      assert.equal(isCatalogCorruptError(error), true);
+      assert.match(error instanceof Error ? error.message : "", /sassy-closet-official\/catalog\.json/);
+      return true;
+    });
+    assert.deepEqual(blob.reads, [current, ownLegacy]);
+  });
+});
+
+test("any other site id still falls back to the shared shop catalog.json", async () => {
+  const id = "preview-shop";
+  assert.deepEqual(catalogBlobLegacyPaths(id), [`${id}/catalog.json`, `${SHOP}/catalog.json`]);
+  await withSite(id, async () => {
+    const shared = `${SHOP}/catalog.json`;
+    const blob = port({
+      [shared]: { kind: "json", body: [row("Q02", 30)] },
+    });
+    const document = await readCatalogFromBlobPort(blob);
+    assert.equal(document?.products[0]?.ma, "Q02");
+    assert.equal(document?.products[0]?.priceUsd, 30);
+    assert.deepEqual(blob.reads, [`${id}/catalog.v1.json`, `${id}/catalog.json`, shared]);
+  });
+});

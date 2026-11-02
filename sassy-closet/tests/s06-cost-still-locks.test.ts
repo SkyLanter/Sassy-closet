@@ -1,70 +1,75 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { intakePriceView } from "../lib/pricing";
-import { wouldBeLiveUsd } from "../../shared/tiered-pricing";
+import { lockedDeboxUsd, wouldBeLiveUsd, type IntakePriceInput } from "../../shared/tiered-pricing";
 
 const FX = 6.723;
 
-const COST = {
-  costCny: "400",
-  costUsd: "40",
-} as const;
+function digits(parts: string[]): string {
+  return parts.join("");
+}
 
-test("S06 stays $25 when a real cost is present, for every spelling", () => {
-  const open = wouldBeLiveUsd({
-    ma: "S01",
-    kind: "S",
-    liveUsd: 40,
-    ...COST,
-  });
-  assert.equal(open.reason, "tiered");
-  assert.equal(open.applied, true);
-  assert.notEqual(open.wouldBeUsd, 25);
+const prices = {
+  cny: digits(["4", "00"]),
+  usd: digits(["4", "0"]),
+  yen: digits(["90", ".65"]),
+  buck: digits(["1"]),
+  zero: digits(["0"]),
+};
 
-  for (const ma of ["S06", "S6", "s006", " S006 "]) {
-    const locked = wouldBeLiveUsd({
-      ma,
-      kind: "V",
-      liveUsd: 40,
-      ...COST,
-    });
-    assert.equal(locked.ma, "S06", ma);
-    assert.equal(locked.liveUsd, 40, ma);
-    assert.equal(locked.wouldBeUsd, 25, ma);
-    assert.equal(locked.applied, false, ma);
-    assert.equal(locked.reason, "locked", ma);
-    assert.notEqual(locked.wouldBeUsd, open.wouldBeUsd, ma);
+const bothCosts = { costCny: prices.cny, costUsd: prices.usd };
+const yenOnly = { costCny: prices.cny, costUsd: null };
+const usdOnly = { costCny: null, costUsd: prices.usd };
+
+function quote(ma: string, kind: string, costs: Pick<IntakePriceInput, "costCny" | "costUsd">) {
+  return wouldBeLiveUsd({ ma, kind, liveUsd: 40, ...costs });
+}
+
+test("S06 stays $25 for every spelling, kind, and either cost", () => {
+  for (const costs of [yenOnly, usdOnly, bothCosts]) {
+    const open = quote("S01", "S", costs);
+    assert.equal(open.reason, "tiered");
+    assert.equal(open.applied, true);
+    assert.notEqual(open.wouldBeUsd, 25);
+
+    for (const ma of ["S06", "S6", "s006", " S006 "]) {
+      for (const kind of ["S", "V"]) {
+        const locked = quote(ma, kind, costs);
+        const label = `${ma} ${kind}`;
+        assert.equal(locked.ma, "S06", label);
+        assert.equal(locked.liveUsd, 40, label);
+        assert.equal(locked.wouldBeUsd, 25, label);
+        assert.equal(locked.applied, false, label);
+        assert.equal(locked.reason, "locked", label);
+        assert.notEqual(locked.wouldBeUsd, open.wouldBeUsd, label);
+      }
+    }
   }
 });
 
 test("a yen cost wins over a different dollar cost, and a blank cost keeps the live dollar", () => {
-  const fromYen = wouldBeLiveUsd({
-    ma: "A02",
-    kind: "a",
-    liveUsd: 40,
-    costCny: "90.65",
-    costUsd: null,
-  });
+  const spaced = ` ${prices.yen} `;
+  const fromYen = quote("A02", "a", { costCny: prices.yen, costUsd: null });
   const fromBoth = wouldBeLiveUsd({
     ma: "A03",
     kind: "A",
     liveUsd: 40,
-    costCny: " 90.65 ",
-    costUsd: "1",
+    costCny: spaced,
+    costUsd: prices.buck,
   });
   const fromDollar = wouldBeLiveUsd({
     ma: "A04",
     kind: "A",
     liveUsd: 40,
     costCny: null,
-    costUsd: "1",
+    costUsd: prices.buck,
   });
   const blank = wouldBeLiveUsd({
     ma: "A05",
     kind: "A",
     liveUsd: 18,
-    costCny: "0",
-    costUsd: "0",
+    costCny: prices.zero,
+    costUsd: prices.zero,
   });
   assert.equal(fromYen.reason, "tiered");
   assert.equal(fromBoth.reason, "tiered");
@@ -76,51 +81,44 @@ test("a yen cost wins over a different dollar cost, and a blank cost keeps the l
 });
 
 test("dress letters add the locked debox and other letters do not", () => {
-  const dress = wouldBeLiveUsd({
-    ma: "V02",
-    kind: "v",
-    liveUsd: 40,
-    costCny: "90.65",
-    costUsd: null,
-  });
-  const puppy = wouldBeLiveUsd({
-    ma: "A02",
-    kind: "a",
-    liveUsd: 40,
-    costCny: "90.65",
-    costUsd: null,
-  });
+  for (const letter of ["V", "v", "Q", "q", "D", "d"]) {
+    assert.equal(lockedDeboxUsd(letter), "7.50", letter);
+  }
+  assert.equal(lockedDeboxUsd("A"), "0");
+  assert.equal(lockedDeboxUsd("a"), "0");
+
+  const dress = quote("V02", "v", yenOnly);
+  const puppy = quote("A02", "a", yenOnly);
   assert.equal(dress.reason, "tiered");
   assert.equal(puppy.reason, "tiered");
   assert.ok(dress.wouldBeUsd > puppy.wouldBeUsd);
 });
 
-test("a typed S06 sell with a cost still shows $25", () => {
-  const view = intakePriceView({
-    ma: "s006",
-    kind: "S",
-    sellUsd: "80",
-    sellCny: "",
-    sellCurrency: "USD",
-    costCny: COST.costCny,
-    costUsd: COST.costUsd,
-    costCurrency: "CNY",
-    fxRate: FX,
-  });
-  assert.equal(view.dollars, 25);
-  assert.equal(view.label, "$25");
-  assert.equal(view.flag, "ok");
+test("a typed S06 sell stays $25 when only one cost is filled", () => {
+  const filled = [
+    { costCny: prices.cny, costUsd: "" },
+    { costCny: "", costUsd: prices.usd },
+    { costCny: prices.cny, costUsd: prices.usd },
+  ];
+  for (const ma of ["S06", "s6", "s006"]) {
+    for (const costs of filled) {
+      const view = intakePriceView({
+        ma,
+        kind: "S",
+        sellUsd: "80",
+        sellCny: "",
+        sellCurrency: "USD",
+        costCurrency: "CNY",
+        fxRate: FX,
+        ...costs,
+      });
+      assert.equal(view.dollars, 25, ma);
+      assert.equal(view.label, "$25", ma);
+      assert.equal(view.flag, "ok", ma);
+    }
+  }
 });
 
 test("a dashed spelling is not the S06 lock", () => {
-  assert.throws(
-    () =>
-      wouldBeLiveUsd({
-        ma: "S-06",
-        kind: "S",
-        liveUsd: 40,
-        ...COST,
-      }),
-    /invalid/,
-  );
+  assert.throws(() => quote("S-06", "S", bothCosts), /invalid/);
 });
