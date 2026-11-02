@@ -46,7 +46,11 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 | #246 | `ce7471481dd4` | Add a read-only draft merge-readiness report |
 | #247 | `ea06ce1ed0a9` | Draft: keep an in-window trailing .0 on intake shoe chips |
 
-Verdicts: none yet. Test runs are in progress. No PR comment has been posted by this lane.
+Verdicts: none yet. Test runs are in progress on two workers (combined #225 plus #217–#231, and #232–#247). No pass or fail comment has been posted by this lane.
+
+This log lives on draft PR #249 (`cursor/independent-recheck-log-cfee`). That PR is this lane's own notes, so this lane does not grade it.
+
+PR watch subscriptions for #217–#247 expire 2026-11-05 22:28 UTC. Renew them before then so the loop still reaches 2026-11-07 00:00 America/Los_Angeles. A 45-minute timer is also set.
 
 Early static notes, not verdicts:
 
