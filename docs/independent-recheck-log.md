@@ -52,7 +52,11 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 | PR | SHA | Result | Notes |
 | --- | --- | --- | --- |
 | #248 | `11b0ecf352730694738342674bc988f42df19285` | PASS | pytest 2120 passed, 7 skipped. Intake 277 / 274 / 0 / 3. Shop 218 / 215 / 0 / 3. |
-| #225 | `ba5f60fa767d6750ecbc18b4fa006c8967c07e60` | FAIL | Script PASS (pytest 2323). `Mã S006B` lints as S06. Log line 56 says the proposal path was not changed. |
+| #224 | `9556c0f826f91d4d2762d7bd4d66ba201520524a` | PASS | pytest 2127 passed, 7 skipped. Intake 277 / 274 / 0 / 3. Shop 218 / 215 / 0 / 3. Negated Boss lines stay open. Findings: none. |
+| #225 | `ba5f60fa767d6750ecbc18b4fa006c8967c07e60` | FAIL | Script PASS (pytest 2323). `Mã S006B` lints as S06. Log line 56 says the proposal path was not changed. Superseded by the next row. |
+| #225 | `72d792580d71f6af6447043a6f981c7a646bb178` | FAIL | Script PASS (pytest 2337). ASCII `S06B` is no longer S06. `S06Đ`, fullwidth `S06Ｂ`, and a zero-width space still lock $25. Log line 56 is still uncorrected. |
+| #242 | `f0b91129a050f5a796d2e343acf0c2b675fe15e5` | FAIL | Script PASS (pytest 2114). Intake save 503 matches. The lane A log claims image, CSV, and on-hand fixes that are not in this tree. |
+| #252 | `e66dd83417e31d046a9ddf0ac81ba8c0db092af8` | FAIL | Script PASS (pytest 2120). Bad approved Giá values are skipped. The log claims midnight QC and daily-snapshot fixes that are not in this tree. |
 | #217 | `ee9e2a34bfb45a526bb8140516372d0d89dabc09` | PASS | pytest 2164 passed, 7 skipped. Intake 281 / 278 / 0 / 3. Shop 218 / 215 / 0 / 3. Findings: none. |
 | #218 | `03c23afc58a74fd6e4527742e5ff0b5ac7f98fbf` | PASS | pytest 2114 passed, 7 skipped. Intake 277 / 274 / 0 / 3. Shop 232 / 229 / 0 / 3. Findings: none. |
 | #219 | `5b590c0f734e411e5eac39d78b0fae088dfa0a52` | PASS | pytest 2114 passed, 7 skipped. Intake 295 / 292 / 0 / 3. Shop 218 / 215 / 0 / 3. Findings: none. |
@@ -92,7 +96,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 ## 2026-11-02 23:34 UTC — #225 moved
 
-#225 head is `72d792580d71f6af6447043a6f981c7a646bb178`. The FAIL on `ba5f60fa767d` stays the comment for that older SHA. The new head is in `hard_recheck.sh` and is not commented yet. #224, #242, and #252 were also in hard recheck at the same time. No knowledge-lane docs PR.
+#225 head is `72d792580d71f6af6447043a6f981c7a646bb178` and is commented FAIL. The earlier FAIL on `ba5f60fa767d` stays the comment for that older SHA. #224, #242, and #252 are commented at the SHAs in the verdict table. #243 and #253 were in hard recheck when this note was written. No knowledge-lane docs PR.
 
 This log lives on draft PR #249 (`cursor/independent-recheck-log-cfee`). That PR is this lane's own notes, so this lane does not grade it.
 
