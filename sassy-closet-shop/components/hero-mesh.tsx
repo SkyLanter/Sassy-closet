@@ -26,6 +26,7 @@ export function HeroEditorial() {
             src="/products/D02/photo-2.jpg"
             alt=""
             draggable={false}
+            fetchPriority="low"
             width={900}
             height={1200}
             className="aspect-[3/4] h-auto w-full select-none object-cover object-center motion-safe:transition-opacity motion-safe:duration-150 group-hover:opacity-[0.97]"

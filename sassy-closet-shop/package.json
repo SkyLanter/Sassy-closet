@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "node --require ./scripts/alias.cjs --import tsx --test --test-concurrency=1 tests/*.test.ts",
+    "audit:shop": "node scripts/audit-shop.mjs",
     "smoke:admin": "npx --yes tsx --require ./scripts/alias.cjs scripts/smoke-admin.ts",
     "smoke:persist": "npx --yes tsx --require ./scripts/alias.cjs scripts/prove-persist.ts",
     "smoke:link": "npx --yes tsx --require ./scripts/alias.cjs scripts/prove-linked-catalog.ts",
@@ -52,8 +53,10 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "chrome-launcher": "^1.2.2",
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
+    "lighthouse": "^12.8.2",
     "tailwindcss": "^4",
     "tsx": "^4.20.5",
     "typescript": "^5"

@@ -52,6 +52,12 @@ export function HScrollCue({
     for (const scroller of horizontalScrollers(root)) {
       observer.observe(scroller);
     }
+    const fontsReady = document.fonts?.ready.then(() => {
+      if (ref.current) {
+        update();
+      }
+    });
+    void fontsReady;
     return () => {
       root.removeEventListener("scroll", update, { capture: true });
       observer.disconnect();
@@ -61,6 +67,9 @@ export function HScrollCue({
   return (
     <div ref={ref} className={className}>
       {children}
+      <span className="ky-scroll-more" aria-hidden="true">
+        <span className="ky-scroll-more-mark">›</span>
+      </span>
     </div>
   );
 }

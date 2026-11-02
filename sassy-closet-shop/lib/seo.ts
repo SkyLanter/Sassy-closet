@@ -286,3 +286,72 @@ export function organizationJsonLd(facebookPageUrl: string): Record<string, unkn
   }
   return jsonLd;
 }
+
+export function serializeJsonLd(data: Record<string, unknown>): string {
+  return JSON.stringify(data).replace(/</g, "\\u003c");
+}
+
+export function websiteJsonLd(): Record<string, unknown> {
+  const canonical = shopCanonical("/");
+  const jsonLd: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: SITE.name,
+    inLanguage: "en",
+  };
+  if (canonical) {
+    jsonLd.url = canonical;
+    jsonLd.potentialAction = {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `${canonical}/?q={search_term_string}`,
+      },
+      "query-input": "required name=search_term_string",
+    };
+  }
+  return jsonLd;
+}
+
+export function breadcrumbJsonLd(
+  items: ReadonlyArray<{ name: string; path: string }>,
+): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => {
+      const entry: Record<string, unknown> = {
+        "@type": "ListItem",
+        position: index + 1,
+        name: item.name,
+      };
+      const url = shopCanonical(item.path);
+      if (url) {
+        entry.item = url;
+      }
+      return entry;
+    }),
+  };
+}
+
+/** Names and URLs only. Prices stay on each product page. */
+export function homeCatalogJsonLd(products: ShopLook[]): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: HOME_TITLE,
+    numberOfItems: products.length,
+    itemListElement: products.map((product, index) => {
+      const item: Record<string, unknown> = {
+        "@type": "ListItem",
+        position: index + 1,
+        name: productShareTitle(product),
+      };
+      const url = shopCanonical(`/m/${product.ma}`);
+      if (url) {
+        item.url = url;
+      }
+      return item;
+    }),
+  };
+}
