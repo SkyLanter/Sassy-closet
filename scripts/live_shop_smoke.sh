@@ -61,7 +61,8 @@ for s in $SHOPS; do
   { [ "$c" = 200 ] && [ "$rd" = blob ] && [ "$n" -ge "$MIN" ]; } && res ok "$s health reading=blob, catalog=$n" || res no "$s health" "http $c reading=$rd catalog=$n"
   # The page also lists other mãs ($26 neighbours etc.), so a bare "$25" grep can pass
   # while S06 itself drifts. Read S06's own offer price from its Product JSON-LD.
-  c=$(get "$s/m/S06"); p=$(python3 "$HERE/s06_offer_price.py" "$TMP/body" 2>/dev/null || echo "?")
+  # A missing offer prints "?" and exits 1. Assign on failure so that "?" is not appended twice.
+  c=$(get "$s/m/S06"); p=$(python3 "$HERE/s06_offer_price.py" "$TMP/body" 2>/dev/null) || p="?"
   { [ "$c" = 200 ] && [ "$p" = 25 ]; } && res ok "$s /m/S06 shows \$25" || res no "$s /m/S06 \$25" "http $c offer=$p - S06 MUST BE \$25, tell Boss"
   for m in $HELD; do c=$(get "$s/m/$m"); [ "$c" = 404 ] && res ok "$s /m/$m 404 (held)" || res no "$s /m/$m held" "http $c - HELD MÃ VISIBLE, tell Boss"; done
 done

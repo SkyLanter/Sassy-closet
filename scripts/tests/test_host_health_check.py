@@ -162,6 +162,8 @@ def test_held_alias_served_is_fail(monkeypatch):
     fake(monkeypatch, pages={"https://sassycloset.vercel.app/m/s019": (200, "S19", "")})
     s = hh.run()
     assert s["overall"] == "FAIL" and s["fail"] == ["sassycloset.vercel.app: held S19 alias /m/s019 -> 200 (want 404)"]
+    md = hh.markdown(s)
+    assert "held alias 404" in md and "s019 200" in md
 
 
 def test_held_alias_network_error_is_fail(monkeypatch):

@@ -74,7 +74,9 @@ def test_s06_drift_hidden_by_neighbour_25_fails():
 def test_s06_without_offer_fails():
     r = dict(GOOD, **{"/m/S06": (200, "<p>$25</p>")})
     p, _ = _run(r)
-    assert p.returncode == 1 and "offer=?" in p.stdout
+    assert p.returncode == 1
+    line = next(row for row in p.stdout.splitlines() if "S06 MUST BE $25" in row)
+    assert "offer=?" in line and line.count("?") == 1
 
 
 def test_held_visible_and_not_blob_fail():

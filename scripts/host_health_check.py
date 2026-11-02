@@ -123,10 +123,16 @@ def run(hosts_vercel=VERCEL_HOSTS, held_ma: str = HELD_MA) -> dict:
 
 def markdown(s: dict) -> str:
     out = [f"# Host health: {s['overall']}", "",
-           "| host | DNS | TLS | GET / | held PDP 404 | S06 $25 |", "|---|---|---|---|---|---|"]
+           "| host | DNS | TLS | GET / | held PDP 404 | held alias 404 | S06 $25 |",
+           "|---|---|---|---|---|---|---|"]
     for r in s["hosts"]:
+        alias = r.get("held_alias_pdp") or {}
+        alias_cell = alias.get("status", "-")
+        if alias.get("ma"):
+            alias_cell = f"{alias['ma']} {alias_cell}"
         out.append(f"| {r['host']} | {r['dns']} | {r['tls']} | {r.get('status', '-')} | "
-                   f"{r.get('held_pdp', {}).get('status', '-')} | {r.get('s06_pdp', {}).get('shows_25', '-')} |")
+                   f"{r.get('held_pdp', {}).get('status', '-')} | {alias_cell} | "
+                   f"{r.get('s06_pdp', {}).get('shows_25', '-')} |")
     out += [""] + [f"- FAIL: {x}" for x in s["fail"]] + [f"- WARN: {x}" for x in s["warn"]]
     out += ["", "Read-only GETs. No Blob, Vercel, Meta, Square or price writes."]
     return "\n".join(out) + "\n"
