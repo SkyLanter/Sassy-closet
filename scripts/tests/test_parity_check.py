@@ -29,6 +29,7 @@ from parity_check import (
     import_size_findings,
     intake_decimal_findings,
     intake_g_decimal_expected,
+    loose_shoe_findings,
     main,
     price_disagreements,
     quote_examples,
@@ -57,6 +58,7 @@ BOSS_CODES = (
     "seed-missing-live",
     "extras-vs-live-price",
     "extras-s06-lock",
+    "shop-loose-shoe",
 )
 
 
@@ -209,6 +211,36 @@ def test_gap_report_accepts_listing_size_aliases():
     assert gap_alias_findings(())[0].code == "gap-size-alias"
 
 
+def test_loose_shoe_notes_the_shop_and_listing_split():
+    split = {
+        "40.": ["40"],
+        "40码": ["40"],
+        "(40)": ["40"],
+        "4.0": ["40"],
+        "36 -37(适合平时35-36码)": [],
+    }
+    rows = loose_shoe_findings(split)
+    assert [item.severity for item in rows] == ["boss"]
+    assert rows[0].code == "shop-loose-shoe"
+    assert rows[0].examples == (
+        Example("40.", "dropped", "40"),
+        Example("40码", "dropped", "40"),
+        Example("(40)", "dropped", "40"),
+        Example("4.0", "dropped", "40"),
+        Example("range", "36", "dropped"),
+    )
+    agreed = {
+        "40.": [],
+        "40码": [],
+        "(40)": [],
+        "4.0": [],
+        "36 -37(适合平时35-36码)": ["36"],
+    }
+    assert loose_shoe_findings(agreed) == []
+    assert loose_shoe_findings({})[0].severity == "fail"
+    assert loose_shoe_findings({})[0].code == "shop-loose-shoe"
+
+
 def test_quote_examples_flag_a_planted_tier_mismatch():
     rows = quote_examples({"1.00": 4}, {"1.00": 4}, {"1.00": 5})
     assert rows == (Example("1.00", "4", "shared 4; intake 5"),)
@@ -255,6 +287,15 @@ def test_repo_reports_the_known_boss_splits(report):
     assert yen.examples[0].key == "Q"
     assert yen.examples[0].left == "17.50"
     assert yen.examples[0].right == "22.37"
+    loose = by_code["shop-loose-shoe"]
+    assert loose.severity == "boss"
+    assert loose.examples[0].key == "40."
+    assert loose.examples[0].left == "dropped"
+    assert loose.examples[0].right == "40"
+    assert any(example.key == "4.0" and example.left == "dropped" and example.right == "40"
+               for example in loose.examples)
+    assert any(example.key == "range" and example.left == "36" and example.right == "dropped"
+               for example in loose.examples)
 
 
 def test_snapshot_copies_agree(report):

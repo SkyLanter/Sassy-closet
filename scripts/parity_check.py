@@ -63,6 +63,10 @@ DROPPED_DECIMAL = ("32.0", "34.00", "34.5", "40.00", "47.0")
 # Autolist keeps 33–46. Shop still drops these. The window itself is unchanged.
 WINDOW_DECIMAL = ("33.0", "46.0")
 DECIMAL_SHOE_TOKENS = IN_WINDOW_DECIMAL + DROPPED_DECIMAL + WINDOW_DECIMAL
+# Shop strips other characters and keeps an EU size. Listing drops the token.
+LOOSE_SHOE = (("40.", "40"), ("40码", "40"), ("(40)", "40"), ("4.0", "40"))
+# A spaced seller range. Shop drops the whole string. Listing keeps 36.
+LOOSE_SHOE_RANGE = "36 -37(适合平时35-36码)"
 
 
 @dataclass(frozen=True)
@@ -503,7 +507,7 @@ def _probe_request() -> dict[str, object]:
         "sells": list(range(1, 81)),
         "letters": letters,
         "aliasTokens": ["XXS", "3XL", "XXL"],
-        "shoeTokens": [*shoe, *DECIMAL_SHOE_TOKENS],
+        "shoeTokens": [*shoe, *DECIMAL_SHOE_TOKENS, *[token for token, _eu in LOOSE_SHOE], LOOSE_SHOE_RANGE],
         "decimalChips": ["40.0", "34.0", "42.0", "40.00", "35", "S"],
         "currencyCase": {
             "ma": "A04",
@@ -629,6 +633,59 @@ def decimal_shoe_window(shop_parsed: Mapping[str, object]) -> tuple[Example, ...
         if py != shop_got:
             rows.append(Example(token, _joined(py), _joined(shop_got)))
     return tuple(rows)
+
+
+def loose_shoe_findings(shop_parsed: Mapping[str, object]) -> list[Finding]:
+    """Shop and listing read a non-exact shoe token differently.
+
+    Shop keeps digits stripped from a wrapper. Listing drops that token.
+    Shop drops a spaced range string. Listing keeps 36 from it.
+    Neither parser is changed here. A missing probe key is a fail.
+    """
+    misses: list[Example] = []
+    broken: list[Example] = []
+    for token, eu in LOOSE_SHOE:
+        if token not in shop_parsed:
+            broken.append(Example(token, eu, "missing"))
+            continue
+        shop_got = _strings(shop_parsed.get(token))
+        listed = tuple(norm_sizes(token, "G"))
+        if shop_got == (eu,) and not listed:
+            misses.append(Example(token, "dropped", eu))
+        elif shop_got == listed:
+            continue
+        else:
+            shown = " ".join(listed) if listed else "dropped"
+            broken.append(Example(token, shown, _joined(shop_got)))
+    if LOOSE_SHOE_RANGE not in shop_parsed:
+        broken.append(Example("range", "36", "missing"))
+    else:
+        shop_range = _strings(shop_parsed.get(LOOSE_SHOE_RANGE))
+        listed_range = tuple(norm_sizes(LOOSE_SHOE_RANGE, "G"))
+        if not shop_range and listed_range == ("36",):
+            misses.append(Example("range", "36", "dropped"))
+        elif tuple(shop_range) == listed_range:
+            pass
+        else:
+            shown = " ".join(listed_range) if listed_range else "dropped"
+            broken.append(Example("range", shown, _joined(shop_range)))
+    if broken:
+        return [_note(
+            "fail",
+            "shop-loose-shoe",
+            "the loose shoe probe does not match the recorded shop-versus-listing split",
+            broken,
+        )]
+    if not misses:
+        return []
+    return [_note(
+        "boss",
+        "shop-loose-shoe",
+        "shop parseAsiaSizes and listing disagree on a non-exact shoe token. "
+        "Shop keeps digits from 40., 4.0, 40码, and (40). Listing drops those. "
+        "Shop drops a spaced range string. Listing keeps 36. Neither parser was changed.",
+        misses,
+    )]
 
 
 def _mapping(value: object) -> dict[str, object]:
@@ -876,6 +933,7 @@ def _rule_findings(excel, intake: Mapping[str, object], shop: Mapping[str, objec
             "trailing .0 outside the shop EU window stays dropped there; autolist keeps 33-46. No size list was rewritten.",
             decimal_window,
         ))
+    findings.extend(loose_shoe_findings(shop_parsed))
     if is_valid_size("M", "G") and not _strings(intake.get("keepGLetters")):
         findings.append(_note(
             "boss",
