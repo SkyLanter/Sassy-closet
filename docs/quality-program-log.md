@@ -24,4 +24,4 @@ Hard recheck on `6a59a43` (`scripts/hard_recheck.sh --base origin/main`): **PASS
 | held-json | PASS | unchanged |
 | total | PASS | 173s, logs `out/recheck/20261102-172334-12770` |
 
-PR: pending (this branch). The commit that records this table is docs-only and does not change the checker.
+PR: https://github.com/SkyLanter/Sassy-closet/pull/220 (draft). The commit that records this table is docs-only and does not change the checker.
