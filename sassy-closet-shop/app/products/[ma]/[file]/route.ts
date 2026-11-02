@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
 import { NO_STORE_HEADERS } from "@/lib/http-no-store";
-import { isValidMa, normalizeMa } from "@/lib/ma";
+import { canonicalMaSpelling, isValidMa, normalizeMa } from "@/lib/ma";
 import { coverSrc } from "@/lib/product-media";
 import { readLiveCatalogDocumentForShop } from "@/lib/catalog-store";
 import { isSellableMa } from "@/lib/sell-contract";
@@ -121,7 +121,7 @@ export async function GET(
   context: { params: Promise<{ ma: string; file: string }> },
 ) {
   const { ma: rawMa, file } = await context.params;
-  const ma = normalizeMa(rawMa);
+  const ma = canonicalMaSpelling(rawMa);
   if (!isValidMa(ma) || !isSellableMa(ma) || isOffLiveSell(ma) || !FILE_RE.test(file)) {
     return new NextResponse("Not found", { status: 404, headers: NO_STORE_HEADERS });
   }
@@ -132,7 +132,7 @@ export async function GET(
   }
 
   const document = await readLiveCatalogDocumentForShop();
-  const product = document.products.find((item) => item.ma === ma);
+  const product = document.products.find((item) => canonicalMaSpelling(item.ma) === ma);
   if (!product) {
     return new NextResponse("Not found", { status: 404, headers: NO_STORE_HEADERS });
   }

@@ -1,4 +1,5 @@
 import { categoryFromSlug } from "@/lib/categories";
+import { isOffLiveSell } from "@/lib/held-incomplete";
 import { canonicalMaSpelling, isValidMa } from "@/lib/ma";
 
 /**
@@ -17,23 +18,46 @@ function safeDecode(segment: string): string | null {
   }
 }
 
-/** `/m/a01`, `/m/A001`, `/m/a1` → `/m/A01`. Null when already canonical or not a mã path. */
-export function canonicalMaPath(pathname: string): string | null {
-  const match = pathname.match(/^((?:\/share)?)\/m\/([^/]+)(\/.*)?$/);
-  if (!match) {
-    return null;
-  }
-  const prefix = match[1] ?? "";
-  const raw = safeDecode(match[2] ?? "");
+/** Canonical mã for a redirect, or null when the segment is already that spelling. */
+function redirectSpelling(raw: string | null): string | null {
   if (raw === null) {
     return null;
   }
-  const rest = match[3] ?? "";
   const canon = canonicalMaSpelling(raw);
   if (!isValidMa(canon) || raw === canon) {
     return null;
   }
-  return `${prefix}/m/${canon}${rest}`;
+  return canon;
+}
+
+/**
+ * `/m/a01`, `/m/A001`, `/m/a1` → `/m/A01`.
+ * `/products/a1/cover.jpg` → `/products/A01/cover.jpg`.
+ * Null when already canonical or not a mã path.
+ */
+export function canonicalMaPath(pathname: string): string | null {
+  const maPage = pathname.match(/^((?:\/share)?)\/m\/([^/]+)(\/.*)?$/);
+  if (maPage) {
+    const canon = redirectSpelling(safeDecode(maPage[2] ?? ""));
+    if (!canon) {
+      return null;
+    }
+    const prefix = maPage[1] ?? "";
+    const rest = maPage[3] ?? "";
+    return `${prefix}/m/${canon}${rest}`;
+  }
+  const photo = pathname.match(/^\/products\/([^/]+)(\/.*)?$/);
+  if (!photo) {
+    return null;
+  }
+  const canon = redirectSpelling(safeDecode(photo[1] ?? ""));
+  // A held spelling must not 308 onto public/products/{mã}, which Next serves
+  // before the image route can 404.
+  if (!canon || isOffLiveSell(canon)) {
+    return null;
+  }
+  const rest = photo[2] ?? "";
+  return `/products/${canon}${rest}`;
 }
 
 /**
