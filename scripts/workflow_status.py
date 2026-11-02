@@ -209,6 +209,7 @@ class _IntakeProbe:
     allowed: frozenset[int]
     require_noindex: bool
     api: bool
+    needles: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -226,8 +227,20 @@ _INTAKE_PROBES: tuple[_IntakeProbe, ...] = (
     _IntakeProbe("submissions", "/api/submissions", frozenset({200}), True, True),
     _IntakeProbe("ma", "/api/ma/S06", frozenset({200}), True, True),
     _IntakeProbe("admin", "/admin/shop", frozenset({200}), True, False),
+    _IntakeProbe("csv", "/admin", frozenset({200}), True, True),
+    _IntakeProbe("fx", "/api/fx", frozenset({200}), True, True, ("usd_cny",)),
     _IntakeProbe("submission", "/api/submissions/S06", frozenset({200, 404}), True, True),
 )
+_BLOB_KEYS = frozenset({"configured", "readable"})
+_SECRET_KEYS = frozenset({
+    "path",
+    "prefix",
+    "listed",
+    "token",
+    "sourcelink",
+    "sourcelinks",
+    "catalogsiteid",
+})
 
 
 class _GetOnlyRedirect(urllib.request.HTTPRedirectHandler):
@@ -690,13 +703,19 @@ def _intake_report(
 def _judge_intake(probe: _IntakeProbe, result: GetResult) -> Check:
     noindex = _has_noindex(result.headers)
     down = probe.api and _STORE_DOWN in result.body
+    missing = _missing_needle(probe, result.body)
     if probe.name == "home":
         fallback = _FALLBACK in result.body
         ok = result.status == 200 and not fallback
         note = _home_note(result.status, fallback)
     else:
-        ok = result.status in probe.allowed and (noindex or not probe.require_noindex) and not down
-        note = _api_note(result.status, probe, noindex, down)
+        ok = (
+            result.status in probe.allowed
+            and (noindex or not probe.require_noindex)
+            and not down
+            and not missing
+        )
+        note = _api_note(result.status, probe, noindex, down, missing)
     return Check(probe.name, probe.path, result.status, noindex, ok, note)
 
 
@@ -710,7 +729,13 @@ def _home_note(status: int | None, fallback: bool) -> str:
     return ""
 
 
-def _api_note(status: int | None, probe: _IntakeProbe, noindex: bool, down: bool) -> str:
+def _api_note(
+    status: int | None,
+    probe: _IntakeProbe,
+    noindex: bool,
+    down: bool,
+    missing: str,
+) -> str:
     if down:
         return "store-unavailable"
     if status is None:
@@ -719,6 +744,15 @@ def _api_note(status: int | None, probe: _IntakeProbe, noindex: bool, down: bool
         return "status"
     if probe.require_noindex and not noindex:
         return "noindex"
+    if missing:
+        return "rate"
+    return ""
+
+
+def _missing_needle(probe: _IntakeProbe, body: str) -> str:
+    for needle in probe.needles:
+        if needle not in body:
+            return needle
     return ""
 
 
@@ -738,6 +772,12 @@ def _host_report(
         result = fetch(_join(origin, f"/m/{code}"), timeout)
         if result.status != 404:
             misses.append(Miss(code, result.status))
+        alias = _held_alias(code)
+        if alias == code:
+            continue
+        alias_result = fetch(_join(origin, f"/m/{alias}"), timeout)
+        if alias_result.status != 404:
+            misses.append(Miss(alias, alias_result.status))
     return HostReport(
         host=origin,
         health=judged.state,
@@ -778,7 +818,51 @@ def _judge_health(result: GetResult) -> _HealthJudge:
         return _HealthJudge("FAIL", reading, readable, count, "productCount")
     if not ok_field:
         return _HealthJudge("FAIL", reading, readable, count, "ok")
+    if not _health_is_public(result.body):
+        return _HealthJudge("FAIL", reading, readable, count, "leak")
+    if not _has_noindex(result.headers):
+        return _HealthJudge("FAIL", reading, readable, count, "noindex")
     return _HealthJudge("PASS", reading, readable, count, "")
+
+
+def _held_alias(ma: str) -> str:
+    """S19 -> s019. Same spelling host_health_check uses for the held PDP alias."""
+
+    match = re.fullmatch(r"([A-Za-z]+)0*([0-9]+)", ma.strip())
+    if not match:
+        return ma.strip().lower()
+    return match.group(1).lower() + match.group(2).zfill(3)
+
+
+def _secret_key(value: object) -> bool:
+    if isinstance(value, dict):
+        return any(
+            str(key).lower() in _SECRET_KEYS or _secret_key(child)
+            for key, child in value.items()
+        )
+    if isinstance(value, list):
+        return any(_secret_key(item) for item in value)
+    return False
+
+
+def _health_is_public(raw: str) -> bool:
+    """True for the public shop health shape: blob keys configured and readable only."""
+
+    try:
+        data = json.loads(raw)
+    except (json.JSONDecodeError, ValueError, RecursionError):
+        return False
+    if not isinstance(data, dict):
+        return False
+    blob = data.get("blob") if isinstance(data.get("blob"), dict) else {}
+    if data.get("reading") != "blob" or blob.get("readable") is not True:
+        return False
+    if blob.get("configured") is not True or set(blob) != _BLOB_KEYS:
+        return False
+    low = raw.lower()
+    if "token" in low or "vercel_blob" in low or _secret_key(data):
+        return False
+    return True
 
 
 def _reading_token(value: object) -> str | None:
@@ -1112,23 +1196,23 @@ def _cost(root: Path) -> ReportLine:
     if unreadable:
         return _bad("cost-recheck")
     files = [entry for entry in entries if entry.is_file()]
-    summaries = _named(files, _SUMMARY_NAME)
-    if summaries:
-        stamp, path = _newest(summaries) or ("", files[0])
-        rel = _rel(root, path)
-        payload = _load_object(path)
-        if payload is None:
-            return _bad("cost-recheck", stamp, rel)
-        return _cost_parsed(stamp, rel, payload)
-    fallbacks: list[tuple[str, int, Path]] = []
+    ranked: list[tuple[str, int, Path, str]] = []
+    for stamp, path in _named(files, _SUMMARY_NAME):
+        ranked.append((stamp, 2, path, "summary"))
     for stamp, path in _named(files, _COST_CSV):
-        fallbacks.append((stamp, 1, path))
+        ranked.append((stamp, 1, path, "csv"))
     for stamp, path in _named(files, _COST_MD):
-        fallbacks.append((stamp, 0, path))
-    if not fallbacks:
+        ranked.append((stamp, 0, path, "md"))
+    if not ranked:
         return _missing("cost-recheck")
-    stamp, _rank, path = max(fallbacks, key=lambda item: (item[0], item[1], item[2].name))
-    return ReportLine("cost-recheck", stamp, "FILE-ONLY", _rel(root, path), warn=False)
+    stamp, _rank, path, kind = max(ranked, key=lambda item: (item[0], item[1], item[2].name))
+    rel = _rel(root, path)
+    if kind != "summary":
+        return ReportLine("cost-recheck", stamp, "FILE-ONLY", rel, warn=False)
+    payload = _load_object(path)
+    if payload is None:
+        return _bad("cost-recheck", stamp, rel)
+    return _cost_parsed(stamp, rel, payload)
 
 
 def _cost_parsed(stamp: str, rel: str, payload: Mapping[str, object]) -> ReportLine:

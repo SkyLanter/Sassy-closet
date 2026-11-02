@@ -38,12 +38,14 @@ COST_LEAK = "COSTLEAKTOKEN"
 LEAK_QTY = 975318
 FALLBACK_PHRASE = "kho đang không đọc được"
 ROBOTS = {"X-Robots-Tag": "noindex, nofollow, nosnippet"}
-OPEN_NAMES = ("export", "submissions", "ma", "admin", "submission")
+OPEN_NAMES = ("export", "submissions", "ma", "admin", "csv", "fx", "submission")
 OPEN_PATHS = (
     "/api/export",
     "/api/submissions",
     "/api/ma/S06",
     "/admin/shop",
+    "/admin",
+    "/api/fx",
     "/api/submissions/S06",
 )
 REPORT_KINDS = (
@@ -145,7 +147,7 @@ def health_body(**overrides):
     payload = {
         "ok": True,
         "reading": "blob",
-        "blob": {"readable": True},
+        "blob": {"configured": True, "readable": True},
         "productCount": 2,
         "leak": SENTINEL,
     }
@@ -161,12 +163,16 @@ def standard_routes():
 
     add(INTAKE, "/", 200, f"<p>home</p>{SENTINEL}")
     for path in OPEN_PATHS:
-        add(INTAKE, path, 200, f'{{"leak":"{SENTINEL}"}}', ROBOTS)
+        body = f'{{"usd_cny":7.1,"leak":"{SENTINEL}"}}' if path == "/api/fx" else f'{{"leak":"{SENTINEL}"}}'
+        add(INTAKE, path, 200, body, ROBOTS)
     for shop in (SHOP_A, SHOP_B):
-        add(shop, "/api/health", 200, health_body())
+        add(shop, "/api/health", 200, health_body(), ROBOTS)
         add(shop, "/m/S06", 200, s06_page(extra=SENTINEL))
         for code in (*HELD_CODES, *NEVER_CODES):
             add(shop, f"/m/{code}", 404, f"hidden {SENTINEL}")
+            alias = workflow_status._held_alias(code)
+            if alias != code:
+                add(shop, f"/m/{alias}", 404, f"hidden {SENTINEL}")
     return routes
 
 
@@ -376,7 +382,7 @@ def healthy_server_routes(sentinel):
         {
             "ok": True,
             "reading": "blob",
-            "blob": {"readable": True},
+            "blob": {"configured": True, "readable": True},
             "productCount": 2,
             "leak": sentinel,
         }
@@ -387,12 +393,17 @@ def healthy_server_routes(sentinel):
         "/api/submissions": (200, f'{{"rows":"{sentinel}"}}', dict(ROBOTS)),
         "/api/ma/S06": (200, f'{{"ma":"S06","leak":"{sentinel}"}}', dict(ROBOTS)),
         "/admin/shop": (200, f"<html>{sentinel}</html>", dict(ROBOTS)),
+        "/admin": (200, f"<html>{sentinel}</html>", dict(ROBOTS)),
+        "/api/fx": (200, f'{{"usd_cny":7.1,"leak":"{sentinel}"}}', dict(ROBOTS)),
         "/api/submissions/S06": (200, f'{{"leak":"{sentinel}"}}', dict(ROBOTS)),
-        "/api/health": (200, health, {}),
+        "/api/health": (200, health, dict(ROBOTS)),
         "/m/S06": (200, "<html>" + s06_page(extra=sentinel) + "</html>", {}),
         "/m/K03": (404, sentinel, {}),
+        "/m/k003": (404, sentinel, {}),
         "/m/Q02": (404, sentinel, {}),
+        "/m/q002": (404, sentinel, {}),
         "/m/Z97": (404, sentinel, {}),
+        "/m/z097": (404, sentinel, {}),
     }
 
 
@@ -729,6 +740,101 @@ def test_shop_health_price_and_held_signals(case, tmp_path):
     assert_hidden(report, SENTINEL, paths=(root, tmp_path))
 
 
+def test_health_rejects_a_leak_and_a_missing_noindex(tmp_path):
+    leaky = health_body(blob={"configured": True, "readable": True, "path": "catalog.v1.json"})
+    routes = standard_routes()
+    routes[(SHOP_A, "/api/health")] = (200, leaky, dict(ROBOTS))
+    report, _calls, root, _held = build(tmp_path, routes, shops=(SHOP_A,))
+    assert report.hosts[0].health == "FAIL"
+    assert report.hosts[0].health_why == "leak"
+    assert report.overall == "FAIL"
+    bare = json.loads(health_body())
+    bare["note"] = "vercel_blob_rw_SECRET"
+    routes[(SHOP_A, "/api/health")] = (200, json.dumps(bare), dict(ROBOTS))
+    report, _calls, root, _held = build(tmp_path / "note", routes, shops=(SHOP_A,))
+    assert report.hosts[0].health_why == "leak"
+    routes[(SHOP_A, "/api/health")] = (200, health_body(), {})
+    report, _calls, root, _held = build(tmp_path / "open", routes, shops=(SHOP_A,))
+    assert report.hosts[0].health == "FAIL"
+    assert report.hosts[0].health_why == "noindex"
+    assert_hidden(report, SENTINEL, paths=(root, tmp_path))
+
+
+def test_admin_and_fx_follow_the_open_link_checks(tmp_path):
+    routes = standard_routes()
+    routes[(INTAKE, "/admin")] = (200, f"<html>{SENTINEL}</html>", {})
+    report, _calls, root, _held = build(tmp_path, routes, shops=(SHOP_A,))
+    assert by_check(report)["csv"].ok is False
+    assert by_check(report)["csv"].note == "noindex"
+    routes = standard_routes()
+    routes[(INTAKE, "/api/fx")] = (
+        503,
+        '{"storeUnavailable":true,"usd_cny":7.1}',
+        dict(ROBOTS),
+    )
+    report, _calls, root, _held = build(tmp_path / "down", routes, shops=(SHOP_A,))
+    assert by_check(report)["fx"].ok is False
+    assert by_check(report)["fx"].note == "store-unavailable"
+    routes = standard_routes()
+    routes[(INTAKE, "/api/fx")] = (200, f'{{"leak":"{SENTINEL}"}}', dict(ROBOTS))
+    report, _calls, root, _held = build(tmp_path / "rate", routes, shops=(SHOP_A,))
+    assert by_check(report)["fx"].ok is False
+    assert by_check(report)["fx"].note == "rate"
+    assert_hidden(report, SENTINEL, paths=(root, tmp_path))
+
+
+def test_held_alias_200_is_a_miss(tmp_path):
+    routes = standard_routes()
+    routes[(SHOP_A, "/m/k003")] = (200, f"visible {SENTINEL}", {})
+    report, calls, root, _held = build(tmp_path, routes, shops=(SHOP_A,))
+    assert [(miss.ma, miss.status) for miss in report.hosts[0].held.misses] == [("k003", 200)]
+    assert "/m/k003" in [path for origin, path in urls(calls) if origin == SHOP_A]
+    assert report.overall == "FAIL"
+    assert_hidden(report, SENTINEL, paths=(root, tmp_path))
+
+
+def test_newer_cost_file_beats_an_older_summary(tmp_path):
+    root = tmp_path / "root"
+    root.mkdir()
+    held = write_held(tmp_path, HELD_CODES, NEVER_CODES)
+    cost_dir = root / "verify" / "cost-recheck"
+    cost_dir.mkdir(parents=True)
+    (cost_dir / "summary.2026-10-01.json").write_text(
+        json.dumps({"counts": {"unreachable": 1}}),
+        encoding="utf-8",
+    )
+    (cost_dir / "cost-recheck-2026-11-02.csv").write_text("ma\n", encoding="utf-8")
+    (cost_dir / "REPORT-2026-11-03.md").write_text("report\n", encoding="utf-8")
+    report = build_report(
+        root,
+        intake=INTAKE,
+        shops=[SHOP_A],
+        held=held,
+        timeout=5,
+        getter=fake_getter(standard_routes(), []),
+    )
+    cost = by_kind(report)["cost-recheck"]
+    assert cost.date == "2026-11-03"
+    assert cost.verdict == "FILE-ONLY"
+    assert cost.path.endswith("REPORT-2026-11-03.md")
+    (cost_dir / "REPORT-2026-11-03.md").unlink()
+    (cost_dir / "summary.2026-11-02.json").write_text(
+        json.dumps({"counts": {"unreachable": 0}}),
+        encoding="utf-8",
+    )
+    report = build_report(
+        root,
+        intake=INTAKE,
+        shops=[SHOP_A],
+        held=held,
+        timeout=5,
+        getter=fake_getter(standard_routes(), []),
+    )
+    cost = by_kind(report)["cost-recheck"]
+    assert cost.date == "2026-11-02"
+    assert cost.verdict == "PARSED"
+
+
 @pytest.mark.parametrize(
     ("held_token", "never_token"),
     [("k3", "q2"), ("K003", "Q002")],
@@ -745,7 +851,7 @@ def test_held_spelling_normalizes_request_path(held_token, never_token, tmp_path
     assert held_token in raw
     assert never_token in raw
     shop_paths = [path for origin, path in urls(calls) if origin == SHOP_A and path.startswith("/m/")]
-    assert sorted(shop_paths) == ["/m/K03", "/m/Q02", "/m/S06"]
+    assert sorted(shop_paths) == ["/m/K03", "/m/Q02", "/m/S06", "/m/k003", "/m/q002"]
     assert f"/m/{held_token}" not in shop_paths
     assert f"/m/{never_token}" not in shop_paths
     host = report.hosts[0]
