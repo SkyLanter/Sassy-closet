@@ -427,10 +427,11 @@ def drafts_lines(tgz=None):
         return [bs.HEAD, f"- Bundle status unavailable ({type(e).__name__})."]
 
 
-def build(qc, cost, digest, gaps, proposal, meta_ig, meta_fb, date, flips=None, held_order=None,
-          meta_status=None, meta_source=None, freshness=None, decisions=None, decisions_rel=None, luxubu=None, drafts=None):
-    L = [f"Sassy Closet daily summary {date} (DRAFT, not sent)", ""]
-    if qc:
+def midnight_lines(qc):
+    """Midnight QC lines. Legacy keys keep the old wording; the flat summary does not."""
+    if not qc:
+        return ["Midnight QC: not found for today."]
+    if any(key in qc for key in ("counts", "fails", "warns", "pass2", "s06")):
         c = qc.get("counts", {})
         fails, warns = qc.get("fails") or [], warn_codes(qc.get("warns"))
         overall = str(qc.get("overall", "?")).upper()
@@ -438,8 +439,8 @@ def build(qc, cost, digest, gaps, proposal, meta_ig, meta_fb, date, flips=None, 
             overall = "UNKNOWN"
         p2 = (qc.get("pass2") or {}).get("agrees")
         s06 = (qc.get("s06") or {}).get("blob")
-        L.append(f"Midnight QC: {overall}, {len(fails)} fail(s), {len(warns)} warning(s)"
-                 + ("; second pass agreed." if p2 else "; second pass did not confirm."))
+        lines = [f"Midnight QC: {overall}, {len(fails)} fail(s), {len(warns)} warning(s)"
+                 + ("; second pass agreed." if p2 else "; second pass did not confirm.")]
         bits = []
         if isinstance(c.get("live"), int):
             bits.append(f"{c['live']} items live")
@@ -450,9 +451,52 @@ def build(qc, cost, digest, gaps, proposal, meta_ig, meta_fb, date, flips=None, 
         if isinstance(s06, (int, float)):
             bits.append(f"S06 ${s06:g}")
         if bits:
-            L.append("Shop: " + ", ".join(bits) + ".")
-    else:
-        L.append("Midnight QC: not found for today.")
+            lines.append("Shop: " + ", ".join(bits) + ".")
+        return lines
+
+    def word(value):
+        if isinstance(value, str):
+            token = value.strip().upper()
+            if token in {"PASS", "FAIL", "SKIP", "WARN", "OK", "NOTE", "UNKNOWN"}:
+                return token
+        return "UNKNOWN"
+
+    def whole(value):
+        return isinstance(value, int) and not isinstance(value, bool)
+
+    def number(value):
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            return False
+        return value == value and value not in (float("inf"), float("-inf"))
+
+    overall = str(qc.get("overall", "?")).upper()
+    if overall not in {"PASS", "WARN", "FAIL"}:
+        overall = "UNKNOWN"
+    data_ok = word(qc.get("dataOk"))
+    sell_site = word(qc.get("sellSite"))
+    guards = word(qc.get("freshnessGuards"))
+    hub = word(qc.get("freshnessHub"))
+    lines = [f"Midnight QC: {overall}. Data {data_ok}. Sell site {sell_site}. "
+             f"Freshness guards {guards}. Hub {hub}."]
+    bits = []
+    if whole(qc.get("blobCount")):
+        bits.append(f"{qc['blobCount']} items live")
+    if whole(qc.get("heldCount")):
+        bits.append(f"{qc['heldCount']} held")
+    if whole(qc.get("intakeCount")):
+        bits.append(f"intake {qc['intakeCount']} rows")
+    s06_usd = qc.get("s06Usd")
+    if number(s06_usd):
+        bits.append(f"S06 ${s06_usd:g}")
+    if bits:
+        lines.append("Shop: " + ", ".join(bits) + ".")
+    return lines
+
+
+def build(qc, cost, digest, gaps, proposal, meta_ig, meta_fb, date, flips=None, held_order=None,
+          meta_status=None, meta_source=None, freshness=None, decisions=None, decisions_rel=None, luxubu=None, drafts=None):
+    L = [f"Sassy Closet daily summary {date} (DRAFT, not sent)", ""]
+    L += midnight_lines(qc)
     if cost:
         cc = cost.get("counts") or {}
         L.append(f"Taobao cost recheck: {cc.get('unreachable', '?')} listings unreachable"

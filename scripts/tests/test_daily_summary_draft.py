@@ -78,3 +78,43 @@ def test_main_writes_file_only(tmp_path):
             "--digest", str(tmp_path / "d.txt"), "--gaps", str(tmp_path / "g.json"),
             "--proposal", str(tmp_path / "p.json"), "--out-dir", str(out)])
     assert [p.name for p in out.iterdir()] == ["daily-summary-2000-01-01.md"]
+
+
+def test_legacy_qc_midnight_and_shop_lines():
+    lines = d.midnight_lines(QC)
+    assert lines[0] == "Midnight QC: WARN, 0 fail(s), 1 warning(s); second pass agreed."
+    assert lines[1] == "Shop: 3 items live, 1 held, intake 4 rows, 0 new, S06 $25."
+    text = _b()
+    assert lines[0] in text and lines[1] in text
+
+
+def test_flat_summary_shop_line_hides_notes():
+    qc = {"overall": "PASS", "dataOk": "PASS", "sellSite": "PASS",
+          "freshnessGuards": "PASS", "freshnessHub": "skip",
+          "blobCount": 62, "heldCount": 22, "intakeCount": 40, "s06Usd": 25,
+          "notes": "SECRET_NOTE", "a02TitleEn": "SECRET_TITLE",
+          "blobHubUsdMismatches": ["A02 23->25"]}
+    text = d.build(qc, None, {}, None, None, "pass", "pass", "2000-01-01")
+    assert "Midnight QC: PASS. Data PASS. Sell site PASS. Freshness guards PASS. Hub SKIP." in text
+    assert "62 items live, 22 held, intake 40 rows, S06 $25." in text
+    for hidden in ("second pass", "SECRET_NOTE", "SECRET_TITLE", "23->25"):
+        assert hidden not in text
+
+
+def test_flat_script_bools_and_hub_ok():
+    text = "\n".join(d.midnight_lines({
+        "dataOk": "<script>", "freshnessHub": "ok", "s06Usd": True, "blobCount": True}))
+    assert "Data UNKNOWN" in text and "<script>" not in text
+    assert "Shop:" not in text and "Hub OK" in text
+
+
+def test_flat_s06_nan_inf_omitted():
+    for bad in (float("nan"), float("inf")):
+        text = "\n".join(d.midnight_lines({"overall": "PASS", "blobCount": 62, "s06Usd": bad}))
+        assert "S06" not in text and "62 items live" in text
+
+
+def test_qc_none_not_found():
+    assert d.midnight_lines(None) == ["Midnight QC: not found for today."]
+    assert "Midnight QC: not found for today." in d.build(
+        None, None, {}, None, None, "pass", "pass", "2000-01-01")
