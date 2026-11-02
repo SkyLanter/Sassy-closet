@@ -476,6 +476,20 @@ def test_parse_home_prices_reads_escaped_product_inside_html() -> None:
     assert parse_home_prices(html)["S06"] == 25
 
 
+def test_parse_home_prices_does_not_take_the_next_products_price() -> None:
+    escaped = (
+        r'{\"ma\":\"S14\",\"titleEn\":\"Held\",\"titleVn\":\"x\"}'
+        r'{\"ma\":\"S06\",\"titleEn\":\"Overalls\",\"priceUsd\":25}'
+    )
+    plain = (
+        '{"ma":"S13","titleEn":"Index"}'
+        '{"ma":"A05","titleEn":"Coat","priceUsd":25}'
+        '{"ma":"S13","titleEn":"Coat","priceUsd":26}'
+    )
+    assert parse_home_prices(escaped) == {"S06": 25}
+    assert parse_home_prices(plain) == {"A05": 25, "S13": 26}
+
+
 def test_cli_writes_reports_and_does_not_touch_held_or_network(tmp_path: Path, monkeypatch) -> None:
     def explode(*_args, **_kwargs):
         raise AssertionError("network")
