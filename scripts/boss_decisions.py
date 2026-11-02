@@ -127,19 +127,42 @@ def parse_digest(text):
     return out
 
 
+def _summary_lists(path, ma):
+    """True when this summary file exists and lists mã unreachable.
+
+    A missing summary, unreadable file, or file that does not list mã is False.
+    """
+    if not path.is_file():
+        return None  # missing: the caller treats this as a break
+    try:
+        doc = ds.load_json(path) or {}
+    except (json.JSONDecodeError, OSError, UnicodeDecodeError):
+        return False
+    if not isinstance(doc, dict):
+        return False
+    return ma in (doc.get("unreachable_mas") or [])
+
+
 def streak_start(root, date, ma):
-    """Earliest date of the unbroken run of cost summaries (up to <date>) listing mã unreachable."""
-    files = sorted((Path(root) / "verify/cost-recheck").glob("summary.????-??-??.json"))
+    """Earliest date of the unbroken daily run, ending on <date>, listing mã unreachable.
+
+    Walk calendar days backward from <date>, at most 10 years. A day counts
+    only when summary.<day>.json exists and lists mã in unreachable_mas.
+    A missing file or a file that does not list mã breaks the run.
+    None when <date> itself does not qualify.
+    """
+    try:
+        day = dt.date.fromisoformat(date)
+    except (TypeError, ValueError):
+        return None
     start = None
-    for f in reversed(files):
-        d = DATE_IN.search(f.name).group(1)
-        if d > date:
-            continue
-        doc = ds.load_json(f) or {}
-        if ma in (doc.get("unreachable_mas") or []):
-            start = d
-        else:
+    folder = Path(root) / "verify/cost-recheck"
+    for _ in range(3660):
+        name = day.isoformat()
+        if _summary_lists(folder / f"summary.{name}.json", ma) is not True:
             break
+        start = name
+        day -= dt.timedelta(days=1)
     return start
 
 

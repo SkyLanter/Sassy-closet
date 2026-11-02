@@ -1,3 +1,4 @@
+import json
 import sys
 from pathlib import Path
 
@@ -37,15 +38,20 @@ def test_closed_lines_skipped(tmp_path):
 def test_output_has_no_line_text(tmp_path, capsys):
     _w(tmp_path, "out/midnight-qc/QC-2026-01-06.md",
        "X06 needs a Boss price PLACEHOLDER_SECRET\n")
-    bdd.main(["--root", str(tmp_path)])
+    bdd.main(["--root", str(tmp_path), "--order", str(tmp_path / "missing-order.json"),
+              "--held", str(tmp_path / "missing-held.json")])
     out = capsys.readouterr().out
     assert "X06" in out and "PLACEHOLDER_SECRET" not in out
+    assert "[popular_order_held]" not in out
     assert "TOTAL 1" in out
 
 
 def test_empty_root(tmp_path, capsys):
-    bdd.main(["--root", str(tmp_path)])
-    assert "TOTAL 0 (none)" in capsys.readouterr().out
+    bdd.main(["--root", str(tmp_path), "--order", str(tmp_path / "missing-order.json"),
+              "--held", str(tmp_path / "missing-held.json")])
+    out = capsys.readouterr().out
+    assert "[popular_order_held]" not in out
+    assert "TOTAL 0 (none)" in out
 
 
 def test_date_from_parent_dir(tmp_path):
@@ -114,13 +120,89 @@ def test_explain_prints_rule_not_text(tmp_path, capsys):
 
 
 def test_held_popular_order_item_placeholder(tmp_path):
-    import json as _j
-    from boss_decisions_digest import held_in_popular_order, held_order_item
     o = tmp_path / "o.json"; h = tmp_path / "h.json"
-    o.write_text(_j.dumps({"order": ["X01", "X02", "X03"]}))
-    h.write_text(_j.dumps({"held": ["X02"], "neverList": ["X03"]}))
-    mas = held_in_popular_order(o, h)
+    o.write_text(json.dumps({"order": ["X01", "X02", "X03"]}))
+    h.write_text(json.dumps({"held": ["X02"], "neverList": ["X03"]}))
+    mas = bdd.held_in_popular_order(o, h)
     assert mas == ["X02", "X03"]
-    assert held_order_item(mas).startswith("Remove held mãs X02, X03 from popular order?")
-    assert held_order_item([]) is None
-    assert held_in_popular_order(tmp_path / "none.json", h) == []
+    assert bdd.held_order_item(mas).startswith("Remove held mãs X02, X03 from popular order?")
+    assert bdd.held_order_item([]) is None
+    assert bdd.held_in_popular_order(tmp_path / "none.json", h) == []
+
+
+def test_negated_closures_and_continuation_bullet(tmp_path):
+    assert bdd.is_closed("X05 hold call not decided yet — Boss") is False
+    assert bdd.is_closed("Boss: price not yet approved for X07") is False
+    assert bdd.is_closed("Boss price no longer approved for X06") is False
+    open_root = tmp_path / "open"
+    _w(open_root, "out/muse/extras-2026-03-01.md",
+       "X05 hold call not decided yet — Boss\n"
+       "Boss: price not yet approved for X07\n"
+       "Boss price no longer approved for X06\n"
+       "- Boss hold call needed\n"
+       "  for X99 keep or release? Boss\n")
+    seen = bdd.scan(open_root)
+    assert set(seen) == {
+        ("hold_call", "X05"),
+        ("price_approval", "X07"),
+        ("price_approval", "X06"),
+        ("hold_call", "X99"),
+    }
+    assert seen[("hold_call", "X99")][1] == "2026-03-01"
+    noboss = tmp_path / "noboss"
+    _w(noboss, "verify/cost-recheck/REPORT-2026-03-02.md",
+       "Price not yet approved for X07 (held)\n")
+    assert bdd.scan(noboss) == {}
+
+
+def test_open_continuation_survives_closed_bullet_line(tmp_path):
+    _w(tmp_path, "out/muse/extras-2026-03-01.md",
+       "- X01 Boss price approved\n"
+       "  X02 needs a Boss price\n")
+    assert bdd.scan(tmp_path) == {("price_approval", "X02"): (
+        "out/muse/extras-2026-03-01.md", "2026-03-01")}
+
+
+def test_closed_line_still_skipped(tmp_path):
+    assert bdd.is_closed("X05 Boss price approved") is True
+    assert bdd.is_closed("No other issue. Boss price approved for X04") is True
+    _w(tmp_path, "verify/cost-recheck/REPORT-2026-03-03.md",
+       "X05 Boss price approved\n"
+       "No other issue. Boss price approved for X04\n")
+    assert bdd.scan(tmp_path) == {}
+
+
+def test_repo_order_held_paths_exist():
+    order, held = bdd.repo_order_held_paths()
+    repo = Path(bdd.__file__).resolve().parents[1]
+    assert order == repo / "sassy-closet-shop" / "data" / "popular-order.json"
+    assert held == repo / "data" / "held.json"
+    assert order.is_file() and held.is_file()
+
+
+def test_main_explicit_order_prints_held_mas_only(tmp_path, capsys):
+    root = tmp_path / "scanroot"
+    root.mkdir()
+    order = tmp_path / "order.json"
+    held = tmp_path / "held.json"
+    order.write_text(json.dumps({
+        "updatedAt": "SECRET_UPDATED_AT",
+        "method": "SECRET_METHOD_TEXT",
+        "order": ["Z91", "Z92"],
+    }))
+    held.write_text(json.dumps({
+        "held": ["Z91"],
+        "neverList": [],
+        "reason": "SECRET_HELD_REASON",
+    }))
+    assert bdd.main(["--root", str(root), "--order", str(order), "--held", str(held)]) == 0
+    out = capsys.readouterr().out
+    lines = [ln for ln in out.splitlines() if "[popular_order_held]" in ln]
+    assert lines == [
+        "- [popular_order_held] Remove held mãs Z91 from popular order? "
+        "(no effect while they are 404; keeping lets them rank on return)"
+    ]
+    assert "Z92" not in out
+    for secret in ("SECRET_UPDATED_AT", "SECRET_METHOD_TEXT", "SECRET_HELD_REASON", "heldIncomplete"):
+        assert secret not in out
+    assert "TOTAL 1 (popular_order_held=1)" in out
