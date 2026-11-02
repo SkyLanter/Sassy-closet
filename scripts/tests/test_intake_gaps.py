@@ -49,6 +49,25 @@ def test_kg_missing_without_proxy_and_g_needs_boss():
     assert "estimate 0.5" in e["gaps"][0]["detail"]
 
 
+def test_trailing_zero_counts_as_the_allowed_chip_and_the_row_stays():
+    row = r(ma="G01", kind="G", size="35.0 36")
+    before = copy.deepcopy(row)
+    assert "size" not in types(run(row))
+    assert row == before
+    flagged = run(r(ma="G01", kind="G", size="35.0 44.0"))
+    size_gaps = [gap for gap in flagged["gaps"] if gap["type"] == "size"]
+    assert [gap["detail"] for gap in size_gaps] == ["size not allowed for G: 44.0"]
+    hundredths = run(r(ma="G01", kind="G", size="35.00"))
+    hundredth_gaps = [gap for gap in hundredths["gaps"] if gap["type"] == "size"]
+    assert [gap["detail"] for gap in hundredth_gaps] == ["size not allowed for G: 35.00"]
+    outside = run(r(ma="G01", kind="G", size="34.0 42.0"))
+    outside_gaps = [gap for gap in outside["gaps"] if gap["type"] == "size"]
+    assert [gap["detail"] for gap in outside_gaps] == ["size not allowed for G: 34.0 42.0"]
+    clothing = run(r(size="40.0"))
+    clothing_gaps = [gap for gap in clothing["gaps"] if gap["type"] == "size"]
+    assert [gap["detail"] for gap in clothing_gaps] == ["size not allowed for A: 40.0"]
+
+
 def test_size_missing_bad_and_not_needed():
     assert "size" in types(run(r(size="")))
     assert "size" in types(run(r(ma="G01", kind="G", size="35 44")))
