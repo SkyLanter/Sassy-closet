@@ -20,7 +20,9 @@ from parity_check import (
     build_report,
     decimal_shoe_misses,
     decimal_shoe_window,
+    disallowed_size_tokens,
     dollar_text,
+    gap_size_findings,
     dual_cost_findings,
     import_size_findings,
     intake_decimal_findings,
@@ -169,6 +171,17 @@ def test_intake_decimal_flags_a_dropped_trailing_zero():
     assert rows[0].examples[0].key == "G"
 
 
+def test_gap_report_accepts_a_trailing_zero_inside_the_shoe_list():
+    shoe = ("35", "36", "37", "38", "39", "40", "41")
+    assert disallowed_size_tokens("40.0 35", shoe) == []
+    assert disallowed_size_tokens("34.0", shoe) == ["34.0"]
+    assert disallowed_size_tokens("42.0", shoe) == ["42.0"]
+    assert disallowed_size_tokens("40.00", shoe) == ["40.00"]
+    assert disallowed_size_tokens("40.0", ("S", "M")) == ["40.0"]
+    assert gap_size_findings(shoe) == []
+    assert gap_size_findings(())[0].code == "gap-shoe-decimal"
+
+
 def test_quote_examples_flag_a_planted_tier_mismatch():
     rows = quote_examples({"1.00": 4}, {"1.00": 4}, {"1.00": 5})
     assert rows == (Example("1.00", "4", "shared 4; intake 5"),)
@@ -204,6 +217,7 @@ def test_repo_reports_the_known_boss_splits(report):
     assert "dual-cost-landed" not in codes
     assert "import-shoe-size" not in codes
     assert "intake-shoe-decimal" not in codes
+    assert "gap-shoe-decimal" not in codes
     assert any(
         example.key == "O" and example.left == "autolist keeps 36" and example.right == "import drops 36"
         for example in by_code["import-kind-o"].examples

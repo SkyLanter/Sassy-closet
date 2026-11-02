@@ -25,6 +25,7 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 from autolist import ASIA, S06_LOCK_USD, SHOE_EU, is_valid_size, margin_for_sell, norm_sizes, price
+from intake_gaps import disallowed_size_tokens
 from held_policy import load_held_policy, norm_ma
 from size_gap import CLOTHING_STEPS
 
@@ -215,6 +216,31 @@ def intake_decimal_findings(
         "fail",
         "intake-shoe-decimal",
         "intake keepSizesForKind drops an in-window trailing .0 that autolist keeps",
+        misses,
+    )]
+
+
+def gap_size_findings(shoe_list: Sequence[str]) -> list[Finding]:
+    """The gap report uses the same trailing-.0 chip rule as intake. It does not widen the shoe list."""
+    misses: list[Example] = []
+    flagged = disallowed_size_tokens("40.0 35", shoe_list)
+    if flagged:
+        misses.append(Example("40.0", "allowed", " ".join(flagged)))
+    for token in ("34.0", "42.0", "40.00"):
+        bad = disallowed_size_tokens(token, shoe_list)
+        if bad != [token]:
+            misses.append(Example(token, token, " ".join(bad) if bad else "allowed"))
+    clothing_bad = disallowed_size_tokens("40.0", ASIA)
+    if clothing_bad != ["40.0"]:
+        misses.append(Example("A", "40.0", " ".join(clothing_bad) if clothing_bad else "allowed"))
+    if disallowed_size_tokens("S", ASIA):
+        misses.append(Example("S", "allowed", "flagged"))
+    if not misses:
+        return []
+    return [_note(
+        "fail",
+        "gap-shoe-decimal",
+        "the intake gap report does not treat a trailing .0 as the allowed shoe chip",
         misses,
     )]
 
@@ -936,11 +962,13 @@ def _price_findings(intake: Mapping[str, object], shop: Mapping[str, object]) ->
         ))
     findings.extend(dual_cost_findings(intake, shop))
     findings.extend(import_size_findings(shop))
+    shoe_list = _strings(intake.get("shoe"))
     findings.extend(intake_decimal_findings(
         intake,
         _strings(intake.get("decimalChips")) or ("40.0", "34.0", "42.0", "40.00", "35", "S"),
-        _strings(intake.get("shoe")),
+        shoe_list,
     ))
+    findings.extend(gap_size_findings(shoe_list))
     return findings
 
 

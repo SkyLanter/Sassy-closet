@@ -43,6 +43,7 @@ NEEDS_BOSS_KG = frozenset({"G"})
 SIZED_KINDS = frozenset({"A", "Q", "V", "D", "K", "S", "G"})
 DEFAULT_SIZES = ("2XS", "XS", "S", "M", "L", "XL", "2XL")
 TAOBAO_RE = re.compile(r"^https?://([a-z0-9-]+\.)*(tb\.cn|taobao\.com|tmall\.com)(/|$)", re.I)
+_DECIMAL_CHIP = re.compile(r"^(\d{2})(?:\.0)?$")
 USD_TOLERANCE = Decimal("0.05")
 GAP_TYPES = ("cny", "kg", "size", "photos", "link", "category")
 SUSPECT_TYPES = ("sell_vs_live", "cny_label", "no_usd_cost", "usd_vs_cny")
@@ -91,6 +92,29 @@ def kg_gap(code: str, kind: str, row: dict, weights: dict[str, tuple[Decimal, st
     return {"type": "kg", "detail": "no kg and no category proxy"}
 
 
+def chip_size(token: str) -> str:
+    """Allowed-list form of one stored size token. A single trailing .0 counts as the two digits."""
+    folded = token.strip()
+    folded = folded.upper()
+    match = _DECIMAL_CHIP.fullmatch(folded)
+    if match:
+        return match.group(1)
+    return folded
+
+
+def disallowed_size_tokens(raw: str, allowed) -> list[str]:
+    """Stored tokens that are not an allowed chip. The stored spelling is returned. Nothing is rewritten."""
+    allowed_set = {str(item).upper() for item in allowed}
+    bad: list[str] = []
+    for token in str(raw or "").replace(",", " ").split():
+        chip = chip_size(token)
+        stored = token.strip()
+        stored = stored.upper()
+        if chip not in allowed_set and stored not in allowed_set:
+            bad.append(token)
+    return bad
+
+
 def row_gaps(row: dict, live: dict[str, dict], weights, sizes_by_kind) -> tuple[list[dict], list[dict]]:
     code = norm_ma(str(row.get("ma", "")))
     kind = str(row.get("kind", "") or "").strip().upper()
@@ -118,8 +142,8 @@ def row_gaps(row: dict, live: dict[str, dict], weights, sizes_by_kind) -> tuple[
         if not tokens:
             gaps.append({"type": "size", "detail": "no size"})
         else:
-            allowed = set(sizes_by_kind.get(kind) or DEFAULT_SIZES)
-            bad = [t for t in tokens if t.upper() not in allowed]
+            allowed = sizes_by_kind.get(kind) or DEFAULT_SIZES
+            bad = disallowed_size_tokens(" ".join(tokens), allowed)
             if bad:
                 gaps.append({"type": "size", "detail": f"size not allowed for {kind}: {' '.join(bad)}"})
 
