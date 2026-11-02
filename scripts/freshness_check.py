@@ -48,7 +48,7 @@ from schema import header_row_for_sheet, normalize_header, read_headers, resolve
 
 from held_policy import HeldPolicy, load_held_policy, norm_ma
 from intake_flags import IntakeFlag, IntakeRow, PublicCny, flag_intake
-from pickup import PickupDecision, PickupEvent, events_from_json, plan_pickups
+from pickup import PickupDecision, PickupEvent, events_from_json, photo_count_or_none, plan_pickups
 
 PRIMARY_ORIGIN = "https://sassycloset.vercel.app"
 ALIAS_ORIGIN = "https://sassy-closet-shop.vercel.app"
@@ -997,7 +997,7 @@ def _sizes_field(item: dict[str, object]) -> tuple[str, ...] | None:
 
 def _photo_field(item: dict[str, object]) -> int | None:
     if "photo_count" in item and item.get("photo_count") is not None:
-        return int(str(item.get("photo_count")))
+        return photo_count_or_none(item.get("photo_count"))
     for key in ("gallery", "photos", "images", "gallery_urls"):
         raw = item.get(key)
         if isinstance(raw, list):
