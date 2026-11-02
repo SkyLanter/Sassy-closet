@@ -46,6 +46,7 @@ def _by(D, cat):
 def test_gone_hold_days_from_streak(tmp_path):
     g = _by(_run(tmp_path), "gone_hold")
     assert g["X08"]["since"] == "2000-01-04" and g["X08"]["days"] == 1
+    assert bd.streak_start(tmp_path, "2000-01-05", "X08") == "2000-01-04"
 
 
 def test_flip_under_and_dedupe(tmp_path):
@@ -120,3 +121,25 @@ def test_blocker_ignored_when_meta_pass_or_future(tmp_path):
     _meta_root(tmp_path, {"out/muse/n-2000-01-09.md": "Luxubu Facebook sign-in needed.\n"})
     assert _by(_run(tmp_path), "meta")["-"]["q"].startswith("Meta QC not PASS")
     assert not _by(_run(tmp_path, {"ig": ("pass", ""), "fb": ("pass", "")}), "meta")
+
+
+def _summaries(tmp_path, rows):
+    cr = tmp_path / "verify/cost-recheck"
+    cr.mkdir(parents=True, exist_ok=True)
+    for day, mas in rows:
+        (cr / f"summary.{day}.json").write_text(json.dumps({"unreachable_mas": mas}))
+    return tmp_path
+
+
+def test_streak_start_gap_breaks_run(tmp_path):
+    _summaries(tmp_path, (("2000-01-03", ["A01"]), ("2000-01-05", ["A01"])))
+    assert bd.streak_start(tmp_path, "2000-01-05", "A01") == "2000-01-05"
+
+
+def test_streak_start_none_when_date_omits_ma(tmp_path):
+    _summaries(tmp_path, (("2000-01-04", ["A01"]), ("2000-01-05", ["X02"])))
+    assert bd.streak_start(tmp_path, "2000-01-05", "A01") is None
+
+
+def test_streak_start_bad_date(tmp_path):
+    assert bd.streak_start(tmp_path, "not-a-date", "A01") is None

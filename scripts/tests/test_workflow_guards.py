@@ -323,12 +323,16 @@ def test_missing_photo_count_falls_back_to_list_length() -> None:
         ("Hold call for X04 is with Boss, not done", False),
         ("X05 Boss price approved", True),
         ("X06 Boss price approved but not done", True),
-        ("X07 Boss price not yet decided", True),
+        ("X07 Boss price not yet decided", False),
+        ("X08 Boss price no longer approved", False),
+        ("X09 isn't approved", False),
+        ("X10 Boss price not done but approved", True),
         ("X03 Boss price never decided", False),
     ],
 )
-def test_line_is_closed_only_for_adjacent_not_or_never(text: str, closed: bool) -> None:
+def test_line_is_closed_matches_immediate_negation(text: str, closed: bool) -> None:
     assert bdd.line_is_closed(text) is closed
+    assert bdd.is_closed(text) is closed
 
 
 def test_open_lines_stay_and_closed_lines_drop(tmp_path) -> None:

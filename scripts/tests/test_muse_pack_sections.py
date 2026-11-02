@@ -3,6 +3,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import boss_decisions_digest as bdd  # noqa: E402
 import muse_pack_sections as m  # noqa: E402
 
 LINK = "https://example.invalid/item?id=1"
@@ -67,6 +68,49 @@ def test_main_prints_without_write(tmp_path, capsys):
     root = _root(tmp_path)
     assert m.main(["--root", str(root), "--intake", str(_intake(tmp_path)[0])]) == 0
     assert "Open Boss decisions" in capsys.readouterr().out
+
+
+def _price_root(tmp_path):
+    root = _root(tmp_path)
+    extras = root / "out/muse/extras-2026-04-01.md"
+    extras.parent.mkdir(parents=True)
+    extras.write_text("X07 needs a Boss price\n")
+    return root
+
+
+def test_section_decisions_includes_popular_order_held(tmp_path, monkeypatch):
+    root = _price_root(tmp_path)
+    order = tmp_path / "order.json"
+    held = tmp_path / "held.json"
+    order.write_text(json.dumps({
+        "order": ["Z91", "Z92"],
+        "method": "SECRET_METHOD_TEXT",
+    }))
+    held.write_text(json.dumps({"held": ["Z91"], "reason": "SECRET_HELD_REASON"}))
+    monkeypatch.setattr(bdd, "repo_order_held_paths", lambda: (order, held))
+    sec = m.section_decisions(root)
+    assert set(sec["by_cat"]) == {"popular_order_held", "price_approval"}
+    assert sec["by_cat"]["popular_order_held"] == ["Z91"]
+    assert sec["by_cat"]["price_approval"] == ["X07"]
+    assert sec["total"] == sum(len(v) for v in sec["by_cat"].values())
+    dumped = json.dumps(sec)
+    assert "SECRET_METHOD_TEXT" not in dumped
+    assert "SECRET_HELD_REASON" not in dumped
+    assert "Z92" not in dumped
+
+
+def test_section_decisions_held_error_keeps_scanned_ma(tmp_path, monkeypatch):
+    root = _price_root(tmp_path)
+
+    def boom(*_args, **_kwargs):
+        raise ValueError("bad held json")
+
+    monkeypatch.setattr(bdd, "held_in_popular_order", boom)
+    sec = m.section_decisions(root)
+    assert sec["by_cat"] == {"price_approval": ["X07"]}
+    assert "X07" in sec["by_cat"]["price_approval"]
+    assert "popular_order_held" not in sec["by_cat"]
+    assert sec["total"] == sum(len(v) for v in sec["by_cat"].values())
 
 
 def test_caption_rows_ids_or_ma_only(tmp_path, monkeypatch):
