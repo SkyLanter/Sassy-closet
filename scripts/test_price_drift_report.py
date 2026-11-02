@@ -26,3 +26,37 @@ def test_s06_intake_variants(tmp_path):
     assert m.s06_intake_check(_fx(tmp_path, 25, live_s06=16))[0] == "FAIL"
 def test_s06_lock_is_25():
     assert m.S06_LOCK == 25.0
+
+
+def _map(tmp_path, live, intake):
+    d = {"live": live, "hub": {"S06": 25}, "intake": intake}
+    p = tmp_path / "fx.json"
+    p.write_text(json.dumps(d))
+    return p
+
+
+def test_earlier_live_spelling_off_lock_fails(tmp_path):
+    p = _map(tmp_path, {"S006": 30, "S06": 25}, {"S06": 25})
+    assert m.s06_intake_check(p)[0] == "FAIL"
+    table = {row[0]: row for row in m.rows(p)}
+    assert table["S06"][1] == 30
+
+
+def test_later_intake_spelling_off_lock_fails(tmp_path):
+    p = _map(tmp_path, {"S06": 25.0}, {"S06": 25, "s06": 16})
+    assert m.s06_intake_check(p)[0] == "FAIL"
+
+
+def test_earlier_intake_spelling_off_lock_fails(tmp_path):
+    p = _map(tmp_path, {"S06": 25.0}, {"s006": 16, "S06": 25})
+    assert m.s06_intake_check(p)[0] == "FAIL"
+
+
+def test_non_numeric_live_spelling_fails_without_aborting_the_table(tmp_path):
+    p = _map(tmp_path, {"S006": "nope", "S06": 25}, {"S06": 25})
+    assert m.s06_intake_check(p)[0] == "FAIL"
+    assert m.rows(p) == []
+
+
+def test_bool_live_is_not_the_lock(tmp_path):
+    assert m.s06_intake_check(_fx(tmp_path, 25, live_s06=True))[0] == "FAIL"
