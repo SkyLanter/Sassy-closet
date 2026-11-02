@@ -1,4 +1,4 @@
-import { CatalogCorruptError } from "@/lib/catalog-integrity";
+import { CatalogCorruptError, isCatalogCorruptError } from "@/lib/catalog-integrity";
 import {
   catalogBlobLegacyPaths,
   catalogBlobPath,
@@ -95,7 +95,31 @@ export function pickCatalogBlob(blobs: BlobObject[], pathname = catalogBlobPath(
 }
 
 function isUnreadableJson(error: unknown): boolean {
-  return error instanceof SyntaxError || (error instanceof Error && error.name === "SyntaxError");
+  return (
+    error instanceof SyntaxError ||
+    (typeof error === "object" && error !== null && "name" in error && error.name === "SyntaxError")
+  );
+}
+
+export function classifyBlobGetStatus(
+  statusCode: number | null | undefined,
+): "ok" | "missing" | "down" {
+  if (statusCode === 200) return "ok";
+  if (statusCode === 404) return "missing";
+  return "down";
+}
+
+/**
+ * `@vercel/blob` get() returns null on HTTP 404. It never returns statusCode 404.
+ * A null result is a clean miss. 200 is readable. Anything else (including 304) is down.
+ */
+export function vercelBlobGetDisposition(
+  result: { statusCode: number } | null | undefined,
+): "ok" | "missing" | "down" {
+  if (result == null) {
+    return "missing";
+  }
+  return classifyBlobGetStatus(result.statusCode);
 }
 
 function corruptBlobCatalog(pathname: string, error: unknown): CatalogCorruptError {
@@ -109,6 +133,7 @@ export async function readJsonFromBlobPort(
   port: BlobCatalogPort,
   pathname: string,
 ): Promise<unknown | null> {
+  let directFailed = false;
   try {
     const direct = await port.getJson(pathname);
     if (direct !== null) {
@@ -118,11 +143,20 @@ export async function readJsonFromBlobPort(
     if (isUnreadableJson(error)) {
       throw corruptBlobCatalog(pathname, error);
     }
-    // Fall through to list + URL fetch (older stores / list-only ports).
+    // Socket errors still fall through to list (older stores / list-only ports).
+    directFailed = true;
   }
-  const blobs = await port.list(pathname);
+  let blobs: BlobObject[];
+  try {
+    blobs = await port.list(pathname);
+  } catch {
+    throw new Error("Blob catalog read failed");
+  }
   const match = pickCatalogBlob(blobs, pathname);
   if (!match) {
+    if (directFailed) {
+      throw new Error("Blob catalog read failed");
+    }
     return null;
   }
   try {
@@ -131,7 +165,7 @@ export async function readJsonFromBlobPort(
     if (isUnreadableJson(error)) {
       throw corruptBlobCatalog(match.pathname, error);
     }
-    throw error;
+    throw new Error("Blob catalog read failed");
   }
 }
 
@@ -141,12 +175,24 @@ export async function readCatalogFromBlobPort(
 ): Promise<CatalogDocument | null> {
   const candidates = [pathname, ...catalogBlobLegacyPaths()];
   const seen = new Set<string>();
+  let primaryDown = false;
   for (const candidate of candidates) {
     if (seen.has(candidate)) {
       continue;
     }
     seen.add(candidate);
-    const raw = await readJsonFromBlobPort(port, candidate);
+    let raw: unknown | null;
+    try {
+      raw = await readJsonFromBlobPort(port, candidate);
+    } catch (error) {
+      if (isCatalogCorruptError(error)) {
+        throw error;
+      }
+      if (candidate === pathname) {
+        primaryDown = true;
+      }
+      continue;
+    }
     if (raw !== null) {
       try {
         return parseCatalogDocument(raw);
@@ -157,6 +203,9 @@ export async function readCatalogFromBlobPort(
         );
       }
     }
+  }
+  if (primaryDown) {
+    throw new Error("Blob catalog read failed");
   }
   return null;
 }
@@ -207,7 +256,16 @@ function readBackSources(
     },
     ...urls.map((url) => async () => tryFetchJson(port, url)),
     ...bustedUrls.map((url) => async () => tryFetchJson(port, url)),
-    async () => readJsonFromBlobPort(port, pathname),
+    async () => {
+      try {
+        return await readJsonFromBlobPort(port, pathname);
+      } catch (error) {
+        if (isCatalogCorruptError(error)) {
+          throw error;
+        }
+        return null;
+      }
+    },
   ];
 }
 
