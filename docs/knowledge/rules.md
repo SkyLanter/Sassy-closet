@@ -37,8 +37,10 @@ The root README's desk status and restock note say those commands do not write B
 
 ## Meta
 
-- Do not delete or repost a Meta post. The inventory tool's action is edit-original-only, and Boss decides (`scripts/meta_inventory.py`).
-- Checkers look at caption shape: mã line, `Giá` amount, and size tokens. They do not edit the post.
+- Do not delete or repost a Meta post. `scripts/meta_inventory.py` sets every flag's action to `edit original only / Boss decides`. `scripts/caption_gap_watch.py` says fixes are edits of the original post, and Boss decides. `scripts/tests/test_meta_inventory.py` and `scripts/tests/test_caption_gap_watch.py` assert the report text does not suggest delete or repost.
+- `scripts/meta_inventory.py` reads a saved Facebook/Instagram export, `data/held.json`, and a cost-free daily-inputs snapshot. Its flags are `no_ma`, `held_promoted`, `duplicate`, `live_no_post`, `missing_gia`, and `caption_lint`.
+- `scripts/caption_gap_watch.py` reads a saved caption export. Its flags are `missing_caption`, `missing_ma`, `missing_gia`, and `gia_differs`.
+- `scripts/caption_lint.py` checks caption shape: line 1 `Mã X00`, a `Giá $NN` amount anywhere in the caption, S06 at $25, and Giá against the approved or live dollar. It does not edit the post. Size checks are the separate scripts named in [shop.md](shop.md).
 - Tool output stays free of supplier cost and supplier links. `scripts/caption_lint.py` refuses to print a report that matches `PRIVATE` (¥, taobao, tmall, 1688, cost, giá vốn). `scripts/luxubu_status_record.py` rejects a title that matches `BANNED` (¥, $, a URL, an email). `scripts/muse_pack_sections.py` writes mãs, post IDs, and counts only.
 
 ## Quality and visuals

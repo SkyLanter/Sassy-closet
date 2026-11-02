@@ -78,6 +78,8 @@ The shop loads that file in `sassy-closet-shop/lib/held-incomplete.ts`. `isOffLi
 
 A catalog `status` of `"hold"` is a different word. `isShopVisibleStatus` still shows `hold` and `available`, and hides `sold`. `asksInboxPrice` is true only for `hold` (`sassy-closet-shop/lib/site-settings.ts`). Do not treat a hold-priced look as a `held.json` row.
 
+Q02 is absent from both lists in `data/held.json`. `publishBlock` allows create, mint, and save of Q02 (`sassy-closet/tests/publish-guard.test.ts`). `scripts/live_shop_smoke.sh` still appends Q02 to the 404 list, and `scripts/midnight_qc.py` still treats a live Q02 as a finding until Boss approves. Details are in [pitfalls.md](pitfalls.md).
+
 Customer `/admin` on the sell shop is 404 (`sassy-closet-shop/proxy.ts` plus `sassy-closet-shop/app/admin/layout.tsx`). Catalog edits for the shop live on the intake app at `/admin/shop` (`sassy-closet/docs/SHOP_ADMIN.md`).
 
 Approved Giá already shown on Facebook and Instagram for some held mãs is a reference file, not a sell price: `data/approved-held-gia.json` (`S15` 30, `A26` 32, `K03` 52, `K04` 101, `K05` 52, `V04` 17). Caption lint uses it (`scripts/caption_lint.py`).
@@ -110,8 +112,10 @@ Open PRs #188 and #189 would put a cookie in front of cost reads. They were open
 
 What the repo actually says:
 
-- Caption and inventory tools have no Meta access and do not post (`scripts/caption_lint.py`, `scripts/meta_inventory.py`).
-- A flagged post's only action string is `edit original only / Boss decides`. The inventory tool's tests forbid suggesting delete or repost (`scripts/meta_inventory.py`, `scripts/tests/test_meta_inventory.py`).
+- Caption and inventory tools have no Meta access and do not post (`scripts/caption_lint.py`, `scripts/meta_inventory.py`, `scripts/caption_gap_watch.py`).
+- `scripts/meta_inventory.py` flags `no_ma`, `held_promoted`, `duplicate`, `live_no_post`, `missing_gia`, and `caption_lint`. Every flag's action is `edit original only / Boss decides`.
+- `scripts/caption_gap_watch.py` flags `missing_caption`, `missing_ma`, `missing_gia`, and `gia_differs`. Its header says fixes are edits of the original post, and Boss decides.
+- Tests forbid suggesting delete or repost (`scripts/tests/test_meta_inventory.py`, `scripts/tests/test_caption_gap_watch.py`).
 - A Meta QC pass needs Luxubu and Mini Boss to agree. One side alone is `unchecked` (`scripts/daily_summary_draft.py`).
 - `scripts/luxubu_status_record.py` writes a local JSON file from CLI flags. It does not send anything. Times are America/Los_Angeles.
 - `scripts/muse_pack_sections.py` appends local sections to a Muse pack (`TODAY.md` and a pack message). It sends nothing. Output is mãs, post ids, and counts.

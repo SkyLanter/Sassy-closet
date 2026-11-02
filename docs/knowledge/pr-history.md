@@ -4,6 +4,8 @@ Fetched read-only from GitHub on 2026-11-02 for `SkyLanter/Sassy-closet`, PRs **
 
 Counts at fetch time: 116 merged, 125 open, 6 closed without merge.
 
+Every merged PR in this snapshot targets `main`, and each PR's GitHub merge commit is an ancestor of `origin/main`. For the 45 PRs combined by #203, that merge commit sits behind the second parent of `339e77b`, so `git log --first-parent` does not show it.
+
 The one-line note is the first prose sentence of the PR body, taken mechanically. A leading heading such as "Summary", "TL;DR", or "What changed" is run into the sentence, list bullets and some Markdown are dropped, and a long sentence is cut off mid-word, sometimes with no `...`. Read the PR body itself before relying on a note. When the body has no prose, the note says UNKNOWN. Titles are the PR titles. Do not treat a title as a description of what `main` contains unless the state is MERGED.
 
 ## Landmarks that are on main
@@ -17,7 +19,7 @@ These are merged PRs whose bodies were read while writing this knowledge base. T
 | #9 | Adds the intake app: Saved card after Lưu, and the Mini Boss Ask relay. |
 | #12 | Adds the Tìm mã code box and full info card on top of #9. |
 | #15 | Moves intake mã JSON and photo bytes to Vercel Blob so a Production redeploy does not wipe `/tmp`. |
-| #203 | Combines 45 visual-neutral script and test PRs. Does not change the shop or intake UI, prices, or `data/held.json`. |
+| #203 | Combines 45 visual-neutral script and test PRs. Merge commit `339e77b` is on `git log --first-parent` and has two parents. The 45 `Merge pull request #N` commits are ancestors through the second parent `13e36fd` (`339e77b^2`). `git log --first-parent` does not list them. The numbers are #124, #126, #128, #131–#140, #142, #143, #145, #146, #148–#150, #152–#154, #156–#160, #162–#164, #166–#168, #171–#173, #175–#177, #179–#182, and #184. The body says it does not change the shop or intake UI, prices, or `data/held.json`. The merge diff from `339e77b^1` to `339e77b` touches `scripts/`, `scripts/tests/`, and `.github/workflows/dataset-checks.yml` (6 added lines). It touches nothing under `data/`, `sassy-closet/`, `sassy-closet-shop/`, or `shared/`. |
 | #204 | Brings fix-needed script checks onto main and points them at the current held list and S06 copy. |
 | #205 | Keeps intake and shop health open by link, noindex, S06 at $25, and held PDPs 404. |
 | #206 | Stops a false FAIL when intake defines `tieredSellUsd` locally instead of importing `shared/tiered-pricing.ts`. |

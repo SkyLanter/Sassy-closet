@@ -36,9 +36,9 @@ Definitions are paraphrased from the cited file. If the name appears and the fil
 | Open by link | No session and no password on intake routes. | `sassy-closet/lib/shop-admin-gate.ts` |
 | Draft only | Agents open pull requests. Boss merges. Bots do not post or Save. | `README.md` |
 | PT | `America/Los_Angeles`. | `scripts/freshness_check.py` |
-| Flight string | Next.js RSC payload embedded in HTML, with escaped quotes. | `sassy-closet-shop/docs/ai-clothing-shop/qa/qa_a11y_watery_motion.py`, open PR #220 |
+| Flight string | Open PR #220 is titled "Fix midnight QC home prices on RSC flight HTML". Its body says the live home page embeds the catalog in a "Next.js RSC flight string", with quotes escaped. Python sources do not contain `flight` or `__next_f`. On main, `qa_a11y_watery_motion.py` `look_pdp` matches both backslash-escaped and plain `"ma"` / `"priceUsd"`, and only on the held product pages P02 and P05. `midnight_qc.py` `_HOME_PRICE_RE` matches plain quotes in sell-home HTML. | `sassy-closet-shop/docs/ai-clothing-shop/qa/qa_a11y_watery_motion.py`, `scripts/midnight_qc.py`, open PR #220 |
 | Piece | A numbered local draft folder used by the bundle scripts. Not the same as a GitHub PR number. | `scripts/bundle_inventory_check.py`, `docs/checkpoints/START-HERE.md` |
 | GF | "From GF" intake packets for the Excel kit. Primary path is OneDrive `Documents/Sassy Closet/From GF/`. | `excel-kit/prompts/GF_CLOTHES_INTAKE.md` (wording also in merged PR #3) |
 | Zelle | A pay method in the orders sheet, and a word the sell shop shows. | `excel-kit/schema.py` `SOT_PAY` |
 | Popular order | JSON list that sorts looks. | `sassy-closet-shop/data/popular-order.json` |
-| Q02 | Used in tests as a mã that is allowed to publish and is not held. | `sassy-closet/tests/publish-guard.test.ts` |
+| Q02 | Absent from `data/held.json`. `publishBlock` allows create, mint, and save. Midnight QC and `live_shop_smoke.sh` still expect it off the sell PDP until Boss approves. A 404 there is recorded as observed, and the QC text says it is not a never-list requirement. | `sassy-closet/tests/publish-guard.test.ts`, `scripts/midnight_qc.py`, `scripts/live_shop_smoke.sh` |

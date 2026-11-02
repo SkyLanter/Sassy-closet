@@ -27,16 +27,34 @@ PR #207 says the privacy scan against `eb8a143` was also dirty because `shared/l
 
 Intake has no seed catalog. Its health report is `blob`, `local`, or `ephemeral` (`sassy-closet` health, described in merged PR #205). A redeploy without Blob wipes `/tmp` (`sassy-closet/README.md`).
 
-## Escaped Next.js flight strings
+## Escaped quotes in sell HTML
 
-The sell home page can embed the catalog inside a React Server Components flight payload, with quotes escaped (`\"ma\":\"A05\"`). Two tools on main disagree:
+Open PR #220 is titled "Fix midnight QC home prices on RSC flight HTML". Its body says the live home page embeds the catalog in a "Next.js RSC flight string", with quotes escaped, and that the midnight QC parser matched plain JSON only. The Python sources do not contain `flight` or `__next_f`. #220 is open. It is not merged.
 
-- `sassy-closet-shop/docs/ai-clothing-shop/qa/qa_a11y_watery_motion.py` matches both the escaped form and plain JSON when it looks for `priceUsd`.
-- `scripts/midnight_qc.py` `_HOME_PRICE_RE` matches plain `"ma"` / `"priceUsd"` only.
+On main the two quote matchers read different pages:
 
-Open PR #220 says a read-only fetch of the primary shop then parsed zero home prices, so the nightly sell check failed even when the dollars matched Blob. That fetch was not repeated for this knowledge file. The regex on main is the part you can see in git. Do not assume midnight QC home prices are populated until #220 is merged or the regex changes.
+- `sassy-closet-shop/docs/ai-clothing-shop/qa/qa_a11y_watery_motion.py` `look_pdp` matches both backslash-escaped `"ma"` / `"priceUsd"` and plain JSON. Those regexes run only when the mã is in `HOLD` (`P02` and `P05`), on `/m/P02` and `/m/P05`. `look_home` has no `"ma"` / `"priceUsd"` regex.
+- `scripts/midnight_qc.py` `_HOME_PRICE_RE` matches plain `"ma"` / `"priceUsd"` in sell-home HTML.
 
-`scripts/freshness_check.py` `parse_pdp_price` reads JSON-LD (`application/ld+json`), not the flight string. A PDP check and a home-page flight check are different parsers.
+The #220 body says a read-only fetch of the primary shop then parsed zero home prices, so the nightly sell check failed even when the dollars matched Blob. That fetch was not repeated for this knowledge file. The regex on main is the part you can see in git. Midnight QC home prices stay on the plain-quote regex until #220 is merged or the regex changes.
+
+`scripts/freshness_check.py` `parse_pdp_price` reads JSON-LD (`application/ld+json`). A PDP JSON-LD check and the home-page quote check are different parsers.
+
+## Escaped ampersands on an item URL
+
+`scripts/freshness_check.py` `_price_from_item_url` reads `price=` from an item URL embedded in an e.tb.cn bridge page. Before the match, it replaces the sequences `\u0026` and `&amp;` with `&`. `parse_taobao_cny` uses that function when the JSON price keys are absent. `scripts/tests/test_taobao_fixtures.py` covers both replacements. A reader that skips the replace misses the list price. This parser is separate from the sell-home quote regex above.
+
+## Seed photos replace live images for the hub ten
+
+`overlaySeedHubGalleries` in `sassy-closet-shop/lib/catalog-store.ts` runs inside `hydrateLiveCatalog`. `readBlobCatalog`, `readKvCatalog`, and `readLocalCatalog` each pass a document they successfully read through `hydrateLiveCatalog`. For a mã in `KNOWN_SEED_MAS` whose seed product has at least one image, the returned product's `images` are `seed.images`. The function comment says the hub ten always show the intake files under `public/products/{MA}/`. A readable Blob catalog still goes through that replacement.
+
+## Q02 stays off the sell PDP in the smoke checks
+
+Q02 is absent from `data/held.json`. `publishBlock` allows create, mint, and save of Q02 (`sassy-closet/tests/publish-guard.test.ts`).
+
+`scripts/midnight_qc.py` appends finding `q02-live` ("Q02 is on Blob, hub, or a sell PDP") when Q02 is in the Blob price index, in the hub price index, or on a checked sell origin whose PDP status is present and not 404. When Q02 is in intake and that live check is false, it warns: "Q02 is in intake and is not on sell. It stays held until Boss approves." In the held table, Q02 with Blob absent, hub absent or skipped, and PDP 404 is "Observed 404. Not a never-list requirement." Other mãs in that same shape are "PASS unpublished." Q02 with Blob absent and PDP 404 uses that same observed-404 line when the hub cell is present too.
+
+`scripts/live_shop_smoke.sh` builds the default 404 list from `heldIncomplete`, `neverList`, and `Q02`, and the dry-run line labels each of those GET checks `(held)`. `scripts/post_deploy_privacy_check.sh` defaults `HELD_MAS` to `K03 K04 K05 V04 Q02 G01 H02 A27 S16` and expects `GET /m/Q02` to be 404. `scripts/pre_deploy_privacy_checklist.sh` lists "Q02 listable" among Boss decisions still open.
 
 ## UTC dates versus Pacific time
 
