@@ -19,10 +19,16 @@ KINDS = (MISMATCH,)
 
 # Giá or Gia at the start of a line, then the rest of that line.
 _GIA_LINE = re.compile(r"(?iu)^[ \t]*(?:giá|gia)\b[ \t]*:?[ \t]*(?P<rest>.*)$")
-# "Mã A07", "Ma D06", and "M A09" on their own line.
-_MA_LABEL = re.compile(r"(?iu)(?:^|\n)[ \t]*(?:mã|ma|m)[ \t]+([A-Za-z]\d{2})\b")
+# "Mã A07", "Ma D06", and "M A09". One to four digits so a short or
+# zero-padded code can collapse to the catalog key. The token must end
+# before another letter or digit, and a later label on the same line still counts.
+_MA_LABEL = re.compile(
+    r"(?iu)(?:^|\n|(?<=\s))[ \t]*(?:mã|ma|m)[ \t]+([A-Za-z]\s?\d{1,4})(?![0-9A-Za-z])"
+)
 # A line that is only the mã.
-_MA_BARE = re.compile(r"(?iu)(?:^|\n)[ \t]*([A-Za-z]\d{2})[ \t]*(?:$|\n)")
+_MA_BARE = re.compile(
+    r"(?iu)(?:^|\n)[ \t]*([A-Za-z]\d{1,4})(?![0-9A-Za-z])[ \t]*(?:$|\n)"
+)
 _MA_CODE = re.compile(r"[A-Z]\d{2}")
 _YEN = re.compile(r"¥[ \t]*\d+(?:\.\d+)?|(?<![A-Za-z\d.$])\d+(?:\.\d+)?[ \t]*¥")
 _DOLLAR = re.compile(
@@ -218,13 +224,21 @@ def _amount_from_excerpt(excerpt: str) -> tuple[str, Decimal, str]:
     return excerpt, Decimal(digits), digits
 
 
+def _shop_ma(raw: str) -> str | None:
+    """Catalog key. A short or zero-padded code collapses. Anything else is not a caption mã."""
+    code = norm_ma(raw.replace(" ", ""))
+    return code if _MA_CODE.fullmatch(code) else None
+
+
 def _caption_ma(text: str) -> str | None:
-    labeled = _MA_LABEL.search(text)
-    if labeled:
-        return labeled.group(1).upper()
-    bare = _MA_BARE.search(text)
-    if bare:
-        return bare.group(1).upper()
+    for labeled in _MA_LABEL.finditer(text):
+        code = _shop_ma(labeled.group(1))
+        if code:
+            return code
+    for bare in _MA_BARE.finditer(text):
+        code = _shop_ma(bare.group(1))
+        if code:
+            return code
     return None
 
 
