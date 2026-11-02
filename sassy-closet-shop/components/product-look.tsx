@@ -7,6 +7,7 @@ import { ContentWaveLooks } from "@/components/content-wave";
 import { CopyMa } from "@/components/copy-ma";
 import { ShareLook } from "@/components/share-look";
 import { FitNotes } from "@/components/fit-notes";
+import { SizeGuide } from "@/components/size-guide";
 import { MessengerCta } from "@/components/messenger-cta";
 import { ProductDescription } from "@/components/product-description";
 import { ProductGallery } from "@/components/product-gallery";
@@ -73,6 +74,7 @@ export function ProductLook({ product }: { product: ShopLook }) {
           onSize={chooseSize}
           colorHasShots={colorHasShots}
         />
+        <SizeGuide sizes={product.sizes} />
         <div className="ky-pdp-rest">
         <ProductDescription product={product} />
         <FitNotes measurements={product.measurements} />
