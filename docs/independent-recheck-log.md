@@ -65,8 +65,10 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 | #236 | `077a6a6de927553b5d5347c693e93b7ce093d9d5` | PASS | pytest 2125 passed, 7 skipped. Intake 278 / 275 / 0 / 3. Shop 220 / 217 / 0 / 3. Findings: none. |
 | #237 | `9d318d4f4253095099643ad2233a019631fd2847` | FAIL | Script PASS (pytest 2115). Gap watch matches. The log claims other fixes that are not in this tree. |
 | #238 | `93e2341b000829da1e0f001b7ba473b343293db8` | FAIL | Script PASS (pytest 2114). On-hand alias matches. The log's image-route and CSV-formula sections are not in this tree. |
+| #222 | `2fbf7070f3df59c26733d1b089a4166fb666f238` | PASS | pytest 2126 passed, 7 skipped. Intake 277 / 274 / 0 / 3. Shop 218 / 215 / 0 / 3. Landed digits stay on the same quote. Findings: none. |
+| #239 | `7770cab00a332a070d57a4c520d66e739e6e52ac` | PASS | pytest 2120 passed, 7 skipped. Intake 277 / 274 / 0 / 3. Shop 218 / 215 / 0 / 3. Smoke is manual GET-only. This lane did not run the live step. Findings: none. |
 
-#222 and #239 were still running at this tick. #223, #224, #226–#231, and #240–#247 are still queued on the existing workers. No knowledge-lane docs PR. New drafts #250–#258 are queued below. #249 is this log and is not graded.
+#222 was still in `hard_recheck.sh` when #239 was commented. #223, #224, #226–#231, and #240–#247 stay with the earlier workers. No knowledge-lane docs PR. #250–#258 are in progress. #259 is queued. #249 is this log and is not graded.
 
 ## 2026-11-02 23:15 UTC — new drafts
 
@@ -81,6 +83,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 | #256 | `b23494967f84` | Keep a new intake photo from replacing a file that was kept |
 | #257 | `dd240888ec8d` | Test catalog fallback, the S06 lock, held photo spellings, and intake export |
 | #258 | `623617591224` | Split gap-report sizes on the same separators as listing |
+| #259 | `0402dd50b1c6` | Count a text sell price in the price approval queue |
 
 This log lives on draft PR #249 (`cursor/independent-recheck-log-cfee`). That PR is this lane's own notes, so this lane does not grade it.
 
