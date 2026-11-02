@@ -9,3 +9,7 @@ Branch `cursor/workflow-install-lock-9477`.
 A test fails if one of the four GitHub Actions workflows runs `npm install` (or an install alias) instead of `npm ci`, references the GitHub secrets context, or uses `pull_request_target`. The workflow files were not edited. No deploy. `held.json` was not edited.
 
 `scripts/tests/test_workflow_install_lock.py`: 3 passed.
+
+Draft PR #263.
+
+Hard recheck of `ba45d8e`, base `origin/main`, 190s, PASS. Required steps PASS, none skipped. pytest 2117 passed, 7 skipped. privacy CLEAN. intake npm tests 277 pass, 274 fail 0, skipped 3. intake tsc ok. shop npm tests 218 pass, 215 fail 0, skipped 3. shop tsc ok. held.json unchanged.
