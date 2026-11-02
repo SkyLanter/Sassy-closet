@@ -66,6 +66,35 @@ def test_s06_locked_even_if_list_says_otherwise(tmp_path):
     assert g.load_prices(l)["S06"] == 25.0
 
 
+def test_unnormalized_price_key_still_flags_a_wrong_gia(tmp_path):
+    posts = [
+        {"id": "1", "platform": "fb", "caption": "Mã A08\nGiá $31"},
+        {"id": "2", "platform": "fb", "caption": "Mã K03\nGiá $41"},
+        {"id": "3", "platform": "fb", "caption": "Mã S15\nGiá $35"},
+        {"id": "4", "platform": "fb", "caption": "Mã A08\nGiá $29"},
+        {"id": "5", "platform": "fb", "caption": "Mã S06\nGiá $25"},
+    ]
+    live = tmp_path / "live.json"
+    live.write_text(json.dumps({"products": [
+        {"ma": " a08 ", "priceUsd": "29"},
+        {"ma": "k3", "priceUsd": 40},
+        {"ma": "S006", "priceUsd": 24},
+        {"ma": "B01", "priceUsd": "oops"},
+        {"ma": "B02", "priceUsd": True},
+        "not-a-row",
+    ]}))
+    approved = tmp_path / "approved.json"
+    approved.write_text(json.dumps({"approvedGia": {"s15": 30}}))
+    flags = g.run(posts, g.load_prices(live, approved))["flags"]
+    assert {"post": "1", "ma": "A08", "issue": "gia_differs"} in flags
+    assert {"post": "2", "ma": "K03", "issue": "gia_differs"} in flags
+    assert {"post": "3", "ma": "S15", "issue": "gia_differs"} in flags
+    assert not [f for f in flags if f["post"] in ("4", "5")]
+    prices = g.load_prices(live, approved)
+    assert prices["S06"] == 25.0
+    assert "B01" not in prices and "B02" not in prices
+
+
 def test_output_fields_only(tmp_path):
     for f in rep(tmp_path)["flags"]:
         assert set(f) == {"post", "ma", "issue"}
