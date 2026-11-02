@@ -48,3 +48,20 @@ def test_caption_gap_watch_json_nan(tmp_path):
 def test_cost_basis_load_live(tmp_path):
     prods = [{"ma": "A01", "priceUsd": 20}, {"ma": "B01", "priceUsd": "NaN"}]
     assert cost_basis_reconcile.load_live(_write(tmp_path, "c.json", {"products": prods})) == {"A01": 20.0}
+
+
+def test_cost_basis_bad_row_does_not_drop_the_rest(tmp_path):
+    prods = [
+        {"ma": "A01", "priceUsd": 20},
+        "not-a-row",
+        {"priceUsd": 5},
+        {"ma": "B01", "priceUsd": "oops"},
+        {"ma": "B02", "priceUsd": True},
+        {"ma": "B03", "priceUsd": ""},
+        {"ma": "B04", "priceUsd": "Infinity"},
+        {"ma": " s006 ", "priceUsd": "25"},
+    ]
+    assert cost_basis_reconcile.load_live(_write(tmp_path, "c.json", {"products": prods})) == {
+        "A01": 20.0,
+        "S06": 25.0,
+    }
