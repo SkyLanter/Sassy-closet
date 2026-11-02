@@ -10,7 +10,7 @@ Live sell-home HTML embeds the catalog in a Next.js RSC flight string. Quotes ar
 
 Code: `scripts/midnight_qc.py`. Tests: `scripts/tests/test_midnight_qc.py`.
 
-Hard recheck on code commit `b79e0a0` (`scripts/hard_recheck.sh --base origin/main`): **PASS**
+Hard recheck on `6a59a43` (`scripts/hard_recheck.sh --base origin/main`): **PASS**
 
 | step | status | detail |
 | --- | --- | --- |
@@ -19,9 +19,9 @@ Hard recheck on code commit `b79e0a0` (`scripts/hard_recheck.sh --base origin/ma
 | privacy | PASS | CLEAN |
 | intake npm/tsc | SKIP | node_modules missing |
 | shop npm/tsc | SKIP | node_modules missing |
-| diff-stat | PASS | 2 files changed, 54 insertions, 2 deletions |
+| diff-stat | PASS | 3 files changed, 81 insertions, 2 deletions |
 | working-tree | PASS | clean |
 | held-json | PASS | unchanged |
-| total | PASS | 173s, logs `out/recheck/20261102-171952-9101` |
+| total | PASS | 173s, logs `out/recheck/20261102-172334-12770` |
 
-PR: pending (this branch).
+PR: pending (this branch). The commit that records this table is docs-only and does not change the checker.
