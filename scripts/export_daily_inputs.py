@@ -44,6 +44,9 @@ def _ma(v) -> str:
 
 
 def _price(v):
+    # bool is a subclass of int; float(True) is 1.0 and must not become a $1 sell price.
+    if isinstance(v, bool):
+        return None
     try:
         x = float(v)
     except (TypeError, ValueError):
@@ -53,15 +56,35 @@ def _price(v):
     return int(x) if x.is_integer() else round(x, 2)
 
 
+def _on_shop(row: dict) -> bool:
+    """Blank or missing status is live. sold and hold are not."""
+    status = row.get("status", "available")
+    if status is None:
+        return True
+    if not isinstance(status, str):
+        return False
+    token = status.strip().lower()
+    if token == "":
+        return True
+    return token in LIVE_STATUSES
+
+
 def load_live(path: Path) -> dict:
+    """Public shop prices. One non-object row is skipped. A catalog with no object rows still fails. A bad mã still fails the export."""
     data = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(data, dict) or not isinstance(data.get("products"), list):
         raise ExportError(f"{path.name}: expected a catalog with products[]")
     out = {}
+    saw_object = False
     for p in data["products"]:
-        if str(p.get("status", "available")).lower() not in LIVE_STATUSES:
+        if not isinstance(p, dict):
+            continue
+        saw_object = True
+        if not _on_shop(p):
             continue
         out[_ma(p.get("ma"))] = _price(p.get("priceUsd"))
+    if data["products"] and not saw_object:
+        raise ExportError(f"{path.name}: products[] has no object rows")
     return out
 
 
