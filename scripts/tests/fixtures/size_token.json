@@ -1,0 +1,34 @@
+{
+  "catalog": [
+    {"ma": "Z01", "sizes": ["S", "2XL", "M"]},
+    {"ma": "Z02", "sizes": ["S", "M", "L"]},
+    {"ma": "Z03", "size": "S M L"},
+    {"ma": "Z04", "sizes": ["XL", "XXL", "XS"]},
+    {"ma": "Z05", "sizes": ["36"]},
+    {"ma": "Z06", "sizes": ["36", "38"]},
+    {"ma": "Z07", "size": "XXXL"},
+    {"ma": "Z08", "size": "free 80cm"},
+    {"ma": "Z09", "size": "S 84cm"},
+    {"ma": "S06", "sizes": ["S", "M", "L"], "priceUsd": 25},
+    {"ma": "Z10", "sizes": ["s", "m", "l"]},
+    {"ma": "Z11", "size": "2XS"},
+    {"ma": "Z12", "sizes": ["3XL", "XXS"]},
+    {"ma": "Z13", "size": "onesize"},
+    {"ma": "Z14", "size": "36.5"},
+    {"ma": "Z15", "sizes": ["XXL"]},
+    {"ma": "Z16", "size": "S, 2XL, L"}
+  ],
+  "intake": [
+    {"ma": "Z17", "size": "S M L"},
+    {"ma": "Z18", "size": "均码"},
+    {"ma": "Z19", "sizes": ["L"]},
+    {"ma": "Z20", "size": null},
+    {"ma": "Z21", "sizes": []},
+    {"ma": "Z22", "size": " "},
+    {"ma": "Z23", "sizes": ["S", "M", "L"]},
+    {"ma": "Z24", "size": "XS / S / M"},
+    {"ma": "Z28", "size": "2XL"},
+    {"ma": "Z26", "sizes": ["40"]},
+    {"ma": "Z27", "size": "S, M, L"}
+  ]
+}
