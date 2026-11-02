@@ -38,6 +38,9 @@ def test_steps_order_and_proposal_dir(tmp_path):
                                     "intake_code_reuse_check", "held_price_proposal", "daily_summary_draft"]
     hp = dict(steps)["held_price_proposal"]
     assert hp[hp.index("--proposal-dir") + 1] == str(tmp_path / "rep" / "proposals")
+    summary = dict(steps)["daily_summary_draft"]
+    assert summary[summary.index("--proposal") + 1] == str(
+        tmp_path / "rep" / "proposals" / "held-price-proposal-2099-01-01.json")
 
 
 def test_gap_exit1_is_gaps_not_failed(tmp_path):
