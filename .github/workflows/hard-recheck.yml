@@ -1,0 +1,53 @@
+name: hard-recheck
+
+# Read-only pull-request gate. Installs both apps, then runs the hard recheck
+# against origin/main. A required SKIP fails the job. No schedule, no deploy.
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hard-recheck-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  recheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: |
+            sassy-closet/package-lock.json
+            sassy-closet-shop/package-lock.json
+
+      - name: Install Python deps
+        run: pip install -r requirements.txt
+
+      - name: npm ci (intake)
+        working-directory: sassy-closet
+        run: npm ci
+
+      - name: npm ci (shop)
+        working-directory: sassy-closet-shop
+        run: npm ci
+
+      - name: Hard recheck
+        env:
+          HARD_RECHECK_PYTHON: python
+        run: bash scripts/run_hard_recheck_ci.sh
