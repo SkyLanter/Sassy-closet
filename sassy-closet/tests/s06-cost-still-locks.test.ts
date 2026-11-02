@@ -20,13 +20,15 @@ const prices = {
 const bothCosts = { costCny: prices.cny, costUsd: prices.usd };
 const yenOnly = { costCny: prices.cny, costUsd: null };
 const usdOnly = { costCny: null, costUsd: prices.usd };
+const cheapDollar = { costCny: null, costUsd: prices.buck };
+const cheapYen = { costCny: prices.buck, costUsd: null };
 
 function quote(ma: string, kind: string, costs: Pick<IntakePriceInput, "costCny" | "costUsd">) {
   return wouldBeLiveUsd({ ma, kind, liveUsd: 40, ...costs });
 }
 
-test("S06 stays $25 for every spelling, kind, and either cost", () => {
-  for (const costs of [yenOnly, usdOnly, bothCosts]) {
+test("S06 stays $25 for every spelling and kind, including a one-unit cost", () => {
+  for (const costs of [yenOnly, usdOnly, bothCosts, cheapDollar, cheapYen]) {
     const open = quote("S01", "S", costs);
     assert.equal(open.reason, "tiered");
     assert.equal(open.applied, true);
@@ -94,11 +96,13 @@ test("dress letters add the locked debox and other letters do not", () => {
   assert.ok(dress.wouldBeUsd > puppy.wouldBeUsd);
 });
 
-test("a typed S06 sell stays $25 when only one cost is filled", () => {
+test("a typed S06 sell stays $25 when a cost is filled, including a one-unit cost", () => {
   const filled = [
     { costCny: prices.cny, costUsd: "" },
     { costCny: "", costUsd: prices.usd },
     { costCny: prices.cny, costUsd: prices.usd },
+    { costCny: "", costUsd: prices.buck },
+    { costCny: prices.buck, costUsd: "" },
   ];
   for (const ma of ["S06", "s6", "s006"]) {
     for (const costs of filled) {
