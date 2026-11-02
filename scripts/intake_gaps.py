@@ -37,6 +37,8 @@ from intake_flags import IntakeRow, flag_intake
 
 FX_CNY_PER_USD = Decimal("6.723")
 MA_RE = re.compile(r"^([A-Z])[0-9]{2}$")
+# Same shop statuses as the daily snapshot export. sold and hold are not a live price.
+LIVE_STATUSES = {"available", "live", "active", "in_stock", "instock"}
 # Approved category kg proxies (same as the held price sheet). G has none.
 CATEGORY_KG_PROXY: dict[str, Decimal] = {"A": Decimal("0.3"), "H": Decimal("0.08")}
 NEEDS_BOSS_KG = frozenset({"G"})
@@ -223,21 +225,55 @@ def markdown(rep: dict) -> str:
     return "\n".join(out) + "\n"
 
 
+def _on_shop(row: dict) -> bool:
+    status = row.get("status", "available")
+    if status is None:
+        return True
+    if not isinstance(status, str):
+        return False
+    token = status.strip().lower()
+    if token == "":
+        return True
+    return token in LIVE_STATUSES
+
+
+def _live_row(row: dict) -> tuple[str, dict] | None:
+    if not _on_shop(row):
+        return None
+    code = norm_ma(str(row.get("ma", "")))
+    if not code:
+        return None
+    return code, {"price": _num(row.get("priceUsd")), "images": row.get("images") or []}
+
+
 def load_live(path: Path | None) -> dict[str, dict]:
+    """Public shop prices. A sold or hold row is not live. One bad row is skipped."""
     if path is None:
         return {}
-    d = json.loads(path.read_text(encoding="utf-8"))
+    data = json.loads(path.read_text(encoding="utf-8"))
     out: dict[str, dict] = {}
-    if isinstance(d.get("products"), list):
-        for p in d["products"]:
-            if str(p.get("status", "available")).lower() in {"hidden", "draft", "deleted"}:
-                continue
-            code = norm_ma(str(p.get("ma", "")))
+    if isinstance(data, dict) and isinstance(data.get("prices"), dict) and not isinstance(data.get("products"), list):
+        for key, value in data["prices"].items():
+            code = norm_ma(str(key))
             if code:
-                out[code] = {"price": _num(p.get("priceUsd")), "images": p.get("images") or []}
-    elif isinstance(d.get("prices"), dict):
-        for k, v in d["prices"].items():
-            out[norm_ma(k)] = {"price": _num(v), "images": None}
+                out[code] = {"price": _num(value), "images": None}
+        return out
+    if isinstance(data, dict) and isinstance(data.get("products"), list):
+        rows = data["products"]
+    elif isinstance(data, list):
+        rows = data
+    elif isinstance(data, dict):
+        return {}
+    else:
+        raise ValueError("catalog must be products[] or a prices map")
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        parsed = _live_row(row)
+        if parsed is None:
+            continue
+        code, body = parsed
+        out[code] = body
     return out
 
 
