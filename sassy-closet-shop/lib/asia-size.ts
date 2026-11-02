@@ -57,9 +57,14 @@ export function parseAsiaSizes(raw: unknown): ShopSize[] {
       if (isAsiaSizeLetter(letter)) {
         next = letter;
       }
-    } else if (isEuShoeSize(rawText.replace(/[^0-9]/g, ""))) {
-      // Footwear secondary only — never invent US
-      next = rawText.replace(/[^0-9]/g, "") as ShopSize;
+    } else {
+      // "40.0" is EU 40. Stripping every non-digit would turn it into "400" and drop it.
+      // A single trailing .0 counts. "40.00", "40.5", and "36 -37" stay out.
+      const exact = rawText.match(/^(\d{2})(?:\.0)?$/);
+      const digits = exact ? exact[1] : rawText.replace(/[^0-9]/g, "");
+      if (isEuShoeSize(digits)) {
+        next = digits;
+      }
     }
     if (!next || seen.has(next)) {
       continue;

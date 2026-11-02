@@ -18,6 +18,8 @@ from parity_check import (
     TAOBAO_PUBLIC,
     Example,
     build_report,
+    decimal_shoe_misses,
+    decimal_shoe_window,
     dollar_text,
     main,
     price_disagreements,
@@ -40,6 +42,7 @@ BOSS_CODES = (
     "cost-currency-default",
     "caption-vs-intake-tier",
     "excel-letter-gap",
+    "shoe-decimal-window",
     "seed-vs-live-price",
     "seed-missing-live",
     "extras-vs-live-price",
@@ -73,6 +76,39 @@ def test_price_disagreements_name_the_ma_and_do_not_edit_inputs():
     assert price_disagreements({"A99": ""}, {"A99": "25"}) == (Example("A99", "", "25"),)
 
 
+def test_decimal_shoe_flags_a_dropped_trailing_zero():
+    clean = {
+        "34.0": ["34"],
+        "35.0": ["35"],
+        "40.0": ["40"],
+        "42.0": ["42"],
+        "32.0": [],
+        "34.00": [],
+        "34.5": [],
+        "40.00": [],
+        "47.0": [],
+    }
+    assert decimal_shoe_misses(clean) == ()
+    dropped = dict(clean)
+    dropped["40.0"] = []
+    rows = decimal_shoe_misses(dropped)
+    assert rows[0].key == "40.0"
+    assert rows[0].left == "40"
+    widened = dict(clean)
+    widened["34.5"] = ["34"]
+    assert decimal_shoe_misses(widened)[0].key == "34.5"
+
+
+def test_decimal_shoe_window_keeps_33_and_46_outside_shop():
+    shop = {"33.0": [], "46.0": []}
+    rows = decimal_shoe_window(shop)
+    assert rows == (
+        Example("33.0", "33", "dropped"),
+        Example("46.0", "46", "dropped"),
+    )
+    assert decimal_shoe_window({"33.0": ["33"], "46.0": ["46"]}) == ()
+
+
 def test_quote_examples_flag_a_planted_tier_mismatch():
     rows = quote_examples({"1.00": 4}, {"1.00": 4}, {"1.00": 5})
     assert rows == (Example("1.00", "4", "shared 4; intake 5"),)
@@ -96,6 +132,15 @@ def test_repo_reports_the_known_boss_splits(report):
     assert any(example.key == "K003" and example.left == "K03" and example.right == "K003"
                for example in by_code["shop-normalize-no-pad"].examples)
     assert any(example.key == "D" for example in by_code["excel-letter-gap"].examples)
+    assert any(
+        example.key == "33.0" and example.left == "33" and example.right == "dropped"
+        for example in by_code["shoe-decimal-window"].examples
+    )
+    assert any(
+        example.key == "40.0" and example.left == "shop keeps 40"
+        for example in by_code["shop-parse-ignores-kind"].examples
+    )
+    assert "shoe-decimal" not in codes
 
 
 def test_snapshot_copies_agree(report):
