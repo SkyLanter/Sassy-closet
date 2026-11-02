@@ -455,8 +455,9 @@ def midnight_lines(qc):
         return lines
 
     def word(value):
+        # Status words only. Not a mã, so this does not use norm_ma.
         if isinstance(value, str):
-            token = value.strip().upper()
+            token = " ".join(value.split()).upper()
             if token in {"PASS", "FAIL", "SKIP", "WARN", "OK", "NOTE", "UNKNOWN"}:
                 return token
         return "UNKNOWN"
