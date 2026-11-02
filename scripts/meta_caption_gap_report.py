@@ -32,7 +32,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import caption_lint as cl  # noqa: E402
-from held_policy import norm_ma  # noqa: E402
+from held_policy import MA_RE, norm_ma  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DIRS = ("out", "verify")
@@ -40,11 +40,21 @@ SKIP_PARTS = {"pending-draft-prs", "node_modules", ".git", "lh"}
 LIVE_STATUS = {"available", "live", "active"}
 PLAT = {"fb": "fb", "facebook": "fb", "ig": "ig", "instagram": "ig"}
 
-NOTE_RE = re.compile(
-    r"\b(FB|IG)\b\s*(?:\"?M[ãa]\s*([A-Z][0-9]{2})\"?\s*)?(?:hair-clip\s+)?(Reel|post)\b"
-    r"(?:\s+\"?M[ãa]\s*([A-Z][0-9]{2})\"?)?(?:\s+(\d{8,}))?",
+# One to four digits. A later letter or digit is a different token, so S06B and
+# K12345 are not S06 or K12. Zero-padding is collapsed later by norm_ma.
+_MA_TOKEN = r"[A-Za-z]\s?[0-9]{1,4}(?![0-9A-Za-z])"
+_NOTE_HIT = re.compile(
+    r"\b(?P<plat>FB|IG)\b"
+    r"(?P<before>(?:\s+\"?M[ãa]\s*" + _MA_TOKEN + r"\"?)*)"
+    r"\s*(?:hair-clip\s+)?"
+    r"\b(?P<media>Reel|post)\b"
+    r"(?P<after>.*?)(?=(?:\b(?:FB|IG)\b)|$)",
     re.IGNORECASE)
-IG_MA_CAP_RE = re.compile(r"\b(FB|IG)\s+([A-Z][0-9]{2})\s+caption\b")
+_LEAD_LABEL = re.compile(r"(?iu)^[ \t\"']*M[ãa][ \t]*(" + _MA_TOKEN + r")[ \t\"']*")
+_LEAD_ID = re.compile(r"^[ \t]*(\d{8,})(?![0-9])")
+IG_MA_CAP_RE = re.compile(
+    r"\b(FB|IG)\s+(" + _MA_TOKEN + r")\s+caption\b",
+    re.IGNORECASE)
 NO_CAPTION = re.compile(r"\bno caption\b", re.IGNORECASE)
 NO_MA = re.compile(r"\bno (?:caption, )?m[ãa]\b|\bno caption, m[ãa]\b", re.IGNORECASE)
 NO_GIA = re.compile(r"\bno (?:caption, m[ãa], (?:or|and) )?gi[áa]\b|\bno gi[áa]\b", re.IGNORECASE)
@@ -127,6 +137,25 @@ def lint_snapshot(posts):
     return gaps, covered
 
 
+def _note_code(raw: str) -> str | None:
+    """Shop mã key. A short or zero-padded token collapses. Anything else is skipped."""
+    code = norm_ma(raw.replace(" ", ""))
+    return code if MA_RE.fullmatch(code) else None
+
+
+def _leading_code(text: str) -> tuple[str | None, str]:
+    """First valid Mã label at the start of text, and the text after skipped labels."""
+    rest = text
+    while True:
+        label = _LEAD_LABEL.match(rest)
+        if not label:
+            return None, rest
+        rest = rest[label.end():]
+        code = _note_code(label.group(1))
+        if code:
+            return code, rest
+
+
 def parse_notes(files):
     gaps = set()
     for p in files:
@@ -141,12 +170,22 @@ def parse_notes(files):
             if not (nc or nm or ng):
                 continue
             hits = []
-            for m in NOTE_RE.finditer(line):
-                pid = m.group(5) or (f"ma:{(m.group(2) or m.group(4)).upper()}" if (m.group(2) or m.group(4)) else None)
+            for m in _NOTE_HIT.finditer(line):
+                before_code, _ = _leading_code(m.group("before"))
+                after_code, after_rest = _leading_code(m.group("after"))
+                post_id = None
+                id_match = _LEAD_ID.match(after_rest)
+                if id_match:
+                    post_id = id_match.group(1)
+                code = before_code or after_code
+                pid = post_id or (f"ma:{code}" if code else None)
                 if pid:
-                    hits.append((PLAT[m.group(1).lower()], m.group(3).lower(), pid))
+                    hits.append((PLAT[m.group("plat").lower()], m.group("media").lower(), pid))
             for m in IG_MA_CAP_RE.finditer(line):
-                hits.append((PLAT[m.group(1).lower()], "post", f"ma:{m.group(2)}"))
+                code = _note_code(m.group(2))
+                if not code:
+                    continue
+                hits.append((PLAT[m.group(1).lower()], "post", f"ma:{code}"))
             for plat, media, pid in hits:
                 if nc or nm:
                     if not pid.startswith("ma:"):
