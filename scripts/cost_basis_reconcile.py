@@ -71,11 +71,61 @@ def _rows(path: Path | None) -> dict[str, dict]:
         return {_ma(r.get("ma")): r for r in csv.DictReader(fh) if _ma(r.get("ma"))}
 
 
+def _usd(value: object) -> float | None:
+    """A finite live dollar amount. A blank, a boolean, or junk text is absent."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, str) and not value.strip():
+        return None
+    if not isinstance(value, (int, float, str)):
+        return None
+    try:
+        usd = float(value)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(usd):
+        return None
+    return usd
+
+
+def _live_rows(rows: list) -> dict[str, float]:
+    out: dict[str, float] = {}
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        code = _ma(row.get("ma"))
+        usd = _usd(row.get("priceUsd"))
+        if code and usd is not None:
+            out[code] = usd
+    return out
+
+
 def load_live(path: Path) -> dict[str, float]:
+    """Live dollars from products[] or a prices map.
+
+    One bad row is left out. The other mãs are still read. A boolean is not
+    a dollar amount. NaN and Infinity are not dollar amounts.
+    """
     data = json.loads(Path(path).read_text(encoding="utf-8"))
-    prods = data.get("products", data) if isinstance(data, dict) else data
-    return {_ma(p["ma"]): float(p["priceUsd"]) for p in prods
-            if _ma(p.get("ma")) and p.get("priceUsd") is not None and math.isfinite(float(p["priceUsd"]))}
+    if isinstance(data, dict) and "products" in data:
+        products = data["products"]
+        if not isinstance(products, list):
+            raise ValueError(f"{path}: products must be a list")
+        return _live_rows(products)
+    if isinstance(data, dict) and "prices" in data:
+        prices = data["prices"]
+        if not isinstance(prices, dict):
+            raise ValueError(f"{path}: prices must be an object")
+        out: dict[str, float] = {}
+        for key, value in prices.items():
+            code = _ma(key)
+            usd = _usd(value)
+            if code and usd is not None:
+                out[code] = usd
+        return out
+    if isinstance(data, list):
+        return _live_rows(data)
+    raise ValueError(f"{path}: expected a catalog with products[] or a prices map")
 
 
 def gather(live: dict[str, float], intake: dict, recheck: dict, reprice: dict) -> dict[str, dict]:
