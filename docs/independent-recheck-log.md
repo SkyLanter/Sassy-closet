@@ -14,7 +14,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 | PR | Head at queue time | Title |
 | --- | --- | --- |
-| #225 | `cda92647236a` | Draft: one branch for the safe shop fixes (#217–#224) |
+| #225 | `ba5f60fa767d` | Draft: one branch for the safe shop fixes (#217–#224). Moved 2026-11-02 22:56 UTC. Prior head `cda92647236a` passed locally and was not commented, because it is no longer the head. |
 | #217 | `ee9e2a34bfb4` | Combined safe bundle #208-#216 |
 | #218 | `03c23afc58a7` | Fail closed when Blob is down, and drop held folders from other mãs |
 | #219 | `5b590c0f734e` | Keep a blank intake sell blank and parse pasted yen safely |
@@ -53,7 +53,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 | --- | --- | --- | --- |
 | #248 | `11b0ecf352730694738342674bc988f42df19285` | PASS | pytest 2120 passed, 7 skipped. Intake 277 tests / 274 pass / 0 fail / 3 skipped. Shop 218 / 215 / 0 / 3. tsc ok. Privacy CLEAN. held.json unchanged. Findings: none. Comment posted 2026-11-02. |
 
-#225 and #217–#247 are still in progress or queued. No knowledge-lane docs PR yet. #248 opened after the first queue snapshot.
+#225 moved to `ba5f60fa767d` after the local pass on `cda92647236a`. That older pass was not posted. The new head is being rechecked. #217–#247 are still in progress or queued. No knowledge-lane docs PR yet. #248 opened after the first queue snapshot.
 
 This log lives on draft PR #249 (`cursor/independent-recheck-log-cfee`). That PR is this lane's own notes, so this lane does not grade it.
 
