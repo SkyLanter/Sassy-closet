@@ -2,7 +2,8 @@ import { categoryFromSlug } from "@/lib/categories";
 import { renderShareCard } from "@/lib/og-card";
 import { coverSrc } from "@/lib/product-media";
 import { getProductsByType } from "@/lib/products";
-import { categoryShareCardFields, homeShareCardFields } from "@/lib/share-card";
+import { categoryShareCardFields } from "@/lib/share-card";
+import { shareNotFound, shareUnavailable } from "@/lib/share-card-http";
 import { loadSharePhoto } from "@/lib/share-photo";
 
 export const runtime = "nodejs";
@@ -16,10 +17,7 @@ export async function GET(
     const { slug } = await context.params;
     const type = categoryFromSlug(slug);
     if (!type) {
-      return new Response("Not found", {
-        status: 404,
-        headers: { "content-type": "text/plain; charset=utf-8" },
-      });
+      return shareNotFound();
     }
     const products = await getProductsByType(type);
     const first = products[0];
@@ -32,6 +30,6 @@ export async function GET(
     });
   } catch (error) {
     console.error("share category card failed", error instanceof Error ? error.message : "error");
-    return renderShareCard({ ...homeShareCardFields(), photo: null });
+    return shareUnavailable();
   }
 }
