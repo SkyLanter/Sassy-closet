@@ -262,9 +262,13 @@ export function storeHealth(): ReturnType<typeof storageStatus> {
   return storageStatus();
 }
 
+/** Spreadsheet formula starters. A leading apostrophe keeps the cell as text. */
+const CSV_FORMULA_START = /^[=+\-@\t\r]/;
+
 function csvCell(value: string): string {
-  if (/[",\n]/.test(value)) return `"${value.replaceAll('"', '""')}"`;
-  return value;
+  const text = CSV_FORMULA_START.test(value) ? `'${value}` : value;
+  if (text !== value || /[",\n]/.test(text)) return `"${text.replaceAll('"', '""')}"`;
+  return text;
 }
 
 function postedSell(currency: string, usd: string, cny: string): string {
