@@ -129,6 +129,53 @@ def test_reduced_s06_drift_fails(tmp_path):
     assert reduced(write_snap(tmp_path, S06={"sellUsd": 27})) == 2
 
 
+def _append_row(tmp_path, row):
+    snap = json.loads(FIXTURE.read_text(encoding="utf-8"))
+    snap["items"].append(row)
+    path = tmp_path / "snap.json"
+    path.write_text(json.dumps(snap))
+    return path
+
+
+def _snapshot_section(tmp_path, snap_path):
+    out = tmp_path / "r.json"
+    rc = reduced(snap_path, "--out-json", str(out))
+    report = json.loads(out.read_text(encoding="utf-8"))
+    section = next(s for s in report["sections"] if s["name"] == "snapshot_rules")
+    return rc, section
+
+
+def test_later_padded_live_s06_off_lock_fails(tmp_path):
+    path = _append_row(tmp_path, {"ma": "S006", "live": True, "sellUsd": 30, "held": False})
+    rc, section = _snapshot_section(tmp_path, path)
+    assert rc == 2 and section["status"] == "FAIL"
+    assert section["fail"] == ["S06 off $25 lock: 30"]
+
+
+def test_later_live_s06_at_float_lock_still_passes(tmp_path):
+    path = _append_row(tmp_path, {"ma": " s06 ", "live": True, "sellUsd": 25.0, "held": False})
+    rc, section = _snapshot_section(tmp_path, path)
+    assert rc == 0 and section["status"] == "PASS" and section["fail"] == []
+
+
+def test_later_padded_s06_not_live_does_not_fail_the_lock(tmp_path):
+    path = _append_row(tmp_path, {"ma": "S006", "live": False, "sellUsd": 40, "held": False})
+    rc, section = _snapshot_section(tmp_path, path)
+    assert rc == 0 and section["status"] == "PASS"
+
+
+def test_every_off_lock_live_s06_price_is_named(tmp_path):
+    snap = json.loads(FIXTURE.read_text(encoding="utf-8"))
+    next(i for i in snap["items"] if i["ma"] == "S06")["sellUsd"] = 27
+    snap["items"].append({"ma": "S6", "live": True, "sellUsd": None, "held": False})
+    path = tmp_path / "snap.json"
+    path.write_text(json.dumps(snap))
+    rc, section = _snapshot_section(tmp_path, path)
+    assert rc == 2
+    assert section["fail"] == ["S06 off $25 lock: 27, None"]
+    assert any("S06" in line for line in section["warn"])
+
+
 def test_reduced_missing_price_warns_and_warn_ok(tmp_path):
     p = write_snap(tmp_path, Z01={"sellUsd": None})
     assert reduced(p) == 1
