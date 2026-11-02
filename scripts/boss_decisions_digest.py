@@ -11,6 +11,7 @@ import argparse
 import json
 import re
 import sys
+from datetime import date
 from pathlib import Path
 
 from held_policy import norm_ma
@@ -24,6 +25,10 @@ GLOBS = [
 MA_RE = re.compile(r"\b([A-Z]\d{2})\b")
 DATE_RE = re.compile(r"(\d{4}-\d{2}-\d{2})")
 CLOSED_RE = re.compile(r"\b(approved|resolved|done|closed|decided)\b", re.I)
+NOT_CLOSED_RE = re.compile(
+    r"\b(?:not|never)\s+(approved|resolved|done|closed|decided)\b",
+    re.I,
+)
 BOSS_RE = re.compile(r"\bboss\b", re.I)
 # Piece 52: blob/photo/delete must sit NEAR the ma (same line or same bullet).
 BLOB_KW = re.compile(r"\b(blob|photos?|cover)\b", re.I)
@@ -40,9 +45,34 @@ CATEGORIES = [
 ]
 
 
-def file_date(p: Path):
-    m = DATE_RE.search(p.name) or DATE_RE.search(p.parent.name)
-    return m.group(1) if m else None
+def _calendar_day(value: str) -> bool:
+    try:
+        date.fromisoformat(value)
+    except ValueError:
+        return False
+    return True
+
+
+def file_date(p: Path, stop: Path | None = None):
+    """Date in the file name, else the nearest real YYYY-MM-DD directory.
+
+    The walk includes ``stop`` itself and stops there, so a date-named
+    directory above the scan root cannot become first_seen.
+    """
+    named = DATE_RE.search(p.name)
+    if named and _calendar_day(named.group(1)):
+        return named.group(1)
+    halt = None if stop is None else Path(stop).resolve()
+    for parent in p.parents:
+        if DATE_RE.fullmatch(parent.name) and _calendar_day(parent.name):
+            return parent.name
+        if halt is not None and parent.resolve() == halt:
+            break
+    return None
+
+
+def line_is_closed(text):
+    return CLOSED_RE.search(NOT_CLOSED_RE.sub(" ", text)) is not None
 
 
 def classify(line):
@@ -79,7 +109,7 @@ def units(text):
 def blob_hits(kind, unit):
     """Mas whose nearby window (same line/bullet) has blob-word AND delete/public-word."""
     out = []
-    if CLOSED_RE.search(unit) or not BOSS_RE.search(unit):
+    if line_is_closed(unit) or not BOSS_RE.search(unit):
         return out
     for m in MA_RE.finditer(unit):
         win = unit[max(0, m.start() - NEAR): m.end() + NEAR]
@@ -107,8 +137,8 @@ def scan(root: Path, public_held=None, explain=None):
     files = set()
     for g in GLOBS:
         files.update(root.glob(g))
-    for p in sorted(files, key=lambda x: (file_date(x) or "9999", str(x))):
-        d = file_date(p) or "unknown"
+    for p in sorted(files, key=lambda x: (file_date(x, root) or "9999", str(x))):
+        d = file_date(p, root) or "unknown"
         try:
             text = p.read_text(encoding="utf-8", errors="replace")
         except OSError:
@@ -122,7 +152,7 @@ def scan(root: Path, public_held=None, explain=None):
                     seen[key] = (str(p.relative_to(root)), d)
                     rules[key] = rule
         for line in text.splitlines():
-            if CLOSED_RE.search(line):
+            if line_is_closed(line):
                 continue
             cat = classify(line)
             if not cat:

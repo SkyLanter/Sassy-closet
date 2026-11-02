@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import math
 import re
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 
-from autolist import listing_quote
+from autolist import invalid_size_tokens, listing_quote
 from held_policy import HeldPolicy, norm_ma
 
 S06_LOCK = 25
@@ -14,6 +15,7 @@ S06_LOCK = 25
 INTAKE_FX = Decimal("6.723")
 DEBOX_USD = {"V": Decimal("7.50"), "Q": Decimal("7.50"), "D": Decimal("7.50")}
 _CNY_RE = re.compile(r"^\d+(?:\.\d+)?$")
+_WHOLE_COUNT_RE = re.compile(r"\d+(?:\.\d+)?")
 
 
 @dataclass(frozen=True)
@@ -102,6 +104,8 @@ def plan_pickups(events: list[PickupEvent], policy: HeldPolicy) -> list[PickupDe
             decisions.append(_listed_edit(event, code))
             continue
         missing = _missing_taobao(event)
+        if invalid_size_tokens(" ".join(event.sizes), code):
+            missing.append("invalid_size")
         if missing:
             decisions.append(
                 _decision(
@@ -143,6 +147,26 @@ def plan_pickups(events: list[PickupEvent], policy: HeldPolicy) -> list[PickupDe
     return decisions
 
 
+def photo_count_or_none(value: object) -> int | None:
+    if value is None or isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value if value >= 0 else None
+    if isinstance(value, float):
+        if not math.isfinite(value) or value < 0 or not value.is_integer():
+            return None
+        return int(value)
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    if _WHOLE_COUNT_RE.fullmatch(text) is None:
+        return None
+    number = Decimal(text)
+    if not number.is_finite() or number < 0 or number != number.to_integral_value():
+        return None
+    return int(number)
+
+
 def events_from_json(value: object) -> list[PickupEvent]:
     if value is None:
         return []
@@ -155,8 +179,7 @@ def events_from_json(value: object) -> list[PickupEvent]:
         sizes_raw = item.get("sizes", [])
         if not isinstance(sizes_raw, list) or not all(isinstance(part, str) for part in sizes_raw):
             raise ValueError("fixture pickup sizes must be a list of strings")
-        photos = item.get("photo_count")
-        photo_count = None if photos is None else int(photos)
+        photo_count = photo_count_or_none(item.get("photo_count"))
         events.append(
             PickupEvent(
                 ma=norm_ma(item["ma"]),
