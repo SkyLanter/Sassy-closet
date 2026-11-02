@@ -21,4 +21,4 @@ Boss, files left as they are:
 
 Tier quotes, flat 25% quotes, clothing ladders, and the canonical mã helpers matched.
 
-Hard recheck: PASS on eaee3c1 against origin/main (`out/recheck/20261102-204014-13083`). pytest 2123 passed. Privacy CLEAN. Intake tsc and shop tsc ok. held.json unchanged. No recheck step was SKIP.
+Hard recheck: PASS against origin/main after npm ci in both apps. pytest 2123 passed. Privacy CLEAN. Intake and shop test suites and tsc passed. held.json unchanged. No recheck step was SKIP.
