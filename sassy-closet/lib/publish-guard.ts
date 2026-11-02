@@ -4,6 +4,7 @@
  */
 import type { KindCode } from "./kinds";
 import { isHeldIncompleteMa, NEVER_LIST_MAS } from "./held-incomplete";
+import { readMoney } from "./money-text";
 import { nextMa, normalizeMa } from "./mint";
 
 export type PublishAction = "create" | "update" | "mint" | "sync";
@@ -40,12 +41,11 @@ export function publishBlock(intent: PublishIntent): string | null {
 
 export function wholeDollars(raw: string | null | undefined): number | null {
   if (raw == null) return null;
-  const text = raw.trim().replace(/^\$/, "").replace(/,/g, "");
-  if (text === "") return null;
-  if (!/^\d+(?:\.\d+)?$/.test(text)) return Number.NaN;
-  const value = Number(text);
-  if (!Number.isFinite(value) || value !== Math.trunc(value)) return Number.NaN;
-  return value;
+  const parsed = readMoney(raw, "USD");
+  if (parsed.kind === "blank") return null;
+  if (parsed.kind !== "amount") return Number.NaN;
+  if (!Number.isFinite(parsed.value) || parsed.value !== Math.trunc(parsed.value)) return Number.NaN;
+  return parsed.value;
 }
 
 export function mintBlock(kind: KindCode, existing: readonly string[]): string | null {
