@@ -2,7 +2,7 @@
 
 ## 2026-11-02 — Hard recheck on pull requests
 
-Branch `cursor/hard-recheck-ci-9477`.
+Branch `cursor/hard-recheck-ci-9477`. Draft PR #232.
 
 Added `.github/workflows/hard-recheck.yml`. On pull request and on demand it installs both apps, then runs `scripts/run_hard_recheck_ci.sh`. That runs `scripts/hard_recheck.sh --json --base origin/main` and fails if the result is not PASS or any required step is missing or not PASS. `hard_recheck.sh` still counts a required SKIP as PASS; the new assert closes that hole. No schedule, no deploy, no secret, contents read only. `data/held.json` was not edited.
 
