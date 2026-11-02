@@ -1,0 +1,15 @@
+---
+description: Sassy Closet hard rules for drafts, prices, held mãs, intake, and Meta
+alwaysApply: true
+---
+
+# Shop hard rules
+
+Full citations live in `docs/knowledge/rules.md`. The short form:
+
+- Draft pull requests only. Boss merges. Do not merge, close, or approve.
+- No live price, Blob, Square, or Meta change without Boss. S06 stays $25.
+- `data/held.json` mãs stay held. Their sell-shop product pages stay 404. Do not publish an incomplete Taobao mã.
+- Intake stays open by link. No login gate. `/api` and `/admin` stay noindex.
+- Do not delete or repost a Meta post. Checkers are read-only (mã, Giá, size, format).
+- Keep visual changes out of a script or data fix.

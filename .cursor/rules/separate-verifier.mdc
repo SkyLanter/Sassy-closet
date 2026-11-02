@@ -1,0 +1,15 @@
+---
+description: A separate non-fast agent must recheck work and comment PASS or FAIL
+alwaysApply: true
+---
+
+# Separate recheck before done
+
+Nothing counts as done until a separate agent that did not build the change rechecks it against the real code, data, and tests.
+
+- Do not use a fast model for that recheck.
+- The agent posts PASS or FAIL with evidence as a comment on the draft pull request.
+- The author's own test run is not that comment.
+- Leave the pull request as a draft. Boss merges.
+
+This rule is recorded in `docs/knowledge/rules.md`.
