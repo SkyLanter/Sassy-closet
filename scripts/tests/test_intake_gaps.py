@@ -62,6 +62,23 @@ def test_trailing_zero_counts_as_the_allowed_chip_and_the_row_stays():
     assert [gap["detail"] for gap in hundredth_gaps] == ["size not allowed for G: 35.00"]
 
 
+def test_delimiter_split_matches_listing_and_the_row_stays():
+    row = r(ma="G01", kind="G", size="35;36|37")
+    before = copy.deepcopy(row)
+    assert "size" not in types(run(row))
+    assert row == before
+    mixed = run(r(ma="G01", kind="G", size="35;44"))
+    mixed_gaps = [gap for gap in mixed["gaps"] if gap["type"] == "size"]
+    assert [gap["detail"] for gap in mixed_gaps] == ["size not allowed for G: 44"]
+    blank = run(r(ma="G01", kind="G", size=";;;"))
+    blank_gaps = [gap for gap in blank["gaps"] if gap["type"] == "size"]
+    assert [gap["detail"] for gap in blank_gaps] == ["no size"]
+    assert "size" not in types(run(r(size="S;M")))
+    odd = run(r(size="S;99"))
+    odd_gaps = [gap for gap in odd["gaps"] if gap["type"] == "size"]
+    assert [gap["detail"] for gap in odd_gaps] == ["size not allowed for A: 99"]
+
+
 def test_size_missing_bad_and_not_needed():
     assert "size" in types(run(r(size="")))
     assert "size" in types(run(r(ma="G01", kind="G", size="35 44")))

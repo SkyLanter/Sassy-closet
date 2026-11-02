@@ -25,7 +25,7 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 from autolist import ASIA, S06_LOCK_USD, SHOE_EU, is_valid_size, margin_for_sell, norm_sizes, price
-from intake_gaps import disallowed_size_tokens
+from intake_gaps import disallowed_size_tokens, row_gaps
 from held_policy import load_held_policy, norm_ma
 from size_gap import CLOTHING_STEPS
 
@@ -241,6 +241,49 @@ def gap_size_findings(shoe_list: Sequence[str]) -> list[Finding]:
         "fail",
         "gap-shoe-decimal",
         "the intake gap report does not treat a trailing .0 as the allowed shoe chip",
+        misses,
+    )]
+
+
+def gap_split_findings(shoe_list: Sequence[str]) -> list[Finding]:
+    """The gap report splits sizes on the same separators as autolist.norm_sizes.
+
+    A trailing .0 still uses the chip rule. Out-of-list digits stay flagged.
+    A value that is only separators is no size. The stored row is not rewritten.
+    """
+    allowed = set(shoe_list)
+    misses: list[Example] = []
+    for raw in ("35;36", "40.0;35", "35;36|37/38,40.0"):
+        bad = disallowed_size_tokens(raw, shoe_list)
+        kept = [size for size in norm_sizes(raw, "G") if size in allowed]
+        if bad:
+            misses.append(Example(raw, "allowed", " ".join(bad)))
+        elif not kept:
+            misses.append(Example(raw, "split", "no chip"))
+    mixed = disallowed_size_tokens("35;44", shoe_list)
+    if mixed != ["44"]:
+        misses.append(Example("35;44", "44", " ".join(mixed) if mixed else "allowed"))
+    clothing = disallowed_size_tokens("S;M", ASIA)
+    if clothing:
+        misses.append(Example("S;M", "allowed", " ".join(clothing)))
+    odd = disallowed_size_tokens("S;99", ASIA)
+    if odd != ["99"]:
+        misses.append(Example("S;99", "99", " ".join(odd) if odd else "allowed"))
+    blank_gaps, _suspect = row_gaps(
+        {"ma": "G01", "kind": "G", "size": ";;;"},
+        {},
+        {},
+        {"G": tuple(shoe_list)},
+    )
+    details = [gap["detail"] for gap in blank_gaps if gap["type"] == "size"]
+    if details != ["no size"] or norm_sizes(";;;", "G"):
+        misses.append(Example(";;;", "no size", " ".join(details) if details else "kept"))
+    if not misses:
+        return []
+    return [_note(
+        "fail",
+        "gap-size-split",
+        "the intake gap report does not split sizes on the same separators as autolist",
         misses,
     )]
 
@@ -969,6 +1012,7 @@ def _price_findings(intake: Mapping[str, object], shop: Mapping[str, object]) ->
         shoe_list,
     ))
     findings.extend(gap_size_findings(shoe_list))
+    findings.extend(gap_split_findings(shoe_list))
     return findings
 
 

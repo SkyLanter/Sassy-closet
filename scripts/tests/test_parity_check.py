@@ -23,6 +23,7 @@ from parity_check import (
     disallowed_size_tokens,
     dollar_text,
     gap_size_findings,
+    gap_split_findings,
     dual_cost_findings,
     import_size_findings,
     intake_decimal_findings,
@@ -182,6 +183,18 @@ def test_gap_report_accepts_a_trailing_zero_inside_the_shoe_list():
     assert gap_size_findings(())[0].code == "gap-shoe-decimal"
 
 
+def test_gap_report_splits_sizes_on_the_same_separators_as_listing():
+    shoe = ("35", "36", "37", "38", "39", "40", "41")
+    assert disallowed_size_tokens("35;36", shoe) == []
+    assert disallowed_size_tokens("40.0;35", shoe) == []
+    assert disallowed_size_tokens("35;36|37/38,40.0", shoe) == []
+    assert disallowed_size_tokens("35;44", shoe) == ["44"]
+    assert disallowed_size_tokens("S;M", ("S", "M")) == []
+    assert disallowed_size_tokens("S;99", ("S", "M")) == ["99"]
+    assert gap_split_findings(shoe) == []
+    assert gap_split_findings(())[0].code == "gap-size-split"
+
+
 def test_quote_examples_flag_a_planted_tier_mismatch():
     rows = quote_examples({"1.00": 4}, {"1.00": 4}, {"1.00": 5})
     assert rows == (Example("1.00", "4", "shared 4; intake 5"),)
@@ -218,6 +231,7 @@ def test_repo_reports_the_known_boss_splits(report):
     assert "import-shoe-size" not in codes
     assert "intake-shoe-decimal" not in codes
     assert "gap-shoe-decimal" not in codes
+    assert "gap-size-split" not in codes
     assert any(
         example.key == "O" and example.left == "autolist keeps 36" and example.right == "import drops 36"
         for example in by_code["import-kind-o"].examples

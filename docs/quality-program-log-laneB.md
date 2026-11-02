@@ -103,3 +103,18 @@ Boss, files left as they are:
 - Shop `calcPricing` still prefers the yen figure when both cost fields are set. For kind Q the named USD landed is 17.50 and the shop landed is 22.37. That formula was not changed.
 
 Hard recheck: PASS against origin/main after npm ci in both apps, on ae06396. pytest 2130 passed, 7 skipped. Privacy CLEAN. Intake tests 278 pass, 275 fail 0, skipped 3. Shop tests 222 pass, 219 fail 0, skipped 3. tsc passed in both apps. held.json unchanged. No recheck step was SKIP. The 7 and 3 skips are the existing empty never-list cases inside the suites.
+
+## 2026-11-02 pass 7
+
+The intake gap report split sizes only on comma and whitespace. A shoe size written `35;36` was one illegal token, while listing kept 35 and 36. Semicolon, slash, and pipe now split the same way. A value that is only separators, such as `;;;`, is no size. A single trailing `.0` still counts as the two digits when that size is on the kind's list. `35;44` still flags 44. The stored row is not rewritten. No catalog price was edited. `data/held.json` was not edited.
+
+Checker: code fails 0, Boss notes 17. Fail code `gap-size-split` is absent on this repo.
+
+Boss, files left as they are:
+
+- `sassy-closet-shop/data/intake-extras.json` has S06 at $26. The live snapshot has S06 at $25.
+- Extras versus live snapshot: A16 34 vs 31, S05 25 vs 26, S06 26 vs 25, S07 44 vs 38, S08 35 vs 37, S09 42 vs 36, V01 25 vs 39, V02 31 vs 40.
+- `products.json` versus the live snapshot: 28 mãs differ (A03 is 25 in the seed and 22 live). 22 live mãs are absent from the seed, including S06.
+- Shop `calcPricing` still prefers the yen figure when both cost fields are set. For kind Q the named USD landed is 17.50 and the shop landed is 22.37. That formula was not changed.
+
+Hard recheck: PASS against origin/main after npm ci in both apps, on 4409a7e. pytest 2132 passed, 7 skipped. Privacy CLEAN. Intake tests 278 pass, 275 fail 0, skipped 3. Shop tests 222 pass, 219 fail 0, skipped 3. tsc passed in both apps. held.json unchanged. No recheck step was SKIP. The 7 and 3 skips are the existing empty never-list cases inside the suites. Log `out/recheck/20261102-230328-57290`.
