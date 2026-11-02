@@ -47,15 +47,19 @@ import sys
 import unicodedata
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from held_policy import norm_ma
+from held_policy import MA_RE, norm_ma
 
 ROOT = Path(__file__).resolve().parents[1]
 S06_LOCK = 25.0
 
 CANON_MA_LINE = re.compile(r"^Mã ([A-Z][0-9]{2})$")
 # loose mã: Mã/Ma/ma/MÃ/Mả/Má/M, optional : # . -, optional space, code
-LOOSE_MA = re.compile(r"(?<![0-9A-Za-zÀ-ỹ])m(?:ã|a|ả|á|à|ạ)?\s*[:#.\-]?\s*([A-Za-z]\s?[0-9]{2})(?![0-9])",
-                      re.IGNORECASE)
+# One to four digits so K3 / K003 can be collapsed by norm_ma. A longer
+# digit run still fails the trailing (?![0-9]) and is not a mã.
+LOOSE_MA = re.compile(
+    r"(?<![0-9A-Za-zÀ-ỹ])m(?:ã|a|ả|á|à|ạ)?\s*[:#.\-]?\s*([A-Za-z]\s?[0-9]{1,4})(?![0-9])",
+    re.IGNORECASE,
+)
 CANON_GIA = re.compile(r"(?<![A-Za-zÀ-ỹ])Giá \$(\d+(?:\.\d{1,2})?)(?![\d.])")
 LOOSE_GIA = re.compile(
     r"(?<![A-Za-zÀ-ỹ])gi[áa]\s*[:\-–]?\s*(?:\$\s*(\d+(?:[.,]\d{1,2})?)"
@@ -92,16 +96,25 @@ def clean_caption(text: str) -> str:
     return "\n".join(part.strip() for part in re.split(r"\s\|\s|\n", t))
 
 
+def _caption_code(raw: str) -> str | None:
+    """Shop mã key. K3 and K003 become K03. Anything else is not a caption mã."""
+    code = norm_ma(raw.replace(" ", ""))
+    return code if MA_RE.fullmatch(code) else None
+
+
 def find_ma(text: str) -> tuple[str | None, list[str]]:
     lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
     first = lines[0] if lines else ""
     m = CANON_MA_LINE.match(first)
     if m:
-        return m.group(1), []
+        code = _caption_code(m.group(1))
+        if code:
+            return code, []
     for i, ln in enumerate(lines):
-        lm = LOOSE_MA.search(ln)
-        if lm:
-            code = lm.group(1).replace(" ", "").upper()
+        for lm in LOOSE_MA.finditer(ln):
+            code = _caption_code(lm.group(1))
+            if not code:
+                continue
             why = "malformed_ma" if i == 0 else "malformed_ma:not_line_1"
             return code, [f"{why} (saw {lm.group(0).strip()!r}, want 'Mã {code}' on line 1)"]
     return None, ["missing_ma"]
