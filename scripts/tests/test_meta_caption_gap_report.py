@@ -84,6 +84,18 @@ def test_padded_note_ma_uses_the_shop_key(tmp_path):
     assert not any("S06B" in item or item == "ma:K12345" for item in ids)
 
 
+def test_stuck_suffix_note_is_not_s06(tmp_path):
+    notes = (
+        "FB Reel Mã S06Đ has no Giá.\n"
+        "IG Reel Mã S06\uFF22 has no Giá.\n"
+        "FB post Mã S06\u200bB has no Giá.\n"
+        "IG S06Đ caption has no Giá.\n"
+    )
+    rep = g.build([mk(tmp_path, notes=notes) / "out"])
+    ids = [item[2] for item in rep["no_gia"]]
+    assert "ma:S06" not in ids
+
+
 def test_cli_never_prints_caption(tmp_path, capsys):
     root = mk(tmp_path, posts=[P("9", f"{SECRET} no code here")])
     rc = g.main(["--root", str(root), "--dirs", "out"])

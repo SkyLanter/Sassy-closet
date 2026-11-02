@@ -53,4 +53,4 @@ Hard recheck on `b04dabf` (`scripts/hard_recheck.sh --base origin/main`): **PASS
 
 PR: https://github.com/SkyLanter/Sassy-closet/pull/224 (draft).
 
-Skipped as not real enough to ship: `run_shop_drafts.py` writes proposals under the report dir while `daily_summary_draft.py` reads `$SASSY_OUT/proposals` unless `--proposal` is passed. The shop-draft tests lock that step list. Not changed.
+The shop-draft run points the daily summary at `held-price-proposal-{date}.json` under that run's report dir. `scripts/run_shop_drafts.py` passes `--proposal` to that file, and `scripts/tests/test_run_shop_drafts.py` locks the path.

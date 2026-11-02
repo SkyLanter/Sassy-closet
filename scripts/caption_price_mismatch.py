@@ -12,7 +12,7 @@ import re
 from dataclasses import dataclass
 from decimal import Decimal
 from pathlib import Path
-from held_policy import norm_ma
+from held_policy import MA_TOKEN_TAIL, norm_ma
 
 MISMATCH = "mismatch"
 KINDS = (MISMATCH,)
@@ -23,11 +23,14 @@ _GIA_LINE = re.compile(r"(?iu)^[ \t]*(?:giá|gia)\b[ \t]*:?[ \t]*(?P<rest>.*)$")
 # zero-padded code can collapse to the catalog key. The token must end
 # before another letter or digit, and a later label on the same line still counts.
 _MA_LABEL = re.compile(
-    r"(?iu)(?:^|\n|(?<=\s))[ \t]*(?:mã|ma|m)[ \t]+([A-Za-z]\s?\d{1,4})(?![0-9A-Za-z])"
+    r"(?iu)(?:^|\n|(?<=\s))[ \t]*(?:mã|ma|m)[ \t]+([A-Za-z]\s?\d{1,4})"
+    + MA_TOKEN_TAIL
 )
 # A line that is only the mã.
 _MA_BARE = re.compile(
-    r"(?iu)(?:^|\n)[ \t]*([A-Za-z]\d{1,4})(?![0-9A-Za-z])[ \t]*(?:$|\n)"
+    r"(?iu)(?:^|\n)[ \t]*([A-Za-z]\d{1,4})"
+    + MA_TOKEN_TAIL
+    + r"[ \t]*(?:$|\n)"
 )
 _MA_CODE = re.compile(r"[A-Z]\d{2}")
 _YEN = re.compile(r"¥[ \t]*\d+(?:\.\d+)?|(?<![A-Za-z\d.$])\d+(?:\.\d+)?[ \t]*¥")

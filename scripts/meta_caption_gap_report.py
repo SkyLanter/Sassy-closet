@@ -32,7 +32,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import caption_lint as cl  # noqa: E402
-from held_policy import MA_RE, norm_ma  # noqa: E402
+from held_policy import MA_RE, MA_TOKEN_TAIL, norm_ma  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DIRS = ("out", "verify")
@@ -40,9 +40,9 @@ SKIP_PARTS = {"pending-draft-prs", "node_modules", ".git", "lh"}
 LIVE_STATUS = {"available", "live", "active"}
 PLAT = {"fb": "fb", "facebook": "fb", "ig": "ig", "instagram": "ig"}
 
-# One to four digits. A later letter or digit is a different token, so S06B and
-# K12345 are not S06 or K12. Zero-padding is collapsed later by norm_ma.
-_MA_TOKEN = r"[A-Za-z]\s?[0-9]{1,4}(?![0-9A-Za-z])"
+# One to four digits. A later letter or digit is a different token, so S06B,
+# S06Đ, and K12345 are not S06 or K12. Zero-padding is collapsed later by norm_ma.
+_MA_TOKEN = r"[A-Za-z]\s?[0-9]{1,4}" + MA_TOKEN_TAIL
 _NOTE_HIT = re.compile(
     r"\b(?P<plat>FB|IG)\b"
     r"(?P<before>(?:\s+\"?M[ãa]\s*" + _MA_TOKEN + r"\"?)*)"

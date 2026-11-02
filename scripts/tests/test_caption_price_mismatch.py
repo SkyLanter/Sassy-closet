@@ -152,6 +152,19 @@ def test_padded_s06_caption_is_compared_to_the_catalog_lock() -> None:
     assert wrong.text == "Mã S006\nGiá: $30"
 
 
+def test_stuck_suffix_is_not_compared_to_s06() -> None:
+    catalog = {"S06": CatalogPrice("S06", Decimal("25"), "25")}
+    captions = [
+        Caption("viet", "Mã S06Đ\nGiá: $30"),
+        Caption("wide", "Mã S06\uFF22\nGiá: $30"),
+        Caption("zwsp", "Mã S06\u200bB\nGiá: $30"),
+        Caption("real", "Mã S06\nGiá: $30"),
+    ]
+    result = compare_prices(captions, catalog)
+    assert [(item.caption_id, item.ma) for item in result.findings] == [("real", "S06")]
+    assert catalog["S06"].amount == Decimal("25")
+
+
 def test_s06_wrong_caption_is_flagged_without_changing_catalog_25() -> None:
     catalog = {"S06": CatalogPrice("S06", Decimal("25"), "25")}
     caption = Caption("s06-wrong", "Mã S06\nGiá: $30")

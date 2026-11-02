@@ -47,7 +47,7 @@ import sys
 import unicodedata
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from held_policy import MA_RE, norm_ma
+from held_policy import MA_RE, MA_TOKEN_TAIL, norm_ma
 
 ROOT = Path(__file__).resolve().parents[1]
 S06_LOCK = 25.0
@@ -55,9 +55,10 @@ S06_LOCK = 25.0
 CANON_MA_LINE = re.compile(r"^Mã ([A-Z][0-9]{2})$")
 # loose mã: Mã/Ma/ma/MÃ/Mả/Má/M, optional : # . -, optional space, code
 # One to four digits so K3 / K003 can be collapsed by norm_ma. A longer
-# digit run, or a letter stuck on the end (S006B), is not this mã.
+# digit run, or a letter stuck on the end (S006B, S06Đ, fullwidth B), is not this mã.
 LOOSE_MA = re.compile(
-    r"(?<![0-9A-Za-zÀ-ỹ])m(?:ã|a|ả|á|à|ạ)?\s*[:#.\-]?\s*([A-Za-z]\s?[0-9]{1,4})(?![0-9A-Za-z])",
+    r"(?<![0-9A-Za-zÀ-ỹ])m(?:ã|a|ả|á|à|ạ)?\s*[:#.\-]?\s*([A-Za-z]\s?[0-9]{1,4})"
+    + MA_TOKEN_TAIL,
     re.IGNORECASE,
 )
 CANON_GIA = re.compile(r"(?<![A-Za-zÀ-ỹ])Giá \$(\d+(?:\.\d{1,2})?)(?![\d.])")

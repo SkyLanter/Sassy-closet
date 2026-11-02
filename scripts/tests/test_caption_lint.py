@@ -110,6 +110,26 @@ def test_trailing_letter_is_not_s06():
     assert later.ma == "S06" and later.status == "FAIL" and has(later, "s06_not_25")
 
 
+def test_stuck_suffix_is_not_s06():
+    samples = (
+        "Mã S06Đ\nGiá $30",
+        "Mã S6Đ\nGiá $30",
+        "Mã S006Đ\nGiá $30",
+        "Mã S06\uFF22\nGiá $30",
+        "Mã S06\u200bB\nGiá $30",
+        "Mã S06\uFF11\nGiá $30",
+    )
+    for caption in samples:
+        stuck = lint(caption)
+        assert stuck.ma is None and stuck.status == "FAIL" and has(stuck, "missing_ma"), caption
+        assert not has(stuck, "s06_not_25")
+    later = lint("Mã S06Đ Mã S06\nGiá $30")
+    assert later.ma == "S06" and later.status == "FAIL" and has(later, "s06_not_25")
+    spaced = lint("Mã S06 Đỏ\nGiá $30")
+    assert spaced.ma == "S06" and has(spaced, "s06_not_25")
+    assert lint("Mã S06\nGiá $25").status == "PASS"
+
+
 def test_rejected_spelling_does_not_hide_the_next_ma():
     later = lint("Mã A100 Mã A09\nGiá $30")
     assert later.ma == "A09" and later.status == "WARN" and has(later, "malformed_ma")

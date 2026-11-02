@@ -66,6 +66,16 @@ def test_s06_locked_even_if_list_says_otherwise(tmp_path):
     assert g.load_prices(l)["S06"] == 25.0
 
 
+def test_stuck_suffix_is_not_s06():
+    prices = g.load_prices()
+    for caption in ("Mã S06Đ\nGiá $30", "Mã S06\uFF22\nGiá $30", "Mã S06\u200bB\nGiá $30"):
+        flags = g.check_post({"id": "stuck", "caption": caption}, prices)
+        assert not any(flag["ma"] == "S06" or flag["issue"] == "gia_differs" for flag in flags)
+        assert any(flag["issue"] == "missing_ma" for flag in flags)
+    real = g.check_post({"id": "real", "caption": "Mã S06\nGiá $30"}, prices)
+    assert any(flag["ma"] == "S06" and flag["issue"] == "gia_differs" for flag in real)
+
+
 def test_unnormalized_price_key_still_flags_a_wrong_gia(tmp_path):
     posts = [
         {"id": "1", "platform": "fb", "caption": "Mã A08\nGiá $31"},
