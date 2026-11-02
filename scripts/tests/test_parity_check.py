@@ -23,6 +23,8 @@ from parity_check import (
     dollar_text,
     dual_cost_findings,
     import_size_findings,
+    intake_decimal_findings,
+    intake_g_decimal_expected,
     main,
     price_disagreements,
     quote_examples,
@@ -153,6 +155,20 @@ def test_import_size_flags_a_dropped_shoe_token():
     assert import_size_findings(kept_o) == []
 
 
+def test_intake_decimal_flags_a_dropped_trailing_zero():
+    tokens = ("40.0", "34.0", "42.0", "40.00", "35", "S")
+    shoe = ("35", "36", "37", "38", "39", "40", "41")
+    assert intake_g_decimal_expected(tokens, shoe) == ("40", "35")
+    clean = {"keepGDecimal": ["40", "35"], "keepADecimal": ["S"], "decimalChips": list(tokens)}
+    assert intake_decimal_findings(clean, tokens, shoe) == []
+    dropped = dict(clean)
+    dropped["keepGDecimal"] = ["35"]
+    rows = intake_decimal_findings(dropped, tokens, shoe)
+    assert rows[0].severity == "fail"
+    assert rows[0].code == "intake-shoe-decimal"
+    assert rows[0].examples[0].key == "G"
+
+
 def test_quote_examples_flag_a_planted_tier_mismatch():
     rows = quote_examples({"1.00": 4}, {"1.00": 4}, {"1.00": 5})
     assert rows == (Example("1.00", "4", "shared 4; intake 5"),)
@@ -187,6 +203,7 @@ def test_repo_reports_the_known_boss_splits(report):
     assert "shoe-decimal" not in codes
     assert "dual-cost-landed" not in codes
     assert "import-shoe-size" not in codes
+    assert "intake-shoe-decimal" not in codes
     assert any(
         example.key == "O" and example.left == "autolist keeps 36" and example.right == "import drops 36"
         for example in by_code["import-kind-o"].examples

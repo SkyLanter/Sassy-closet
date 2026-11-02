@@ -118,7 +118,17 @@ export function sizeOptionsLine(kind: KindCode): string {
 
 export function keepSizesForKind(selected: string[], kind: KindCode): string[] {
   const allowed = new Set<string>(sizesForKind(kind));
-  return selected.filter((size) => allowed.has(size));
+  const kept: string[] = [];
+  for (const size of selected) {
+    const trimmed = size.trim();
+    const match = trimmed.match(/^(\d{2})(?:\.0)?$/);
+    const digits = match ? match[1] : "";
+    const next = allowed.has(trimmed) ? trimmed : digits && allowed.has(digits) ? digits : "";
+    if (next && !kept.includes(next)) {
+      kept.push(next);
+    }
+  }
+  return kept;
 }
 
 export function intakeCatalog(): IntakeCatalog {

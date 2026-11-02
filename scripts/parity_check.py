@@ -185,6 +185,40 @@ def dual_cost_findings(intake: Mapping[str, object], shop: Mapping[str, object])
     )]
 
 
+def intake_g_decimal_expected(tokens: Sequence[str], shoe_list: Sequence[str]) -> tuple[str, ...]:
+    """In-window trailing .0 that autolist keeps and the intake shoe list allows."""
+    allowed = set(shoe_list)
+    out: list[str] = []
+    for token in tokens:
+        for size in norm_sizes(token, "G"):
+            if size in allowed and size not in out:
+                out.append(size)
+    return tuple(out)
+
+
+def intake_decimal_findings(
+    intake: Mapping[str, object],
+    tokens: Sequence[str],
+    shoe_list: Sequence[str],
+) -> list[Finding]:
+    expected = intake_g_decimal_expected(tokens, shoe_list)
+    got = _strings(intake.get("keepGDecimal"))
+    clothing = _strings(intake.get("keepADecimal"))
+    misses: list[Example] = []
+    if got != expected:
+        misses.append(Example("G", " ".join(expected), _joined(got)))
+    if clothing != ("S",):
+        misses.append(Example("A", "S", _joined(clothing)))
+    if not misses:
+        return []
+    return [_note(
+        "fail",
+        "intake-shoe-decimal",
+        "intake keepSizesForKind drops an in-window trailing .0 that autolist keeps",
+        misses,
+    )]
+
+
 def import_size_findings(shop: Mapping[str, object]) -> list[Finding]:
     """Shop intake import keeps G EU sizes, including a single trailing .0.
 
@@ -360,6 +394,7 @@ def _probe_request() -> dict[str, object]:
         "letters": letters,
         "aliasTokens": ["XXS", "3XL", "XXL"],
         "shoeTokens": [*shoe, *DECIMAL_SHOE_TOKENS],
+        "decimalChips": ["40.0", "34.0", "42.0", "40.00", "35", "S"],
         "currencyCase": {
             "ma": "A04",
             "kind": "A",
@@ -901,6 +936,11 @@ def _price_findings(intake: Mapping[str, object], shop: Mapping[str, object]) ->
         ))
     findings.extend(dual_cost_findings(intake, shop))
     findings.extend(import_size_findings(shop))
+    findings.extend(intake_decimal_findings(
+        intake,
+        _strings(intake.get("decimalChips")) or ("40.0", "34.0", "42.0", "40.00", "35", "S"),
+        _strings(intake.get("shoe")),
+    ))
     return findings
 
 

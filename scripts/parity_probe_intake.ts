@@ -38,6 +38,7 @@ type ProbeRequest = {
   sells: number[];
   aliasTokens: string[];
   shoeTokens: string[];
+  decimalChips: string[];
   currencyCase: {
     ma: string;
     kind: string;
@@ -257,6 +258,9 @@ function main(): void {
     scales: scales(),
     keepG: kept("G", request.shoeTokens),
     keepO: kept("O", request.shoeTokens),
+    keepGDecimal: kept("G", request.decimalChips),
+    keepADecimal: kept("A", request.decimalChips),
+    decimalChips: request.decimalChips,
     keepOLetters: kept("O", ["M"]),
     keepGLetters: kept("G", ["M"]),
     normalizeMa: spellings(request.mas),

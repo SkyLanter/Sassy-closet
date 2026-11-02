@@ -36,6 +36,9 @@ test("G H J D labels and size rules match intake catalog", () => {
   assert.equal(sizeOptionsLine("G"), SHOE_SIZES.join(" "));
   assert.deepEqual(keepSizesForKind(["M", "38", "2XS"], "G"), ["38"]);
   assert.deepEqual(keepSizesForKind(["M", "38", "2XS"], "A"), ["M", "2XS"]);
+  assert.deepEqual(keepSizesForKind(["40.0", "34.0", "42.0", "40.00", "35", "S"], "G"), ["40", "35"]);
+  assert.deepEqual(keepSizesForKind(["40.0", "40", "S"], "A"), ["S"]);
+  assert.deepEqual(keepSizesForKind(["36.0", "M"], "O"), ["M"]);
 });
 
 test("catalog dataset carries kind label + size options without inventing mã", () => {
