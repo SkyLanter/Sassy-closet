@@ -126,6 +126,46 @@ def test_daily_section_warn(tmp_path):
     assert "SENTINEL" not in json.dumps(sec)
 
 
+def test_string_dollars_and_weight_are_present(tmp_path):
+    r = rep(tmp_path, held=("Z90",), approved={}, intake=[
+        {"ma": "Z90", "sell_usd": "27", "weight_kg": "0.5", "weight_approved": True},
+    ])
+    assert r["waiting"] == []
+    assert "27" not in json.dumps(r)
+
+
+def test_junk_approved_value_does_not_hide_a_missing_price(tmp_path):
+    h, i, a = files(tmp_path, held=("Z90", "A01"), intake=[], approved={
+        "Z90": True, "A01": None, "B01": "nope", "C01": "NaN", "D01": 30,
+    })
+    assert q.load_approved(a) == {"D01"}
+    held, src = q.load_held(h)
+    r = q.run(held, json.loads(i.read_text()), q.load_approved(a), src)
+    assert reasons(r)["Z90"] == ["missing_price", "needs_weight_approval"]
+    assert reasons(r)["A01"] == ["missing_price", "needs_weight_approval"]
+
+
+def test_infinity_and_bool_are_not_a_price(tmp_path):
+    assert q._has_price("Infinity") is False
+    assert q._has_price("$27") is True
+    assert q._has_price("1,200") is True
+    assert q._has_price("12,50") is False
+    r = rep(tmp_path, held=("Z90",), approved={}, intake=[
+        {"ma": "Z90", "sell_usd": float("inf"), "weight_kg": True, "weight_approved": True},
+    ])
+    assert reasons(r)["Z90"] == ["missing_price", "needs_weight_approval"]
+
+
+def test_later_junk_spelling_keeps_an_approved_price(tmp_path):
+    h, i, a = files(tmp_path, held=("Z90",), intake=[], approved={"Z90": 30})
+    text = json.loads(a.read_text())
+    text["approvedGia"]["z90"] = "nope"
+    a.write_text(json.dumps(text))
+    held, src = q.load_held(h)
+    r = q.run(held, [], q.load_approved(a), src)
+    assert r["waiting"] == []
+
+
 def test_daily_section_error_is_warn(tmp_path):
     bad = tmp_path / "bad.json"
     bad.write_text("{")
