@@ -1,10 +1,11 @@
-import { NextResponse } from "next/server";
+import { intakeDirectJson } from "@/lib/intake-direct-link";
 import { getFx, setFx } from "@/lib/store";
 import { storeUnavailableResponse } from "@/lib/store-unavailable";
 
+/** Open by link. The rate is public; this response stays noindex without a session. */
 export async function GET() {
   try {
-    return NextResponse.json(await getFx());
+    return intakeDirectJson(await getFx());
   } catch (error) {
     return storeUnavailableResponse(error);
   }
@@ -19,10 +20,10 @@ export async function POST(request: Request) {
     usdCny = NaN;
   }
   if (!Number.isFinite(usdCny) || usdCny <= 0) {
-    return NextResponse.json(
+    return intakeDirectJson(
       { error: "Tỷ giá phải là số dương, vd 6.71" },
-      { status: 400 },
+      400,
     );
   }
-  return NextResponse.json(await setFx(usdCny));
+  return intakeDirectJson(await setFx(usdCny));
 }

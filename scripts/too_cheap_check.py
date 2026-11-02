@@ -4,7 +4,9 @@ For each live mã, landed = intake ¥ / 6.723 + 10.52 * kg, and the target is
 the tiered sell from autolist.price (35% at <= $25, sliding to 25% at $45,
 flat 25% above). The cost is Nhung's intake ¥, never the public Taobao list ¥.
 
-- S06 is locked at $25 and is never reported as under target.
+- S06 is locked at $25 and is never reported as under target. If S06 is
+  off $25, or missing from the live catalog, it is "lock-drift" and the
+  outcome is LOCK_DRIFT (never QUIET_OK).
 - Held and never-list mãs are skipped. The list is resolved through
   sassy-closet-shop/lib/held-incomplete.ts, which imports data/held.json.
 - A mã with no kg or no intake ¥ is skipped. No weight is guessed.
@@ -93,7 +95,9 @@ def evaluate(
     costs: dict[str, dict[str, str]],
     policy: HeldPolicy,
     weights: dict[str, Decimal] | None = None,
+    require_s06: bool = False,
 ) -> list[Row]:
+    """require_s06: the live input is the full catalog, so S06 must be in it."""
     weights = weights or {}
     rows: list[Row] = []
     for ma in sorted(live):
@@ -138,6 +142,10 @@ def evaluate(
             decision, reason = "ok", ""
         rows.append(Row(**base, landed_usd=_f(landed), target_usd=target,
                         list_target_usd=list_target, decision=decision, reason=reason))
+    if require_s06 and "S06" not in {norm_ma(m) for m in live}:
+        rows.append(Row(ma="S06", live_usd=0.0, intake_cny=None, list_cny=None, kg=None,
+                        landed_usd=None, target_usd=S06_LOCK_USD, list_target_usd=None,
+                        decision="lock-drift", reason=f"S06 missing from live catalog; must be live at ${S06_LOCK_USD}"))
     return rows
 
 
@@ -171,7 +179,7 @@ def summarize(rows: list[Row], headroom_pct: float = 0.0) -> dict:
     zero, band = headroom(rows, headroom_pct)
     return {
         "live_count": len(rows),
-        "outcome": "UNDER_FOUND" if by("under") else "QUIET_OK",
+        "outcome": "UNDER_FOUND" if by("under") else "LOCK_DRIFT" if by("lock-drift") else "QUIET_OK",
         "under_target": [asdict(r) for r in rows if r.decision == "under"],
         "list_only": [asdict(r) for r in rows if r.decision == "list-only"],
         "skipped": [asdict(r) for r in rows if r.decision.startswith("skip")],
@@ -274,7 +282,7 @@ def main(argv: list[str] | None = None) -> int:
     if a.headroom_pct < 0:
         p.error("--headroom-pct must be >= 0")
     summary = summarize(evaluate(load_live(a.live), load_costs(a.costs), load_held_from_ts(a.held_ts),
-                                 load_weights(a.weights)), a.headroom_pct)
+                                 load_weights(a.weights), require_s06=True), a.headroom_pct)
     md = markdown(summary, a.title)
     if a.out_md:
         a.out_md.write_text(md, encoding="utf-8")

@@ -126,3 +126,42 @@ def test_node_modules_link_is_noted_not_failed(fake):
     r = run(repo, base, env)
     assert r.returncode == 0, r.stdout
     assert "node_modules link (ignored)" in r.stdout
+
+
+def _run_default(repo: Path, env: dict) -> subprocess.CompletedProcess:
+    return subprocess.run(["bash", str(repo / "scripts" / "hard_recheck.sh")],
+                          cwd="/", env=env, capture_output=True, text=True, timeout=120)
+
+
+def test_default_base_is_merge_base_with_main_not_root(fake):
+    repo, root, env = fake
+    (repo / "two.txt").write_text("2\n")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "main tip")
+    main_tip = _git(repo, "rev-parse", "HEAD")
+    _git(repo, "checkout", "-qb", "feature")
+    (repo / "three.txt").write_text("3\n")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "feature")
+    r = _run_default(repo, env)
+    assert f"(base {main_tip})" in r.stdout
+    assert f"(base {root})" not in r.stdout
+
+
+def test_default_base_falls_back_to_root_without_main(fake):
+    # No main or origin/main ref: root commit is the last resort.
+    repo, root, env = fake
+    _git(repo, "branch", "-m", "main", "trunk")
+    r = _run_default(repo, env)
+    assert f"(base {root})" in r.stdout
+
+
+def test_node_spec_reporter_counts_parsed(fake, tmp_path):
+    # Node 20+ default spec reporter prints "ℹ tests N", not TAP "# tests N".
+    repo, base, env = fake
+    _x(tmp_path / "bin" / "npm", '#!/usr/bin/env bash\nprintf "ℹ tests 218\\nℹ pass 215\\nℹ fail 0\\nℹ skipped 3\\n"\n')
+    r = run(repo, base, env)
+    assert r.returncode == 0, r.stdout + r.stderr
+    summary = (latest(repo) / "summary.txt").read_text()
+    assert "tests 218 pass 215 fail 0 skipped 3" in summary
+    assert "tests  pass" not in summary

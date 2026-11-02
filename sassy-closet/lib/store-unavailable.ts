@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { INTAKE_DIRECT_LINK_HEADERS } from "@/lib/intake-direct-link-headers";
 
 /** Vietnamese message shown when the durable store (Vercel Blob) can't be read. */
 export const STORE_UNAVAILABLE_VI =
@@ -14,12 +15,17 @@ export function storeErrorReason(error: unknown): string {
   return "read-failed";
 }
 
-/** 503 JSON for a failed store read; read-only, never falls back to an empty store. */
+/**
+ * 503 JSON for a failed store read. Read-only: no empty-store fallback.
+ * Same open-by-link noindex headers as the other data routes, so a Blob-down
+ * body is not indexable when a caller forgets to add them. The error text
+ * passed in is classified, never copied.
+ */
 export function storeUnavailableResponse(error: unknown): NextResponse {
   const reason = storeErrorReason(error);
   console.error(`[intake] store read failed: ${reason}`);
   return NextResponse.json(
     { ok: false, error: STORE_UNAVAILABLE_VI, reason, storeUnavailable: true },
-    { status: 503, headers: { "Cache-Control": "no-store" } },
+    { status: 503, headers: { ...INTAKE_DIRECT_LINK_HEADERS } },
   );
 }
