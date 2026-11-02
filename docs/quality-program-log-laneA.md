@@ -168,4 +168,4 @@ Hard recheck on `a7b57ce` (`scripts/hard_recheck.sh --base origin/main`): **PASS
 
 No hard-recheck step was SKIP. The pytest and npm skipped counts are tests inside those suites, not skipped recheck steps. These intake counts are this branch (main plus these eleven tests). Shop counts do not include the image-route tests on draft #231 or the share-card tests on draft #245.
 
-PR: (draft, URL recorded in the follow-up docs commit). The commit that records this table is docs-only.
+PR: https://github.com/SkyLanter/Sassy-closet/pull/250 (draft). The commit that records this table is docs-only.
