@@ -95,6 +95,39 @@ export async function setFx(
   return getFx();
 }
 
+/**
+ * Slot number of `{ma}/001.jpg`.
+ * A keep path can spell that same file with a leading slash, `./`, or `..`
+ * that the photo store collapses, so those aliases occupy the slot too.
+ */
+function photoSlot(rel: string, ma: string): number | null {
+  const parts = sanitizePhotoRel(rel)
+    .split("/")
+    .filter((part) => part.length > 0 && part !== ".");
+  if (parts.length !== 2 || parts[0] !== ma) return null;
+  const match = /^(\d+)\.[^.]+$/i.exec(parts[1] ?? "");
+  if (!match) return null;
+  const slot = Number(match[1]);
+  if (!Number.isInteger(slot) || slot < 1 || slot > 9999) return null;
+  return slot;
+}
+
+/**
+ * Next `{ma}/NNN.ext` that is not already a kept photo.
+ * Naming from keep_photos.length reuses 003 when 001 and 003 stay and 002 was
+ * dropped, and that write replaces the kept file.
+ */
+function nextPhotoRel(ma: string, taken: ReadonlySet<number>, ext: string): { rel: string; slot: number } {
+  let slot = 1;
+  while (taken.has(slot)) {
+    slot += 1;
+    if (slot > 9999) {
+      throw Object.assign(new Error("Quá nhiều ảnh cho mã này."), { status: 409 });
+    }
+  }
+  return { rel: `${ma}/${String(slot).padStart(3, "0")}${ext}`, slot };
+}
+
 export async function saveSubmission(input: SaveInput): Promise<Submission> {
   if (!isKindCode(input.kind)) {
     throw Object.assign(new Error("Loại đồ không đúng."), { status: 400 });
@@ -133,13 +166,16 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
   }
 
   const backend = activeBackend();
-  let index = photoPaths.length;
+  const takenSlots = new Set<number>();
+  for (const rel of photoPaths) {
+    const slot = photoSlot(rel, ma);
+    if (slot !== null) takenSlots.add(slot);
+  }
   for (const photo of input.photos) {
-    index += 1;
-    const name = `${String(index).padStart(3, "0")}${photo.ext}`;
-    const rel = `${ma}/${name}`;
-    await backend.writePhoto(rel, photo.bytes, photoContentType(rel));
-    photoPaths.push(rel);
+    const next = nextPhotoRel(ma, takenSlots, photo.ext);
+    takenSlots.add(next.slot);
+    await backend.writePhoto(next.rel, photo.bytes, photoContentType(next.rel));
+    photoPaths.push(next.rel);
     photoHashes.push(photo.hash);
   }
 
