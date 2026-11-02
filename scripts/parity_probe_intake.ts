@@ -18,6 +18,7 @@ import {
   captionPriceLine,
   deboxFor,
   intakePriceView,
+  landedUsdFromCosts,
   sellPriceFlag,
   sellUsdFromLanded,
   tieredMarginForSell,
@@ -59,6 +60,12 @@ type ProbeRequest = {
     liveUsd: number;
     costCny: string;
     costUsd: string;
+  };
+  dualCost: {
+    kind: string;
+    costCny: string;
+    costUsd: string;
+    fx: string;
   };
 };
 
@@ -183,6 +190,16 @@ function scales(): Record<string, string[]> {
   return out;
 }
 
+function dualLanded(request: ProbeRequest, costCurrency: string): number | null {
+  return landedUsdFromCosts({
+    kind: request.dualCost.kind,
+    costCny: request.dualCost.costCny,
+    costUsd: request.dualCost.costUsd,
+    costCurrency,
+    fxRate: Number(request.dualCost.fx),
+  });
+}
+
 function kept(kind: string, tokens: string[]): string[] {
   if (!isKindCode(kind)) return [];
   return keepSizesForKind(tokens, kind);
@@ -266,6 +283,8 @@ function main(): void {
     deboxBlank: deboxBlank.dollars,
     lockedDebox: locked,
     intakeDebox,
+    dualUsdLanded: dualLanded(request, "USD"),
+    dualCnyLanded: dualLanded(request, "CNY"),
   };
   process.stdout.write(`${JSON.stringify(body)}\n`);
 }

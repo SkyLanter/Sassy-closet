@@ -21,6 +21,7 @@ from parity_check import (
     decimal_shoe_misses,
     decimal_shoe_window,
     dollar_text,
+    dual_cost_findings,
     main,
     price_disagreements,
     quote_examples,
@@ -39,6 +40,7 @@ BOSS_CODES = (
     "short-ma-quote",
     "shop-normalize-no-pad",
     "shop-debox-unknown",
+    "shop-prefers-yen",
     "cost-currency-default",
     "caption-vs-intake-tier",
     "excel-letter-gap",
@@ -109,6 +111,28 @@ def test_decimal_shoe_window_keeps_33_and_46_outside_shop():
     assert decimal_shoe_window({"33.0": ["33"], "46.0": ["46"]}) == ()
 
 
+def test_dual_cost_notes_shop_yen_preference_without_a_new_price():
+    split = dual_cost_findings(
+        {"dualUsdLanded": "17.5", "dualCnyLanded": "22.374"},
+        {"dualShopLanded": "22.374"},
+    )
+    assert [item.severity for item in split] == ["boss"]
+    assert split[0].code == "shop-prefers-yen"
+    assert split[0].examples == (Example("Q", "17.50", "22.37"),)
+    assert dual_cost_findings(
+        {"dualUsdLanded": "17.5", "dualCnyLanded": "22.374"},
+        {"dualShopLanded": "17.5"},
+    ) == []
+    broken = dual_cost_findings(
+        {"dualUsdLanded": "17.5", "dualCnyLanded": "22.374"},
+        {"dualShopLanded": "30"},
+    )
+    assert broken[0].severity == "fail"
+    assert broken[0].code == "dual-cost-landed"
+    missing = dual_cost_findings({}, {})
+    assert missing[0].code == "dual-cost-landed"
+
+
 def test_quote_examples_flag_a_planted_tier_mismatch():
     rows = quote_examples({"1.00": 4}, {"1.00": 4}, {"1.00": 5})
     assert rows == (Example("1.00", "4", "shared 4; intake 5"),)
@@ -141,6 +165,11 @@ def test_repo_reports_the_known_boss_splits(report):
         for example in by_code["shop-parse-ignores-kind"].examples
     )
     assert "shoe-decimal" not in codes
+    assert "dual-cost-landed" not in codes
+    yen = by_code["shop-prefers-yen"]
+    assert yen.examples[0].key == "Q"
+    assert yen.examples[0].left == "17.50"
+    assert yen.examples[0].right == "22.37"
 
 
 def test_snapshot_copies_agree(report):
