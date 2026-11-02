@@ -22,6 +22,7 @@ from parity_check import (
     decimal_shoe_window,
     disallowed_size_tokens,
     dollar_text,
+    gap_alias_findings,
     gap_size_findings,
     gap_split_findings,
     dual_cost_findings,
@@ -195,6 +196,19 @@ def test_gap_report_splits_sizes_on_the_same_separators_as_listing():
     assert gap_split_findings(())[0].code == "gap-size-split"
 
 
+def test_gap_report_accepts_listing_size_aliases():
+    clothing = ("2XS", "XS", "S", "M", "L", "XL", "2XL")
+    shoe = ("35", "36", "37", "38", "39", "40", "41")
+    assert disallowed_size_tokens("XXS 3XL;XXL", clothing) == []
+    assert disallowed_size_tokens("xxl", clothing) == []
+    assert disallowed_size_tokens("4XL", clothing) == ["4XL"]
+    assert disallowed_size_tokens("XXS", ("S", "M")) == ["XXS"]
+    assert disallowed_size_tokens("XXL", ("S", "M")) == ["XXL"]
+    assert disallowed_size_tokens("XXS", shoe) == ["XXS"]
+    assert gap_alias_findings(clothing) == []
+    assert gap_alias_findings(())[0].code == "gap-size-alias"
+
+
 def test_quote_examples_flag_a_planted_tier_mismatch():
     rows = quote_examples({"1.00": 4}, {"1.00": 4}, {"1.00": 5})
     assert rows == (Example("1.00", "4", "shared 4; intake 5"),)
@@ -232,6 +246,7 @@ def test_repo_reports_the_known_boss_splits(report):
     assert "intake-shoe-decimal" not in codes
     assert "gap-shoe-decimal" not in codes
     assert "gap-size-split" not in codes
+    assert "gap-size-alias" not in codes
     assert any(
         example.key == "O" and example.left == "autolist keeps 36" and example.right == "import drops 36"
         for example in by_code["import-kind-o"].examples

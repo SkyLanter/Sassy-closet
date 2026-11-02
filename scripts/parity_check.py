@@ -288,6 +288,47 @@ def gap_split_findings(shoe_list: Sequence[str]) -> list[Finding]:
     )]
 
 
+def gap_alias_findings(clothing: Sequence[str]) -> list[Finding]:
+    """Listing aliases count as the allowed chip. The allowed list is not widened."""
+    allowed = set(clothing)
+    misses: list[Example] = []
+    joined = "XXS 3XL;XXL"
+    bad = disallowed_size_tokens(joined, clothing)
+    kept = [size for size in norm_sizes(joined, "A") if size in allowed]
+    if bad:
+        misses.append(Example(joined, "allowed", " ".join(bad)))
+    elif not kept:
+        misses.append(Example(joined, "alias", "no chip"))
+    for token, target in (("XXS", "2XS"), ("XXL", "2XL"), ("3XL", "2XL")):
+        listed = norm_sizes(token, "A")
+        flagged = disallowed_size_tokens(token, clothing)
+        if target in allowed:
+            if flagged or listed != [target]:
+                shown = " ".join(flagged) if flagged else " ".join(listed)
+                misses.append(Example(token, target, shown or "dropped"))
+        elif flagged != [token]:
+            misses.append(Example(token, token, " ".join(flagged) if flagged else "allowed"))
+    if disallowed_size_tokens("4XL", clothing) != ["4XL"]:
+        got = disallowed_size_tokens("4XL", clothing)
+        misses.append(Example("4XL", "4XL", " ".join(got) if got else "allowed"))
+    narrow = tuple(item for item in clothing if item not in {"2XS", "2XL"})
+    for token in ("XXS", "XXL", "3XL"):
+        flagged = disallowed_size_tokens(token, narrow)
+        if flagged != [token]:
+            misses.append(Example(f"{token} narrow", token, " ".join(flagged) if flagged else "allowed"))
+    if disallowed_size_tokens("XXS", SHOE_EU) != ["XXS"]:
+        got = disallowed_size_tokens("XXS", SHOE_EU)
+        misses.append(Example("G", "XXS", " ".join(got) if got else "allowed"))
+    if not misses:
+        return []
+    return [_note(
+        "fail",
+        "gap-size-alias",
+        "the intake gap report does not treat a listing size alias as the allowed chip",
+        misses,
+    )]
+
+
 def import_size_findings(shop: Mapping[str, object]) -> list[Finding]:
     """Shop intake import keeps G EU sizes, including a single trailing .0.
 
@@ -1013,6 +1054,7 @@ def _price_findings(intake: Mapping[str, object], shop: Mapping[str, object]) ->
     ))
     findings.extend(gap_size_findings(shoe_list))
     findings.extend(gap_split_findings(shoe_list))
+    findings.extend(gap_alias_findings(_strings(intake.get("clothing"))))
     return findings
 
 

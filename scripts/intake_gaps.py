@@ -12,7 +12,9 @@ Gap types (one row per mã, any number of gaps):
             when one exists. G shoes have no approved weight: "G needs Boss".
   size      clothing/shoe kind with no size, or a size token not allowed
             for the kind. Separators match listing: space, comma, semicolon,
-            slash, and pipe. A delimiter-only value is no size.
+            slash, and pipe. A delimiter-only value is no size. Listing
+            aliases XXS, XXL, and 3XL count as 2XS or 2XL when that chip
+            is already allowed. The stored row is not rewritten.
   photos    no intake photo_paths (and, for live mãs, no catalog images)
   link      no Taobao link, or a link that is not Taobao/Tmall
   category  blank/unknown kind, or kind not matching the mã letter
@@ -33,6 +35,7 @@ import sys
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
+from autolist import _SIZE_ALIASES as _LISTING_SIZE_ALIASES
 from held_policy import load_held_policy, norm_ma
 from intake_flags import IntakeRow, flag_intake
 
@@ -96,13 +99,17 @@ def kg_gap(code: str, kind: str, row: dict, weights: dict[str, tuple[Decimal, st
 
 
 def chip_size(token: str) -> str:
-    """Allowed-list form of one stored size token. A single trailing .0 counts as the two digits."""
+    """Allowed-list form of one stored size token.
+
+    A single trailing .0 counts as the two digits. Listing aliases
+    (XXS, XXL, 3XL) count as 2XS or 2XL. The stored token is not rewritten.
+    """
     folded = token.strip()
     folded = folded.upper()
     match = _DECIMAL_CHIP.fullmatch(folded)
     if match:
         return match.group(1)
-    return folded
+    return _LISTING_SIZE_ALIASES.get(folded, folded)
 
 
 def size_tokens(raw: str) -> list[str]:
