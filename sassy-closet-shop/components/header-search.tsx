@@ -35,6 +35,7 @@ import {
   suggestLooks,
   type LookSearchItem,
 } from "@/lib/look-search";
+import { OPEN_SHOP_SEARCH_EVENT } from "@/lib/open-shop-search";
 
 type HeaderSearchApi = {
   listId: string;
@@ -128,6 +129,15 @@ function HeaderSearchState({
     }
     inputRef.current?.focus();
   }, [expanded]);
+
+  useEffect(() => {
+    const onOpen = () => {
+      setOpen(true);
+      window.requestAnimationFrame(() => inputRef.current?.focus());
+    };
+    window.addEventListener(OPEN_SHOP_SEARCH_EVENT, onOpen);
+    return () => window.removeEventListener(OPEN_SHOP_SEARCH_EVENT, onOpen);
+  }, [setOpen]);
 
   useEffect(() => {
     function onPointerDown(event: PointerEvent) {
