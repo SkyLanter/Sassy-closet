@@ -11,6 +11,8 @@
  * When that ceil is under $10, add $2.
  * The quote is the smallest whole dollar that does not undercut that sell.
  * wouldBeLiveUsd keeps S06 at $25.
+ * A named costCurrency follows intake: USD uses costUsd, then costCny.
+ * Omitting costCurrency keeps the older order: costCny, then costUsd.
  */
 
 export const TIERED_LOW_SELL = 25;
@@ -38,6 +40,12 @@ export type IntakePriceInput = {
   liveUsd: number;
   costCny: string | null;
   costUsd: string | null;
+  /**
+   * When set, match intake landedUsdFromCosts.
+   * "USD" uses costUsd, then costCny. "CNY" uses costCny, then costUsd.
+   * Omit the field to keep costCny, then costUsd.
+   */
+  costCurrency?: string | null;
 };
 
 export type WouldBePrice = {
@@ -113,13 +121,25 @@ function deboxFrac(kind: string, ma: string): Frac {
   return lockedDeboxUsd(kindLetter(kind, ma)) === "7.50" ? DEBOX_750 : ZERO;
 }
 
-function landedFromCost(input: IntakePriceInput): Frac | null {
-  const debox = deboxFrac(input.kind, input.ma);
+function goodsUsd(input: IntakePriceInput): Frac | null {
   const cny = parsePositiveDecimal(input.costCny);
-  if (cny) return add(div(cny, FX), debox);
   const usd = parsePositiveDecimal(input.costUsd);
-  if (usd) return add(usd, debox);
-  return null;
+  const cnyGoods = cny ? div(cny, FX) : null;
+  if (input.costCurrency == null) {
+    return cnyGoods ?? usd;
+  }
+  const currency = input.costCurrency.trim().toUpperCase();
+  if (currency === "CNY") return cnyGoods ?? usd;
+  if (usd) return usd;
+  return cnyGoods;
+}
+
+function landedFromCost(input: IntakePriceInput): Frac | null {
+  const goods = goodsUsd(input);
+  if (!goods) return null;
+  const landed = add(goods, deboxFrac(input.kind, input.ma));
+  if (landed.n <= Z) return null;
+  return landed;
 }
 
 function toSafeInt(value: bigint): number {
@@ -197,7 +217,7 @@ export function tieredSellUsd(landedUsd: string): number {
 }
 
 /** Same padding as autolist `norm_ma`: S6 / S006 / s006 → S06. Non-mã text stays trimmed. */
-function canonicalQuoteMa(raw: string): string {
+export function canonicalQuoteMa(raw: string): string {
   const code = raw.trim().toUpperCase();
   const match = code.match(/^([A-Z])(\d+)$/);
   if (!match?.[1] || match[2] == null) {

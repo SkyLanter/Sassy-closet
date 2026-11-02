@@ -7,6 +7,7 @@ import {
   TARGET_MARGIN,
   computeAutoPrice,
   deboxFor,
+  intakePriceView,
   sellUsdFromLanded,
 } from "../lib/pricing";
 import {
@@ -173,6 +174,69 @@ test("intake calculator stays on flat 25% and does not quote the tiered sell", (
   assert.equal(tiered.liveUsd, 27);
   assert.equal(tiered.wouldBeUsd, 21);
   assert.notEqual(puppy.sellUsd, tiered.wouldBeUsd);
+});
+
+test("a named USD cost is not replaced by a stale yen cost", () => {
+  const named = wouldBeLiveUsd({
+    ma: "A04",
+    kind: "A",
+    liveUsd: 27,
+    costCny: "100",
+    costUsd: "10",
+    costCurrency: "USD",
+  });
+  const yen = wouldBeLiveUsd({
+    ma: "A04",
+    kind: "A",
+    liveUsd: 27,
+    costCny: "100",
+    costUsd: "10",
+    costCurrency: "CNY",
+  });
+  const omitted = wouldBeLiveUsd({
+    ma: "A04",
+    kind: "A",
+    liveUsd: 27,
+    costCny: "100",
+    costUsd: "10",
+  });
+  const blankCurrency = wouldBeLiveUsd({
+    ma: "A04",
+    kind: "A",
+    liveUsd: 27,
+    costCny: "100",
+    costUsd: "10",
+    costCurrency: "",
+  });
+  assert.equal(named.reason, "tiered");
+  assert.equal(named.wouldBeUsd, tieredSellUsd("10"));
+  assert.equal(blankCurrency.wouldBeUsd, named.wouldBeUsd);
+  assert.equal(yen.wouldBeUsd, omitted.wouldBeUsd);
+  assert.notEqual(named.wouldBeUsd, yen.wouldBeUsd);
+  const view = intakePriceView({
+    ma: "A04",
+    kind: "A",
+    sellUsd: "",
+    sellCny: "",
+    sellCurrency: "USD",
+    costCny: "100",
+    costUsd: "10",
+    costCurrency: "USD",
+    fxRate: DEFAULT_FX,
+  });
+  assert.equal(view.dollars, named.wouldBeUsd);
+  const yenView = intakePriceView({
+    ma: "A04",
+    kind: "A",
+    sellUsd: "",
+    sellCny: "",
+    sellCurrency: "USD",
+    costCny: "100",
+    costUsd: "10",
+    costCurrency: "CNY",
+    fxRate: DEFAULT_FX,
+  });
+  assert.equal(yenView.dollars, yen.wouldBeUsd);
 });
 
 test("snapshot keeps sell dollars, redacts supplier costs, and S06 stays $25", () => {
