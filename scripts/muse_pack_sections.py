@@ -45,7 +45,17 @@ def section_decisions(root: Path):
     by: dict[str, list[str]] = {}
     for cat, ma in seen:
         by.setdefault(str(cat), []).append(_ma(ma))
-    return {"total": len(seen), "by_cat": {k: sorted(set(v)) for k, v in sorted(by.items())}}
+    held_mas: list[str] = []
+    try:
+        order_path, held_path = bd.repo_order_held_paths()
+        held_mas = [_ma(m) for m in bd.held_in_popular_order(order_path, held_path)]
+        held_mas = [m for m in held_mas if m != "?"]
+    except (OSError, ValueError, AttributeError, TypeError):
+        held_mas = []
+    if held_mas:
+        by.setdefault("popular_order_held", []).extend(held_mas)
+    listed = {k: sorted(set(v)) for k, v in sorted(by.items())}
+    return {"total": sum(len(v) for v in listed.values()), "by_cat": listed}
 
 
 def section_captions(root: Path):
