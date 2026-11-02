@@ -10,6 +10,7 @@ import {
   parseAsiaSizes,
 } from "../sassy-closet-shop/lib/asia-size";
 import { MA_LETTERS, canonicalMaSpelling, normalizeMa } from "../sassy-closet-shop/lib/ma";
+import { intakeToPrefill, type IntakeSubmission } from "../sassy-closet-shop/lib/intake-import";
 import { calcPricing, deboxForLetter, sellUsdFromLanded } from "../sassy-closet-shop/lib/pricing";
 
 type ProbeRequest = {
@@ -24,7 +25,44 @@ type ProbeRequest = {
     costUsd: string;
     fx: string;
   };
+  importSizes: {
+    shoe: string;
+    clothing: string;
+    edge: string;
+    kindO: string;
+  };
 };
+
+function sizedSubmission(kind: string, size: string): IntakeSubmission {
+  return {
+    id: 0,
+    ma: `${kind}01`,
+    kind,
+    size,
+    color: "",
+    color_note: "",
+    pieces: [],
+    link: "",
+    price: "",
+    cost_cny: "",
+    cost_usd: "",
+    cost_currency: "",
+    sell_cny: "",
+    sell_usd: "",
+    sell_currency: "",
+    blurb: "",
+    photo_paths: [],
+    photo_hashes: [],
+    status: "staged",
+    square: "",
+    created_at: "",
+    updated_at: "",
+    caption_vi: "",
+    caption_en: "",
+    blurb_suggested: "",
+    photo_link: "",
+  };
+}
 
 function readRequest(): ProbeRequest {
   const payload: unknown = JSON.parse(readFileSync(0, "utf8"));
@@ -75,6 +113,10 @@ function main(): void {
     flat,
     debox,
     dualShopLanded: priced.landedUsd,
+    importShoe: intakeToPrefill(sizedSubmission("G", request.importSizes.shoe)).sizes,
+    importClothing: intakeToPrefill(sizedSubmission("A", request.importSizes.clothing)).sizes,
+    importEdge: intakeToPrefill(sizedSubmission("G", request.importSizes.edge)).sizes,
+    importKindO: intakeToPrefill(sizedSubmission("O", request.importSizes.kindO)).sizes,
   };
   process.stdout.write(`${JSON.stringify(body)}\n`);
 }

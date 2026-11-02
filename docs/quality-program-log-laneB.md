@@ -58,3 +58,18 @@ Boss, files left as they are:
 - Shop `calcPricing` still prefers the yen figure when both cost fields are set. Intake named USD uses the dollar cost.
 
 Hard recheck: PASS against origin/main after npm ci in both apps, on 01a227e. pytest 2126 passed, 7 skipped. Privacy CLEAN. Intake tests 278 pass, 275 fail 0, skipped 3. Shop tests 220 pass, 217 fail 0, skipped 3. tsc passed in both apps. held.json unchanged. No recheck step was SKIP. The 7 and 3 skips are the existing empty never-list cases inside the suites.
+
+## 2026-11-02 pass 4
+
+Shop intake import kept only Asia letters, so a G row sized `40.0 35,36` lost every size. Kind G now keeps the same EU tokens `parseAsiaSizes` keeps, including a single trailing `.0`. `33.0`, `43`, `34.5`, and `40.00` stay dropped. Clothing rows stay on letters. Kind O still drops `36`. No catalog price was edited. `data/held.json` was not edited. Customer catalog JSON was not edited.
+
+Checker: code fails 0, Boss notes 17. New Boss note `import-kind-o`: autolist keeps 36 on O; the importer keeps the letter M and drops 36.
+
+Boss, files left as they are:
+
+- `sassy-closet-shop/data/intake-extras.json` has S06 at $26. The live snapshot has S06 at $25.
+- Extras versus live snapshot: A16 34 vs 31, S05 25 vs 26, S06 26 vs 25, S07 44 vs 38, S08 35 vs 37, S09 42 vs 36, V01 25 vs 39, V02 31 vs 40.
+- `products.json` versus the live snapshot: 28 mãs differ (A03 is 25 in the seed and 22 live). 22 live mãs are absent from the seed, including S06.
+- Shop `calcPricing` still prefers the yen figure when both cost fields are set. For kind Q the named USD landed is 17.50 and the shop landed is 22.37. That formula was not changed.
+
+Hard recheck: PASS against origin/main after npm ci in both apps, on 85d6849. pytest 2127 passed, 7 skipped. Privacy CLEAN. Intake tests 278 pass, 275 fail 0, skipped 3. Shop tests 222 pass, 219 fail 0, skipped 3. tsc passed in both apps. held.json unchanged. No recheck step was SKIP. The 7 and 3 skips are the existing empty never-list cases inside the suites.

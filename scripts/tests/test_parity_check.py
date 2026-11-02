@@ -22,6 +22,7 @@ from parity_check import (
     decimal_shoe_window,
     dollar_text,
     dual_cost_findings,
+    import_size_findings,
     main,
     price_disagreements,
     quote_examples,
@@ -41,6 +42,7 @@ BOSS_CODES = (
     "shop-normalize-no-pad",
     "shop-debox-unknown",
     "shop-prefers-yen",
+    "import-kind-o",
     "cost-currency-default",
     "caption-vs-intake-tier",
     "excel-letter-gap",
@@ -133,6 +135,24 @@ def test_dual_cost_notes_shop_yen_preference_without_a_new_price():
     assert missing[0].code == "dual-cost-landed"
 
 
+def test_import_size_flags_a_dropped_shoe_token():
+    clean = {
+        "importShoe": ["40", "35", "36"],
+        "importEdge": ["42"],
+        "importClothing": ["S"],
+        "importKindO": ["M"],
+    }
+    assert [item.code for item in import_size_findings(clean)] == ["import-kind-o"]
+    dropped = dict(clean)
+    dropped["importShoe"] = ["35", "36"]
+    misses = import_size_findings(dropped)
+    assert misses[0].severity == "fail"
+    assert misses[0].code == "import-shoe-size"
+    kept_o = dict(clean)
+    kept_o["importKindO"] = ["36", "M"]
+    assert import_size_findings(kept_o) == []
+
+
 def test_quote_examples_flag_a_planted_tier_mismatch():
     rows = quote_examples({"1.00": 4}, {"1.00": 4}, {"1.00": 5})
     assert rows == (Example("1.00", "4", "shared 4; intake 5"),)
@@ -166,6 +186,11 @@ def test_repo_reports_the_known_boss_splits(report):
     )
     assert "shoe-decimal" not in codes
     assert "dual-cost-landed" not in codes
+    assert "import-shoe-size" not in codes
+    assert any(
+        example.key == "O" and example.left == "autolist keeps 36" and example.right == "import drops 36"
+        for example in by_code["import-kind-o"].examples
+    )
     yen = by_code["shop-prefers-yen"]
     assert yen.examples[0].key == "Q"
     assert yen.examples[0].left == "17.50"
