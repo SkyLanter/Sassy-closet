@@ -118,3 +118,18 @@ Boss, files left as they are:
 - Shop `calcPricing` still prefers the yen figure when both cost fields are set. For kind Q the named USD landed is 17.50 and the shop landed is 22.37. That formula was not changed.
 
 Hard recheck: PASS against origin/main after npm ci in both apps, on 4409a7e. pytest 2132 passed, 7 skipped. Privacy CLEAN. Intake tests 278 pass, 275 fail 0, skipped 3. Shop tests 222 pass, 219 fail 0, skipped 3. tsc passed in both apps. held.json unchanged. No recheck step was SKIP. The 7 and 3 skips are the existing empty never-list cases inside the suites. Log `out/recheck/20261102-230328-57290`.
+
+## 2026-11-02 pass 8
+
+The intake gap report flagged `XXS`, `XXL`, and `3XL` even when `2XS` or `2XL` was already on that kind's list. Listing already keeps those spellings as `2XS` and `2XL`. The report now uses the same alias table. A list that does not include `2XS` or `2XL` still flags the alias, and the stored spelling stays in the report. `4XL` stays flagged. Shoe sizes stay on the shoe list, so `XXS` on a shoe row stays flagged. The stored row is not rewritten. Shop intake import still drops `XXS`. Intake chips were not changed. No catalog price was edited. `data/held.json` was not edited.
+
+Checker: code fails 0, Boss notes 17. Fail code `gap-size-alias` is absent on this repo.
+
+Boss, files left as they are:
+
+- `sassy-closet-shop/data/intake-extras.json` has S06 at $26. The live snapshot has S06 at $25.
+- Extras versus live snapshot: A16 34 vs 31, S05 25 vs 26, S06 26 vs 25, S07 44 vs 38, S08 35 vs 37, S09 42 vs 36, V01 25 vs 39, V02 31 vs 40.
+- `products.json` versus the live snapshot: 28 mãs differ (A03 is 25 in the seed and 22 live). 22 live mãs are absent from the seed, including S06.
+- Shop `calcPricing` still prefers the yen figure when both cost fields are set. For kind Q the named USD landed is 17.50 and the shop landed is 22.37. That formula was not changed.
+
+Hard recheck: PASS against origin/main after npm ci in both apps, on 2102fcb. pytest 2134 passed, 7 skipped. Privacy CLEAN. Intake tests 278 pass, 275 fail 0, skipped 3. Shop tests 222 pass, 219 fail 0, skipped 3. tsc passed in both apps. held.json unchanged. No recheck step was SKIP. The 7 and 3 skips are the existing empty never-list cases inside the suites. Log `out/recheck/20261102-232552-63320`.
