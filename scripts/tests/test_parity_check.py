@@ -1,0 +1,144 @@
+"""Read-only parity checker: planted mismatches fail, the repo's known splits are Boss notes."""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+import pytest
+
+from parity_check import (
+    DRIFT,
+    EXTRAS,
+    GIA,
+    LIVE_FIXTURE,
+    PRODUCTS,
+    SNAPSHOT,
+    TAOBAO,
+    TAOBAO_PUBLIC,
+    Example,
+    build_report,
+    dollar_text,
+    main,
+    price_disagreements,
+    quote_examples,
+    render_text,
+)
+
+ROOT = Path(__file__).resolve().parents[2]
+HELD = ROOT / "data" / "held.json"
+WATCHED = (PRODUCTS, EXTRAS, SNAPSHOT, DRIFT, LIVE_FIXTURE, GIA, TAOBAO, TAOBAO_PUBLIC, HELD)
+
+BOSS_CODES = (
+    "shoe-window",
+    "kind-o-scale",
+    "shop-parse-ignores-kind",
+    "shoe-letter-size",
+    "short-ma-quote",
+    "shop-normalize-no-pad",
+    "shop-debox-unknown",
+    "cost-currency-default",
+    "caption-vs-intake-tier",
+    "excel-letter-gap",
+    "seed-vs-live-price",
+    "seed-missing-live",
+    "extras-vs-live-price",
+    "extras-s06-lock",
+)
+
+
+@pytest.fixture(scope="module")
+def report():
+    return build_report()
+
+
+def test_dollar_text_accepts_whole_dollars_only():
+    assert dollar_text(25) == ("25", True)
+    assert dollar_text(25.0) == ("25", True)
+    assert dollar_text("25") == ("25", True)
+    assert dollar_text(25.5) == ("25.5", False)
+    assert dollar_text(True) == ("", False)
+    assert dollar_text(None) == ("", False)
+    assert dollar_text(-1) == ("-1", False)
+
+
+def test_price_disagreements_name_the_ma_and_do_not_edit_inputs():
+    left = {"A03": "25", "S06": "25"}
+    right = {"A03": "22", "S06": "25"}
+    rows = price_disagreements(left, right)
+    assert rows == (Example("A03", "25", "22"),)
+    assert left == {"A03": "25", "S06": "25"}
+    assert right == {"A03": "22", "S06": "25"}
+    assert price_disagreements({"A01": "10"}, {"A01": "10"}) == ()
+    assert price_disagreements({"A99": ""}, {"A99": "25"}) == (Example("A99", "", "25"),)
+
+
+def test_quote_examples_flag_a_planted_tier_mismatch():
+    rows = quote_examples({"1.00": 4}, {"1.00": 4}, {"1.00": 5})
+    assert rows == (Example("1.00", "4", "shared 4; intake 5"),)
+    assert quote_examples({"30.00": 42}, {"30.00": 42}, {"30.00": 42}) == ()
+
+
+def test_repo_has_no_code_fails(report):
+    assert report.code_fails() == ()
+
+
+def test_repo_reports_the_known_boss_splits(report):
+    codes = {item.code for item in report.boss_notes()}
+    missing = [code for code in BOSS_CODES if code not in codes]
+    assert missing == []
+    by_code = {item.code: item for item in report.findings}
+    assert all(item.severity == "boss" for item in report.boss_notes())
+    assert any(example.key == "A03" for example in by_code["seed-vs-live-price"].examples)
+    assert any(example.key == "S06" and example.left == "26" and example.right == "25"
+               for example in by_code["extras-s06-lock"].examples)
+    assert any(example.key == "S06" for example in by_code["seed-missing-live"].examples)
+    assert any(example.key == "K003" and example.left == "K03" and example.right == "K003"
+               for example in by_code["shop-normalize-no-pad"].examples)
+    assert any(example.key == "D" for example in by_code["excel-letter-gap"].examples)
+
+
+def test_snapshot_copies_agree(report):
+    codes = {item.code for item in report.findings}
+    assert "snapshot-vs-drift" not in codes
+    assert "snapshot-vs-fixture" not in codes
+    assert "taobao-seed-copy" not in codes
+    assert "live-s06-lock" not in codes
+    assert "duplicate-ma" not in codes
+
+
+def test_cli_json_matches_the_report_and_writes_nothing(report, capsys):
+    before = {path: path.read_bytes() for path in WATCHED}
+    code = main(["--json"])
+    after = {path: path.read_bytes() for path in WATCHED}
+    assert code == 0
+    assert after == before
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["codeFails"] == report.to_json()["codeFails"]
+    assert payload["boss"] == len(report.boss_notes())
+    text = render_text(report)
+    assert text.startswith("code fails: 0\n")
+    assert "held.json not changed" in text
+
+
+def test_strict_exits_when_boss_notes_exist():
+    before = HELD.read_bytes()
+    code = main(["--strict"])
+    assert code == 1
+    assert HELD.read_bytes() == before
+
+
+def test_checker_source_has_no_write_or_network_calls():
+    source = (ROOT / "scripts" / "parity_check.py").read_text(encoding="utf-8")
+    for token in (
+        "write_text",
+        "write_bytes",
+        "urlopen",
+        "urllib",
+        "urlretrieve",
+        "mkdir",
+        "unlink",
+        "requests",
+        "open(",
+    ):
+        assert token not in source
