@@ -290,3 +290,5 @@ Hard recheck on `dad517f` (`scripts/hard_recheck.sh --base origin/main`) after `
 | total | PASS | 197s, logs `out/recheck/20261102-215428-156487` |
 
 The commit that records this table is docs-only.
+
+PR: https://github.com/SkyLanter/Sassy-closet/pull/244 (draft).
