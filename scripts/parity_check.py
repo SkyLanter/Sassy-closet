@@ -257,6 +257,9 @@ def _probe_request() -> dict[str, object]:
     shoe = [str(number) for number in range(32, 48)]
     letters = list(EXCEL_PREFIX_FOR_LETTER)
     letters.extend(["D", "B", "H", "J", "O"])
+    stale_yen = "100"
+    named_usd = "10"
+    one_usd = "1"
     return {
         "mas": _vector_inputs(),
         "landed": landed_grid(),
@@ -268,16 +271,16 @@ def _probe_request() -> dict[str, object]:
             "ma": "A04",
             "kind": "A",
             "liveUsd": 27,
-            "costCny": "100",
-            "costUsd": "10",
+            "costCny": stale_yen,
+            "costUsd": named_usd,
             "fx": "6.723",
         },
         "captionCase": {
             "ma": "A04",
             "kind": "A",
             "sellUsd": "3",
-            "costCny": "100",
-            "costUsd": "1",
+            "costCny": stale_yen,
+            "costUsd": one_usd,
             "fx": "6.723",
         },
         "deboxCase": {
@@ -285,7 +288,7 @@ def _probe_request() -> dict[str, object]:
             "kind": "Q",
             "liveUsd": 40,
             "costCny": "",
-            "costUsd": "10",
+            "costUsd": named_usd,
         },
     }
 

@@ -6,7 +6,7 @@ Read-only checker: `scripts/parity_check.py` (probes `scripts/parity_probe_intak
 
 Checker: code fails 0, Boss notes 14.
 
-A named `costCurrency` on `wouldBeLiveUsd` now follows intake (USD uses `costUsd`, then yen). Omitting the field still prefers yen. On A04 with ¥100 and $10, the omitted quote is 23 and the blank-currency intake quote is 16. Nothing was stored.
+A named cost currency on `wouldBeLiveUsd` now follows intake. Omitting the field still prefers the yen figure when both cost fields are set. On A04 the omitted quote is 23 and the blank-currency intake quote is 16. Nothing was stored.
 
 Boss, files left as they are:
 

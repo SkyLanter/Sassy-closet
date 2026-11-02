@@ -177,39 +177,38 @@ test("intake calculator stays on flat 25% and does not quote the tiered sell", (
 });
 
 test("a named USD cost is not replaced by a stale yen cost", () => {
+  const staleYen = "100";
+  const namedUsd = "10";
+  const costs = { costCny: staleYen, costUsd: namedUsd };
   const named = wouldBeLiveUsd({
     ma: "A04",
     kind: "A",
     liveUsd: 27,
-    costCny: "100",
-    costUsd: "10",
+    ...costs,
     costCurrency: "USD",
   });
   const yen = wouldBeLiveUsd({
     ma: "A04",
     kind: "A",
     liveUsd: 27,
-    costCny: "100",
-    costUsd: "10",
+    ...costs,
     costCurrency: "CNY",
   });
   const omitted = wouldBeLiveUsd({
     ma: "A04",
     kind: "A",
     liveUsd: 27,
-    costCny: "100",
-    costUsd: "10",
+    ...costs,
   });
   const blankCurrency = wouldBeLiveUsd({
     ma: "A04",
     kind: "A",
     liveUsd: 27,
-    costCny: "100",
-    costUsd: "10",
+    ...costs,
     costCurrency: "",
   });
   assert.equal(named.reason, "tiered");
-  assert.equal(named.wouldBeUsd, tieredSellUsd("10"));
+  assert.equal(named.wouldBeUsd, tieredSellUsd(namedUsd));
   assert.equal(blankCurrency.wouldBeUsd, named.wouldBeUsd);
   assert.equal(yen.wouldBeUsd, omitted.wouldBeUsd);
   assert.notEqual(named.wouldBeUsd, yen.wouldBeUsd);
@@ -219,8 +218,7 @@ test("a named USD cost is not replaced by a stale yen cost", () => {
     sellUsd: "",
     sellCny: "",
     sellCurrency: "USD",
-    costCny: "100",
-    costUsd: "10",
+    ...costs,
     costCurrency: "USD",
     fxRate: DEFAULT_FX,
   });
@@ -231,8 +229,7 @@ test("a named USD cost is not replaced by a stale yen cost", () => {
     sellUsd: "",
     sellCny: "",
     sellCurrency: "USD",
-    costCny: "100",
-    costUsd: "10",
+    ...costs,
     costCurrency: "CNY",
     fxRate: DEFAULT_FX,
   });
