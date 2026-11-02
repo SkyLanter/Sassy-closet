@@ -238,6 +238,21 @@ def _finite(pairs) -> dict[str, float]:
     return out
 
 
+def _approved_usd(value: object) -> float | None:
+    """A boolean is not a price. float(True) is 1.0. One bad value is skipped."""
+    if isinstance(value, bool) or value is None:
+        return None
+    if isinstance(value, str) and not value.strip():
+        return None
+    try:
+        usd = float(value)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    if not math.isfinite(usd):
+        return None
+    return usd
+
+
 def load_live(path: Path) -> dict[str, float]:
     """Legacy catalog snapshot: {products: [{ma, priceUsd}]} or {prices: {ma: usd}}."""
     data = json.loads(path.read_text(encoding="utf-8"))
@@ -287,8 +302,19 @@ def main(argv: list[str] | None = None) -> int:
         held = {norm_ma(m) for m in hj.get("heldIncomplete", [])}
         never = {norm_ma(m) for m in hj.get("neverList", [])}
         known |= held | never
-        approved = {norm_ma(k): float(v) for k, v in
-                    json.loads(a.approved.read_text(encoding="utf-8")).get("approvedGia", {}).items()}
+        raw_approved = json.loads(a.approved.read_text(encoding="utf-8"))
+        if not isinstance(raw_approved, dict):
+            raise ValueError(f"{a.approved.name}: approved Giá must be an object")
+        gia = raw_approved.get("approvedGia", {})
+        if not isinstance(gia, dict):
+            raise ValueError(f"{a.approved.name}: approvedGia must be an object")
+        approved: dict[str, float] = {}
+        for key, value in gia.items():
+            code = norm_ma(key)
+            usd = _approved_usd(value)
+            if not code or usd is None:
+                continue
+            approved[code] = usd
     except (OSError, ValueError, json.JSONDecodeError) as e:
         print(f"caption_lint: {e}", file=sys.stderr)
         return 2

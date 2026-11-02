@@ -96,9 +96,36 @@ def load_posts(path: Path) -> list[tuple[str, str]]:
     return [(p["url"], p["text"]) for p in _cl.load_posts(path)]
 
 
+def _approved_usd(value: object) -> float | None:
+    """A boolean is not a price. float(True) is 1.0. One bad value is skipped."""
+    if isinstance(value, bool) or value is None:
+        return None
+    if isinstance(value, str) and not value.strip():
+        return None
+    try:
+        usd = float(value)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    if not math.isfinite(usd):
+        return None
+    return usd
+
+
 def load_approved(path: Path) -> dict[str, float]:
     data = json.loads(path.read_text(encoding="utf-8"))
-    return {norm_ma(k): float(v) for k, v in data.get("approvedGia", {}).items() if math.isfinite(float(v))}
+    if not isinstance(data, dict):
+        raise ValueError(f"{path.name}: approved Giá must be an object")
+    gia = data.get("approvedGia", {})
+    if not isinstance(gia, dict):
+        raise ValueError(f"{path.name}: approvedGia must be an object")
+    out: dict[str, float] = {}
+    for key, value in gia.items():
+        code = norm_ma(key)
+        usd = _approved_usd(value)
+        if not code or usd is None:
+            continue
+        out[code] = usd
+    return out
 
 
 def summarize(results: list[Result]) -> dict:
