@@ -52,8 +52,9 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 | PR | SHA | Result | Notes |
 | --- | --- | --- | --- |
 | #248 | `11b0ecf352730694738342674bc988f42df19285` | PASS | pytest 2120 passed, 7 skipped. Intake 277 tests / 274 pass / 0 fail / 3 skipped. Shop 218 / 215 / 0 / 3. tsc ok. Privacy CLEAN. held.json unchanged. Findings: none. Comment posted 2026-11-02. |
+| #225 | `ba5f60fa767d6750ecbc18b4fa006c8967c07e60` | FAIL | Hard recheck script PASS: pytest 2323 passed, 7 skipped. Intake 299 / 296 / 0 / 3. Shop 232 / 229 / 0 / 3. tsc ok. Privacy CLEAN. held.json unchanged. Review FAIL: `scripts/caption_lint.py` lines 59–62 and `scripts/caption_gap_watch.py` lines 119–129 treat `Mã S006B` as S06. `docs/quality-program-log.md` line 56 says the proposal path was not changed; `scripts/run_shop_drafts.py` lines 79–83 now pass `--proposal`. Comment posted 2026-11-02. |
 
-#225 moved to `ba5f60fa767d` after the local pass on `cda92647236a`. That older pass was not posted. The new head is being rechecked. #217–#247 are still in progress or queued. No knowledge-lane docs PR yet. #248 opened after the first queue snapshot.
+#225 at `ba5f60fa767d` is FAIL. The older local pass on `cda92647236a` was not posted. #217–#224 and #226–#247 are still in progress or queued. No knowledge-lane docs PR yet. #248 opened after the first queue snapshot.
 
 This log lives on draft PR #249 (`cursor/independent-recheck-log-cfee`). That PR is this lane's own notes, so this lane does not grade it.
 
