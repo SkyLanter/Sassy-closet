@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getFx, setFx } from "@/lib/store";
-import { storeUnavailableResponse } from "@/lib/store-unavailable";
+import { intakeWriteErrorResponse, storeUnavailableResponse } from "@/lib/store-unavailable";
 
 export async function GET() {
   try {
@@ -24,5 +24,9 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
-  return NextResponse.json(await setFx(usdCny));
+  try {
+    return NextResponse.json(await setFx(usdCny));
+  } catch (error) {
+    return intakeWriteErrorResponse(error);
+  }
 }
