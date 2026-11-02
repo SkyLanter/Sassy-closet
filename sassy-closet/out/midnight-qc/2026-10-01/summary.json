@@ -1,0 +1,71 @@
+{
+  "date": "2026-10-01",
+  "window": "2026-09-30 → 2026-10-01 PT",
+  "checkedAt": "2026-10-01T07:20:29Z",
+  "overall": "PASS",
+  "dataOk": "PASS",
+  "sellSite": "PASS",
+  "metaLight": "SKIPPED",
+  "failCount": 0,
+  "warnCount": 1,
+  "noteCount": 4,
+  "bossPing": false,
+  "metaClear": false,
+  "counts": {
+    "blobLive": 62,
+    "blobHeldInCatalog": 0,
+    "hubLive": 62,
+    "hubHeld": 0,
+    "intakeSubmissions": 66,
+    "intakeSubmissionsMatchingLiveMas": 60,
+    "intakeHeldStaged": 6,
+    "intakeStatusLive": null,
+    "intakeStatusHeld": null
+  },
+  "s06": {
+    "blobPriceUsd": 25,
+    "hubSellUsd": 25,
+    "pdpPrice": "25.00",
+    "pass": true
+  },
+  "heldAbsentFromBlob": {
+    "set": ["S14", "A24", "A25", "S15", "A26", "K02"],
+    "pass": true,
+    "pdp": "404"
+  },
+  "priceMismatchesBlobVsHub": [],
+  "warnings": [
+    {
+      "id": "W1",
+      "topic": "intake-status unreadable",
+      "detail": "GET https://sassy-closet.vercel.app/api/listing-status returned {\"enabled\":false,\"items\":{}} with no error, which is the unset LISTING_STATUS_URL path. Public intake-status.v1.json probes 404. No auto-list/state mirror in the repo."
+    }
+  ],
+  "notes": [
+    "N1 staging JPEGs still public for S14, A24, A25; not catalog products",
+    "N2 source link differs on A15 and D05; USD matches",
+    "N3 13 intake submission sell_usd values are older save-time numbers; hub matches Blob",
+    "N4 pricing formula not applied"
+  ],
+  "proof": {
+    "blobUrl": "https://efsi0jejsfy7j058.public.blob.vercel-storage.com/sassy-closet-shop/catalog.v1.json",
+    "blobUpdatedAt": "2026-09-30T15:56:17.273Z",
+    "blobLastModified": "Wed, 30 Sep 2026 15:56:59 GMT",
+    "blobSha256": "5a61d106e697a781c3c829f2c1d9c11aeec41670b13627cfc1a72c3f99fa4ed3",
+    "blobBytes": 73788,
+    "blobEtag": "b0fa80e289c227eb2a7569bf18c8f603",
+    "hubPath": "Documents/Sassy Closet/sassycloset.xlsx",
+    "hubLastModified": "2026-09-30T15:58:28Z",
+    "hubSha256": "141ab5e530ac8c7fdf68cc66b0e540e9eb1b288dd2be2f65622e111aa0a16af1",
+    "hubBytes": 12823,
+    "sell": "https://sassycloset.vercel.app",
+    "sellAlias": "https://sassy-closet-shop.vercel.app",
+    "homeSha256": "b983ee5f6bcf31a512a0b12e6e4c92711a3cf76ea71f43326bbf048a22abdcb2",
+    "healthOk": true,
+    "pdpChecked": 62,
+    "catalogImagesOk": 146,
+    "b01Photo4Sha256": "32f29819a2742a6b85c3ffbbd0e3dc3fd3454f36a4128c502e770ddd2e0e71b2"
+  },
+  "codeChanges": false,
+  "hardStopsHonored": true
+}
