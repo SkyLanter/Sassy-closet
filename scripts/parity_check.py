@@ -55,6 +55,13 @@ EXCEL_PREFIX_FOR_LETTER = {
 S06 = "S06"
 LOCK_USD = "25"
 MAX_EXAMPLES = 12
+# Shop EU is 34–42. These trailing-.0 forms sit inside that window.
+IN_WINDOW_DECIMAL = ("34.0", "35.0", "40.0", "42.0")
+# Both parsers drop these. ".00" and ".5" are not the autolist ".0" suffix.
+DROPPED_DECIMAL = ("32.0", "34.00", "34.5", "40.00", "47.0")
+# Autolist keeps 33–46. Shop still drops these. The window itself is unchanged.
+WINDOW_DECIMAL = ("33.0", "46.0")
+DECIMAL_SHOE_TOKENS = IN_WINDOW_DECIMAL + DROPPED_DECIMAL + WINDOW_DECIMAL
 
 
 @dataclass(frozen=True)
@@ -266,7 +273,7 @@ def _probe_request() -> dict[str, object]:
         "sells": list(range(1, 81)),
         "letters": letters,
         "aliasTokens": ["XXS", "3XL", "XXL"],
-        "shoeTokens": shoe,
+        "shoeTokens": [*shoe, *DECIMAL_SHOE_TOKENS],
         "currencyCase": {
             "ma": "A04",
             "kind": "A",
@@ -347,6 +354,38 @@ def _strings(value: object) -> tuple[str, ...]:
     if not isinstance(value, list):
         return ()
     return tuple(str(item) for item in value)
+
+
+def _joined(sizes: tuple[str, ...]) -> str:
+    return " ".join(sizes) if sizes else "dropped"
+
+
+def decimal_shoe_misses(shop_parsed: Mapping[str, object]) -> tuple[Example, ...]:
+    """In-window trailing .0 must become the same EU size. Other suffixes must drop."""
+    misses: list[Example] = []
+    for token in IN_WINDOW_DECIMAL:
+        expected = token.split(".", 1)[0]
+        py = tuple(norm_sizes(token, "G"))
+        shop_got = _strings(shop_parsed.get(token))
+        if py != (expected,) or shop_got != (expected,):
+            misses.append(Example(token, expected, f"autolist {_joined(py)}; shop {_joined(shop_got)}"))
+    for token in DROPPED_DECIMAL:
+        py = tuple(norm_sizes(token, "G"))
+        shop_got = _strings(shop_parsed.get(token))
+        if py or shop_got:
+            misses.append(Example(token, "dropped", f"autolist {_joined(py)}; shop {_joined(shop_got)}"))
+    return tuple(misses)
+
+
+def decimal_shoe_window(shop_parsed: Mapping[str, object]) -> tuple[Example, ...]:
+    """33.0 and 46.0 stay a window split. Shop does not grow to 33–46."""
+    rows: list[Example] = []
+    for token in WINDOW_DECIMAL:
+        py = tuple(norm_sizes(token, "G"))
+        shop_got = _strings(shop_parsed.get(token))
+        if py != shop_got:
+            rows.append(Example(token, _joined(py), _joined(shop_got)))
+    return tuple(rows)
 
 
 def _mapping(value: object) -> dict[str, object]:
@@ -569,10 +608,30 @@ def _rule_findings(excel, intake: Mapping[str, object], shop: Mapping[str, objec
             [Example("O", "autolist keeps 36", "intake drops 36")],
         ))
     if _strings(shop_parsed.get("36")) and "36" not in _strings(_mapping(intake.get("scales")).get("A")):
+        ignored = [Example("36", "shop keeps 36", "intake clothing drops 36")]
+        if _strings(shop_parsed.get("40.0")) == ("40",) and not norm_sizes("40.0", "A"):
+            ignored.append(Example("40.0", "shop keeps 40", "autolist clothing drops 40.0"))
         findings.append(_note(
             "boss",
             "shop-parse-ignores-kind",
-            "shop parseAsiaSizes keeps EU 36 on any row; intake clothing kinds drop it",
+            "shop parseAsiaSizes keeps an EU shoe token on any row; intake clothing kinds drop it",
+            ignored,
+        ))
+    decimal_misses = decimal_shoe_misses(shop_parsed)
+    if decimal_misses:
+        findings.append(_note(
+            "fail",
+            "shoe-decimal",
+            "a trailing .0 shoe token does not collapse to the same EU size",
+            decimal_misses,
+        ))
+    decimal_window = decimal_shoe_window(shop_parsed)
+    if decimal_window:
+        findings.append(_note(
+            "boss",
+            "shoe-decimal-window",
+            "trailing .0 outside the shop EU window stays dropped there; autolist keeps 33-46. No size list was rewritten.",
+            decimal_window,
         ))
     if is_valid_size("M", "G") and not _strings(intake.get("keepGLetters")):
         findings.append(_note(
