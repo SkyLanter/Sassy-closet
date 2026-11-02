@@ -14,7 +14,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 | PR | Head at queue time | Title |
 | --- | --- | --- |
-| #225 | `ba5f60fa767d` | Draft: one branch for the safe shop fixes (#217–#224). Moved 2026-11-02 22:56 UTC. Prior head `cda92647236a` passed locally and was not commented, because it is no longer the head. |
+| #225 | `72d792580d71` | Draft: one branch for the safe shop fixes. Moved again 2026-11-02 23:34 UTC. `ba5f60fa767d` was commented FAIL. `cda92647236a` passed locally and was not commented. |
 | #217 | `ee9e2a34bfb4` | Combined safe bundle #208-#216 |
 | #218 | `03c23afc58a7` | Fail closed when Blob is down, and drop held folders from other mãs |
 | #219 | `5b590c0f734e` | Keep a blank intake sell blank and parse pasted yen safely |
@@ -66,7 +66,12 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 | #237 | `9d318d4f4253095099643ad2233a019631fd2847` | FAIL | Script PASS (pytest 2115). Gap watch matches. The log claims other fixes that are not in this tree. |
 | #238 | `93e2341b000829da1e0f001b7ba473b343293db8` | FAIL | Script PASS (pytest 2114). On-hand alias matches. The log's image-route and CSV-formula sections are not in this tree. |
 | #222 | `2fbf7070f3df59c26733d1b089a4166fb666f238` | PASS | pytest 2126 passed, 7 skipped. Intake 277 / 274 / 0 / 3. Shop 218 / 215 / 0 / 3. Landed digits stay on the same quote. Findings: none. |
+| #223 | `e78e049b47a6ab792e89f9490ae1487034c6c2aa` | PASS | pytest 2157 passed, 7 skipped. Intake 277 / 274 / 0 / 3. Shop 218 / 215 / 0 / 3. GET-only status report. Findings: none. |
 | #239 | `7770cab00a332a070d57a4c520d66e739e6e52ac` | PASS | pytest 2120 passed, 7 skipped. Intake 277 / 274 / 0 / 3. Shop 218 / 215 / 0 / 3. Smoke is manual GET-only. This lane did not run the live step. Findings: none. |
+| #240 | `e346f6c77de8fb6a7d513ff31fd9aab2f47f27a7` | PASS | pytest 2126 passed, 7 skipped. Intake 278 / 275 / 0 / 3. Shop 220 / 217 / 0 / 3. Yen preference is a Boss note. Findings: none. |
+| #241 | `3ae952869d24f01ef6d41931ff23274ce3a461b1` | FAIL | Script PASS (pytest 2116). Sold and hold are out of the intake live price. Blank and null do not match the daily snapshot, and the log claims other fixes that are not in this tree. |
+| #250 | `a381e8e66cc340f448bb1ff15f859cd27d903899` | FAIL | Script PASS (pytest 2114). Dropped-photo hashes match. The lane A log claims image, CSV, on-hand, 503, and share-card fixes that are not in this tree. |
+| #251 | `afa3df612e79f1f36707640ef240b4a355703f1c` | PASS | pytest 2118 passed, 7 skipped. Intake 277 / 274 / 0 / 3. Shop 218 / 215 / 0 / 3. Workflow tokens are contents: read. Findings: none. |
 
 #222 was still in `hard_recheck.sh` when #239 was commented. #223, #224, #226–#231, and #240–#247 stay with the earlier workers. No knowledge-lane docs PR. #250–#258 are in progress. #259 is queued. #249 is this log and is not graded.
 
@@ -84,6 +89,10 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 | #257 | `dd240888ec8d` | Test catalog fallback, the S06 lock, held photo spellings, and intake export |
 | #258 | `623617591224` | Split gap-report sizes on the same separators as listing |
 | #259 | `0402dd50b1c6` | Count a text sell price in the price approval queue |
+
+## 2026-11-02 23:34 UTC — #225 moved
+
+#225 head is `72d792580d71f6af6447043a6f981c7a646bb178`. The FAIL on `ba5f60fa767d` stays the comment for that older SHA. The new head is in `hard_recheck.sh` and is not commented yet. #224, #242, and #252 were also in hard recheck at the same time. No knowledge-lane docs PR.
 
 This log lives on draft PR #249 (`cursor/independent-recheck-log-cfee`). That PR is this lane's own notes, so this lane does not grade it.
 
