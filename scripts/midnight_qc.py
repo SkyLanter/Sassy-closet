@@ -124,9 +124,12 @@ SUMMARY_KEYS = (
     "freshnessGuards",
     "freshnessHub",
 )
+# Live home HTML is a Next.js RSC flight string: quotes are backslash-escaped
+# (`\"ma\":\"S06\"` ... `\"priceUsd\":25`). Fixtures still use plain JSON.
 _HOME_PRICE_RE = re.compile(
-    r'"ma"\s*:\s*"(?P<ma>[A-Za-z][0-9]{2})"(?P<body>.{0,2000}?)'
-    r'"priceUsd"\s*:\s*(?P<price>null|\d+(?:\.\d+)?)',
+    r'\\?"ma\\?"\s*:\s*\\?"(?P<ma>[A-Za-z][0-9]{2})\\?"'
+    r'(?P<body>.{0,2000}?)'
+    r'\\?"priceUsd\\?"\s*:\s*(?P<price>null|\d+(?:\.\d+)?)',
     flags=re.DOTALL,
 )
 _SHA_RE = re.compile(r"[0-9a-f]{40}")
