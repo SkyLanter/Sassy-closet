@@ -51,10 +51,36 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 | PR | SHA | Result | Notes |
 | --- | --- | --- | --- |
-| #248 | `11b0ecf352730694738342674bc988f42df19285` | PASS | pytest 2120 passed, 7 skipped. Intake 277 tests / 274 pass / 0 fail / 3 skipped. Shop 218 / 215 / 0 / 3. tsc ok. Privacy CLEAN. held.json unchanged. Findings: none. Comment posted 2026-11-02. |
-| #225 | `ba5f60fa767d6750ecbc18b4fa006c8967c07e60` | FAIL | Hard recheck script PASS: pytest 2323 passed, 7 skipped. Intake 299 / 296 / 0 / 3. Shop 232 / 229 / 0 / 3. tsc ok. Privacy CLEAN. held.json unchanged. Review FAIL: `scripts/caption_lint.py` lines 59–62 and `scripts/caption_gap_watch.py` lines 119–129 treat `Mã S006B` as S06. `docs/quality-program-log.md` line 56 says the proposal path was not changed; `scripts/run_shop_drafts.py` lines 79–83 now pass `--proposal`. Comment posted 2026-11-02. |
+| #248 | `11b0ecf352730694738342674bc988f42df19285` | PASS | pytest 2120 passed, 7 skipped. Intake 277 / 274 / 0 / 3. Shop 218 / 215 / 0 / 3. |
+| #225 | `ba5f60fa767d6750ecbc18b4fa006c8967c07e60` | FAIL | Script PASS (pytest 2323). `Mã S006B` lints as S06. Log line 56 says the proposal path was not changed. |
+| #217 | `ee9e2a34bfb45a526bb8140516372d0d89dabc09` | PASS | pytest 2164 passed, 7 skipped. Intake 281 / 278 / 0 / 3. Shop 218 / 215 / 0 / 3. Findings: none. |
+| #218 | `03c23afc58a74fd6e4527742e5ff0b5ac7f98fbf` | PASS | pytest 2114 passed, 7 skipped. Intake 277 / 274 / 0 / 3. Shop 232 / 229 / 0 / 3. Findings: none. |
+| #219 | `5b590c0f734e411e5eac39d78b0fae088dfa0a52` | PASS | pytest 2114 passed, 7 skipped. Intake 295 / 292 / 0 / 3. Shop 218 / 215 / 0 / 3. Findings: none. |
+| #220 | `8119f95aa536d4f4b81045ec0767710c32e960ce` | FAIL | Script PASS (pytest 2121). Log lines 31–38 claim digest fixes that are not in this tree. |
+| #221 | `c417d95e2ab2cf5fe990a7789939f9c68824d4ab` | PASS | pytest 2167 passed, 7 skipped. Intake 277 / 274 / 0 / 3. Shop 218 / 215 / 0 / 3. Findings: none. |
+| #232 | `8b608ca5017d61060eb4732c4cd96fbc7947d04d` | PASS | pytest 2131 passed, 7 skipped. Intake 277 / 274 / 0 / 3. Shop 218 / 215 / 0 / 3. Findings: none. |
+| #233 | `85c24e8a24e1d73ad36e9424436cc2a9b0d13db3` | PASS | pytest 2123 passed, 7 skipped. Intake 278 / 275 / 0 / 3. Shop 218 / 215 / 0 / 3. Findings: none. |
+| #234 | `1a2b1e82dc881da37e913c27fda22879fc3bb229` | FAIL | Script PASS (pytest 2115). QC-note parser matches. The log claims other fixes that are not in this tree. |
+| #235 | `0e696628185d3f52bee4530801eda27fffa20a8b` | FAIL | Script PASS (pytest 2114). CSV formula prefix matches. The log's image-route section is not in this tree. |
+| #236 | `077a6a6de927553b5d5347c693e93b7ce093d9d5` | PASS | pytest 2125 passed, 7 skipped. Intake 278 / 275 / 0 / 3. Shop 220 / 217 / 0 / 3. Findings: none. |
+| #237 | `9d318d4f4253095099643ad2233a019631fd2847` | FAIL | Script PASS (pytest 2115). Gap watch matches. The log claims other fixes that are not in this tree. |
+| #238 | `93e2341b000829da1e0f001b7ba473b343293db8` | FAIL | Script PASS (pytest 2114). On-hand alias matches. The log's image-route and CSV-formula sections are not in this tree. |
 
-#225 at `ba5f60fa767d` is FAIL. The older local pass on `cda92647236a` was not posted. #217–#224 and #226–#247 are still in progress or queued. No knowledge-lane docs PR yet. #248 opened after the first queue snapshot.
+#222 and #239 were still running at this tick. #223, #224, #226–#231, and #240–#247 are still queued on the existing workers. No knowledge-lane docs PR. New drafts #250–#258 are queued below. #249 is this log and is not graded.
+
+## 2026-11-02 23:15 UTC — new drafts
+
+| PR | Head | Title |
+| --- | --- | --- |
+| #250 | `a381e8e66cc3` | Drop a removed photo's hash so find-mã stops matching it |
+| #251 | `afa3df612e79` | Lock pull-request workflows to a read-only token |
+| #252 | `e66dd83417e3` | Skip a bad approved Giá instead of inventing $1 |
+| #253 | `32eb7581a8dc` | Draft: treat a trailing .0 as the allowed shoe chip in the gap report |
+| #254 | `a8d4be084467` | Pin third-party actions to commit SHAs |
+| #255 | `f22db5f7d19c` | Draft: name missing, stale, and unusable cost-recheck files |
+| #256 | `b23494967f84` | Keep a new intake photo from replacing a file that was kept |
+| #257 | `dd240888ec8d` | Test catalog fallback, the S06 lock, held photo spellings, and intake export |
+| #258 | `623617591224` | Split gap-report sizes on the same separators as listing |
 
 This log lives on draft PR #249 (`cursor/independent-recheck-log-cfee`). That PR is this lane's own notes, so this lane does not grade it.
 
