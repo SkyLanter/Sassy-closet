@@ -28,4 +28,4 @@ Hard recheck on `b294acc` (`scripts/hard_recheck.sh --base origin/main`): **PASS
 
 No hard-recheck step was SKIP. The pytest and npm skipped counts are tests inside those suites, not skipped recheck steps.
 
-PR: draft for `cursor/held-image-cross-ma-b01b`. The commit that records this table is docs-only.
+PR: https://github.com/SkyLanter/Sassy-closet/pull/231 (draft). The commit that records this table is docs-only.
