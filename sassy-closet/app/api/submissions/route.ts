@@ -4,7 +4,7 @@ import { intakeDirectJson, withIntakeDirectLinkHeaders } from "@/lib/intake-dire
 import { intakeCatalog } from "@/lib/kinds";
 import { scheduleNewMaWebhookFromRow } from "@/lib/newMaWebhook";
 import { listSubmissions, storeHealth } from "@/lib/store";
-import { storeUnavailableResponse } from "@/lib/store-unavailable";
+import { intakeWriteErrorResponse, storeUnavailableResponse } from "@/lib/store-unavailable";
 
 // Direct link, no session, reads and writes. noindex, not in nav.
 export async function GET() {
@@ -22,18 +22,19 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  let form: FormData;
   try {
-    const form = await request.formData();
+    form = await request.formData();
+  } catch {
+    return withIntakeDirectLinkHeaders(
+      NextResponse.json({ error: "Chưa lưu được, thử lại nha." }, { status: 400 }),
+    );
+  }
+  try {
     const submission = await saveFromForm(form);
     scheduleNewMaWebhookFromRow("create", submission);
     return withIntakeDirectLinkHeaders(NextResponse.json({ submission }));
   } catch (error) {
-    const status = (error as { status?: number }).status ?? 400;
-    return withIntakeDirectLinkHeaders(
-      NextResponse.json(
-        { error: error instanceof Error ? error.message : "Chưa lưu được, thử lại nha." },
-        { status },
-      ),
-    );
+    return withIntakeDirectLinkHeaders(intakeWriteErrorResponse(error));
   }
 }
