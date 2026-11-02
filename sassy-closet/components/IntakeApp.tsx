@@ -341,23 +341,9 @@ export function IntakeApp({
       form.set("cost_usd", costUsd);
       form.set("cost_cny", costCny);
       form.set("cost_currency", costUsd ? "USD" : costCny ? "CNY" : "USD");
-      const priced = intakePriceView({
-        ma: (editingMa || (tab === "edit" ? loadedMa : "") || "").trim(),
-        kind,
-        costCny,
-        costUsd,
-        costCurrency: costUsd ? "USD" : costCny ? "CNY" : "USD",
-        sellUsd,
-        sellCny,
-        sellCurrency: sellUsd.trim() ? "USD" : sellCny.trim() ? "CNY" : "USD",
-        fxRate,
-      });
-      const fillCalculated = !sellUsd.trim() && !sellCny.trim() && priced.dollars != null;
-      const nextSellUsd = fillCalculated ? String(priced.dollars) : sellUsd;
-      const nextSellCny = fillCalculated ? (convertUsdToCny(nextSellUsd, fxRate) ?? "") : sellCny;
-      form.set("sell_usd", nextSellUsd);
-      form.set("sell_cny", nextSellCny);
-      form.set("sell_currency", nextSellUsd.trim() ? "USD" : nextSellCny.trim() ? "CNY" : "USD");
+      form.set("sell_usd", sellUsd);
+      form.set("sell_cny", sellCny);
+      form.set("sell_currency", sellUsd.trim() ? "USD" : sellCny.trim() ? "CNY" : "USD");
       form.set("color", colorLine);
       form.set("color_note", colorNote);
       form.set("pieces", JSON.stringify([]));
