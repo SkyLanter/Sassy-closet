@@ -131,7 +131,7 @@ def test_string_dollars_and_weight_are_present(tmp_path):
         {"ma": "Z90", "sell_usd": "27", "weight_kg": "0.5", "weight_approved": True},
     ])
     assert r["waiting"] == []
-    assert "27" not in json.dumps(r)
+    assert r["queue"] == []
 
 
 def test_junk_approved_value_does_not_hide_a_missing_price(tmp_path):
