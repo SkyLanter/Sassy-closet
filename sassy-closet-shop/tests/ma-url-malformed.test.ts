@@ -5,7 +5,7 @@ import { canonicalCategoryPath, canonicalMaPath } from "../lib/ma-url";
 // proxy.ts calls these on every request; a bad %-escape must not throw (500).
 test("canonical path helpers ignore malformed percent escapes", () => {
   const bad = "%" + "E0%A4%A";
-  for (const p of [`/m/${bad}`, `/share/m/${bad}`, `/c/${bad}`, `/share/c/${bad}`]) {
+  for (const p of [`/m/${bad}`, `/share/m/${bad}`, `/c/${bad}`, `/share/c/${bad}`, `/products/${bad}/cover.jpg`]) {
     assert.doesNotThrow(() => canonicalMaPath(p), p);
     assert.doesNotThrow(() => canonicalCategoryPath(p), p);
     assert.equal(canonicalMaPath(p), null);
