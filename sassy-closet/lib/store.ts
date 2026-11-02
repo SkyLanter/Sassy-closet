@@ -67,9 +67,21 @@ export async function getSubmission(ma: string): Promise<Submission | null> {
 export async function getOnHandRows(ma: string): Promise<OnHandRow[]> {
   const target = normalizeMa(ma);
   const bag = (await loadStore()).on_hand;
-  if (!bag || typeof bag !== "object") return [];
-  const raw = bag[target] ?? bag[ma];
+  if (!bag || typeof bag !== "object" || Array.isArray(bag)) return [];
+  const raw = onHandBucket(bag, target, ma);
   return sanitizeOnHandRows(raw, target);
+}
+
+/** Exact canonical key wins. Otherwise one alias — never summed. A case-only spelling beats a padded one. */
+function onHandBucket(bag: Record<string, unknown>, target: string, requested: string): unknown {
+  if (bag[target] != null) return bag[target];
+  if (requested !== target && bag[requested] != null) return bag[requested];
+  if (!target) return undefined;
+  const matches = Object.keys(bag).filter((key) => normalizeMa(key) === target && bag[key] != null);
+  const caseOnly = matches.filter((key) => key.trim().toUpperCase() === target).sort();
+  const pool = caseOnly.length > 0 ? caseOnly : [...matches].sort();
+  const key = pool[0];
+  return key === undefined ? undefined : bag[key];
 }
 
 export async function listMas(): Promise<string[]> {
