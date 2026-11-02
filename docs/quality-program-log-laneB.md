@@ -133,3 +133,19 @@ Boss, files left as they are:
 - Shop `calcPricing` still prefers the yen figure when both cost fields are set. For kind Q the named USD landed is 17.50 and the shop landed is 22.37. That formula was not changed.
 
 Hard recheck: PASS against origin/main after npm ci in both apps, on 2102fcb. pytest 2134 passed, 7 skipped. Privacy CLEAN. Intake tests 278 pass, 275 fail 0, skipped 3. Shop tests 222 pass, 219 fail 0, skipped 3. tsc passed in both apps. held.json unchanged. No recheck step was SKIP. The 7 and 3 skips are the existing empty never-list cases inside the suites. Log `out/recheck/20261102-232552-63320`.
+
+## 2026-11-02 pass 9
+
+Shop `parseAsiaSizes` keeps EU 40 from `40.`, `4.0`, `40码`, and `(40)`. Listing drops those tokens. A spaced range string in the Taobao seed, `36 -37(适合平时35-36码)`, is dropped by shop. Listing keeps 36 from that string. The checker records Boss note `shop-loose-shoe`. Neither parser was changed. `products.json` sizes are plain letters, so page sizes stay as they are. No catalog price was edited. `data/held.json` was not edited.
+
+Checker: code fails 0, Boss notes 18.
+
+Boss, files left as they are:
+
+- `sassy-closet-shop/data/intake-extras.json` has S06 at $26. The live snapshot has S06 at $25.
+- Extras versus live snapshot: A16 34 vs 31, S05 25 vs 26, S06 26 vs 25, S07 44 vs 38, S08 35 vs 37, S09 42 vs 36, V01 25 vs 39, V02 31 vs 40.
+- `products.json` versus the live snapshot: 28 mãs differ (A03 is 25 in the seed and 22 live). 22 live mãs are absent from the seed, including S06.
+- Shop `calcPricing` still prefers the yen figure when both cost fields are set. For kind Q the named USD landed is 17.50 and the shop landed is 22.37. That formula was not changed.
+- Shop keeps 40 from `40.`, `4.0`, `40码`, and `(40)`. Listing drops those tokens. Shop drops the spaced range string. Listing keeps 36.
+
+Hard recheck: PASS against origin/main after npm ci in both apps, on e81f3cb. pytest 2135 passed, 7 skipped. Privacy CLEAN. Intake tests 278 pass, 275 fail 0, skipped 3. Shop tests 222 pass, 219 fail 0, skipped 3. tsc passed in both apps. held.json unchanged. No recheck step was SKIP. The 7 and 3 skips are the existing empty never-list cases inside the suites. Log `out/recheck/20261102-234659-69776`.
