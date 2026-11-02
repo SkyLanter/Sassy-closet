@@ -95,6 +95,31 @@ export async function setFx(
   return getFx();
 }
 
+/**
+ * One hash per kept path, in keep order.
+ * Pair a path with the hash stored beside it. Dropped paths must not keep
+ * their hash, or find-by-photo still returns the mã. A kept path with no
+ * stored hash gets an empty slot so a photo added in the same save stays
+ * lined up with its own hash.
+ */
+function keptPhotoHashes(existing: Submission | null, keep: readonly string[]): string[] {
+  if (!existing) return keep.map(() => "");
+  const paths = Array.isArray(existing.photo_paths) ? existing.photo_paths : [];
+  const hashes = Array.isArray(existing.photo_hashes) ? existing.photo_hashes : [];
+  const byPath = new Map<string, string>();
+  for (let i = 0; i < paths.length; i += 1) {
+    const rel = paths[i];
+    const hash = hashes[i];
+    if (typeof rel !== "string" || rel.length === 0) continue;
+    if (typeof hash !== "string" || hash.length === 0) continue;
+    if (!byPath.has(rel)) byPath.set(rel, hash);
+  }
+  return keep.map((rel) => {
+    if (typeof rel !== "string" || rel.length === 0) return "";
+    return byPath.get(rel) ?? "";
+  });
+}
+
 export async function saveSubmission(input: SaveInput): Promise<Submission> {
   if (!isKindCode(input.kind)) {
     throw Object.assign(new Error("Loại đồ không đúng."), { status: 400 });
@@ -127,10 +152,7 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
 
   const now = new Date().toISOString();
   const photoPaths = [...input.keep_photos];
-  const photoHashes = existing ? [...existing.photo_hashes] : [];
-  if (input.keep_photos.length === 0 && existing) {
-    photoHashes.length = 0;
-  }
+  const photoHashes = keptPhotoHashes(existing, input.keep_photos);
 
   const backend = activeBackend();
   let index = photoPaths.length;
@@ -188,7 +210,10 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
 }
 
 export async function findByPhotoHash(hash: string): Promise<Submission[]> {
-  return (await loadStore()).submissions.filter((row) => row.photo_hashes.includes(hash));
+  if (!hash) return [];
+  return (await loadStore()).submissions.filter(
+    (row) => Array.isArray(row.photo_hashes) && row.photo_hashes.includes(hash),
+  );
 }
 
 export async function readPhoto(rel: string): Promise<{ bytes: Buffer; type: string } | null> {
