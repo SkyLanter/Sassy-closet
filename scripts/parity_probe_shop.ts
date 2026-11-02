@@ -10,7 +10,7 @@ import {
   parseAsiaSizes,
 } from "../sassy-closet-shop/lib/asia-size";
 import { MA_LETTERS, canonicalMaSpelling, normalizeMa } from "../sassy-closet-shop/lib/ma";
-import { deboxForLetter, sellUsdFromLanded } from "../sassy-closet-shop/lib/pricing";
+import { calcPricing, deboxForLetter, sellUsdFromLanded } from "../sassy-closet-shop/lib/pricing";
 
 type ProbeRequest = {
   mas: (string | null)[];
@@ -18,6 +18,12 @@ type ProbeRequest = {
   aliasTokens: string[];
   shoeTokens: string[];
   letters: string[];
+  dualCost: {
+    kind: string;
+    costCny: string;
+    costUsd: string;
+    fx: string;
+  };
 };
 
 function readRequest(): ProbeRequest {
@@ -51,6 +57,13 @@ function main(): void {
   for (const letter of request.letters) {
     debox[letter] = deboxForLetter(letter);
   }
+  const dual = request.dualCost;
+  const priced = calcPricing({
+    costCny: Number(dual.costCny),
+    costUsd: Number(dual.costUsd),
+    fx: Number(dual.fx),
+    deboxUsd: deboxForLetter(dual.kind),
+  });
   const body = {
     kindLetters: [...MA_LETTERS],
     clothing: [...ASIA_SIZE_LETTERS],
@@ -61,6 +74,7 @@ function main(): void {
     shoeParsed,
     flat,
     debox,
+    dualShopLanded: priced.landedUsd,
   };
   process.stdout.write(`${JSON.stringify(body)}\n`);
 }

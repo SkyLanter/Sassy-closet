@@ -15,7 +15,7 @@ import json
 import subprocess
 import sys
 from dataclasses import dataclass
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
 from typing import Mapping, Sequence
 
@@ -144,6 +144,45 @@ def _decimal(raw: object) -> Decimal | None:
         return Decimal(str(raw))
     except (ArithmeticError, ValueError, TypeError):
         return None
+
+
+def _money_text(value: Decimal) -> str:
+    return format(value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP), "f")
+
+
+def dual_cost_findings(intake: Mapping[str, object], shop: Mapping[str, object]) -> list[Finding]:
+    """Shop calcPricing ignores a named USD cost when a yen cost is also set.
+
+    The shop formula stays as it is. A match with the named USD landed means
+    the split is gone. A match with neither landed is a broken probe.
+    """
+    usd = _decimal(intake.get("dualUsdLanded"))
+    cny = _decimal(intake.get("dualCnyLanded"))
+    shop_landed = _decimal(shop.get("dualShopLanded"))
+    if usd is None or cny is None or shop_landed is None:
+        return [_note(
+            "fail",
+            "dual-cost-landed",
+            "dual-cost landed probe did not return numbers",
+            [Example("Q", str(intake.get("dualUsdLanded")), str(shop.get("dualShopLanded")))],
+        )]
+    tolerance = Decimal("0.01")
+    if abs(shop_landed - usd) <= tolerance:
+        return []
+    if abs(shop_landed - cny) <= tolerance:
+        return [_note(
+            "boss",
+            "shop-prefers-yen",
+            "shop calcPricing prefers the yen figure when both cost fields are set. "
+            "Intake named USD uses the dollar cost. The shop formula was not changed.",
+            [Example("Q", _money_text(usd), _money_text(shop_landed))],
+        )]
+    return [_note(
+        "fail",
+        "dual-cost-landed",
+        "shop calcPricing matches neither the named USD landed nor the named CNY landed",
+        [Example("Q", _money_text(usd), f"shop {_money_text(shop_landed)}; cny {_money_text(cny)}")],
+    )]
 
 
 def _same_decimal(raw: object, expected: Decimal, tolerance: Decimal) -> bool:
@@ -296,6 +335,12 @@ def _probe_request() -> dict[str, object]:
             "liveUsd": 40,
             "costCny": "",
             "costUsd": named_usd,
+        },
+        "dualCost": {
+            "kind": "Q",
+            "costCny": stale_yen,
+            "costUsd": named_usd,
+            "fx": "6.723",
         },
     }
 
@@ -801,6 +846,7 @@ def _price_findings(intake: Mapping[str, object], shop: Mapping[str, object]) ->
             "shop-debox-unknown",
             "shop deboxForLetter is null off V/Q/D (it will not invent $0); intake and the shared quote use $0. No debox was written.",
         ))
+    findings.extend(dual_cost_findings(intake, shop))
     return findings
 
 
