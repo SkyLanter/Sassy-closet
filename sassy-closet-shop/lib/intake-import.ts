@@ -1,4 +1,4 @@
-import { emptyFitCm, isAsiaSizeLetter } from "@/lib/asia-size";
+import { emptyFitCm, isAsiaSizeLetter, isEuShoeSize, parseAsiaSizes } from "@/lib/asia-size";
 import type { ItemDraft } from "@/lib/item-draft";
 import type { ShopSize } from "@/lib/asia-size";
 
@@ -214,6 +214,21 @@ function slugifyName(name: string): string {
   );
 }
 
+function keepPrefillSize(token: string, shoe: boolean): ShopSize | null {
+  const clean = token.trim().toUpperCase();
+  if (!clean) {
+    return null;
+  }
+  if (isAsiaSizeLetter(clean)) {
+    return clean;
+  }
+  if (!shoe) {
+    return null;
+  }
+  const parsed = parseAsiaSizes([clean]).find((size) => isEuShoeSize(size));
+  return parsed ?? null;
+}
+
 /**
  * Build the draft prefill from a staged intake submission. GF-entered colors
  * (submission.color, piece.color) are "confirmed"; colors that only appear in
@@ -262,19 +277,23 @@ export function intakeToPrefill(submission: IntakeSubmission): IntakePrefill {
     warnings.push("Unconfirmed (red) colors are suggestions only — confirm against the seller SKU before Save.");
   }
 
+  const shoe = submission.kind.trim().toUpperCase() === "G";
   const sizes: ShopSize[] = [];
   const droppedSizes: string[] = [];
   for (const token of submission.size.split(/[\s,;|/]+/)) {
-    const clean = token.trim().toUpperCase();
-    if (!clean) {
+    const trimmed = token.trim();
+    if (!trimmed) {
       continue;
     }
-    if (isAsiaSizeLetter(clean)) {
-      if (!sizes.includes(clean)) {
-        sizes.push(clean);
+    const next = keepPrefillSize(trimmed, shoe);
+    if (!next) {
+      if (!droppedSizes.includes(trimmed)) {
+        droppedSizes.push(trimmed);
       }
-    } else if (!droppedSizes.includes(token.trim())) {
-      droppedSizes.push(token.trim());
+      continue;
+    }
+    if (!sizes.includes(next)) {
+      sizes.push(next);
     }
   }
   if (droppedSizes.length > 0) {

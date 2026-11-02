@@ -185,6 +185,53 @@ def dual_cost_findings(intake: Mapping[str, object], shop: Mapping[str, object])
     )]
 
 
+def import_size_findings(shop: Mapping[str, object]) -> list[Finding]:
+    """Shop intake import keeps G EU sizes, including a single trailing .0.
+
+    Clothing stays on letters. Kind O stays on letters too; autolist still
+    treats O as a shoe. That split is a Boss note, not a new size list.
+    """
+    findings: list[Finding] = []
+    expected = {
+        "shoe": ("40", "35", "36"),
+        "edge": ("42",),
+        "clothing": ("S",),
+    }
+    got = {
+        "shoe": _strings(shop.get("importShoe")),
+        "edge": _strings(shop.get("importEdge")),
+        "clothing": _strings(shop.get("importClothing")),
+    }
+    misses = [
+        Example(name, " ".join(expected[name]), _joined(got[name]))
+        for name in expected
+        if got[name] != expected[name]
+    ]
+    if misses:
+        findings.append(_note(
+            "fail",
+            "import-shoe-size",
+            "shop intake import does not keep the same G EU sizes as parseAsiaSizes",
+            misses,
+        ))
+    kind_o = _strings(shop.get("importKindO"))
+    if "M" not in kind_o:
+        findings.append(_note(
+            "fail",
+            "import-shoe-size",
+            "shop intake import dropped the clothing letter on an O row",
+            [Example("O", "M", _joined(kind_o))],
+        ))
+    elif "36" not in kind_o and norm_sizes("36", "O") == ["36"]:
+        findings.append(_note(
+            "boss",
+            "import-kind-o",
+            "autolist treats O as a shoe; shop intake import keeps clothing letters for O. No size list was rewritten.",
+            [Example("O", "autolist keeps 36", "import drops 36")],
+        ))
+    return findings
+
+
 def _same_decimal(raw: object, expected: Decimal, tolerance: Decimal) -> bool:
     got = _decimal(raw)
     if got is None:
@@ -341,6 +388,12 @@ def _probe_request() -> dict[str, object]:
             "costCny": stale_yen,
             "costUsd": named_usd,
             "fx": "6.723",
+        },
+        "importSizes": {
+            "shoe": "40.0 35,36",
+            "clothing": "S XXS 40",
+            "edge": "33.0 43 34.5 40.00 42",
+            "kindO": "36 M",
         },
     }
 
@@ -847,6 +900,7 @@ def _price_findings(intake: Mapping[str, object], shop: Mapping[str, object]) ->
             "shop deboxForLetter is null off V/Q/D (it will not invent $0); intake and the shared quote use $0. No debox was written.",
         ))
     findings.extend(dual_cost_findings(intake, shop))
+    findings.extend(import_size_findings(shop))
     return findings
 
 
