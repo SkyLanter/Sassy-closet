@@ -76,7 +76,10 @@ def build_steps(data_root: Path, report_dir: Path, date: str):
         ("intake_code_reuse_check", [str(p) for p in reuse_files] or [str(intake_json)]),
         ("held_price_proposal", ["--intake", str(intake_json), "--live", str(live or data_root / "MISSING-live-prices.json"),
                                  "--proposal-dir", str(report_dir / "proposals"), "--date", date]),
+        # The summary reads $SASSY_OUT/proposals unless told otherwise. This run
+        # just wrote the sheet under the report dir, so point at that file.
         ("daily_summary_draft", ["--root", str(data_root), "--date", date, "--out-dir", str(report_dir / "summary"),
+                                 "--proposal", str(report_dir / "proposals" / f"held-price-proposal-{date}.json"),
                                  "--order", str(POPULAR_ORDER), "--held", str(HELD_JSON)]),
     ]
 
