@@ -427,6 +427,69 @@ def test_parse_home_prices_reads_embedded_price_usd() -> None:
     assert parse_home_prices(html)["S06"] == 25
 
 
+def test_parse_home_prices_reads_rsc_escaped_price_usd() -> None:
+    html = r'{\"ma\":\"S06\",\"titleEn\":\"Overalls\",\"priceUsd\":25}'
+    assert parse_home_prices(html)["S06"] == 25
+
+
+def test_parse_home_prices_reads_two_rsc_escaped_products() -> None:
+    html = (
+        r'{\"ma\":\"S06\",\"titleEn\":\"Overalls\",\"priceUsd\":25}'
+        r'{\"ma\":\"A02\",\"titleEn\":\"Top\",\"priceUsd\":23}'
+    )
+    prices = parse_home_prices(html)
+    assert prices["S06"] == 25
+    assert prices["A02"] == 23
+
+
+def test_parse_home_prices_rsc_escaped_null_is_none() -> None:
+    html = r'{\"ma\":\"S06\",\"titleEn\":\"Overalls\",\"priceUsd\":null}'
+    assert parse_home_prices(html)["S06"] is None
+
+
+def test_parse_home_prices_conflicting_prices_collapse_to_none() -> None:
+    html = (
+        '{"ma":"S06","titleEn":"Overalls","priceUsd":25}'
+        '{"ma":"S06","titleEn":"Overalls","priceUsd":30}'
+    )
+    assert parse_home_prices(html)["S06"] is None
+
+
+def test_parse_home_prices_ignores_price_usd_beyond_2000_chars() -> None:
+    html = (
+        r'{\"ma\":\"S06\"'
+        + ("x" * 2001)
+        + r'\"priceUsd\":99'
+        + r'{\"ma\":\"A02\",\"titleEn\":\"Top\",\"priceUsd\":23}'
+    )
+    prices = parse_home_prices(html)
+    assert "S06" not in prices
+    assert prices["A02"] == 23
+
+
+def test_parse_home_prices_reads_escaped_product_inside_html() -> None:
+    html = (
+        "<html><script>"
+        r'{\"ma\":\"S06\",\"titleEn\":\"Overalls\",\"priceUsd\":25}'
+        "</script></html>"
+    )
+    assert parse_home_prices(html)["S06"] == 25
+
+
+def test_parse_home_prices_does_not_take_the_next_products_price() -> None:
+    escaped = (
+        r'{\"ma\":\"S14\",\"titleEn\":\"Held\",\"titleVn\":\"x\"}'
+        r'{\"ma\":\"S06\",\"titleEn\":\"Overalls\",\"priceUsd\":25}'
+    )
+    plain = (
+        '{"ma":"S13","titleEn":"Index"}'
+        '{"ma":"A05","titleEn":"Coat","priceUsd":25}'
+        '{"ma":"S13","titleEn":"Coat","priceUsd":26}'
+    )
+    assert parse_home_prices(escaped) == {"S06": 25}
+    assert parse_home_prices(plain) == {"A05": 25, "S13": 26}
+
+
 def test_cli_writes_reports_and_does_not_touch_held_or_network(tmp_path: Path, monkeypatch) -> None:
     def explode(*_args, **_kwargs):
         raise AssertionError("network")
