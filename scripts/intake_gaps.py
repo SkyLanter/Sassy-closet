@@ -11,7 +11,8 @@ Gap types (one row per mã, any number of gaps):
   kg        no kg; shows a category proxy (A 0.3, H 0.08) or a CSV estimate
             when one exists. G shoes have no approved weight: "G needs Boss".
   size      clothing/shoe kind with no size, or a size token not allowed
-            for the kind
+            for the kind. Separators match listing: space, comma, semicolon,
+            slash, and pipe. A delimiter-only value is no size.
   photos    no intake photo_paths (and, for live mãs, no catalog images)
   link      no Taobao link, or a link that is not Taobao/Tmall
   category  blank/unknown kind, or kind not matching the mã letter
@@ -44,6 +45,8 @@ SIZED_KINDS = frozenset({"A", "Q", "V", "D", "K", "S", "G"})
 DEFAULT_SIZES = ("2XS", "XS", "S", "M", "L", "XL", "2XL")
 TAOBAO_RE = re.compile(r"^https?://([a-z0-9-]+\.)*(tb\.cn|taobao\.com|tmall\.com)(/|$)", re.I)
 _DECIMAL_CHIP = re.compile(r"^(\d{2})(?:\.0)?$")
+# Same separators as autolist.norm_sizes. The stored row is not rewritten.
+_SIZE_DELIMS = re.compile(r"[\s,;/|]+")
 USD_TOLERANCE = Decimal("0.05")
 GAP_TYPES = ("cny", "kg", "size", "photos", "link", "category")
 SUSPECT_TYPES = ("sell_vs_live", "cny_label", "no_usd_cost", "usd_vs_cny")
@@ -102,11 +105,18 @@ def chip_size(token: str) -> str:
     return folded
 
 
+def size_tokens(raw: str) -> list[str]:
+    """Split a stored size the way autolist.norm_sizes does. Empty pieces are dropped."""
+    text = str(raw or "")
+    text = text.strip()
+    return [token for token in _SIZE_DELIMS.split(text) if token]
+
+
 def disallowed_size_tokens(raw: str, allowed) -> list[str]:
     """Stored tokens that are not an allowed chip. The stored spelling is returned. Nothing is rewritten."""
     allowed_set = {str(item).upper() for item in allowed}
     bad: list[str] = []
-    for token in str(raw or "").replace(",", " ").split():
+    for token in size_tokens(raw):
         chip = chip_size(token)
         stored = token.strip()
         stored = stored.upper()
@@ -138,12 +148,13 @@ def row_gaps(row: dict, live: dict[str, dict], weights, sizes_by_kind) -> tuple[
         gaps.append(kgg)
 
     if kind in SIZED_KINDS:
-        tokens = str(row.get("size") or "").replace(",", " ").split()
+        raw_size = str(row.get("size") or "")
+        tokens = size_tokens(raw_size)
         if not tokens:
             gaps.append({"type": "size", "detail": "no size"})
         else:
             allowed = sizes_by_kind.get(kind) or DEFAULT_SIZES
-            bad = disallowed_size_tokens(" ".join(tokens), allowed)
+            bad = disallowed_size_tokens(raw_size, allowed)
             if bad:
                 gaps.append({"type": "size", "detail": f"size not allowed for {kind}: {' '.join(bad)}"})
 
