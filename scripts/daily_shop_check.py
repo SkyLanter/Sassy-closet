@@ -186,9 +186,14 @@ def judge_snapshot(snap: dict) -> dict:
     held_live = [i["ma"] for i in items if i.get("held") and i.get("live")]
     if held_live:
         fail.append("held mã live: " + ", ".join(held_live))
-    s06 = next((i for i in items if i["ma"] == "S06" and i.get("live")), None)
-    if s06 and s06.get("sellUsd") != S06_LOCK:
-        fail.append(f"S06 off ${S06_LOCK} lock: {s06.get('sellUsd')}")
+    off_lock = [
+        i.get("sellUsd")
+        for i in items
+        if i.get("ma") == "S06" and i.get("live") and i.get("sellUsd") != S06_LOCK
+    ]
+    if off_lock:
+        shown = ", ".join(str(price) for price in off_lock)
+        fail.append(f"S06 off ${S06_LOCK} lock: {shown}")
     nop = [i["ma"] for i in items if i.get("live") and not i.get("sellUsd")]
     if nop:
         warn.append("live mã without $ price: " + ", ".join(nop))
