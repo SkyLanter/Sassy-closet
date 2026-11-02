@@ -8,7 +8,8 @@ import { resetStoreBackendForTests } from "../lib/store-backend";
 import { exportCsv, getSubmission, listSubmissions, saveSubmission, type SaveInput } from "../lib/store";
 
 const COLOR = "Kem, Xanh";
-const NOTE = 'say "hi"\nline';
+const NOTE = 'say "hi"';
+const SIZE = "one\ntwo";
 
 function saveInput(overrides: Partial<SaveInput> = {}): SaveInput {
   return {
@@ -110,7 +111,7 @@ describe("intake save and export under a legacy mã", { concurrency: 1 }, () => 
     fs.rmSync(tmp, { recursive: true, force: true });
   });
 
-  test("a padded existing mã updates the one row, and the export keeps commas and newlines inside cells", async () => {
+  test("a padded existing mã updates the one row, and the export keeps commas, quotes, and newlines inside cells", async () => {
     const created = await saveSubmission(saveInput());
     assert.equal(created.ma, "A01");
 
@@ -129,12 +130,14 @@ describe("intake save and export under a legacy mã", { concurrency: 1 }, () => 
         existingMa: "a0001",
         color: COLOR,
         color_note: NOTE,
+        size: SIZE,
       }),
     );
     assert.equal(updated.id, created.id);
     assert.equal(updated.ma, "A01");
     assert.equal(updated.color, COLOR);
     assert.equal(updated.color_note, NOTE);
+    assert.equal(updated.size, SIZE);
 
     const listed = await listSubmissions();
     assert.equal(listed.length, 1);
@@ -157,12 +160,15 @@ describe("intake save and export under a legacy mã", { concurrency: 1 }, () => 
     const data = rows[1] ?? [];
     const colorAt = header.indexOf("color");
     const noteAt = header.indexOf("color_note");
+    const sizeAt = header.indexOf("size");
     const maAt = header.indexOf("ma");
     assert.ok(colorAt >= 0);
     assert.ok(noteAt >= 0);
+    assert.ok(sizeAt >= 0);
     assert.equal(header.length, data.length);
     assert.equal(data[maAt], "A01");
     assert.equal(data[colorAt], COLOR);
     assert.equal(data[noteAt], NOTE);
+    assert.equal(data[sizeAt], SIZE);
   });
 });
