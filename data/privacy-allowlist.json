@@ -10,6 +10,8 @@
  {"path": "scripts/tests/test_daily_shop_check.py", "rules": ["cost", "intake_cny", "yen", "cny"], "reason": "Synthetic daily-check fixtures."},
  {"path": "scripts/tests/test_caption_lint.py", "rules": ["yen", "cny", "cost"], "reason": "Synthetic captions."},
  {"path": "sassy-closet/tests/pricing.test.ts", "rules": ["yen", "cost"], "reason": "Worked pricing examples (FX/tier math), not intake rows."},
+ {"path": "sassy-closet/tests/money-text-edges.test.ts", "rules": ["yen", "cost"], "reason": "Synthetic yen and cost strings for blank, garbled, and fullwidth amount parsing."},
+ {"path": "sassy-closet/tests/s06-whole-dollars-edges.test.ts", "rules": ["yen"], "reason": "Synthetic S06 sell strings (yen sign, commas) proving the $25 lock."},
  {"path": "sassy-closet-shop/tests/pricing.test.ts", "rules": ["yen", "cost"], "reason": "Worked pricing examples."},
  {"path": "*auto-list/tests/test_margin_flags.py", "rules": ["yen", "cost"], "reason": "Worked margin example."},
  {"path": "scripts/gen_pricing_parity_fixture.py", "rules": ["yen"], "reason": "Generator loops over every ¥1..¥800; no real rows."},

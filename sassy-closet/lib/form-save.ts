@@ -13,25 +13,8 @@ export async function saveFromForm(form: FormData, existingMa?: string) {
     photos.push({ bytes, hash: hashBytes(bytes), ext });
   }
 
-  let pieces: Piece[] = [];
-  const rawPieces = String(form.get("pieces") ?? "").trim();
-  if (rawPieces) {
-    try {
-      pieces = JSON.parse(rawPieces) as Piece[];
-    } catch {
-      pieces = [];
-    }
-  }
-
-  let keep_photos: string[] = [];
-  const rawKeep = String(form.get("keep_photos") ?? "").trim();
-  if (rawKeep) {
-    try {
-      keep_photos = JSON.parse(rawKeep) as string[];
-    } catch {
-      keep_photos = [];
-    }
-  }
+  const pieces = piecesFromJson(String(form.get("pieces") ?? "").trim());
+  const keep_photos = photoKeysFromJson(String(form.get("keep_photos") ?? "").trim());
 
   return saveSubmission({
     kind: String(form.get("kind") || form.get("prefix") || "A"),
@@ -54,6 +37,35 @@ export async function saveFromForm(form: FormData, existingMa?: string) {
     taobao_snapshot: parseJson(form.get("taobao_snapshot"), isTaobaoItem),
     auto_price: parseJson(form.get("auto_price"), isPriceBreakdown),
   });
+}
+
+function piecesFromJson(raw: string): Piece[] {
+  const parsed = jsonValue(raw);
+  if (!Array.isArray(parsed)) return [];
+  const pieces: Piece[] = [];
+  for (const item of parsed) {
+    if (typeof item === "object" && item !== null && !Array.isArray(item)) pieces.push(item as Piece);
+  }
+  return pieces;
+}
+
+function photoKeysFromJson(raw: string): string[] {
+  const parsed = jsonValue(raw);
+  if (!Array.isArray(parsed)) return [];
+  const keys: string[] = [];
+  for (const item of parsed) {
+    if (typeof item === "string") keys.push(item);
+  }
+  return keys;
+}
+
+function jsonValue(raw: string): unknown {
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as unknown;
+  } catch {
+    return null;
+  }
 }
 
 function parseJson<T>(raw: FormDataEntryValue | null, guard: (value: unknown) => value is T): T | null {

@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { isKindCode, kindLabel, sizeOptionsLine } from "./kinds";
 import { notifyIntakeDatasetSyncWebhook } from "./intakeDatasetSyncWebhook";
 import { formatMa, maExists, nextMa, normalizeMa, parseHubMa } from "./mint";
+import { moneyForStore } from "./money-text";
 import { mintBlock, publishBlock } from "./publish-guard";
 import { normalizeSourceLink } from "./source-link";
 import { sanitizeOnHandRows } from "./on-hand";
@@ -126,6 +127,10 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
   }
 
   const now = new Date().toISOString();
+  const costCny = moneyForStore(input.cost_cny, "CNY");
+  const costUsd = moneyForStore(input.cost_usd, "USD");
+  const sellCny = moneyForStore(input.sell_cny, "CNY");
+  const sellUsd = moneyForStore(input.sell_usd, "USD");
   const photoPaths = [...input.keep_photos];
   const photoHashes = existing ? [...existing.photo_hashes] : [];
   if (input.keep_photos.length === 0 && existing) {
@@ -152,12 +157,12 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
     color_note: input.color_note.trim(),
     pieces: input.pieces,
     link: normalizeSourceLink(input.link),
-    price: input.sell_usd.trim(),
-    cost_cny: input.cost_cny.trim(),
-    cost_usd: input.cost_usd.trim(),
+    price: sellUsd,
+    cost_cny: costCny,
+    cost_usd: costUsd,
     cost_currency: (input.cost_currency || "USD").toUpperCase(),
-    sell_cny: input.sell_cny.trim(),
-    sell_usd: input.sell_usd.trim(),
+    sell_cny: sellCny,
+    sell_usd: sellUsd,
     sell_currency: (input.sell_currency || "USD").toUpperCase(),
     blurb: "",
     photo_paths: photoPaths,
@@ -233,10 +238,7 @@ export async function exportCsv(): Promise<string> {
       row.size,
       row.color,
       row.color_note,
-      row.pieces
-        .map((piece, i) => `P${i + 1}: ${piece.color || piece.suggested[0] || ""}`.trim())
-        .filter((part) => !part.endsWith(":"))
-        .join(" | "),
+      colorPieces(row.pieces),
       row.blurb,
       row.cost_cny,
       row.cost_usd,
@@ -263,8 +265,33 @@ export function storeHealth(): ReturnType<typeof storageStatus> {
 }
 
 function csvCell(value: string): string {
-  if (/[",\n]/.test(value)) return `"${value.replaceAll('"', '""')}"`;
+  if (/[",\n\r]/.test(value)) return `"${value.replaceAll('"', '""')}"`;
   return value;
+}
+
+function colorPieces(pieces: unknown): string {
+  if (!Array.isArray(pieces)) return "";
+  const parts: string[] = [];
+  for (let index = 0; index < pieces.length; index += 1) {
+    const piece = pieces[index];
+    if (piece === null || typeof piece !== "object" || Array.isArray(piece)) continue;
+    const part = piecePart(piece, index);
+    if (!part.endsWith(":")) parts.push(part);
+  }
+  return parts.join(" | ");
+}
+
+function piecePart(piece: object, index: number): string {
+  const record = piece as { color?: unknown; suggested?: unknown };
+  const color = typeof record.color === "string" ? record.color : "";
+  const suggested = suggestedColor(record.suggested);
+  return `P${index + 1}: ${color || suggested}`.trim();
+}
+
+function suggestedColor(suggested: unknown): string {
+  if (!Array.isArray(suggested)) return "";
+  const first = suggested[0];
+  return typeof first === "string" ? first : "";
 }
 
 function postedSell(currency: string, usd: string, cny: string): string {

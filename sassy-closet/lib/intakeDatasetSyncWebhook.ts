@@ -143,7 +143,10 @@ function collectColors(row: Submission): string[] {
     out.push(trimmed);
   };
   for (const part of splitTokens(row.color, /,/)) add(part);
-  for (const piece of row.pieces ?? []) add(piece.color);
+  for (const piece of row.pieces ?? []) {
+    if (!piece || typeof piece !== "object" || Array.isArray(piece)) continue;
+    if (typeof piece.color === "string") add(piece.color);
+  }
   return out;
 }
 
