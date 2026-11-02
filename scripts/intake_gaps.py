@@ -94,11 +94,12 @@ def kg_gap(code: str, kind: str, row: dict, weights: dict[str, tuple[Decimal, st
 
 def chip_size(token: str) -> str:
     """Allowed-list form of one stored size token. A single trailing .0 counts as the two digits."""
-    text = token.strip().upper()
-    match = _DECIMAL_CHIP.fullmatch(text)
+    folded = token.strip()
+    folded = folded.upper()
+    match = _DECIMAL_CHIP.fullmatch(folded)
     if match:
         return match.group(1)
-    return text
+    return folded
 
 
 def disallowed_size_tokens(raw: str, allowed) -> list[str]:
@@ -107,7 +108,9 @@ def disallowed_size_tokens(raw: str, allowed) -> list[str]:
     bad: list[str] = []
     for token in str(raw or "").replace(",", " ").split():
         chip = chip_size(token)
-        if chip not in allowed_set and token.strip().upper() not in allowed_set:
+        stored = token.strip()
+        stored = stored.upper()
+        if chip not in allowed_set and stored not in allowed_set:
             bad.append(token)
     return bad
 

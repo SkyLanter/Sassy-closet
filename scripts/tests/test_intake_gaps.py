@@ -55,11 +55,11 @@ def test_trailing_zero_counts_as_the_allowed_chip_and_the_row_stays():
     assert "size" not in types(run(row))
     assert row == before
     flagged = run(r(ma="G01", kind="G", size="35.0 44.0"))
-    size_gap = next(gap for gap in flagged["gaps"] if gap["type"] == "size")
-    assert "44.0" in size_gap["detail"]
-    assert "35.0" not in size_gap["detail"]
+    size_gaps = [gap for gap in flagged["gaps"] if gap["type"] == "size"]
+    assert [gap["detail"] for gap in size_gaps] == ["size not allowed for G: 44.0"]
     hundredths = run(r(ma="G01", kind="G", size="35.00"))
-    assert "35.00" in next(gap for gap in hundredths["gaps"] if gap["type"] == "size")["detail"]
+    hundredth_gaps = [gap for gap in hundredths["gaps"] if gap["type"] == "size"]
+    assert [gap["detail"] for gap in hundredth_gaps] == ["size not allowed for G: 35.00"]
 
 
 def test_size_missing_bad_and_not_needed():
