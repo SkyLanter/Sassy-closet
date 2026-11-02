@@ -14,7 +14,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 | PR | Head at queue time | Title |
 | --- | --- | --- |
-| #225 | `72d792580d71` | Draft: one branch for the safe shop fixes. Moved again 2026-11-02 23:34 UTC. `ba5f60fa767d` was commented FAIL. `cda92647236a` passed locally and was not commented. |
+| #225 | `d8170670ab41` | Draft: one branch for the safe shop fixes. Moved 2026-11-02 23:55 UTC. `72d792580d71` was commented FAIL. `ba5f60fa767d` was commented FAIL. `cda92647236a` passed locally and was not commented. |
 | #217 | `ee9e2a34bfb4` | Combined safe bundle #208-#216 |
 | #218 | `03c23afc58a7` | Fail closed when Blob is down, and drop held folders from other mãs |
 | #219 | `5b590c0f734e` | Keep a blank intake sell blank and parse pasted yen safely |
@@ -56,7 +56,10 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 | #225 | `ba5f60fa767d6750ecbc18b4fa006c8967c07e60` | FAIL | Script PASS (pytest 2323). `Mã S006B` lints as S06. Log line 56 says the proposal path was not changed. Superseded by the next row. |
 | #225 | `72d792580d71f6af6447043a6f981c7a646bb178` | FAIL | Script PASS (pytest 2337). ASCII `S06B` is no longer S06. `S06Đ`, fullwidth `S06Ｂ`, and a zero-width space still lock $25. Log line 56 is still uncorrected. |
 | #242 | `f0b91129a050f5a796d2e343acf0c2b675fe15e5` | FAIL | Script PASS (pytest 2114). Intake save 503 matches. The lane A log claims image, CSV, and on-hand fixes that are not in this tree. |
+| #226 | `66fd312af0b7f6705ec1109aaed28e5c28aab785` | FAIL | Script PASS (pytest 2119). The flat midnight QC summary matches. The log claims the home-price regex and the digest fixes, which are not in this tree. |
+| #243 | `9a9c2e8f9f7278925c385ad0829d3cacb7619309` | PASS | pytest 2127 passed, 7 skipped. Intake 278 / 275 / 0 / 3. Shop 222 / 219 / 0 / 3. Kind G keeps in-window `.0` sizes. Findings: none. |
 | #252 | `e66dd83417e31d046a9ddf0ac81ba8c0db092af8` | FAIL | Script PASS (pytest 2120). Bad approved Giá values are skipped. The log claims midnight QC and daily-snapshot fixes that are not in this tree. |
+| #253 | `32eb7581a8dc1d4609365e4c25e3fbe43af9f30c` | PASS | pytest 2130 passed, 7 skipped. Intake 278 / 275 / 0 / 3. Shop 222 / 219 / 0 / 3. Gap report counts one trailing `.0`. Findings: none. |
 | #217 | `ee9e2a34bfb45a526bb8140516372d0d89dabc09` | PASS | pytest 2164 passed, 7 skipped. Intake 281 / 278 / 0 / 3. Shop 218 / 215 / 0 / 3. Findings: none. |
 | #218 | `03c23afc58a74fd6e4527742e5ff0b5ac7f98fbf` | PASS | pytest 2114 passed, 7 skipped. Intake 277 / 274 / 0 / 3. Shop 232 / 229 / 0 / 3. Findings: none. |
 | #219 | `5b590c0f734e411e5eac39d78b0fae088dfa0a52` | PASS | pytest 2114 passed, 7 skipped. Intake 295 / 292 / 0 / 3. Shop 218 / 215 / 0 / 3. Findings: none. |
@@ -94,9 +97,9 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 | #258 | `623617591224` | Split gap-report sizes on the same separators as listing |
 | #259 | `0402dd50b1c6` | Count a text sell price in the price approval queue |
 
-## 2026-11-02 23:34 UTC — #225 moved
+## 2026-11-02 23:55 UTC — #225 moved again
 
-#225 head is `72d792580d71f6af6447043a6f981c7a646bb178` and is commented FAIL. The earlier FAIL on `ba5f60fa767d` stays the comment for that older SHA. #224, #242, and #252 are commented at the SHAs in the verdict table. #243 and #253 were in hard recheck when this note was written. No knowledge-lane docs PR.
+#225 head is `d8170670ab411fe21c38630f4a38b8ecdae711e8`. The FAIL on `72d792580d71` stays the comment for that older SHA. The new head is in hard recheck and is not commented yet. #226, #243, and #253 are commented at the SHAs in the verdict table. Their log directories are `out/recheck/20261102-234222-157269`, `out/recheck/20261102-234641-168787`, and `out/recheck/20261102-234412-161336`. No knowledge-lane docs PR.
 
 This log lives on draft PR #249 (`cursor/independent-recheck-log-cfee`). That PR is this lane's own notes, so this lane does not grade it.
 
