@@ -1,0 +1,39 @@
+name: readonly-browser-smoke
+
+# On demand only. GET checks against the live sell hosts and intake.
+# Starts only from the Actions tab. No schedule and no deploy.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: scripts/browser-smoke/package-lock.json
+
+      - name: Install Playwright
+        working-directory: scripts/browser-smoke
+        run: npm ci
+
+      - name: Install Chromium
+        working-directory: scripts/browser-smoke
+        run: npx playwright install --with-deps chromium
+
+      - name: Local stub
+        run: bash scripts/readonly_browser_smoke.sh --self-test
+
+      - name: Live read-only smoke
+        run: bash scripts/readonly_browser_smoke.sh
