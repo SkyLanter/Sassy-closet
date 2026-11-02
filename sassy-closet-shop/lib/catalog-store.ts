@@ -10,6 +10,7 @@ import {
   getCatalogBlobPath,
   readCatalogFromBlobPort,
   readJsonFromBlobPort,
+  vercelBlobGetDisposition,
   writeCatalogToBlobPort,
   type BlobCatalogPort,
 } from "@/lib/blob-catalog";
@@ -355,11 +356,24 @@ export function createVercelBlobPort(): BlobCatalogPort {
     },
     async getJson(pathname) {
       const result = await get(pathname, { access: "public", useCache: false });
-      if (!result || result.statusCode !== 200 || !result.stream) {
-        return null;
+      const disposition = vercelBlobGetDisposition(result);
+      switch (disposition) {
+        case "missing":
+          return null;
+        case "ok": {
+          if (!result || result.statusCode !== 200 || !result.stream) {
+            throw new Error("Blob catalog read failed");
+          }
+          const text = await new Response(result.stream).text();
+          return JSON.parse(text) as unknown;
+        }
+        case "down":
+          throw new Error("Blob catalog read failed");
+        default: {
+          const _exhaustive: never = disposition;
+          throw new Error(_exhaustive);
+        }
       }
-      const text = await new Response(result.stream).text();
-      return JSON.parse(text) as unknown;
     },
   };
 }
@@ -502,6 +516,19 @@ export async function readStoredCatalogRecord(): Promise<CatalogReadRecord | nul
   return null;
 }
 
+export function afterBlobReadError(kind: "corrupt" | "down"): "rethrow" | "generic-fail" {
+  switch (kind) {
+    case "corrupt":
+      return "rethrow";
+    case "down":
+      return "generic-fail";
+    default: {
+      const _exhaustive: never = kind;
+      return _exhaustive;
+    }
+  }
+}
+
 async function readLiveCatalogRecordFresh(): Promise<CatalogReadRecord> {
   try {
     const fromBlob = await readBlobCatalog();
@@ -509,10 +536,18 @@ async function readLiveCatalogRecordFresh(): Promise<CatalogReadRecord> {
       return { document: fromBlob, source: "blob" };
     }
   } catch (error) {
-    if (isCatalogCorruptError(error)) {
-      throw error;
+    const decision = afterBlobReadError(isCatalogCorruptError(error) ? "corrupt" : "down");
+    switch (decision) {
+      case "rethrow":
+        throw error;
+      case "generic-fail":
+        console.error("Live Blob catalog read failed; not serving seed.");
+        throw new Error("Catalog read failed");
+      default: {
+        const _exhaustive: never = decision;
+        throw new Error(_exhaustive);
+      }
     }
-    console.error("Live Blob catalog read failed; trying KV/local/seed.", error);
   }
 
   try {
