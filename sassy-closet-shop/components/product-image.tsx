@@ -5,11 +5,11 @@ import { useCatalogMediaVersion } from "@/components/catalog-media-version";
 import { LookPhoto } from "@/components/look-photo";
 import { MaMark } from "@/components/ma-mark";
 import { cacheBustMediaSrc, shopCoverSrc } from "@/lib/catalog-sha";
+import { BLUSH_BLUR } from "@/lib/image-placeholder";
+import { LOOK_GRID_SIZES } from "@/lib/look-card-photo";
 import { coverSrc } from "@/lib/product-media";
 import { SITE } from "@/lib/site";
 import type { ShopLook } from "@/lib/shop-look";
-
-const CARD_SIZES = "(max-width: 639px) 46vw, (max-width: 1023px) 31vw, (max-width: 1279px) 23vw, 18vw";
 
 export function ProductImage({
   product,
@@ -19,7 +19,7 @@ export function ProductImage({
   className,
   named = true,
   coverFallback = true,
-  sizes = CARD_SIZES,
+  sizes = LOOK_GRID_SIZES,
 }: {
   product: ShopLook;
   src?: string;
@@ -76,7 +76,12 @@ function ProductImageFrame({
   return (
     <div
       className={`relative overflow-hidden bg-[#f3f1ee] ${className ?? "aspect-[3/4]"}`}
-      style={named ? { viewTransitionName: `product-${product.ma}` } : undefined}
+      style={{
+        backgroundImage: `url("${BLUSH_BLUR}")`,
+        backgroundPosition: "center top",
+        backgroundSize: "cover",
+        ...(named ? { viewTransitionName: `product-${product.ma}` } : {}),
+      }}
     >
       <div className="shimmer pointer-events-none absolute inset-0 z-[2]" aria-hidden />
       {showImage && resolved ? (
@@ -85,10 +90,11 @@ function ProductImageFrame({
           alt={alt}
           sizes={sizes}
           priority={priority}
+          fadeIn
           onError={() => {
             setFailed(true);
           }}
-          className="object-cover object-top select-none motion-safe:transition-transform motion-safe:duration-150 motion-safe:ease-[cubic-bezier(0.23,1,0.32,1)] motion-safe:hover-hover:group-hover:scale-[1.03]"
+          className="sc-card-photo object-cover object-top select-none motion-safe:transition-transform motion-safe:duration-150 motion-safe:ease-[cubic-bezier(0.23,1,0.32,1)] motion-safe:hover-hover:group-hover:scale-[1.03]"
         />
       ) : (
         <PlaceholderTile ma={product.ma} letter={product.type} decorative />

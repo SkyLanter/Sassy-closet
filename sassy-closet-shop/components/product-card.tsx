@@ -21,11 +21,13 @@ export function ProductCard({
   priority = false,
   namedCover = true,
   variant = "full",
+  sizes,
 }: {
   product: ShopLook;
   priority?: boolean;
   namedCover?: boolean;
   variant?: "full" | "compact";
+  sizes?: string;
 }) {
   const reduced = useReducedMotion();
   const cardRef = useRef<HTMLLIElement>(null);
@@ -111,6 +113,7 @@ export function ProductCard({
                 priority={priority}
                 named={false}
                 coverFallback={false}
+                sizes={sizes}
                 className="h-full w-full"
               />
             ) : (
@@ -136,6 +139,7 @@ export function ProductCard({
                         priority={priority && index === 0}
                         named={false}
                         coverFallback={false}
+                        sizes={sizes}
                         className="h-full w-full"
                       />
                     ) : null}
