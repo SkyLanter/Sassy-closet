@@ -206,3 +206,45 @@ def test_main_explicit_order_prints_held_mas_only(tmp_path, capsys):
     for secret in ("SECRET_UPDATED_AT", "SECRET_METHOD_TEXT", "SECRET_HELD_REASON", "heldIncomplete"):
         assert secret not in out
     assert "TOTAL 1 (popular_order_held=1)" in out
+
+
+def test_earlier_not_does_not_reopen_an_approval(tmp_path):
+    assert bdd.is_closed("isn't approved") is False
+    assert bdd.is_closed("X09 Boss price not done but approved") is True
+    assert bdd.is_closed("not decided, Boss price approved for X03") is True
+    assert bdd.is_closed("  Boss price approved for X01") is True
+    _w(tmp_path, "out/muse/extras-2026-03-04.md",
+       "- not a hold\n"
+       "  Boss price approved for X01\n"
+       "- X02 hold call not decided yet — Boss\n"
+       "  X13 Boss price approved\n"
+       "- X11 Boss price approved\n"
+       "  needs a Boss price for\n"
+       "  X12\n")
+    seen = bdd.scan(tmp_path)
+    assert ("price_approval", "X01") not in seen
+    assert ("price_approval", "X13") not in seen
+    assert ("price_approval", "X11") not in seen
+    assert ("hold_call", "X02") in seen
+    assert ("price_approval", "X12") in seen
+
+
+def test_date_above_scan_root_is_not_first_seen(tmp_path):
+    root = tmp_path / "2020-01-01" / "shop"
+    _w(root, "out/muse/extras-notes.md", "X02 needs a Boss price\n")
+    _w(root, "out/muse/extras-2026-04-01.md", "X02 needs a Boss price\n")
+    assert bdd.file_date(root / "out/muse/extras-notes.md", root) is None
+    src, first_seen = bdd.scan(root)[("price_approval", "X02")]
+    assert first_seen == "2026-04-01"
+    assert src == "out/muse/extras-2026-04-01.md"
+
+
+def test_nested_real_day_counts_and_impossible_day_does_not(tmp_path):
+    real = "out/midnight-qc/2026-03-04/raw/note.md"
+    _w(tmp_path, real, "X08 needs a Boss price\n")
+    assert bdd.file_date(tmp_path / real, tmp_path) == "2026-03-04"
+    assert bdd.scan(tmp_path)[("price_approval", "X08")][1] == "2026-03-04"
+    bad = "out/midnight-qc/2026-99-99/raw/note.md"
+    _w(tmp_path, bad, "X11 needs a Boss price\n")
+    assert bdd.file_date(tmp_path / bad, tmp_path) is None
+    assert bdd.scan(tmp_path)[("price_approval", "X11")][1] == "unknown"

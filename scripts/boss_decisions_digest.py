@@ -11,6 +11,7 @@ import argparse
 import json
 import re
 import sys
+from datetime import date
 from pathlib import Path
 
 from held_policy import norm_ma
@@ -24,9 +25,12 @@ GLOBS = [
 MA_RE = re.compile(r"\b([A-Z]\d{2})\b")
 DATE_RE = re.compile(r"(\d{4}-\d{2}-\d{2})")
 CLOSED_RE = re.compile(r"\b(approved|resolved|done|closed|decided)\b", re.I)
-# Negation sits in the 40 characters before a closure word.
-NEG_RE = re.compile(r"\b(?:not|never|no longer)\b", re.I)
-NEG_WINDOW = 40
+# Negation has to sit on the closure word: "not", "not yet", "never",
+# "no longer", or a contraction that ends in n't.
+_NEG_BEFORE = re.compile(
+    r"(?:(?<![A-Za-z])(?:not yet|no longer|not|never)|n't)\s+$",
+    re.I,
+)
 BOSS_RE = re.compile(r"\bboss\b", re.I)
 # Piece 52: blob/photo/delete must sit NEAR the ma (same line or same bullet).
 BLOB_KW = re.compile(r"\b(blob|photos?|cover)\b", re.I)
@@ -43,9 +47,30 @@ CATEGORIES = [
 ]
 
 
-def file_date(p: Path):
-    m = DATE_RE.search(p.name) or DATE_RE.search(p.parent.name)
-    return m.group(1) if m else None
+def _calendar_day(value: str) -> bool:
+    try:
+        date.fromisoformat(value)
+    except ValueError:
+        return False
+    return True
+
+
+def file_date(p: Path, stop: Path | None = None):
+    """Date in the file name, else the nearest real YYYY-MM-DD directory.
+
+    The walk includes ``stop`` itself and stops there, so a date-named
+    directory above the scan root cannot become first_seen.
+    """
+    named = DATE_RE.search(p.name)
+    if named and _calendar_day(named.group(1)):
+        return named.group(1)
+    halt = None if stop is None else Path(stop).resolve()
+    for parent in p.parents:
+        if DATE_RE.fullmatch(parent.name) and _calendar_day(parent.name):
+            return parent.name
+        if halt is not None and parent.resolve() == halt:
+            break
+    return None
 
 
 def classify(line):
@@ -60,15 +85,14 @@ RULES = {"intake_mismatch": "intake_keyword_line", "price_approval": "price_keyw
 
 
 def is_closed(text) -> bool:
-    """True only when some closure word is not negated.
+    """True when a closure word is not immediately negated.
 
-    A match is negated when the 40 characters before it contain not, never,
-    or no longer, or end with n't after the immediate whitespace is stripped.
+    Immediate negation is not, not yet, never, no longer, or a contraction
+    ending in n't. A not earlier in the sentence does not reopen a later approval.
     """
     src = text or ""
-    for m in CLOSED_RE.finditer(src):
-        pre = src[max(0, m.start() - NEG_WINDOW):m.start()]
-        if NEG_RE.search(pre) or pre.rstrip().lower().endswith("n't"):
+    for match in CLOSED_RE.finditer(src):
+        if _NEG_BEFORE.search(src[:match.start()]):
             continue
         return True
     return False
@@ -156,8 +180,8 @@ def scan(root: Path, public_held=None, explain=None):
     files = set()
     for g in GLOBS:
         files.update(root.glob(g))
-    for p in sorted(files, key=lambda x: (file_date(x) or "9999", str(x))):
-        d = file_date(p) or "unknown"
+    for p in sorted(files, key=lambda x: (file_date(x, root) or "9999", str(x))):
+        d = file_date(p, root) or "unknown"
         src = str(p.relative_to(root))
         try:
             text = p.read_text(encoding="utf-8", errors="replace")
@@ -176,9 +200,16 @@ def scan(root: Path, public_held=None, explain=None):
             for line in lines:
                 _note_open(seen, rules, line, src, d)
             # A mã that only becomes a decision once continuation lines are joined.
-            if len(lines) > 1 and not is_closed(unit):
-                noted = {ma for cat, ma in set(seen) - before}
+            # A closed line stays closed: the join uses the open lines only.
+            if len(lines) < 2:
+                continue
+            noted = {ma for _cat, ma in set(seen) - before}
+            if not is_closed(unit):
                 _note_open(seen, rules, unit, src, d, skip_mas=noted)
+                continue
+            open_lines = [line for line in lines if not is_closed(line)]
+            if len(open_lines) >= 2:
+                _note_open(seen, rules, "\n".join(open_lines), src, d, skip_mas=noted)
     return seen
 
 
