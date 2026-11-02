@@ -1,18 +1,22 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { MA_LETTERS } from "../lib/ma";
 import { calcPricing, deboxForLetter, FX_DEFAULT } from "../lib/pricing";
+
+const LOCKED_DEBOX = new Set(["V", "Q", "D"]);
 
 function digits(parts: string[]): string {
   return parts.join("");
 }
 
-test("dress letters keep the locked debox in any case, and other letters stay unknown", () => {
-  for (const letter of ["V", "v", " Q ", "q", "d", "D"]) {
-    assert.equal(deboxForLetter(letter), 7.5, letter);
+test("only V, Q, and D keep the locked debox, in any case or spacing", () => {
+  for (const letter of MA_LETTERS) {
+    const expected = LOCKED_DEBOX.has(letter) ? 7.5 : null;
+    assert.equal(deboxForLetter(letter), expected, letter);
+    assert.equal(deboxForLetter(letter.toLowerCase()), expected, letter.toLowerCase());
+    assert.equal(deboxForLetter(` ${letter.toLowerCase()} `), expected, letter);
   }
-  for (const letter of ["A", "a", " S ", "G", ""]) {
-    assert.equal(deboxForLetter(letter), null, JSON.stringify(letter));
-  }
+  assert.equal(deboxForLetter(""), null);
 });
 
 test("the locked dress debox is what the flat quote adds", () => {
