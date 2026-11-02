@@ -136,3 +136,45 @@ def test_p249_main_cli_accepts_bare_list(tmp_path):
     out = tmp_path / "o.json"
     assert g.main(["--intake", str(p), "--out-json", str(out)]) == 0
     assert json.loads(out.read_text())["intake_mas"] == 1
+
+
+def test_sold_and_hold_are_not_the_live_shop_price(tmp_path):
+    catalog = tmp_path / "catalog.json"
+    catalog.write_text(json.dumps({"products": [
+        {"ma": " a01 ", "status": "available", "priceUsd": 20, "images": ["a"]},
+        {"ma": "Z03", "status": "sold", "priceUsd": 19},
+        {"ma": "S14", "status": "hold", "priceUsd": 30},
+        {"ma": "H02", "priceUsd": 12},
+        {"ma": "K02", "status": None, "priceUsd": 15},
+        {"ma": "A02", "status": "  ", "priceUsd": 22},
+        {"ma": "A03", "status": "\n", "priceUsd": 23},
+        "not-a-row",
+        {"priceUsd": 5},
+    ]}))
+    live = ig.load_live(catalog)
+    assert set(live) == {"A01", "A02", "A03", "H02", "K02"}
+    assert live["A01"]["price"] == Decimal(20)
+    assert live["A01"]["images"] == ["a"]
+    intake = {
+        "submissions": [
+            {"ma": "Z03", "kind": "Z", "sell_usd": "40", "cost_usd": "10", "cost_cny": "67.23"},
+            {"ma": "A01", "kind": "A", "sell_usd": "18", "cost_usd": "10", "cost_cny": "67.23", "size": "M"},
+        ]
+    }
+    rows = {row["ma"]: row for row in ig.build(intake, live, set())["rows"]}
+    assert rows["Z03"]["group"] == "not live"
+    assert "sell_vs_live" not in [item["type"] for item in rows["Z03"]["suspect"]]
+    assert rows["A01"]["group"] == "live"
+    assert "sell_vs_live" in [item["type"] for item in rows["A01"]["suspect"]]
+
+
+def test_prices_map_and_bare_catalog_list(tmp_path):
+    prices = tmp_path / "prices.json"
+    prices.write_text(json.dumps({"prices": {" k3 ": 40}}))
+    assert ig.load_live(prices)["K03"]["price"] == Decimal(40)
+    bare = tmp_path / "bare.json"
+    bare.write_text(json.dumps([
+        {"ma": "A01", "status": "Available", "priceUsd": 20},
+        {"ma": "Z03", "status": "SOLD", "priceUsd": 19},
+    ]))
+    assert set(ig.load_live(bare)) == {"A01"}
