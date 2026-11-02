@@ -101,6 +101,15 @@ def test_long_digit_run_is_not_a_ma():
     assert r.ma is None and r.status == "FAIL" and has(r, "missing_ma")
 
 
+def test_trailing_letter_is_not_s06():
+    for caption in ("Mã S06B\nGiá $30", "Mã S006B\nGiá $30", "Mã S6B\nGiá $30"):
+        stuck = lint(caption)
+        assert stuck.ma is None and stuck.status == "FAIL" and has(stuck, "missing_ma")
+        assert not has(stuck, "s06_not_25")
+    later = lint("Mã S006B Mã S06\nGiá $30")
+    assert later.ma == "S06" and later.status == "FAIL" and has(later, "s06_not_25")
+
+
 def test_rejected_spelling_does_not_hide_the_next_ma():
     later = lint("Mã A100 Mã A09\nGiá $30")
     assert later.ma == "A09" and later.status == "WARN" and has(later, "malformed_ma")
