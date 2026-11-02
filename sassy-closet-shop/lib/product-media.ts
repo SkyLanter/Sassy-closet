@@ -1,4 +1,6 @@
 import { isKnownSeedMa } from "@/lib/catalog-contract";
+import { isOffLiveSell } from "@/lib/held-incomplete";
+import { canonicalMaSpelling } from "@/lib/ma";
 import type { Product, ProductColor, ProductImageAsset } from "@/lib/types";
 
 /** Gallery helpers need mã + colors + images only — never status. */
@@ -9,8 +11,10 @@ export type MaMedia = {
 };
 
 /**
- * Hub ten never render another hub mã’s `/products/{MA}/` file.
- * Blob `/uploads/`, https URLs, and extra-mã folders (rename A04 → A03) stay.
+ * Own folder stays (including a held mã's own photos, any case or padding).
+ * Another mã never renders a held folder or a hub-ten folder.
+ * Blob /uploads/, https URLs without /products/{folder}/, and extra folders
+ * (rename A04 → A03) stay.
  */
 export function srcBelongsToMa(src: string, ma: string): boolean {
   const trimmed = src.trim();
@@ -19,14 +23,20 @@ export function srcBelongsToMa(src: string, ma: string): boolean {
   }
   const pathOnly = trimmed.split("?")[0] ?? trimmed;
   const match = pathOnly.match(/\/products\/([^/]+)\//i);
-  if (!match) {
+  if (!match?.[1]) {
     return true;
   }
   const folder = match[1];
-  if (folder === ma) {
+  if (canonicalMaSpelling(folder) === canonicalMaSpelling(ma)) {
     return true;
   }
-  return !isKnownSeedMa(folder);
+  if (isOffLiveSell(folder)) {
+    return false;
+  }
+  if (isKnownSeedMa(canonicalMaSpelling(folder))) {
+    return false;
+  }
+  return true;
 }
 
 export function ownMaImages(product: MaMedia): ProductImageAsset[] {
