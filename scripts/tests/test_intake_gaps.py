@@ -49,6 +49,19 @@ def test_kg_missing_without_proxy_and_g_needs_boss():
     assert "estimate 0.5" in e["gaps"][0]["detail"]
 
 
+def test_trailing_zero_counts_as_the_allowed_chip_and_the_row_stays():
+    row = r(ma="G01", kind="G", size="35.0 36")
+    before = copy.deepcopy(row)
+    assert "size" not in types(run(row))
+    assert row == before
+    flagged = run(r(ma="G01", kind="G", size="35.0 44.0"))
+    size_gap = next(gap for gap in flagged["gaps"] if gap["type"] == "size")
+    assert "44.0" in size_gap["detail"]
+    assert "35.0" not in size_gap["detail"]
+    hundredths = run(r(ma="G01", kind="G", size="35.00"))
+    assert "35.00" in next(gap for gap in hundredths["gaps"] if gap["type"] == "size")["detail"]
+
+
 def test_size_missing_bad_and_not_needed():
     assert "size" in types(run(r(size="")))
     assert "size" in types(run(r(ma="G01", kind="G", size="35 44")))
