@@ -59,6 +59,55 @@ def flat_quote(landed: Decimal) -> int:
     return q + UNDER_TEN_BUMP if q < UNDER_TEN else q
 
 
+# Extra digits exist so a reader recomputing the quote from the printed landed
+# gets the same dollars. Four places is tried first; a boundary value keeps
+# one more digit instead of dropping the tier by $1.
+def sheet_landed(landed: Decimal) -> float:
+    """Smallest decimal places (4 first) whose float round-trips to the same tier and flat quote."""
+    tier = price(landed)
+    flat = flat_quote(landed)
+
+    def matches(candidate: float) -> bool:
+        if not math.isfinite(candidate) or candidate == 0.0:
+            return False
+        back = Decimal(str(candidate))
+        return back > 0 and price(back) == tier and flat_quote(back) == flat
+
+    for places in (4, 5, 6, 7, 8, 9, 10, 12, 14):
+        q = landed.quantize(Decimal(1).scaleb(-places))
+        if q <= 0:
+            continue
+        as_float = float(q)
+        if matches(as_float):
+            return as_float
+    fallback = float(landed)
+    if matches(fallback):
+        return fallback
+    if math.isfinite(fallback):
+        for direction in (math.inf, -math.inf):
+            nxt = math.nextafter(fallback, direction)
+            if matches(nxt):
+                return nxt
+    raise ValueError(f"no float round-trips the quote for landed {landed}")
+
+
+def format_landed_cell(value: float | None, tier: int | None, flat: int | None) -> str:
+    """2dp when that text still quotes the same dollars; otherwise the stored digits."""
+    if value is None:
+        return "—"
+    exact = Decimal(str(value))
+    short = f"{value:.2f}"
+    short_money = Decimal(short)
+    if tier is None or (
+        short_money > 0
+        and price(short_money) == tier
+        and (flat is None or flat_quote(short_money) == flat)
+    ):
+        return short
+    text = format(exact, "f")
+    return text.rstrip("0").rstrip(".") if "." in text else text
+
+
 def _num(value: object) -> Decimal | None:
     if value is None:
         return None
@@ -137,7 +186,7 @@ def propose(
                         None, None, None, flags)
     landed = landed_usd(yen, kg)
     return Proposal(code, kind, "quote", raw_cny, float(kg), src,
-                    float(landed.quantize(Decimal("0.0001"))), price(landed), flat_quote(landed), flags)
+                    sheet_landed(landed), price(landed), flat_quote(landed), flags)
 
 
 def mark_live(p: Proposal, live_catalog: dict[str, Decimal]) -> Proposal:
@@ -189,7 +238,7 @@ def markdown(sheet: dict) -> str:
     for p in sheet["proposals"]:
         kg = f"{p['kg']} ({p['kg_source']})" if p["kg"] is not None else "—"
         cells = [p["ma"], p["intake_cny"] or "—", kg,
-                 f"{p['landed_usd']:.2f}" if p["landed_usd"] is not None else "—",
+                 format_landed_cell(p["landed_usd"], p["tiered_usd"], p["flat25_usd"]),
                  p["tiered_usd"] if p["tiered_usd"] is not None
                  else (f"already live ${p['live_usd']:g}" if p.get("live_usd") is not None else "—"),
                  p["flat25_usd"] if p["flat25_usd"] is not None else "—",
