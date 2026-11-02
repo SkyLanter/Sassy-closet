@@ -1,6 +1,6 @@
 import { intakeDirectJson } from "@/lib/intake-direct-link";
 import { getFx, setFx } from "@/lib/store";
-import { storeUnavailableResponse } from "@/lib/store-unavailable";
+import { intakeWriteErrorResponse, storeUnavailableResponse } from "@/lib/store-unavailable";
 
 /** Open by link. The rate is public; this response stays noindex without a session. */
 export async function GET() {
@@ -25,5 +25,9 @@ export async function POST(request: Request) {
       400,
     );
   }
-  return intakeDirectJson(await setFx(usdCny));
+  try {
+    return intakeDirectJson(await setFx(usdCny));
+  } catch (error) {
+    return intakeWriteErrorResponse(error);
+  }
 }
