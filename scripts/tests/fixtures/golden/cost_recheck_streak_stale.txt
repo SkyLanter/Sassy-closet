@@ -1,0 +1,6 @@
+latest_run 2026-10-20 runs_read 2
+UNUSABLE cost-recheck-2026-10-21-flags.csv: empty file
+UNUSABLE cost-recheck-2026-99-99-flags.csv: not a real date
+NOTE missing cost-recheck days 2026-10-17, 2026-10-18, 2026-10-19. Day counts are consecutive files, not calendar days.
+STALE latest cost-recheck flags 2026-10-20 are before 2026-10-22
+WARN unreachable_streak A07 day 2 (since 2026-10-16)

@@ -1,0 +1,3 @@
+MISSING no usable cost-recheck flag files found
+UNUSABLE cost-recheck-2026-10-22-flags.csv: empty file
+UNUSABLE cost-recheck-2026-10-23-flags.csv: missing ma or flag column
