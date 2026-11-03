@@ -149,6 +149,7 @@ Open drafts still run through #266. #260 is the knowledge-base docs PR (`docs/kn
 | #283 | `754ed7e4b1f9` | Reject non-literal USD text in shop draft prices. Seen 2026-11-03 06:16 UTC. Not started. |
 | #284 | `b36383c1828d` | Parse calculator and intake amounts as plain dollars. Seen 2026-11-03 08:17 UTC. Not started by this lane. A cursor[bot] PASS comment at this SHA appeared at 08:25 UTC. This lane did not run that recheck and does not adopt it. |
 | #285 | `78819eaf0d04` | Read S06's own JSON-LD offer in host health. Seen 2026-11-03 10:17 UTC. Not started. |
+| #286 | `adcb7c41d760` | Reject junk dollar and comma text in parse_usd. Seen 2026-11-03 14:18 UTC. Not started. |
 
 ## 2026-11-03 00:15 UTC — slower loop
 
@@ -315,6 +316,10 @@ Open drafts #217–#285 are still on the SHAs recorded above. #225 stays the ver
 ## 2026-11-03 14:00 UTC — #225 verified PASS at 77fde6a, no second comment
 
 `77fde6ab2f3b` was still the head. This lane’s script passed: pytest 2428 passed, 7 skipped; privacy CLEAN; intake npm 353 / 350 / 0 / 3; shop npm 251 / 248 / 0 / 3; both tsc ok; `held.json` unchanged. Required skips: none. Log `out/recheck/20261103-135302-417160`. `parse_usd` returns null for `2$5` and `2,5`. `$25` stays 25 and `1,200` stays 1200. A null S06 price fails the $25 guard instead of becoming 25. Findings: none. The outside PASS was already on this SHA and this review agrees, so no second comment was posted. That worker was not sent on. #260 and #267–#285 are unchanged and are not started. #249 is this log and is not graded.
+
+## 2026-11-03 14:18 UTC — two-hour poll, no moved head
+
+Open drafts #217–#285 are still on the SHAs recorded above. #225 stays the verified PASS at `77fde6ab2f3b`. #286 is new and is recorded at `adcb7c41d760`. It has not moved since it was first seen, so it was not started. No recheck worker is running. The next poll is the 2-hour timer. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
