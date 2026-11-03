@@ -14,7 +14,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 | PR | Head at queue time | Title |
 | --- | --- | --- |
-| #225 | `44bde2ae5e90` | Draft: one branch for the safe shop fixes. Commented PASS 2026-11-03 03:47 UTC. Commented FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. Commented PASS at `b29c6c7ee1ef`. `f9d33ed8d8b2` was not commented. |
+| #225 | `4df538a9b6eb` | Draft: one branch for the safe shop fixes. Moved 2026-11-03 06:15 UTC. Commented PASS at `44bde2ae5e90` and `b29c6c7ee1ef`. Commented FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. |
 | #217 | `ee9e2a34bfb4` | Combined safe bundle #208-#216 |
 | #218 | `03c23afc58a7` | Fail closed when Blob is down, and drop held folders from other mãs |
 | #219 | `5b590c0f734e` | Keep a blank intake sell blank and parse pasted yen safely |
@@ -240,6 +240,10 @@ Open drafts #217–#268 and #225 are still on the SHAs recorded above. #260 is s
 ## 2026-11-03 04:15 UTC — two-hour poll, no moved head
 
 Open drafts #217–#281 and #225 are still on the SHAs recorded above. #225 stays the PASS at `44bde2ae5e90`. #260 stays `900de4827176` and was not started. #282 is new and is recorded at `b101f113e76b`. It has not moved since it was first seen, so it was not started. No recheck worker is running. The next poll is the 2-hour timer. #249 is this log and is not graded.
+
+## 2026-11-03 06:15 UTC — #225 moved to 4df538a
+
+#225 head is now `4df538a9b6eb0af873ac1e7b21787ae6a26d7218` (“Reject non-literal USD text in shop draft prices”). `44bde2ae5e90` stays the commented PASS. One recheck of `4df538a9b6eb` is running. #260 and #269–#282 are unchanged and are not started. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
