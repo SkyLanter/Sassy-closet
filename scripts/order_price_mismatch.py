@@ -24,6 +24,7 @@ OMIT_REASONS = (NO_PRICE, NO_CATALOG)
 
 _MA_CODE = re.compile(r"^[A-Z][0-9]{2}$")
 _AMOUNT = re.compile(r"\d+(?:\.\d+)?")
+_THOUSANDS = re.compile(r"\d{1,3}(?:,\d{3})+(?:\.\d+)?")
 _FORBIDDEN_NAMES = frozenset(
     {
         "submissions.json",
@@ -252,7 +253,11 @@ def _price(value: object, *, required: bool) -> tuple[Decimal, str] | None:
             if required:
                 raise ValueError("price must be a number")
             return None
-        text = raw.replace("$", "").replace(",", "").strip()
+        text = _grouped_dollars(raw)
+        if text == "":
+            if required:
+                raise ValueError("price must be a number")
+            return None
         if _AMOUNT.fullmatch(text) is None:
             raise ValueError("price must be a number")
         amount = Decimal(text)
@@ -260,6 +265,16 @@ def _price(value: object, *, required: bool) -> tuple[Decimal, str] | None:
             raise ValueError("price must be a non-negative number")
         return amount, text
     raise ValueError("price must be a number")
+
+
+def _grouped_dollars(raw: str) -> str:
+    """A thousands comma is a price. A shorter comma group is not."""
+    text = raw.replace("$", "").strip()
+    if "," not in text:
+        return text
+    if _THOUSANDS.fullmatch(text) is None:
+        raise ValueError("price must be a number")
+    return text.replace(",", "")
 
 
 def _ma(value: object) -> str:
