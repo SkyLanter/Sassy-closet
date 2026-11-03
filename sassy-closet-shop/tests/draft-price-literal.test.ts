@@ -115,6 +115,9 @@ test("prices above 100000 parse, and an unsafe cent count does not", () => {
   const overLimit = `${Math.floor(overCents / 100)}.${String(overCents % 100).padStart(2, "0")}`;
   assert.equal(Number.isNaN(parseDraftPrice("available", overLimit)), true);
   assert.equal(Number.isNaN(parseDraftPrice("sold", `1${"0".repeat(20)}`)), true);
+  assert.equal(Number.isNaN(parseDraftPrice("available", "70368744177664.01")), true);
+  assert.equal(Number.isNaN(parseDraftPrice("sold", "90071992547409.90")), true);
+  assert.equal(parseDraftPrice("available", "0.07"), 0.07);
 });
 
 test("a NaN draft price does not overwrite an available A01 row at 40", () => {

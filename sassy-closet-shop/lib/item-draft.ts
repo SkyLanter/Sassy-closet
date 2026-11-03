@@ -48,7 +48,12 @@ function numberFromPlainUsd(literal: string): number {
   ) {
     return Number.NaN;
   }
-  return Number(centsDigits) / 100;
+  const cents = Number(centsDigits);
+  const value = cents / 100;
+  if (!Number.isSafeInteger(cents) || Math.round(value * 100) !== cents) {
+    return Number.NaN;
+  }
+  return value;
 }
 
 export function parseDraftPrice(status: ProductStatus, priceInput: string): number | null | typeof Number.NaN {
