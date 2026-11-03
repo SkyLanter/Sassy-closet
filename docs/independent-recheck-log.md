@@ -82,6 +82,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 | #251 | `afa3df612e79f1f36707640ef240b4a355703f1c` | PASS | pytest 2118 passed, 7 skipped. Intake 277 / 274 / 0 / 3. Shop 218 / 215 / 0 / 3. Workflow tokens are contents: read. Findings: none. |
 | #244 | `5a80c19474b425410b9aa8ab8f477586e3e91d65` | FAIL | Script PASS (pytest 2118). Every live S06 row is checked at $25. The log claims sold/hold filtering and other fixes that are not in this tree. Log `out/recheck/20261102-235357-184718`. |
 | #254 | `a8d4be0844677a3ead83486795de6a0fcb017fbb` | PASS | pytest 2117 passed, 7 skipped. Intake 277 / 274 / 0 / 3. Shop 218 / 215 / 0 / 3. The four workflows pin checkout, setup-node, and setup-python. Findings: none. Log `out/recheck/20261102-235316-183289`. |
+| #228 | `957d1d257cdfcf0eb6620e53ff4d9233e6490474` | FAIL | Script PASS (pytest 2118). One-to-four-digit caption mãs match, and S06 stays $25. The log claims midnight QC, digest, flat-summary, and `--proposal` fixes that are not in this tree. Log `out/recheck/20261103-000059-198481`. |
 
 #222 was still in `hard_recheck.sh` when #239 was commented. #223, #224, #226–#231, and #240–#247 stay with the earlier workers. No knowledge-lane docs PR. #250–#258 are in progress. #259 is queued. #249 is this log and is not graded.
 
@@ -122,13 +123,19 @@ Open drafts still run through #266. #260 is the knowledge-base docs PR (`docs/kn
 | #267 | `4b073e05abe1` | Keep every spelling in the seed versus live price compare |
 | #268 | `e932dd3cd446` | Record the quote gate rejecting A100 and K003 |
 
+## 2026-11-03 00:15 UTC — slower loop
+
+From here the lane polls every 2 hours, not every 45 minutes. At most two recheck workers run at once. A pull request is rechecked only when its head SHA changes from the SHA already recorded in this log. A draft that has not moved stays as recorded, including drafts that have not had a first recheck. Already-commented SHAs are not run again.
+
+#228 is commented FAIL at `957d1d257cdf`. #225 at `e88e265ef221` is the one head that changed and is in hard recheck. #229 and #245 were already inside `hard_recheck.sh` when this cap landed. They will be commented if that SHA is still the head. Those workers will not be sent on to the next pull request. #249 is this log and is not graded.
+
 ## 2026-11-02 23:55 UTC — #225 moved again
 
 #225 head is `d8170670ab411fe21c38630f4a38b8ecdae711e8`. The FAIL on `72d792580d71` stays the comment for that older SHA. The new head is in hard recheck and is not commented yet. #226, #243, and #253 are commented at the SHAs in the verdict table. Their log directories are `out/recheck/20261102-234222-157269`, `out/recheck/20261102-234641-168787`, and `out/recheck/20261102-234412-161336`. No knowledge-lane docs PR.
 
 This log lives on draft PR #249 (`cursor/independent-recheck-log-cfee`). That PR is this lane's own notes, so this lane does not grade it.
 
-PR watch subscriptions for #217–#247 expire 2026-11-05 22:28 UTC. Renew them before then so the loop still reaches 2026-11-07 00:00 America/Los_Angeles. A 45-minute timer is also set.
+PR watch subscriptions for #217–#247 expire 2026-11-05 22:28 UTC. Renew them before then so the loop still reaches 2026-11-07 00:00 America/Los_Angeles. The 45-minute timer was removed at 00:15 UTC. The replacement is a single 2-hour timer.
 
 Early static notes, not verdicts:
 
