@@ -150,6 +150,7 @@ Open drafts still run through #266. #260 is the knowledge-base docs PR (`docs/kn
 | #284 | `b36383c1828d` | Parse calculator and intake amounts as plain dollars. Seen 2026-11-03 08:17 UTC. Not started by this lane. A cursor[bot] PASS comment at this SHA appeared at 08:25 UTC. This lane did not run that recheck and does not adopt it. |
 | #285 | `78819eaf0d04` | Read S06's own JSON-LD offer in host health. Seen 2026-11-03 10:17 UTC. Not started by this lane. Outside PASS comments at this SHA appeared at 09:10 UTC and 19:30 UTC. This lane did not run those rechecks and does not adopt them. |
 | #286 | `adcb7c41d760` | Reject junk dollar and comma text in parse_usd. Seen 2026-11-03 14:18 UTC. Not started. |
+| #287 | `cdb6d0451758` | Reject junk dollar text in pickup whole-dollar checks. Seen 2026-11-03 20:19 UTC. Not started. |
 
 ## 2026-11-03 00:15 UTC — slower loop
 
@@ -356,6 +357,10 @@ Open drafts #217–#286 are still on the SHAs recorded above. #225 stays the ver
 ## 2026-11-03 20:18 UTC — #225 verified PASS at 0f4fcc2, no second comment
 
 `0f4fcc2c255f` was still the head. This lane’s script passed: pytest 2434 passed, 7 skipped; privacy CLEAN; intake npm 358 / 355 / 0 / 3; shop npm 251 / 248 / 0 / 3; both tsc ok; `held.json` unchanged. Required skips: none. Log `out/recheck/20261103-201247-434830`. `a01/001.jpg` keeps the hash stored for `A01/001.jpg`. A claimed photo is not replaced when another row spells that folder differently; the new photo takes the next free name. `001.JPG` does not share the `001.jpg` hash. Findings: none. The outside PASS was already on this SHA and this review agrees, so no second comment was posted. That worker was not sent on. #260 and #267–#286 are unchanged and are not started. #249 is this log and is not graded.
+
+## 2026-11-03 20:19 UTC — two-hour poll, no moved head
+
+Open drafts #217–#286 are still on the SHAs recorded above. #225 stays the verified PASS at `0f4fcc2c255f`. #287 is new and is recorded at `cdb6d0451758`. It has not moved since it was first seen, so it was not started. No recheck worker is running. The next poll is the 2-hour timer. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
