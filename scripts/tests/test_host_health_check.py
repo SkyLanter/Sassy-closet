@@ -1,4 +1,5 @@
 """Offline tests for host_health_check (all network mocked)."""
+import json
 import socket
 import ssl
 from types import SimpleNamespace
@@ -8,7 +9,24 @@ import pytest
 import daily_shop_check as dsc
 import host_health_check as hh
 
-S06_PAGE = "<h1>S06</h1><span>$25</span>"
+
+def product_html(sku="S06", price="25.00", extra="<h1>S06</h1><span>$25</span><span>$30</span>",
+                 attrs='type="application/ld+json"', node=None):
+    if node is None:
+        node = {
+            "@context": "https://schema.org",
+            "@type": "Product",
+            "sku": sku,
+            "offers": {"@type": "Offer", "priceCurrency": "USD", "price": price},
+        }
+    return f"<script {attrs}>{json.dumps(node)}</script>{extra}"
+
+
+def s06_pages(body, status=200):
+    return {f"https://{host}/m/S06": (status, body, "") for host in hh.VERCEL_HOSTS}
+
+
+S06_PAGE = product_html()
 
 
 @pytest.fixture(autouse=True)
@@ -36,11 +54,13 @@ EOF_TLS = (False, "SSLError: [SSL: UNEXPECTED_EOF_WHILE_READING] unexpected eof 
 
 
 def test_all_healthy_pass(monkeypatch):
+    assert '"25.00"' in S06_PAGE and "$25" in S06_PAGE and "$30" in S06_PAGE
     fake(monkeypatch)
     s = hh.run()
     assert s["overall"] == "PASS" and len(s["hosts"]) == 2 and not s["warn"]
     assert {r["host"] for r in s["hosts"]} == set(hh.VERCEL_HOSTS)
     assert all(r["s06_pdp"]["shows_25"] for r in s["hosts"])
+    assert all(r["s06_pdp"]["offer_usd"] == "25.00" for r in s["hosts"])
 
 
 def test_no_custom_domain_hosts():
@@ -71,14 +91,199 @@ def test_s06_off_25_is_fail(monkeypatch):
     assert s["overall"] == "FAIL" and "S06" in s["fail"][0]
 
 
+def test_s06_offer_30_with_stray_25_is_fail(monkeypatch):
+    body = product_html("S06", "30.00", extra="<h1>S06</h1><span>$25</span>")
+    assert "$25" in body and "30.00" in body
+    fake(monkeypatch, pages=s06_pages(body))
+    s = hh.run()
+    assert s["overall"] == "FAIL"
+    assert s["fail"] and all("S06" in item for item in s["fail"])
+    assert all(r["s06_pdp"]["shows_25"] is False for r in s["hosts"])
+    assert all(r["s06_pdp"]["offer_usd"] == "30.00" for r in s["hosts"])
+
+
+def test_s06_dollar_text_without_jsonld_is_fail(monkeypatch):
+    body = "<h1>S06</h1><span>$25</span>"
+    fake(monkeypatch, pages=s06_pages(body))
+    s = hh.run()
+    assert s["overall"] == "FAIL"
+    assert s["fail"] and all("S06" in item for item in s["fail"])
+    assert all(r["s06_pdp"]["shows_25"] is False for r in s["hosts"])
+    assert all(r["s06_pdp"]["offer_usd"] is None for r in s["hosts"])
+
+
+def test_lowercase_s06_sku_at_25_passes(monkeypatch):
+    body = product_html("s06", "25.00")
+    assert '"sku": "s06"' in body
+    assert hh.s06_shows_25(body) is True
+    assert hh.s06_offer_usd(body) == "25.00"
+    fake(monkeypatch, pages=s06_pages(body))
+    s = hh.run()
+    assert s["overall"] == "PASS"
+    assert all(r["s06_pdp"]["shows_25"] is True for r in s["hosts"])
+    assert all(r["s06_pdp"]["offer_usd"] == "25.00" for r in s["hosts"])
+
+
+def test_price_25_000_equals_25_and_shows_25():
+    assert hh.whole_dollar_usd("25.000") == 25
+    page = product_html("S06", "25.000")
+    assert "25.000" in page
+    assert hh.s06_shows_25(page) is True
+    assert hh.s06_offer_usd(page) == "25.00"
+
+
+def test_non_ld_script_with_dollar_25_and_sku_does_not_pass(monkeypatch):
+    raw = json.dumps(
+        {"@type": "Product", "sku": "S06", "name": "$25", "offers": {"price": "25.00"}},
+        separators=(",", ":"),
+    )
+    body = f'<script type="application/json">{raw}</script>'
+    assert '"sku":"S06"' in body and "$25" in body
+    assert "application/ld+json" not in body
+    assert hh.s06_shows_25(body) is False
+    assert hh.s06_offer_usd(body) is None
+    fake(monkeypatch, pages=s06_pages(body))
+    s = hh.run()
+    assert s["overall"] == "FAIL"
+    assert s["fail"] and all("S06" in item for item in s["fail"])
+    assert all(r["s06_pdp"]["shows_25"] is False for r in s["hosts"])
+    assert all(r["s06_pdp"]["offer_usd"] is None for r in s["hosts"])
+
+
+def test_s06_offer_price_null_fails(monkeypatch):
+    body = product_html("S06", None, extra="<span>$25</span>")
+    assert '"price": null' in body and "$25" in body
+    assert hh.s06_shows_25(body) is False
+    assert hh.s06_offer_usd(body) is None
+    fake(monkeypatch, pages=s06_pages(body))
+    s = hh.run()
+    assert s["overall"] == "FAIL"
+    assert s["fail"] and all("S06" in item for item in s["fail"])
+    assert all(r["s06_pdp"]["shows_25"] is False for r in s["hosts"])
+    assert all(r["s06_pdp"]["offer_usd"] is None for r in s["hosts"])
+
+
+def test_one_host_s06_offer_30_other_25_is_fail(monkeypatch):
+    bad_host, good_host = hh.VERCEL_HOSTS
+    fake(monkeypatch, pages={
+        f"https://{bad_host}/m/S06": (200, product_html("S06", "30.00", extra="<span>$25</span>"), ""),
+        f"https://{good_host}/m/S06": (200, product_html("S06", "25.00"), ""),
+    })
+    s = hh.run()
+    by_host = {r["host"]: r["s06_pdp"] for r in s["hosts"]}
+    assert s["overall"] == "FAIL"
+    assert by_host[bad_host]["shows_25"] is False
+    assert by_host[bad_host]["offer_usd"] == "30.00"
+    assert by_host[good_host]["shows_25"] is True
+    assert by_host[good_host]["offer_usd"] == "25.00"
+    assert any(bad_host in item and "S06" in item for item in s["fail"])
+    assert all(good_host not in item for item in s["fail"])
+
+
+def test_s06_offer_ignores_other_product_jsonld(monkeypatch):
+    s06 = {
+        "@type": "Product",
+        "sku": "S06",
+        "offers": {"@type": "Offer", "price": "25.00", "priceCurrency": "USD"},
+    }
+    other = {
+        "@type": "Product",
+        "sku": "A02",
+        "offers": {"@type": "Offer", "price": "19.00", "priceCurrency": "USD"},
+    }
+    body = (
+        f'<script type="application/ld+json">{json.dumps(s06)}</script>'
+        f'<script type="application/ld+json">{json.dumps(other)}</script>'
+        "<span>$19</span>"
+    )
+    fake(monkeypatch, pages=s06_pages(body))
+    s = hh.run()
+    assert s["overall"] == "PASS"
+    assert all(r["s06_pdp"]["shows_25"] is True for r in s["hosts"])
+    assert all(r["s06_pdp"]["offer_usd"] == "25.00" for r in s["hosts"])
+
+
 def test_vercel_home_500_is_fail(monkeypatch):
     fake(monkeypatch, pages={"https://sassy-closet-shop.vercel.app/": (500, "", "")})
     assert hh.run()["overall"] == "FAIL"
 
 
-@pytest.mark.parametrize("body,ok", [("$25", True), ("$ 25.00", True), ("$250", False), ("$2", False), ("$125", False)])
-def test_shows_price(body, ok):
-    assert hh.shows_price(body, 25) is ok
+def test_s06_jsonld_offer_units():
+    assert hh.s06_shows_25(product_html("S006", "25.00")) is True
+    assert hh.s06_shows_25(product_html("S6", "25.00")) is True
+    assert hh.s06_offer_usd(product_html("S006", "25.00")) == "25.00"
+    assert hh.s06_shows_25(product_html("S06B", "25.00")) is False
+    assert hh.s06_shows_25(product_html("S06", True)) is False
+    assert hh.whole_dollar_usd(True) is None
+    assert hh.whole_dollar_usd(False) is None
+    assert hh.s06_shows_25(product_html("S06", "25.50")) is False
+    assert hh.whole_dollar_usd("25.50") is None
+    assert hh.s06_shows_25(product_html("S06", 25)) is True
+    assert hh.whole_dollar_usd(25) == 25
+    assert hh.whole_dollar_usd(25.0) == 25
+    assert hh.whole_dollar_usd("25") == 25
+    assert hh.whole_dollar_usd("25.0") == 25
+    assert hh.whole_dollar_usd("25.00") == 25
+    assert hh.whole_dollar_usd("$25") is None
+    assert hh.whole_dollar_usd("1e2") is None
+    assert hh.whole_dollar_usd("0x19") is None
+    assert hh.whole_dollar_usd("250") == 250
+    assert hh.s06_shows_25(product_html("S06", "250")) is False
+    assert hh.whole_dollar_usd("1,025") is None
+    assert hh.whole_dollar_usd("25,00") is None
+    assert hh.whole_dollar_usd("") is None
+    assert hh.whole_dollar_usd("   ") is None
+    assert hh.whole_dollar_usd(None) is None
+    assert hh.whole_dollar_usd(float("nan")) is None
+    assert hh.whole_dollar_usd(float("inf")) is None
+    assert hh.whole_dollar_usd(float("-inf")) is None
+    kept = [
+        {"@type": "Product", "sku": "S06", "offers": {"price": "25.00"}},
+        {"@type": "Product", "sku": "S06B", "offers": {"price": "40.00"}},
+    ]
+    assert hh.s06_shows_25(product_html(node=kept, extra="<span>$40</span>")) is True
+    split = [
+        {"@type": "Product", "sku": "S06", "offers": {"price": "25.00"}},
+        {"@type": "Product", "sku": "S006", "offers": {"price": "26"}},
+    ]
+    assert hh.s06_shows_25(product_html(node=split, extra="<span>$25</span>")) is False
+    assert hh.s06_offer_usd(product_html(node=split)) is None
+
+
+def test_s06_jsonld_html_escaped_quotes_parse():
+    raw = json.dumps({"@type": "Product", "sku": "S06", "offers": {"price": "25.00"}})
+    escaped = raw.replace('"', "&quot;")
+    page = f"<script type='application/ld+json'>{escaped}</script><span>$30</span>"
+    assert "&quot;" in page
+    assert hh.s06_shows_25(page) is True
+    assert hh.s06_offer_usd(page) == "25.00"
+
+
+def test_s06_jsonld_attribute_order_graph_and_offer_list():
+    raw = json.dumps({"@type": "Product", "sku": "S06", "offers": {"price": "25.00"}})
+    assert hh.s06_shows_25(f"<script id='pdp' type='application/ld+json'>{raw}</script>") is True
+    assert hh.s06_shows_25(f'<script type="application/ld+json" id="pdp">{raw}</script>') is True
+    payload = {
+        "@context": "https://schema.org",
+        "@graph": [
+            {"@type": "Organization", "name": "Sassy Closet"},
+            {
+                "@type": ["Product", "IndividualProduct"],
+                "sku": "S6",
+                "offers": [
+                    {"@type": "Offer", "price": "25.0"},
+                    {"@type": "Offer", "price": 25},
+                ],
+            },
+        ],
+    }
+    page = f"<span>$19</span><script id='ld' type='application/ld+json'>{json.dumps(payload)}</script>"
+    assert hh.s06_shows_25(page) is True
+    assert hh.s06_offer_usd(page) == "25.00"
+
+
+def test_loose_dollar_regex_is_not_the_gate():
+    assert not hasattr(hh, "shows_price")
 
 
 def test_check_tls_reports_error_text(monkeypatch):
