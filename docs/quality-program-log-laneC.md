@@ -9,3 +9,7 @@ Branch `cursor/npm-lifecycle-lock-9477`.
 A test fails if `sassy-closet/package.json` or `sassy-closet-shop/package.json` defines an install lifecycle script (`preinstall`, `install`, `postinstall`, `prepublish`, `preprepare`, `prepare`, `postprepare`, `prepublishOnly`, `prepack`), including a nested `scripts` object. It also fails if a script body would run npm install, curl, wget, or a deploy. Neither file was edited. No deploy. `held.json` was not edited.
 
 `scripts/tests/test_npm_lifecycle_lock.py`: 2 passed.
+
+Draft PR #277.
+
+Hard recheck of `ca67707`, base `origin/main`, 197s, PASS. Required steps PASS, none skipped. pytest 2116 passed, 7 skipped. privacy CLEAN. intake npm tests 277 pass, 274 fail 0, skipped 3. intake tsc ok. shop npm tests 218 pass, 215 fail 0, skipped 3. shop tsc ok. held.json unchanged.
