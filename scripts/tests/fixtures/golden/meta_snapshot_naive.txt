@@ -1,0 +1,3 @@
+NOTE 1 checked_at value had no timezone; read as America/Los_Angeles
+OK checked_at 2026-11-02 America/Los_Angeles
+saved posts=1
