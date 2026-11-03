@@ -3,7 +3,7 @@ import { isKindCode, kindLabel, sizeOptionsLine } from "./kinds";
 import { notifyIntakeDatasetSyncWebhook } from "./intakeDatasetSyncWebhook";
 import { formatMa, maExists, nextMa, normalizeMa, parseHubMa } from "./mint";
 import { moneyForStore } from "./money-text";
-import { mintBlock, publishBlock } from "./publish-guard";
+import { mintBlock, publishBlock, wholeDollars } from "./publish-guard";
 import { normalizeSourceLink } from "./source-link";
 import { sanitizeOnHandRows } from "./on-hand";
 import { buildCaptionVi } from "./captions";
@@ -198,14 +198,18 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
   // The destination check above does not see the old code. Leaving a held
   // mã, or leaving S06 at a price the lock refuses, is the same save.
   if (existing && normalizeMa(existing.ma) !== normalizeMa(ma)) {
+    const posted = postedSell(input.sell_currency, input.sell_usd, input.sell_cny);
     const sourceBlocked = publishBlock({
       action: "update",
       ma: existing.ma,
-      sellUsd: postedSell(input.sell_currency, input.sell_usd, input.sell_cny),
+      sellUsd: posted,
       sellCurrency: input.sell_currency,
     });
-    if (sourceBlocked) {
-      throw Object.assign(new Error(`Không lưu ${normalizeMa(existing.ma)} (${sourceBlocked}).`), {
+    // A blank sell is not $25. Leaving S06 that way would drop the lock.
+    const leavingLocked = normalizeMa(existing.ma) === "S06" && wholeDollars(posted) !== 25;
+    if (sourceBlocked || leavingLocked) {
+      const reason = sourceBlocked ?? "s06-lock";
+      throw Object.assign(new Error(`Không lưu ${normalizeMa(existing.ma)} (${reason}).`), {
         status: 409,
       });
     }
@@ -219,16 +223,26 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
   const photoHashes = keptPhotoHashes(existing, input.keep_photos);
   const oldMa = existing?.ma ?? "";
   const renaming = oldMa.length > 0 && normalizeMa(oldMa) !== normalizeMa(ma);
+  const claimed = claimedPhotoPaths(store, existing?.id ?? null, input.keep_photos);
   const addedPhotos: { rel: string; photo: SaveInput["photos"][number] }[] = [];
   if (renaming) {
     // A renamed keep file keeps its old path when the new photo would use that
     // same length-based name. A save that stays on this mã still uses the first
-    // free slot, so a gap does not overwrite a kept file.
+    // free slot, so a gap does not overwrite a kept file. A path another row
+    // still claims is not reused, so the new bytes do not replace that file.
     let index = input.keep_photos.length;
     for (const photo of input.photos) {
-      index += 1;
-      const name = `${String(index).padStart(3, "0")}${photo.ext}`;
-      addedPhotos.push({ rel: `${ma}/${name}`, photo });
+      let name = "";
+      let rel = "";
+      do {
+        index += 1;
+        if (index > 9999) {
+          throw Object.assign(new Error("Quá nhiều ảnh cho mã này."), { status: 409 });
+        }
+        name = `${String(index).padStart(3, "0")}${photo.ext}`;
+        rel = `${ma}/${name}`;
+      } while (claimed.has(`${normalizeMa(ma)}/${name}`));
+      addedPhotos.push({ rel, photo });
     }
   } else {
     const takenSlots = new Set<number>();
@@ -243,7 +257,6 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
     }
   }
   const reserved = new Set(addedPhotos.map((item) => item.rel));
-  const claimed = claimedPhotoPaths(store, existing?.id ?? null, input.keep_photos);
   const photoPaths = await relocateKeptPhotos(oldMa, ma, input.keep_photos, reserved, claimed);
 
   const backend = activeBackend();

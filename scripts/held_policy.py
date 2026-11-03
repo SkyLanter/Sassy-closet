@@ -14,8 +14,9 @@ from pathlib import Path
 MA_RE = re.compile(r"^[A-Z][0-9]{2}$")
 # A space ends a mã token. A letter or digit stuck on the end does not, including
 # a Vietnamese letter, a fullwidth letter or digit, or one of those after an
-# invisible character (S06Đ, S06Ｂ, S06 plus a zero-width space plus B).
-_TOKEN_GLUE = "\u200b\u200c\u200d\ufeff\u2060"
+# invisible character (S06Đ, S06Ｂ, a zero-width space, a soft hyphen, or a
+# left-to-right mark).
+_TOKEN_GLUE = "\u00ad\u200b\u200c\u200d\u200e\u200f\ufeff\u2060"
 _TOKEN_CHAR = "0-9A-Za-zÀ-ỹ\uff10-\uff19\uff21-\uff3a\uff41-\uff5a"
 MA_TOKEN_TAIL = "(?![" + _TOKEN_GLUE + "]*[" + _TOKEN_CHAR + "])"
 

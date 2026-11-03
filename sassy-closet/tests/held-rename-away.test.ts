@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, test } from "node:test";
 import { HELD_INCOMPLETE_MAS } from "../lib/held-incomplete";
-import { getSubmission, listSubmissions, saveSubmission, type SaveInput } from "../lib/store";
+import { getSubmission, hashBytes, listSubmissions, saveSubmission, type SaveInput } from "../lib/store";
 import { resetStoreBackendForTests } from "../lib/store-backend";
 
 const STORE_ENV = [
@@ -76,6 +76,33 @@ describe("rename cannot leave a held mã or an off-lock S06", { concurrency: 1 }
     const stayed = await getSubmission("S06");
     assert.equal(stayed?.sell_usd, "25");
     assert.equal(await getSubmission("S07"), null);
+  });
+
+  test("S06 cannot move when the posted sell is blank", async () => {
+    const locked = await saveSubmission(blank({ kind: "S", newMa: "S06", sell_usd: "25" }));
+    assert.equal(locked.ma, "S06");
+    assert.equal(locked.sell_usd, "25");
+
+    const added = Buffer.from("should-not-land");
+    await assert.rejects(
+      () =>
+        saveSubmission(
+          blank({
+            kind: "S",
+            existingMa: "S06",
+            newMa: "S07",
+            sell_usd: "",
+            keep_photos: [],
+            photos: [{ bytes: added, hash: hashBytes(added), ext: ".jpg" }],
+          }),
+        ),
+      /Không lưu S06 \(s06-lock\)/,
+    );
+    const stayed = await getSubmission("S06");
+    assert.equal(stayed?.ma, "S06");
+    assert.equal(stayed?.sell_usd, "25");
+    assert.equal(await getSubmission("S07"), null);
+    assert.equal(fs.existsSync(path.join(tmp, "photos", "S07")), false);
   });
 
   test("S06 can move when the locked dollar stays", async () => {

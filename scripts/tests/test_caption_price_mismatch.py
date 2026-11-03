@@ -158,6 +158,8 @@ def test_stuck_suffix_is_not_compared_to_s06() -> None:
         Caption("viet", "Mã S06Đ\nGiá: $30"),
         Caption("wide", "Mã S06\uFF22\nGiá: $30"),
         Caption("zwsp", "Mã S06\u200bB\nGiá: $30"),
+        Caption("soft", "Mã S06\u00adB\nGiá: $30"),
+        Caption("lrm", "Mã S06\u200eB\nGiá: $30"),
         Caption("real", "Mã S06\nGiá: $30"),
     ]
     result = compare_prices(captions, catalog)

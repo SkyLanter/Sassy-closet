@@ -326,6 +326,42 @@ describe("rename copies kept photos onto the new mã", { concurrency: 1 }, () =>
     assert.deepEqual(earlier?.photo_paths, ["A01/001.jpg"]);
   });
 
+  test("a new photo on rename does not replace a file another row still uses", async () => {
+    const legacy = Buffer.from("legacy-live");
+    const kept = Buffer.from("kept-cover");
+    const added = Buffer.from("added-cover");
+    await saveSubmission(blank({ photos: [photo(legacy, ".jpg")] }));
+    const legacyFile = path.join(tmp, "photos", "A01", "001.jpg");
+    const claimedFile = path.join(tmp, "photos", "A20", "002.jpg");
+    fs.mkdirSync(path.dirname(claimedFile), { recursive: true });
+    fs.copyFileSync(legacyFile, claimedFile);
+    const storeFile = path.join(tmp, "submissions.json");
+    const store = JSON.parse(fs.readFileSync(storeFile, "utf8")) as {
+      submissions: { ma: string; photo_paths: string[] }[];
+    };
+    store.submissions[0].ma = "A08";
+    store.submissions[0].photo_paths = ["A20/002.jpg"];
+    fs.writeFileSync(storeFile, JSON.stringify(store));
+
+    const minted = await saveSubmission(blank({ photos: [photo(kept, ".jpg")] }));
+    assert.equal(minted.ma, "A09");
+    const renamed = await saveSubmission(
+      blank({
+        existingMa: "A09",
+        newMa: "A20",
+        keep_photos: ["A09/001.jpg"],
+        photos: [photo(added, ".jpg")],
+      }),
+    );
+
+    assert.equal(renamed.ma, "A20");
+    assert.deepEqual(renamed.photo_paths, ["A20/001.jpg", "A20/003.jpg"]);
+    assert.equal((await readPhoto("A20/002.jpg"))?.bytes.toString(), "legacy-live");
+    assert.equal((await readPhoto("A20/003.jpg"))?.bytes.toString(), "added-cover");
+    const other = await getSubmission("A08");
+    assert.deepEqual(other?.photo_paths, ["A20/002.jpg"]);
+  });
+
   test("a lowercase stored mã still copies the canonical photo folder", async () => {
     const bytes = Buffer.from("lower-row");
     await saveSubmission(blank({ photos: [photo(bytes, ".jpg")] }));

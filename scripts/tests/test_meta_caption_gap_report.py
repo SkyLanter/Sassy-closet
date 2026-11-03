@@ -89,6 +89,8 @@ def test_stuck_suffix_note_is_not_s06(tmp_path):
         "FB Reel Mã S06Đ has no Giá.\n"
         "IG Reel Mã S06\uFF22 has no Giá.\n"
         "FB post Mã S06\u200bB has no Giá.\n"
+        "IG Reel Mã S06\u00adB has no Giá.\n"
+        "FB post Mã S06\u200eB has no Giá.\n"
         "IG S06Đ caption has no Giá.\n"
     )
     rep = g.build([mk(tmp_path, notes=notes) / "out"])

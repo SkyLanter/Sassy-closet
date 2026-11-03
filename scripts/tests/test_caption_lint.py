@@ -117,6 +117,9 @@ def test_stuck_suffix_is_not_s06():
         "Mã S006Đ\nGiá $30",
         "Mã S06\uFF22\nGiá $30",
         "Mã S06\u200bB\nGiá $30",
+        "Mã S06\u00adB\nGiá $30",
+        "Mã S06\u200eB\nGiá $30",
+        "Mã S06\u200fB\nGiá $30",
         "Mã S06\uFF11\nGiá $30",
     )
     for caption in samples:

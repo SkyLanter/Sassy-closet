@@ -68,7 +68,13 @@ def test_s06_locked_even_if_list_says_otherwise(tmp_path):
 
 def test_stuck_suffix_is_not_s06():
     prices = g.load_prices()
-    for caption in ("Mã S06Đ\nGiá $30", "Mã S06\uFF22\nGiá $30", "Mã S06\u200bB\nGiá $30"):
+    for caption in (
+        "Mã S06Đ\nGiá $30",
+        "Mã S06\uFF22\nGiá $30",
+        "Mã S06\u200bB\nGiá $30",
+        "Mã S06\u00adB\nGiá $30",
+        "Mã S06\u200eB\nGiá $30",
+    ):
         flags = g.check_post({"id": "stuck", "caption": caption}, prices)
         assert not any(flag["ma"] == "S06" or flag["issue"] == "gia_differs" for flag in flags)
         assert any(flag["issue"] == "missing_ma" for flag in flags)
