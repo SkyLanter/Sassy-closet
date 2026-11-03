@@ -85,6 +85,9 @@ describe("a padded new mã is stored in its canonical spelling", { concurrency: 
     const otherLetter = await saveSubmission(saveInput({ kind: "A", newMa: "b010" }));
     assert.equal(otherLetter.ma, "B10");
 
+    const widest = await saveSubmission(saveInput({ kind: "A", newMa: "b00999" }));
+    assert.equal(widest.ma, "B999");
+
     const locked = await saveSubmission(
       saveInput({ kind: "S", newMa: " s0006 ", sell_usd: "25" }),
     );
@@ -110,9 +113,9 @@ describe("a padded new mã is stored in its canonical spelling", { concurrency: 
     const rows = await listSubmissions();
     assert.deepEqual(
       rows.map((row) => row.ma),
-      ["A01", "A100", "A10", "B10", "S06"],
+      ["A01", "A100", "A10", "B10", "B999", "S06"],
     );
-    assert.deepEqual(maColumn(await exportCsv()), ["A01", "A100", "A10", "B10", "S06"]);
+    assert.deepEqual(maColumn(await exportCsv()), ["A01", "A100", "A10", "B10", "B999", "S06"]);
   });
 
   test("a padded held mã and an off-lock S06 spelling do not create a row", async () => {
