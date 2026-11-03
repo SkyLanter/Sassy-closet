@@ -3,6 +3,7 @@ import { get, put } from "@vercel/blob";
 import {
   SHOP_CATALOG_BLOB_PATH,
   listShopCatalog,
+  readShopCatalogDocument,
   type ShopCatalogList,
   type ShopCatalogPort,
 } from "@/lib/shop-catalog";
@@ -98,9 +99,9 @@ export async function loadShopCatalogForAdmin(): Promise<ShopCatalogList> {
   if (!selected.ok) {
     return selected;
   }
-  const document = await selected.port.read();
-  if (document === null) {
-    return { ok: false, error: "Shop catalog is missing." };
+  const read = await readShopCatalogDocument(selected.port);
+  if (!read.ok) {
+    return { ok: false, error: read.error };
   }
-  return listShopCatalog(document);
+  return listShopCatalog(read.document);
 }
