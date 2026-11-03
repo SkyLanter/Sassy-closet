@@ -283,6 +283,8 @@ function main(): void {
     caption: captionPriceLine(typed),
     shortA1: shortMa("A1"),
     shortS6: shortMa("s6"),
+    wideA100: shortMa("A100"),
+    wideK003: shortMa("K003"),
     deboxWouldBe: deboxQuote.wouldBeUsd,
     deboxBlank: deboxBlank.dollars,
     lockedDebox: locked,
