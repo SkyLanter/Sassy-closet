@@ -14,7 +14,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 | PR | Head at queue time | Title |
 | --- | --- | --- |
-| #225 | `75e1d6580ed8` | Draft: one branch for the safe shop fixes. Moved 2026-11-03 22:36 UTC. Verified PASS at `2c58e8868f4a` with no second comment. Also PASS at `8f4f7c062442`, `0f4fcc2c255f`, `ecb7b2015773` (not commented; not the head), `77fde6ab2f3b`, `5af406779a1e`, `953e460b8f46`, `4df538a9b6eb`, `44bde2ae5e90`, and `b29c6c7ee1ef`. FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. Recheck of `75e1d6580ed8` is running. |
+| #225 | `75e1d6580ed8` | Draft: one branch for the safe shop fixes. Moved 2026-11-03 22:36 UTC. Verified PASS at `75e1d6580ed8` with no second comment. Also PASS at `2c58e8868f4a`, `8f4f7c062442`, `0f4fcc2c255f`, `ecb7b2015773` (not commented; not the head), `77fde6ab2f3b`, `5af406779a1e`, `953e460b8f46`, `4df538a9b6eb`, `44bde2ae5e90`, and `b29c6c7ee1ef`. FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. |
 | #217 | `ee9e2a34bfb4` | Combined safe bundle #208-#216 |
 | #218 | `03c23afc58a7` | Fail closed when Blob is down, and drop held folders from other mãs |
 | #219 | `5b590c0f734e` | Keep a blank intake sell blank and parse pasted yen safely |
@@ -398,6 +398,10 @@ Open drafts #217–#287 are still on the SHAs recorded above. #225 stays the ver
 ## 2026-11-03 22:44 UTC — outside PASS on #225 while this lane is still running
 
 #225 head is still `75e1d6580ed88243c2339bb479d3d67cb319d028`. A cursor[bot] comment says INDEPENDENT RECHECK PASS at that SHA. This lane did not write that comment and does not adopt it. The recheck started at 22:36 UTC is still running. This lane will not post a second comment unless that review disagrees. #249 is this log and is not graded.
+
+## 2026-11-03 22:52 UTC — #225 verified PASS at 75e1d65, no second comment
+
+`75e1d6580ed8` was still the head. This lane’s script passed: pytest 2456 passed, 7 skipped; privacy CLEAN; intake npm 364 / 361 / 0 / 3; shop npm 251 / 248 / 0 / 3; both tsc ok; `held.json` unchanged. Required skips: none. Log `out/recheck/20261103-224515-460351`. `scripts/color_bind.py` prints JSON from a local fixture. It refuses a URL, `held.json`, and the shop catalog. A slide counts only when `colorId` equals `color.id`. Prices are copied and nothing assigns 25. Findings: none. The outside PASS was already on this SHA and this review agrees, so no second comment was posted. That worker was not sent on. #260 and #267–#288 are unchanged and are not started. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
