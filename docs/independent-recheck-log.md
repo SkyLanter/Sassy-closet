@@ -145,6 +145,7 @@ Open drafts still run through #266. #260 is the knowledge-base docs PR (`docs/kn
 | #279 | `b7c009f8e71b` | Record the Official Excel mã spelling split. Seen 2026-11-03 02:15 UTC. Not started. |
 | #280 | `e30f09bca797` | Show every S06 price on the desk status. Seen 2026-11-03 02:15 UTC. Not started. |
 | #281 | `e7b504cde3ee` | Return 503 when the shop catalog cannot be read. Seen 2026-11-03 02:15 UTC. Not started. |
+| #282 | `b101f113e76b` | Reject invalid shop-desk USD text before save. Seen 2026-11-03 04:15 UTC. Not started. |
 
 ## 2026-11-03 00:15 UTC — slower loop
 
@@ -235,6 +236,10 @@ Open drafts #217–#268 and #225 are still on the SHAs recorded above. #260 is s
 ## 2026-11-03 03:47 UTC — #225 commented PASS at 44bde2a
 
 `44bde2ae5e90` was still the head. The script passed. A dollar sign between digits is not a price, a null S06 spelling no longer hides another spelling, and a thrown catalog write returns 503 without `blobWritten`. Findings: none. That worker was not sent on. #260 and #269–#281 are unchanged and are not started. #249 is this log and is not graded.
+
+## 2026-11-03 04:15 UTC — two-hour poll, no moved head
+
+Open drafts #217–#281 and #225 are still on the SHAs recorded above. #225 stays the PASS at `44bde2ae5e90`. #260 stays `900de4827176` and was not started. #282 is new and is recorded at `b101f113e76b`. It has not moved since it was first seen, so it was not started. No recheck worker is running. The next poll is the 2-hour timer. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
