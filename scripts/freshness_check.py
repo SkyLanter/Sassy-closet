@@ -175,10 +175,24 @@ def parse_usd(value: object) -> Decimal | None:
         if isinstance(value, float) and not math.isfinite(value):
             return None
         return Decimal(str(value))
-    text = str(value).strip().replace("$", "").replace(",", "")
-    if text == "" or re.fullmatch(r"\d+(?:\.\d+)?", text) is None:
+    # One leading or trailing $ is a currency mark. A comma counts only as a
+    # thousands group of three digits, so 2$5, 12,50, and 1.200,50 are not prices.
+    text = str(value).strip()
+    dollars = text.count("$")
+    if dollars > 1:
         return None
-    return Decimal(text)
+    if dollars == 1:
+        if text.startswith("$"):
+            text = text[1:].strip()
+        elif text.endswith("$"):
+            text = text[:-1].strip()
+        else:
+            return None
+    plain = re.fullmatch(r"\d+(?:\.\d+)?", text)
+    grouped = re.fullmatch(r"\d{1,3}(?:,\d{3})+(?:\.\d+)?", text)
+    if plain is None and grouped is None:
+        return None
+    return Decimal(text.replace(",", ""))
 
 
 def parse_blob_catalog(payload: object) -> list[MoneyRow]:
