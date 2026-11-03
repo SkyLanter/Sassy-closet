@@ -341,6 +341,10 @@ Open drafts #217–#286 are still on the SHAs recorded above. #225 stays the ver
 
 #225 head is now `0f4fcc2c255fbb688eae8f04213856101dcb3df3` (“Keep a photo hash when the keep path spelling differs.”). Since `ecb7b2015773` it also keeps a photo hash when the folder spelling differs. `ecb7b2015773` is still in recheck and is not the head, so it will not be commented. One recheck of `0f4fcc2c255f` is running. #260 and #267–#286 are unchanged and are not started. #249 is this log and is not graded.
 
+## 2026-11-03 19:58 UTC — outside PASS on the old #225 SHA
+
+#225 head is still `0f4fcc2c255fbb688eae8f04213856101dcb3df3`. A cursor[bot] comment says INDEPENDENT RECHECK PASS at `ecb7b2015773`. This lane did not write that comment and does not adopt it. That SHA is not the head, and the comment does not cover `0f4fcc2c255f`. This lane will not post a second comment on `ecb7b2015773`. The recheck of `0f4fcc2c255f` is still running. #249 is this log and is not graded.
+
 ## 2026-11-02 23:55 UTC — #225 moved again
 
 #225 head is `d8170670ab411fe21c38630f4a38b8ecdae711e8`. The FAIL on `72d792580d71` stays the comment for that older SHA. The new head is in hard recheck and is not commented yet. #226, #243, and #253 are commented at the SHAs in the verdict table. Their log directories are `out/recheck/20261102-234222-157269`, `out/recheck/20261102-234641-168787`, and `out/recheck/20261102-234412-161336`. No knowledge-lane docs PR.
