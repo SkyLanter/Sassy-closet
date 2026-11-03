@@ -85,6 +85,24 @@ def test_delimiter_split_matches_listing_and_the_row_stays():
     assert [gap["detail"] for gap in odd_gaps] == ["size not allowed for A: 99"]
 
 
+def test_listing_alias_counts_as_the_allowed_chip_and_the_row_stays():
+    allowed = ("2XS", "XS", "S", "M", "L", "XL", "2XL")
+    assert ig.disallowed_size_tokens("XXS 3XL;XXL", allowed) == []
+    assert ig.disallowed_size_tokens("4XL", allowed) == ["4XL"]
+    assert ig.disallowed_size_tokens("XXS", ("S", "M", "L", "XL")) == ["XXS"]
+    row = r(size="S XXS")
+    before = copy.deepcopy(row)
+    flagged = run(row)
+    size_gaps = [gap for gap in flagged["gaps"] if gap["type"] == "size"]
+    assert [gap["detail"] for gap in size_gaps] == ["size not allowed for A: XXS"]
+    assert row == before
+    kept = r(size="XXS;XXL|3XL")
+    kept_before = copy.deepcopy(kept)
+    gaps, _suspect = ig.row_gaps(kept, {}, {}, {"A": allowed})
+    assert [gap for gap in gaps if gap["type"] == "size"] == []
+    assert kept == kept_before
+
+
 def test_size_missing_bad_and_not_needed():
     assert "size" in types(run(r(size="")))
     assert "size" in types(run(r(ma="G01", kind="G", size="35 44")))
