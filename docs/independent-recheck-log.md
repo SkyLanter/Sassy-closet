@@ -109,14 +109,14 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 | #256 | `b23494967f84` | Keep a new intake photo from replacing a file that was kept |
 | #257 | `dd240888ec8d` | Test catalog fallback, the S06 lock, held photo spellings, and intake export |
 | #258 | `623617591224` | Split gap-report sizes on the same separators as listing |
-| #259 | `0402dd50b1c6` | Count a text sell price in the price approval queue |
-| #260 | `e9729e40ab93` | Add the repo knowledge base |
-| #261 | `a0118636446d` | Treat listing size aliases as the allowed gap-report chip |
-| #262 | `879db4df23d8` | Serve a product image when the URL spells the mã the short way |
-| #263 | `a6af62cf4814` | Reject workflows that install without the lockfile |
-| #264 | `24308111f172` | Test the tiered under-$10 bump and the locked dress debox |
-| #265 | `3b5fa65c67c1` | Fail the drift check when any S06 spelling leaves $25 |
-| #266 | `384122fd106e` | Record the shop and listing split on loose shoe tokens |
+| #259 | `0402dd50b1c6` | Count a text sell price in the price approval queue. Commented FAIL. Script PASS. |
+| #260 | `900de4827176` | Add the repo knowledge base. `e9729e40ab93` script PASS, review FAIL, not commented. |
+| #261 | `a0118636446d` | Treat listing size aliases as the allowed gap-report chip. Commented PASS. |
+| #262 | `879db4df23d8` | Serve a product image when the URL spells the mã the short way. Commented FAIL. Script PASS. |
+| #263 | `a6af62cf4814` | Reject workflows that install without the lockfile. Commented PASS. |
+| #264 | `24308111f172` | Test the tiered under-$10 bump and the locked dress debox. Commented PASS. |
+| #265 | `3b5fa65c67c1` | Fail the drift check when any S06 spelling leaves $25. Commented FAIL. Script PASS. |
+| #266 | `384122fd106e` | Record the shop and listing split on loose shoe tokens. Commented PASS. |
 
 ## 2026-11-03 00:00 UTC
 
@@ -166,6 +166,10 @@ Four hard rechecks are already running, so neither new head starts until a slot 
 ## 2026-11-03 00:57 UTC — #225 moved and one recheck started
 
 #225 head is now `fdedb65cd548cf241a3b76c235f7b5ea539183a1` (“Copy kept intake photos onto the new mã when a row is renamed”). Since `02c2a8bbf414` it also keeps every spelling in the seed-versus-live compare. `02c2a8bbf414` was checked out and never started, so it is not commented. One recheck of `fdedb65cd548` is running. #260 stays `900de4827176` and is not started. #249 is this log and is not graded.
+
+## 2026-11-03 01:05 UTC — #259 and #261–#266 commented
+
+Those heads were still current. #259, #262, and #265 are FAIL because the copied quality log claims fixes the tree does not contain. The scripts passed. #261, #263, #264, and #266 are PASS. #260’s report is for `e9729e40ab93`, and the head is `900de4827176`, so it is not commented and not started while #225 is in recheck. That worker was not sent on. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
