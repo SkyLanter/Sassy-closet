@@ -14,7 +14,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 | PR | Head at queue time | Title |
 | --- | --- | --- |
-| #225 | `dd4a4fbe2a55` | Draft: one branch for the safe shop fixes. Moved 2026-11-03 01:17 UTC. `72d792580d71` and `ba5f60fa767d` were commented FAIL. `ed1f2ff7b534`, `fdedb65cd548`, `02c2a8bbf414`, `a9580d8d70c4`, and `e88e265ef221` were not commented. |
+| #225 | `dd4a4fbe2a55` | Draft: one branch for the safe shop fixes. Commented FAIL 2026-11-03 01:36 UTC. Script PASS. `72d792580d71` and `ba5f60fa767d` were also commented FAIL. `ed1f2ff7b534` and `fdedb65cd548` were not commented. |
 | #217 | `ee9e2a34bfb4` | Combined safe bundle #208-#216 |
 | #218 | `03c23afc58a7` | Fail closed when Blob is down, and drop held folders from other mãs |
 | #219 | `5b590c0f734e` | Keep a blank intake sell blank and parse pasted yen safely |
@@ -178,6 +178,10 @@ Those heads were still current. #259, #262, and #265 are FAIL because the copied
 ## 2026-11-03 01:18 UTC — #225 moved to dd4a4fb
 
 #225 head is now `dd4a4fbe2a55bdbd06d714aff31311ee041fde90` (“Refuse a rename that leaves a held mã or moves S06 off $25”). `ed1f2ff7b534` finished its script with PASS and is not the head, so it is not commented. The `fdedb65cd548` review found the soft-hyphen and left-to-right-mark S06 holes and a rename photo overwrite. That SHA is not the head, so those findings were not commented. One recheck of `dd4a4fbe2a55` is running. #260 stays `900de4827176` and is not started. #249 is this log and is not graded.
+
+## 2026-11-03 01:36 UTC — #225 commented FAIL
+
+`dd4a4fbe2a55` was still the head. The script passed. The review failed: a rename still overwrites a photo another row claims, a soft hyphen or left-to-right mark after S06 still trips the $25 lock, and an empty USD sell still renames S06 away. That worker was not sent on. #260 stays `900de4827176` and is not started. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
