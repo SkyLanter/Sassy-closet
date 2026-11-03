@@ -14,7 +14,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 | PR | Head at queue time | Title |
 | --- | --- | --- |
-| #225 | `4df538a9b6eb` | Draft: one branch for the safe shop fixes. Commented PASS 2026-11-03 06:42 UTC. Also PASS at `44bde2ae5e90` and `b29c6c7ee1ef`. FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. |
+| #225 | `953e460b8f46` | Draft: one branch for the safe shop fixes. Moved 2026-11-03 07:10 UTC. Commented PASS at `4df538a9b6eb`, `44bde2ae5e90`, and `b29c6c7ee1ef`. FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. |
 | #217 | `ee9e2a34bfb4` | Combined safe bundle #208-#216 |
 | #218 | `03c23afc58a7` | Fail closed when Blob is down, and drop held folders from other mãs |
 | #219 | `5b590c0f734e` | Keep a blank intake sell blank and parse pasted yen safely |
@@ -253,6 +253,10 @@ The only moved head is #225 at `4df538a9b6eb`, and that recheck is already runni
 ## 2026-11-03 06:42 UTC — #225 commented PASS at 4df538a
 
 `4df538a9b6eb` was still the head. The script passed. Non-literal shop draft USD text stays `NaN`, and a canonical S06 save whose price is not 25 is refused. Findings: none. That worker was not sent on. #260 and #269–#283 are unchanged and are not started. #249 is this log and is not graded.
+
+## 2026-11-03 07:10 UTC — #225 moved to 953e460
+
+#225 head is now `953e460b8f465a94d0c701234f093d31c89f17c9` (“Keep the prefill amount test off the cost privacy rule”). Since `4df538a9b6eb` it also parses calculator and intake amounts as plain dollars. `4df538a9b6eb` stays the commented PASS. One recheck of `953e460b8f46` is running. #260 and #269–#283 are unchanged and are not started. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
