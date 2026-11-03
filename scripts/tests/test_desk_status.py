@@ -122,6 +122,82 @@ def test_missing_sources_are_unread_not_zero() -> None:
     assert "S06:" not in text
 
 
+def test_later_spelling_is_not_hidden_behind_the_lock() -> None:
+    payload = {
+        "catalog": {
+            "products": [
+                {"ma": "S06", "priceUsd": 25},
+                {"ma": "S006", "priceUsd": 30},
+            ]
+        }
+    }
+    status = status_from_json(payload)
+    assert status.s06_usd == "25, 30"
+    assert "S06: $25, $30" in render_text(status)
+    assert "$25, $30" in render_page(status)
+    assert payload["catalog"]["products"][1]["priceUsd"] == 30
+
+
+def test_earlier_spelling_is_not_hidden_behind_a_later_lock() -> None:
+    status = status_from_json(
+        {
+            "catalog": {
+                "products": [
+                    {"ma": "S006", "priceUsd": 30},
+                    {"ma": "s06", "priceUsd": 25},
+                ]
+            }
+        }
+    )
+    assert status.s06_usd == "30, 25"
+    assert "S06: $30, $25" in render_text(status)
+
+
+def test_same_dollar_on_every_spelling_stays_one_price() -> None:
+    status = status_from_json(
+        {
+            "catalog": {
+                "products": [
+                    {"ma": "S06", "priceUsd": 25.0},
+                    {"ma": "S006", "priceUsd": 25},
+                ]
+            }
+        }
+    )
+    assert status.s06_usd == "25"
+    assert "S06: $25" in render_text(status)
+
+
+def test_blank_spelling_does_not_hide_a_later_price() -> None:
+    status = status_from_json(
+        {
+            "catalog": {
+                "products": [
+                    {"ma": "S06"},
+                    {"ma": "S006", "priceUsd": 30},
+                ]
+            }
+        }
+    )
+    assert status.s06_usd == "—, 30"
+    assert "S06: —, $30" in render_text(status)
+
+
+def test_short_comma_is_not_the_lock() -> None:
+    payload = {"catalog": {"products": [{"ma": "S06", "priceUsd": "2,5"}]}}
+    with pytest.raises(ValueError, match="S06 price is not a number"):
+        status_from_json(payload)
+    assert payload["catalog"]["products"][0]["priceUsd"] == "2,5"
+
+
+def test_thousands_comma_still_reads() -> None:
+    status = status_from_json(
+        {"catalog": {"products": [{"ma": "S06", "priceUsd": "$1,025"}]}}
+    )
+    assert status.s06_usd == "1025"
+    assert "S06: $1025" in render_text(status)
+
+
 def test_empty_pr_list_is_none_and_not_unread() -> None:
     status = status_from_json(
         {

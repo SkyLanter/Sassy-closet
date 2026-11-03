@@ -14,16 +14,19 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, replace
+from decimal import Decimal
 from pathlib import Path
 from typing import NoReturn
 
 from held_policy import default_held_path, norm_ma, policy_from_mapping
 
 _FORBIDDEN_PAGE_NAMES = frozenset({"held.json", "submissions.json", "catalog.v1.json"})
+_THOUSANDS = re.compile(r"\d{1,3}(?:,\d{3})+(?:\.\d+)?")
 
 
 @dataclass(frozen=True)
@@ -94,7 +97,7 @@ def render_text(status: DeskStatus) -> str:
         f"waiting on Boss: {_wait_text(status)}",
     ]
     if status.s06_usd is not None:
-        lines.append(f"S06: ${status.s06_usd}")
+        lines.append(_s06_line(status.s06_usd))
     return "\n".join(lines) + "\n"
 
 
@@ -139,7 +142,7 @@ def render_page(status: DeskStatus) -> str:
         ("Waiting on Boss", _wait_text(status)),
     ]
     if status.s06_usd is not None:
-        rows.append(("S06", f"${status.s06_usd}"))
+        rows.append(("S06", _s06_cell(status.s06_usd)))
     items = "\n".join(
         f"<dt>{_escape(label)}</dt><dd>{_escape(value)}</dd>" for label, value in rows
     )
@@ -366,21 +369,49 @@ def _ma_count(rows: Sequence[object], label: str) -> int:
 
 
 def _s06_price(rows: Sequence[object]) -> str | None:
+    found: list[str | None] = []
     for item in rows:
         if not isinstance(item, dict):
             continue
         ma = item.get("ma")
         if not isinstance(ma, str) or norm_ma(ma) != "S06":
             continue
-        for key in ("priceUsd", "price_usd"):
-            if key not in item:
-                continue
-            parsed = _plain_number(item.get(key))
-            if parsed is None:
-                raise ValueError("S06 price is not a number")
-            return parsed
+        found.extend(_s06_row_prices(item))
+    if not found or all(price is None for price in found):
         return None
-    return None
+    first = found[0]
+    if first is not None and all(_same_dollars(price, first) for price in found):
+        return first
+    return ", ".join("—" if price is None else price for price in found)
+
+
+def _s06_row_prices(item: dict[str, object]) -> list[str | None]:
+    found: list[str | None] = []
+    for key in ("priceUsd", "price_usd"):
+        if key not in item:
+            continue
+        parsed = _plain_number(item.get(key))
+        if parsed is None:
+            raise ValueError("S06 price is not a number")
+        found.append(parsed)
+    if not found:
+        return [None]
+    return found
+
+
+def _same_dollars(left: str | None, right: str | None) -> bool:
+    if left is None or right is None:
+        return False
+    return Decimal(left) == Decimal(right)
+
+
+def _s06_line(value: str) -> str:
+    return "S06: " + _s06_cell(value)
+
+
+def _s06_cell(value: str) -> str:
+    parts = [part if part == "—" else f"${part}" for part in value.split(", ")]
+    return ", ".join(parts)
 
 
 def _plain_number(value: object) -> str | None:
@@ -389,12 +420,16 @@ def _plain_number(value: object) -> str | None:
     if isinstance(value, int):
         return str(value)
     if isinstance(value, float):
-        if value != value:
+        if value != value or value in (float("inf"), float("-inf")):
             return None
         text = format(value, "f").rstrip("0").rstrip(".")
         return text or "0"
     if isinstance(value, str):
-        text = value.strip().replace("$", "").replace(",", "")
+        text = value.strip().replace("$", "").strip()
+        if "," in text:
+            if _THOUSANDS.fullmatch(text) is None:
+                return None
+            text = text.replace(",", "")
         if text == "":
             return None
         parts = text.split(".")
