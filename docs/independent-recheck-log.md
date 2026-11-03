@@ -14,7 +14,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 | PR | Head at queue time | Title |
 | --- | --- | --- |
-| #225 | `44bde2ae5e90` | Draft: one branch for the safe shop fixes. Moved 2026-11-03 03:35 UTC. Commented FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. Commented PASS at `b29c6c7ee1ef`. `f9d33ed8d8b2` was not commented. |
+| #225 | `44bde2ae5e90` | Draft: one branch for the safe shop fixes. Commented PASS 2026-11-03 03:47 UTC. Commented FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. Commented PASS at `b29c6c7ee1ef`. `f9d33ed8d8b2` was not commented. |
 | #217 | `ee9e2a34bfb4` | Combined safe bundle #208-#216 |
 | #218 | `03c23afc58a7` | Fail closed when Blob is down, and drop held folders from other mãs |
 | #219 | `5b590c0f734e` | Keep a blank intake sell blank and parse pasted yen safely |
@@ -231,6 +231,10 @@ Open drafts #217–#268 and #225 are still on the SHAs recorded above. #260 is s
 ## 2026-11-03 03:36 UTC — #225 moved to 44bde2a
 
 #225 head is now `44bde2ae5e90ca0cd21d20ac244e5f22392a3bfe` (“Return 503 when a shop catalog write throws”). Since `6136247cbe57` it also keeps a bad S06 price from hiding the rest of the desk and does not read a dollar sign between digits as S06’s price. `6136247cbe57` stays the commented FAIL. One recheck of `44bde2ae5e90` is running. #260 and #269–#281 are unchanged and are not started. #249 is this log and is not graded.
+
+## 2026-11-03 03:47 UTC — #225 commented PASS at 44bde2a
+
+`44bde2ae5e90` was still the head. The script passed. A dollar sign between digits is not a price, a null S06 spelling no longer hides another spelling, and a thrown catalog write returns 503 without `blobWritten`. Findings: none. That worker was not sent on. #260 and #269–#281 are unchanged and are not started. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
