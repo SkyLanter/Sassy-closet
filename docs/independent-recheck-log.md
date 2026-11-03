@@ -14,7 +14,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 | PR | Head at queue time | Title |
 | --- | --- | --- |
-| #225 | `0f4fcc2c255f` | Draft: one branch for the safe shop fixes. Moved 2026-11-03 19:55 UTC. `ecb7b2015773` is in recheck and is not the head. Verified PASS at `77fde6ab2f3b` with no second comment. Also PASS at `5af406779a1e`, `953e460b8f46`, `4df538a9b6eb`, `44bde2ae5e90`, and `b29c6c7ee1ef`. FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. |
+| #225 | `0f4fcc2c255f` | Draft: one branch for the safe shop fixes. Moved 2026-11-03 19:55 UTC. This lane verified PASS at `ecb7b2015773` and did not comment because it is not the head. Verified PASS at `77fde6ab2f3b` with no second comment. Also PASS at `5af406779a1e`, `953e460b8f46`, `4df538a9b6eb`, `44bde2ae5e90`, and `b29c6c7ee1ef`. FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. |
 | #217 | `ee9e2a34bfb4` | Combined safe bundle #208-#216 |
 | #218 | `03c23afc58a7` | Fail closed when Blob is down, and drop held folders from other mãs |
 | #219 | `5b590c0f734e` | Keep a blank intake sell blank and parse pasted yen safely |
@@ -348,6 +348,10 @@ Open drafts #217–#286 are still on the SHAs recorded above. #225 stays the ver
 ## 2026-11-03 20:02 UTC — outside PASS on #225 while this lane is still running
 
 #225 head is still `0f4fcc2c255fbb688eae8f04213856101dcb3df3`. A cursor[bot] comment says INDEPENDENT RECHECK PASS at that SHA. This lane did not write that comment and does not adopt it. The recheck started at 19:55 UTC is still running. This lane will not post a second comment unless that review disagrees. #249 is this log and is not graded.
+
+## 2026-11-03 20:07 UTC — #225 ecb7b20 verified PASS, not commented
+
+`ecb7b2015773` is not the head. The head is still `0f4fcc2c255f`. This lane’s script for `ecb7b2015773` passed: pytest 2434 passed, 7 skipped; privacy CLEAN; intake npm 353 / 350 / 0 / 3; shop npm 251 / 248 / 0 / 3; both tsc ok; `held.json` unchanged. Required skips: none. Log `out/recheck/20261103-195936-426636`. `_whole_dollars` returns null for `2$5`, `2,5`, and `25.50`. `$25` stays 25 and `1,200` stays 1200. An S06 junk sell does not publish. Findings: none. An outside PASS was already on that older SHA, and it is not the head, so no comment was posted. That worker was not sent on. The recheck of `0f4fcc2c255f` is still running. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
