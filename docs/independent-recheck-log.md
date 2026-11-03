@@ -132,6 +132,19 @@ Open drafts still run through #266. #260 is the knowledge-base docs PR (`docs/kn
 | --- | --- | --- |
 | #267 | `4b073e05abe1` | Keep every spelling in the seed versus live price compare |
 | #268 | `e932dd3cd446` | Record the quote gate rejecting A100 and K003 |
+| #269 | `494b1909e424` | Draft: name a missing or stale Meta snapshot. Seen 2026-11-03 02:15 UTC. Not started. |
+| #270 | `ae1d86fe0761` | Copy kept intake photos onto the new mã when a row is renamed. Seen 2026-11-03 02:15 UTC. Not started. |
+| #271 | `239561dab0a2` | Test canonical padded new mãs and the flat $10 quote. Seen 2026-11-03 02:15 UTC. Not started. |
+| #272 | `a12a3866d167` | Keep every spelling in the OneDrive mirror price compare. Seen 2026-11-03 02:15 UTC. Not started. |
+| #273 | `ac1aaf5f6c36` | Record the glued clothing-letter size split. Seen 2026-11-03 02:15 UTC. Not started. |
+| #274 | `204db95943ec` | Reject a short comma in order sell prices. Seen 2026-11-03 02:15 UTC. Not started. |
+| #275 | `3f801da535e4` | Record the shorter shop kind names. Seen 2026-11-03 02:15 UTC. Not started. |
+| #276 | `ea391e97a359` | Refuse a rename that leaves a held mã or moves S06 off $25. Seen 2026-11-03 02:15 UTC. Not started. |
+| #277 | `f5995aa91eb2` | Reject install lifecycle scripts in both package.json files. Seen 2026-11-03 02:15 UTC. Not started. |
+| #278 | `681bca5520bf` | Test empty catalog fallback and the sold public gate. Seen 2026-11-03 02:15 UTC. Not started. |
+| #279 | `b7c009f8e71b` | Record the Official Excel mã spelling split. Seen 2026-11-03 02:15 UTC. Not started. |
+| #280 | `e30f09bca797` | Show every S06 price on the desk status. Seen 2026-11-03 02:15 UTC. Not started. |
+| #281 | `e7b504cde3ee` | Return 503 when the shop catalog cannot be read. Seen 2026-11-03 02:15 UTC. Not started. |
 
 ## 2026-11-03 00:15 UTC — slower loop
 
@@ -190,6 +203,10 @@ Those heads were still current. #259, #262, and #265 are FAIL because the copied
 ## 2026-11-03 02:11 UTC — #225 commented FAIL at e6c41e1
 
 `e6c41e1f7656` was still the head. The script passed. The invisible S06 suffix and the blank S06 move are closed. A same-mã add still replaces a photo another row lists, so the review is FAIL. That worker was not sent on. #260 stays `900de4827176` and is not started. #249 is this log and is not graded.
+
+## 2026-11-03 02:15 UTC — two-hour poll, no moved head
+
+Open drafts #217–#268 and #225 are still on the SHAs recorded above. #260 is still `900de4827176`, so the older `e9729e40ab93` report stays uncommented and no new recheck started. #269–#281 are new and are recorded at the SHAs in the table. None of them has moved since it was first seen, so none was started. No recheck worker is running. The next poll is the 2-hour timer. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
