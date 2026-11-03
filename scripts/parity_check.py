@@ -909,6 +909,65 @@ def data_findings() -> list[Finding]:
     return findings
 
 
+def excel_ma_spelling_findings(excel) -> list[Finding]:
+    """Official Excel mãs stay prefix plus three digits. Intake mãs stay one letter plus two.
+
+    parse_ma rejects the intake spelling. norm_ma does not fold the Official spelling
+    back to the intake mã. A full alignment clears the note. A partial change is a fail.
+    The Excel schema is not rewritten here.
+    """
+    misses: list[Example] = []
+    broken: list[Example] = []
+    number = 3
+    for letter, prefix in EXCEL_PREFIX_FOR_LETTER.items():
+        intake = f"{letter}{number:02d}"
+        try:
+            official = excel.format_ma(prefix, number)
+        except (TypeError, ValueError):
+            broken.append(Example(letter, intake, "unparsed"))
+            continue
+        if not isinstance(official, str):
+            broken.append(Example(letter, intake, "unparsed"))
+            continue
+        parsed_intake = excel.parse_ma(intake)
+        parsed_official = excel.parse_ma(official)
+        same_key = (
+            parsed_intake == (prefix, number)
+            and official == intake
+            and norm_ma(official) == intake
+        )
+        recorded = (
+            parsed_intake is None
+            and parsed_official == (prefix, number)
+            and norm_ma(intake) == intake
+            and norm_ma(official) == official
+            and official != intake
+        )
+        if recorded:
+            misses.append(Example(letter, intake, official))
+        elif same_key:
+            continue
+        else:
+            broken.append(Example(letter, intake, official))
+    if broken:
+        return [_note(
+            "fail",
+            "excel-ma-spelling",
+            "the Excel mã probe does not match the recorded Official-versus-intake spelling",
+            broken,
+        )]
+    if not misses:
+        return []
+    return [_note(
+        "boss",
+        "excel-ma-spelling",
+        "Official Excel mãs stay a prefix plus three digits. Intake mãs stay one letter plus two digits. "
+        "parse_ma rejects the intake spelling. norm_ma does not fold the Official spelling back to the intake mã. "
+        "The Excel schema was not changed.",
+        misses,
+    )]
+
+
 def _excel_findings(excel) -> list[Finding]:
     findings: list[Finding] = []
     letters = tuple(excel.INTAKE_KIND_CODES)
@@ -929,6 +988,7 @@ def _excel_findings(excel) -> list[Finding]:
             "intake letters have no Official Excel prefix (AO/QU/VA/AK/GI/PK/SET); schema was not changed",
             [Example(letter, "intake letter", "no Official prefix") for letter in missing_prefix],
         ))
+    findings.extend(excel_ma_spelling_findings(excel))
     return findings
 
 
