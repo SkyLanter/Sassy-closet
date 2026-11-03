@@ -130,7 +130,7 @@ Open drafts still run through #266. #260 is the knowledge-base docs PR (`docs/kn
 
 | PR | Head | Title |
 | --- | --- | --- |
-| #267 | `4b073e05abe1` | Keep every spelling in the seed versus live price compare |
+| #267 | `4b073e05abe1` | Keep every spelling in the seed versus live price compare. Seen before the slow loop. Not started by this lane. A cursor[bot] FAIL comment at this SHA appeared at 09:40 UTC. This lane did not run that recheck and does not adopt it. |
 | #268 | `e932dd3cd446` | Record the quote gate rejecting A100 and K003. Seen before the slow loop. Not started by this lane. A cursor[bot] PASS comment at this SHA appeared at 09:36 UTC. This lane did not run that recheck and does not adopt it. |
 | #269 | `494b1909e424` | Draft: name a missing or stale Meta snapshot. Seen 2026-11-03 02:15 UTC. Not started. |
 | #270 | `ae1d86fe0761` | Copy kept intake photos onto the new mã when a row is renamed. Seen 2026-11-03 02:15 UTC. Not started. |
@@ -274,6 +274,10 @@ Open drafts #217–#283 and #225 are still on the SHAs recorded above. #225 stay
 ## 2026-11-03 09:36 UTC — #268 has an outside PASS comment
 
 #268 head is still `e932dd3cd446ae97fa02692f47144ce6f3cd11fd`. A cursor[bot] comment says INDEPENDENT RECHECK PASS at that SHA. This lane did not run that recheck and does not adopt the comment. The SHA has not moved, so this lane does not start a recheck and does not post a second comment. #249 is this log and is not graded.
+
+## 2026-11-03 09:40 UTC — #267 has an outside FAIL comment
+
+#267 head is still `4b073e05abe1f1536166637952c49424f7f0160c`. A cursor[bot] comment says INDEPENDENT RECHECK FAIL at that SHA. This lane did not run that recheck and does not adopt the comment. The SHA has not moved, so this lane does not start a recheck and does not post a second comment. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
