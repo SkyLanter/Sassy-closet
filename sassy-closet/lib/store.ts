@@ -14,7 +14,7 @@ import {
   sanitizePhotoRel,
   storageStatus,
 } from "./store-backend";
-import type { StoreFile } from "./store-backend";
+import type { StoreBackend, StoreFile } from "./store-backend";
 import type { KindCode } from "./kinds";
 import type { OnHandRow, Piece, Submission } from "./types";
 import type { PriceBreakdown } from "./pricing";
@@ -126,21 +126,35 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
   }
 
   const now = new Date().toISOString();
-  const photoPaths = [...input.keep_photos];
   const photoHashes = existing ? [...existing.photo_hashes] : [];
   if (input.keep_photos.length === 0 && existing) {
     photoHashes.length = 0;
   }
 
-  const backend = activeBackend();
-  let index = photoPaths.length;
+  // Length-based names stay as they are. Reserve them so a renamed keep file
+  // with that same name is left on the old path instead of being replaced.
+  const addedPhotos: { rel: string; photo: SaveInput["photos"][number] }[] = [];
+  let index = input.keep_photos.length;
   for (const photo of input.photos) {
     index += 1;
     const name = `${String(index).padStart(3, "0")}${photo.ext}`;
-    const rel = `${ma}/${name}`;
-    await backend.writePhoto(rel, photo.bytes, photoContentType(rel));
-    photoPaths.push(rel);
-    photoHashes.push(photo.hash);
+    addedPhotos.push({ rel: `${ma}/${name}`, photo });
+  }
+  const reserved = new Set(addedPhotos.map((item) => item.rel));
+  const claimed = claimedPhotoPaths(store, existing?.id ?? null, input.keep_photos);
+  const photoPaths = await relocateKeptPhotos(
+    existing?.ma ?? "",
+    ma,
+    input.keep_photos,
+    reserved,
+    claimed,
+  );
+
+  const backend = activeBackend();
+  for (const item of addedPhotos) {
+    await backend.writePhoto(item.rel, item.photo.bytes, photoContentType(item.rel));
+    photoPaths.push(item.rel);
+    photoHashes.push(item.photo.hash);
   }
 
   const base: Submission = {
@@ -265,6 +279,106 @@ export function storeHealth(): ReturnType<typeof storageStatus> {
 function csvCell(value: string): string {
   if (/[",\n]/.test(value)) return `"${value.replaceAll('"', '""')}"`;
   return value;
+}
+
+/**
+ * Staff rename updates `ma` and `photo_link` but the kept files still live at
+ * `{old}/NNN.ext`. Copy those bytes under the new mã and store the new path.
+ * The old file stays. Skip a destination that a new photo will write, that
+ * another row or keep path already claims, or that already holds different
+ * bytes, so this copy cannot replace a live file.
+ */
+async function relocateKeptPhotos(
+  oldMa: string,
+  newMa: string,
+  keep: readonly string[],
+  reserved: ReadonlySet<string>,
+  claimed: ReadonlySet<string>,
+): Promise<string[]> {
+  if (!oldMa || oldMa === newMa) return [...keep];
+  const oldCanon = normalizeMa(oldMa);
+  if (!oldCanon) return [...keep];
+  const backend = activeBackend();
+  const next: string[] = [];
+  const placed = new Set<string>();
+  for (const rel of keep) {
+    const parsed = photoFolderAndRest(rel);
+    if (!parsed || normalizeMa(parsed.folder) !== oldCanon) {
+      next.push(rel);
+      continue;
+    }
+    const dest = `${newMa}/${parsed.rest}`;
+    const ownKey = `${normalizeMa(parsed.folder)}/${parsed.rest}`;
+    const destKey = `${normalizeMa(newMa)}/${parsed.rest}`;
+    if (dest === rel || dest === sanitizePhotoRel(rel)) {
+      next.push(rel);
+      continue;
+    }
+    // A reserved name is about to be written by the new photo. A claimed name
+    // belongs to another row or to a keep path that is staying put.
+    if (reserved.has(dest) || (claimed.has(destKey) && destKey !== ownKey)) {
+      next.push(rel);
+      continue;
+    }
+    if (placed.has(dest)) {
+      next.push((await sameBytesAt(backend, dest, rel)) ? dest : rel);
+      continue;
+    }
+    const photo = await backend.readPhoto(rel);
+    if (!photo) {
+      next.push(rel);
+      continue;
+    }
+    const occupied = await backend.readPhoto(dest);
+    if (occupied && !occupied.bytes.equals(photo.bytes)) {
+      next.push(rel);
+      continue;
+    }
+    if (!occupied) {
+      await backend.writePhoto(dest, photo.bytes, photo.type || photoContentType(dest));
+    }
+    placed.add(dest);
+    next.push(dest);
+  }
+  return next;
+}
+
+async function sameBytesAt(backend: StoreBackend, dest: string, rel: string): Promise<boolean> {
+  const [left, right] = await Promise.all([backend.readPhoto(dest), backend.readPhoto(rel)]);
+  return Boolean(left && right && left.bytes.equals(right.bytes));
+}
+
+function claimedPhotoPaths(
+  store: StoreFile,
+  exceptId: number | null,
+  keep: readonly string[],
+): Set<string> {
+  const claimed = new Set<string>();
+  for (const row of store.submissions) {
+    if (exceptId !== null && row.id === exceptId) continue;
+    if (!Array.isArray(row.photo_paths)) continue;
+    for (const rel of row.photo_paths) addPhotoClaim(claimed, rel);
+  }
+  for (const rel of keep) addPhotoClaim(claimed, rel);
+  return claimed;
+}
+
+function addPhotoClaim(target: Set<string>, rel: string): void {
+  const parsed = photoFolderAndRest(rel);
+  if (!parsed) return;
+  target.add(`${normalizeMa(parsed.folder)}/${parsed.rest}`);
+}
+
+function photoFolderAndRest(rel: string): { folder: string; rest: string } | null {
+  if (typeof rel !== "string" || rel.length === 0) return null;
+  const parts = sanitizePhotoRel(rel)
+    .split("/")
+    .filter((part) => part.length > 0 && part !== ".");
+  if (parts.length < 2) return null;
+  const folder = parts[0] ?? "";
+  const rest = parts.slice(1).join("/");
+  if (!folder || !rest) return null;
+  return { folder, rest };
 }
 
 function postedSell(currency: string, usd: string, cny: string): string {
