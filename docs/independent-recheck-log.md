@@ -89,6 +89,10 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 | #229 | `99121ddc2948d33b852999f2e8b4d2b7d8f91b7c` | FAIL | Script PASS (pytest 2115). Padded caption mãs match the catalog price. `Mã S06Đ` is still read as S06, and the log claims other fixes that are not in this tree. Log `out/recheck/20261103-001123-223165`. |
 | #230 | `db9a5392bfdc8aadf0d1e4cc017edaf99019b5ca` | FAIL | Script PASS (pytest 2118). A bad live price no longer drops the cost-basis report. The log claims other fixes that are not in this tree. Log `out/recheck/20261103-002055-247763`. |
 | #231 | `a704f452bd78a0372008c2e4754fd1313d59483d` | PASS | pytest 2114 passed, 7 skipped. Intake 277 / 274 / 0 / 3. Shop 220 / 217 / 0 / 3. A live image URL does not read a held folder. Findings: none. Log `out/recheck/20261103-002914-268425`. |
+| #255 | `f22db5f7d19cf4738f0fb95aa67c42a874b81d9d` | PASS | pytest 2127 passed, 7 skipped. Intake 277 / 274 / 0 / 3. Shop 218 / 215 / 0 / 3. Unusable cost-recheck files are named and do not clear a streak. Findings: none. Log `out/recheck/20261103-000348-206996`. |
+| #256 | `b23494967f843cb32f260a96192fc713ba7df335` | FAIL | Script PASS (pytest 2114). Intake 282 / 279 / 0 / 3. Shop 218 / 215 / 0 / 3. Free photo slots match. The lane A log claims hash, image, CSV, on-hand, and 503 fixes that are not in this tree. Log `out/recheck/20261103-001530-236094`. |
+| #257 | `dd240888ec8d60f8b6e763b09f439f647373ecdb` | PASS | pytest 2114 passed, 7 skipped. Intake 283 / 280 / 0 / 3. Shop 229 / 226 / 0 / 3. Tests only. S06 stays $25. Findings: none. Log `out/recheck/20261103-002544-258712`. |
+| #258 | `62361759122415f014de169cb3d9299877c84751` | PASS | pytest 2132 passed, 7 skipped. Intake 278 / 275 / 0 / 3. Shop 222 / 219 / 0 / 3. Gap sizes split on the listing separators. Findings: none. Log `out/recheck/20261103-003847-286375`. |
 
 #222 was still in `hard_recheck.sh` when #239 was commented. #223, #224, #226–#231, and #240–#247 stay with the earlier workers. No knowledge-lane docs PR. #250–#258 are in progress. #259 is queued. #249 is this log and is not graded.
 
@@ -154,6 +158,10 @@ Four hard rechecks are already running, so neither new head starts until a slot 
 ## 2026-11-03 00:45 UTC — #225 moved again
 
 #225 head is now `02c2a8bbf414a2bfb09b1dd2a9e14358378e9048` (“Fail the drift check when any S06 spelling leaves $25”). Since `a9580d8d70c4` the tree also changes the price-approval queue, short mã image URLs, and kept-photo replacement. `a9580d8d70c4` was checked out and never started, so it is not commented. Four hard rechecks are still running, so `02c2a8bbf414` waits. #260 remains `900de4827176` and also waits. #249 is this log and is not graded.
+
+## 2026-11-03 00:55 UTC — #255 through #258 commented
+
+#255 is commented PASS at `f22db5f7d19c`. #256 is commented FAIL at `b23494967f84`. #257 is commented PASS at `dd240888ec8d`. #258 is commented PASS at `623617591224`. #250–#254 in that batch were already commented. That worker was not sent on. #225 at `02c2a8bbf414` and #260 at `900de4827176` are still waiting. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
