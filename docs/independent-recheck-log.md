@@ -14,7 +14,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 | PR | Head at queue time | Title |
 | --- | --- | --- |
-| #225 | `d8170670ab41` | Draft: one branch for the safe shop fixes. Moved 2026-11-02 23:55 UTC. `72d792580d71` was commented FAIL. `ba5f60fa767d` was commented FAIL. `cda92647236a` passed locally and was not commented. |
+| #225 | `e88e265ef221` | Draft: one branch for the safe shop fixes. Moved 2026-11-03 00:04 UTC. `72d792580d71` and `ba5f60fa767d` were commented FAIL. `d8170670ab41` and `cda92647236a` passed the script locally and were not commented. |
 | #217 | `ee9e2a34bfb4` | Combined safe bundle #208-#216 |
 | #218 | `03c23afc58a7` | Fail closed when Blob is down, and drop held folders from other mãs |
 | #219 | `5b590c0f734e` | Keep a blank intake sell blank and parse pasted yen safely |
@@ -80,6 +80,8 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 | #241 | `3ae952869d24f01ef6d41931ff23274ce3a461b1` | FAIL | Script PASS (pytest 2116). Sold and hold are out of the intake live price. Blank and null do not match the daily snapshot, and the log claims other fixes that are not in this tree. |
 | #250 | `a381e8e66cc340f448bb1ff15f859cd27d903899` | FAIL | Script PASS (pytest 2114). Dropped-photo hashes match. The lane A log claims image, CSV, on-hand, 503, and share-card fixes that are not in this tree. |
 | #251 | `afa3df612e79f1f36707640ef240b4a355703f1c` | PASS | pytest 2118 passed, 7 skipped. Intake 277 / 274 / 0 / 3. Shop 218 / 215 / 0 / 3. Workflow tokens are contents: read. Findings: none. |
+| #244 | `5a80c19474b425410b9aa8ab8f477586e3e91d65` | FAIL | Script PASS (pytest 2118). Every live S06 row is checked at $25. The log claims sold/hold filtering and other fixes that are not in this tree. Log `out/recheck/20261102-235357-184718`. |
+| #254 | `a8d4be0844677a3ead83486795de6a0fcb017fbb` | PASS | pytest 2117 passed, 7 skipped. Intake 277 / 274 / 0 / 3. Shop 218 / 215 / 0 / 3. The four workflows pin checkout, setup-node, and setup-python. Findings: none. Log `out/recheck/20261102-235316-183289`. |
 
 #222 was still in `hard_recheck.sh` when #239 was commented. #223, #224, #226–#231, and #240–#247 stay with the earlier workers. No knowledge-lane docs PR. #250–#258 are in progress. #259 is queued. #249 is this log and is not graded.
 
@@ -108,6 +110,17 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 ## 2026-11-03 00:00 UTC
 
 Open drafts still run through #266. #260 is the knowledge-base docs PR (`docs/knowledge/`, `AGENTS.md`, and three Cursor rules). It is checked out at `e9729e40ab93` and queued with #259 and #261–#266. #225 at `d8170670ab41`, #244, and #254 were in hard recheck. #227 is commented FAIL. No other head from #217–#258 moved. #249 is this log and is not graded.
+
+## 2026-11-03 00:10 UTC — #225 moved, two verdicts posted
+
+#225 head is `e88e265ef2213131c786bd70ce8de9d6d8a64756` (“Do not read a stuck suffix as S06”). The script PASS on `d8170670ab41` (pytest 2351 passed, 7 skipped; intake 315 / 312 / 0 / 3; shop 237 / 234 / 0 / 3; log `out/recheck/20261102-235649-190567`) is not a comment, because that SHA is no longer the head. The new head is in its own worktree and is not commented yet.
+
+#244 is commented FAIL at `5a80c19474b4`. #254 is commented PASS at `a8d4be084467`. Heads from #217–#266 otherwise match the tables above. #249 is this log and is not graded.
+
+| PR | Head | Title |
+| --- | --- | --- |
+| #267 | `4b073e05abe1` | Keep every spelling in the seed versus live price compare |
+| #268 | `e932dd3cd446` | Record the quote gate rejecting A100 and K003 |
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
