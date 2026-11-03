@@ -9,6 +9,7 @@ import {
   EU_SHOE_SIZES,
   parseAsiaSizes,
 } from "../sassy-closet-shop/lib/asia-size";
+import { TYPE_LABELS } from "../sassy-closet-shop/lib/catalog";
 import { MA_LETTERS, canonicalMaSpelling, normalizeMa } from "../sassy-closet-shop/lib/ma";
 import { intakeToPrefill, type IntakeSubmission } from "../sassy-closet-shop/lib/intake-import";
 import { calcPricing, deboxForLetter, sellUsdFromLanded } from "../sassy-closet-shop/lib/pricing";
@@ -109,6 +110,7 @@ function main(): void {
   });
   const body = {
     kindLetters: [...MA_LETTERS],
+    kindLabels: Object.fromEntries(MA_LETTERS.map((letter) => [letter, TYPE_LABELS[letter].vn])),
     clothing: [...ASIA_SIZE_LETTERS],
     shoe: [...EU_SHOE_SIZES],
     canonicalMaSpelling: spell(request.mas, canonicalMaSpelling),
