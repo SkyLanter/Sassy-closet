@@ -100,6 +100,8 @@ Boss table. Scripts **must** hard-fail on any other code. [[S1]](#s1-sell-catalo
 
 `P05` may show `23` on hub All. **Do not publish $23.** Hold ⇔ `priceUsd` is JSON `null`. [[S1]](#s1-sell-catalog-contract)
 
+**Current `main` law (2026-11, do not contradict):** S06 sell is locked at **$25** — never another dollar, never a padded dodge (`S006`, `s6`). `data/held.json` is the held list (21 incomplete mãs, `neverList` empty). This LEARN **must not** edit `held.json`, mint those mãs as Available, or treat Next-grid leftovers as assigned stock. G01 stays refused. [[S34]](#s34-s06-held-main)
+
 Live sell-test tiles (2026-09-09) match this table: A01 $25, S01 $28, P01 $5, P02 Hold · Inbox for price, P03 $18, P04 $13, P05 Hold · Inbox for price, K01 $37, H01 $8, A02 $22. `/m/A03` is **404**. `/admin` still prints **Next mã A03** — ignore it. [[S4]](#s4-live-2026-09-09)
 
 Two alphabets (do not coerce in a script):
@@ -543,7 +545,7 @@ curl -sS "http://127.0.0.1:3000/api/submissions/A01" | python3 -m json.tool
 curl -sS -X PATCH -F "kind=A" -F "size=M" -F "color=Kem, Xanh" \
   -F "color_note=pastel nhẹ" -F "link=" -F "pieces=[]" \
   -F "keep_photos=[\"A01/001.jpg\"]" \
-  -F "cost_usd=12" -F "cost_cny=" -F "sell_usd=28" -F "sell_cny=" \
+  -F "cost_usd=" -F "cost_cny=" -F "sell_usd=25" -F "sell_cny=" \
   "http://127.0.0.1:3000/api/submissions/A01"
 ```
 
@@ -1347,7 +1349,7 @@ echo $?   # expect 1 on Production today; expect 0 after Origin APPLY
 - P02 / P05: `Hold` + `Inbox for price` + `no USD`.
 - Customer chrome: `Facebook livestream`, Messenger, Zelle, Page id `61594312648057`, `Message to buy`, `bg-paper` `text-ink` `border-gold` `ma-mark` `rounded-full`. Not Inter / Shopify / Horizon.
 - `/admin`: `private, no-store`, `x-vercel-cache: MISS`, `Storage: Vercel Blob`, `Catalog (10)`, paper/blush/gold, **Boxes only** hex (no names).
-- `/m/A03` `/m/Q01` `/m/V01` → **404**.
+- `/m/A03` → **404**. Do not 404-check later live mãs (S06, V01, …).
 
 **GATE** (red on live 2026-09-09 this run — this is the sell-test gap):
 
@@ -1632,6 +1634,10 @@ Reject extras (A03, invented hex, P05 `23`). Then F2 + F4 for **all** public pat
 <a id="s33-look-lock-2026-09-09"></a>
 
 **S33.** Live GET 2026-09-09 this run (look lock + Origin gate): sell-test `/` `/admin` `/m/A01` `/m/P02` `/m/P05` `/c/ao` `/products/A01/cover.jpg` `/api/catalog` `/api/admin/catalog` `/api/admin/revalidate`. LOOK exit 0 (Messenger, Zelle, `Facebook livestream`, Page `61594312648057`, paper/blush/gold, Hold Inbox, no `$23`). GATE exit 1: **Add A03**, catalog/revalidate **404 HIT**, no `data-save-contract`, bare `/products/{MA}/cover.jpg` + cover `HIT` age ~2292 etag `ff42d88433b351134d6ab6693f6ce336`. Public HTML `STALE`/`HIT`. Admin `MISS` `no-store`. Scripts: [`qa/qa_selltest_origin_gate.py`](./qa/qa_selltest_origin_gate.py), [`qa/qa_origin_save_drill.sh`](./qa/qa_origin_save_drill.sh).
+
+<a id="s34-s06-held-main"></a>
+
+**S34.** `origin/main` @ `04bfc35` (2026-11): [`data/held.json`](../../data/held.json) 21 held-incomplete, `neverList` empty; S06 sell lock **$25** (`docs/price-drift-boss-decision.md`, shop admin-ops). This PR must leave `held.json` byte-identical to `main`.
 
 ---
 

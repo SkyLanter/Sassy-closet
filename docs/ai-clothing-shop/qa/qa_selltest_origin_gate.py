@@ -104,6 +104,8 @@ def look_home(failed: list[str]) -> None:
         record(failed, ma in text, f"home lists {ma}")
     record(failed, "A03" not in text, "home has no invented A03")
     record(failed, "$23" not in text and not re.search(r"\$\s*23\b", text), "home has no $23")
+    if "S06" in text:
+        record(failed, "$25" in text, "S06 if listed stays $25 lock")
     for usd in PRICE.values():
         record(failed, f"${usd}" in text, f"home shows ${usd}")
     record(failed, "Inbox for price" in text and "Hold" in text, "home Hold / Inbox copy")
@@ -154,10 +156,11 @@ def look_admin(failed: list[str]) -> None:
 
 
 def look_no_invented_pdps(failed: list[str]) -> None:
-    for ma in ("A03", "Q01", "V01"):
-        status, _, hdr = get(f"{SHOP}/m/{ma}")
-        print(f"LOOK GET /m/{ma}", status, cache_line(hdr))
-        record(failed, status == 404, f"/m/{ma} stays 404")
+    # A03 was the 2026-09 Next-grid invitation. Do not also 404-check
+    # later live mãs (V01, S06, …) — those are current shop law, not invented.
+    status, _, hdr = get(f"{SHOP}/m/A03")
+    print("LOOK GET /m/A03", status, cache_line(hdr))
+    record(failed, status == 404, "/m/A03 stays 404")
 
 
 def run_look() -> list[str]:
