@@ -14,7 +14,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 | PR | Head at queue time | Title |
 | --- | --- | --- |
-| #225 | `02c2a8bbf414` | Draft: one branch for the safe shop fixes. Moved 2026-11-03 00:45 UTC. `72d792580d71` and `ba5f60fa767d` were commented FAIL. `a9580d8d70c4` and `e88e265ef221` were not commented. `d8170670ab41` and `cda92647236a` passed the script locally and were not commented. |
+| #225 | `fdedb65cd548` | Draft: one branch for the safe shop fixes. Moved 2026-11-03 00:56 UTC. `72d792580d71` and `ba5f60fa767d` were commented FAIL. `02c2a8bbf414`, `a9580d8d70c4`, and `e88e265ef221` were not commented. |
 | #217 | `ee9e2a34bfb4` | Combined safe bundle #208-#216 |
 | #218 | `03c23afc58a7` | Fail closed when Blob is down, and drop held folders from other mãs |
 | #219 | `5b590c0f734e` | Keep a blank intake sell blank and parse pasted yen safely |
@@ -162,6 +162,10 @@ Four hard rechecks are already running, so neither new head starts until a slot 
 ## 2026-11-03 00:55 UTC — #255 through #258 commented
 
 #255 is commented PASS at `f22db5f7d19c`. #256 is commented FAIL at `b23494967f84`. #257 is commented PASS at `dd240888ec8d`. #258 is commented PASS at `623617591224`. #250–#254 in that batch were already commented. That worker was not sent on. #225 at `02c2a8bbf414` and #260 at `900de4827176` are still waiting. #249 is this log and is not graded.
+
+## 2026-11-03 00:57 UTC — #225 moved and one recheck started
+
+#225 head is now `fdedb65cd548cf241a3b76c235f7b5ea539183a1` (“Copy kept intake photos onto the new mã when a row is renamed”). Since `02c2a8bbf414` it also keeps every spelling in the seed-versus-live compare. `02c2a8bbf414` was checked out and never started, so it is not commented. One recheck of `fdedb65cd548` is running. #260 stays `900de4827176` and is not started. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
