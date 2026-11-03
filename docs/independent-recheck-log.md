@@ -151,6 +151,7 @@ Open drafts still run through #266. #260 is the knowledge-base docs PR (`docs/kn
 | #285 | `78819eaf0d04` | Read S06's own JSON-LD offer in host health. Seen 2026-11-03 10:17 UTC. Not started by this lane. Outside PASS comments at this SHA appeared at 09:10 UTC and 19:30 UTC. This lane did not run those rechecks and does not adopt them. |
 | #286 | `adcb7c41d760` | Reject junk dollar and comma text in parse_usd. Seen 2026-11-03 14:18 UTC. Not started. |
 | #287 | `cdb6d0451758` | Reject junk dollar text in pickup whole-dollar checks. Seen 2026-11-03 20:19 UTC. Not started. |
+| #288 | `9dc8050db85b` | Flag photo color ids the shop reel will not attach. Seen 2026-11-03 22:19 UTC. Not started. |
 
 ## 2026-11-03 00:15 UTC — slower loop
 
@@ -385,6 +386,10 @@ Open drafts #217–#286 are still on the SHAs recorded above. #225 stays the ver
 ## 2026-11-03 22:06 UTC — #225 verified PASS at 2c58e88, no second comment
 
 `2c58e8868f4a` was still the head. This lane’s script passed: pytest 2434 passed, 7 skipped; privacy CLEAN; intake npm 364 / 361 / 0 / 3; shop npm 251 / 248 / 0 / 3; both tsc ok; `held.json` unchanged. Required skips: none. Log `out/recheck/20261103-215708-451856`. `restoreSizes` folds exactly `NN.0` onto a catalog chip for that kind and keeps every other token. Shoe `35.0` becomes `35`. Clothing `40.0` stays `40.0`. A kept non-chip is saved as the size string and is not written into price or `sell_usd`. Findings: none. The outside PASS was already on this SHA and this review agrees, so no second comment was posted. That worker was not sent on. #260 and #267–#287 are unchanged and are not started. #249 is this log and is not graded.
+
+## 2026-11-03 22:19 UTC — two-hour poll, no moved head
+
+Open drafts #217–#287 are still on the SHAs recorded above. #225 stays the verified PASS at `2c58e8868f4a`. #288 is new and is recorded at `9dc8050db85b`. It has not moved since it was first seen, so it was not started. No recheck worker is running. The next poll is the 2-hour timer. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
