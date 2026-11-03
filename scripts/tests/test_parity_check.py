@@ -28,6 +28,7 @@ from parity_check import (
     glued_size_outcome,
     gap_split_findings,
     dual_cost_findings,
+    excel_ma_spelling_findings,
     import_size_findings,
     kind_label_findings,
     intake_decimal_findings,
@@ -66,6 +67,7 @@ BOSS_CODES = (
     "quote-ma-width",
     "glued-size-letter",
     "shop-kind-label",
+    "excel-ma-spelling",
 )
 
 
@@ -237,6 +239,58 @@ def test_quote_width_rejects_a_canonical_three_digit_ma_and_an_overpad():
     assert quote_width_findings({})[0].severity == "fail"
 
 
+def test_excel_ma_spelling_stays_prefix_plus_three_digits():
+    class Sheet:
+        def format_ma(self, prefix: str, number: int) -> str:
+            return f"{prefix}{number:03d}"
+
+        def parse_ma(self, value: object):
+            text = "" if value is None else str(value)
+            for prefix in ("SET", "AO", "QU", "VA", "AK", "GI", "PK"):
+                rest = text[len(prefix):]
+                if text.startswith(prefix) and rest.isdigit():
+                    return prefix, int(rest)
+            return None
+
+    rows = excel_ma_spelling_findings(Sheet())
+    assert [item.severity for item in rows] == ["boss"]
+    assert rows[0].code == "excel-ma-spelling"
+    assert rows[0].examples == (
+        Example("A", "A03", "AO003"),
+        Example("Q", "Q03", "QU003"),
+        Example("V", "V03", "VA003"),
+        Example("K", "K03", "AK003"),
+        Example("G", "G03", "GI003"),
+        Example("P", "P03", "PK003"),
+        Example("S", "S03", "SET003"),
+    )
+
+    class Aligned:
+        def format_ma(self, prefix: str, number: int) -> str:
+            letter = next(key for key, value in {
+                "A": "AO", "Q": "QU", "V": "VA", "K": "AK", "G": "GI", "P": "PK", "S": "SET",
+            }.items() if value == prefix)
+            return f"{letter}{number:02d}"
+
+        def parse_ma(self, value: object):
+            text = "" if value is None else str(value)
+            prefix = {
+                "A": "AO", "Q": "QU", "V": "VA", "K": "AK", "G": "GI", "P": "PK", "S": "SET",
+            }.get(text[:1])
+            if prefix is None or not text[1:].isdigit():
+                return None
+            return prefix, int(text[1:])
+
+    assert excel_ma_spelling_findings(Aligned()) == []
+
+    class RejectsOfficial(Sheet):
+        def parse_ma(self, value: object):
+            return None
+
+    assert excel_ma_spelling_findings(RejectsOfficial())[0].severity == "fail"
+    assert excel_ma_spelling_findings(RejectsOfficial())[0].code == "excel-ma-spelling"
+
+
 def test_shop_kind_labels_stay_shorter_than_intake():
     letters = ("A", "D", "G", "H", "J", "O")
     excel = {
@@ -395,6 +449,17 @@ def test_repo_reports_the_known_boss_splits(report):
     assert width.examples == (
         Example("A100", "A100", "rejected"),
         Example("K003", "K03", "rejected"),
+    )
+    spelling = by_code["excel-ma-spelling"]
+    assert spelling.severity == "boss"
+    assert spelling.examples == (
+        Example("A", "A03", "AO003"),
+        Example("Q", "Q03", "QU003"),
+        Example("V", "V03", "VA003"),
+        Example("K", "K03", "AK003"),
+        Example("G", "G03", "GI003"),
+        Example("P", "P03", "PK003"),
+        Example("S", "S03", "SET003"),
     )
     labels = by_code["shop-kind-label"]
     assert labels.severity == "boss"
