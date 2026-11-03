@@ -1,0 +1,82 @@
+{
+  "products": [
+    {
+      "ma": "S06",
+      "priceUsd": 25,
+      "status": "available",
+      "colors": [
+        {"id": "cs0600", "hex": "#111111", "name": "Ink"},
+        {"id": "cs0601", "hex": "#222222", "name": "Slate"},
+        {"id": " cs0602", "hex": "#333333", "name": "Mist"},
+        {"id": "", "hex": "#444444", "name": "Blank"},
+        {"id": "cs0600", "hex": "#555555", "name": "Ink again"}
+      ],
+      "images": [
+        {"src": "/products/S06/cover.jpg", "colorId": "cs0600", "order": 1},
+        {"src": "/products/S06/photo-2.jpg", "colorId": " cs0601", "order": 2},
+        {"src": "/products/S06/photo-3.jpg", "colorId": "   ", "order": 3},
+        {"src": "/products/S06/photo-4.jpg", "colorId": "no-such", "order": 4},
+        {"src": "/products/S06/photo-5.jpg", "colorId": null, "order": 5},
+        {"src": "/products/S06/photo-6.jpg", "colorId": "cz8100", "order": 6}
+      ]
+    },
+    {
+      "ma": "Z81",
+      "priceUsd": null,
+      "status": "hold",
+      "colors": [
+        {"id": "cz8100", "hex": "#666666", "name": "Stone"},
+        {"id": "cz8101", "hex": "#777777", "name": "Clay"}
+      ],
+      "images": [
+        {"src": "/products/Z81/cover.jpg", "colorId": "cz8100", "order": 1}
+      ]
+    },
+    {
+      "ma": "K06",
+      "status": "hold",
+      "colors": [
+        {"id": "ck0600", "hex": "#888888", "name": "One"},
+        {"id": "ck0601", "hex": "#999999", "name": "Two"}
+      ],
+      "images": [
+        {"src": "/products/K06/cover.jpg", "colorId": null, "order": 1},
+        {"src": "/products/K06/photo-2.jpg", "colorId": null, "order": 2}
+      ]
+    },
+    {
+      "ma": "V05",
+      "priceUsd": "40",
+      "status": "hold",
+      "colors": ["Den"],
+      "images": [
+        {"src": "/products/V05/cover.jpg", "colorId": "den", "order": 1}
+      ]
+    },
+    {
+      "ma": "A01",
+      "priceUsd": 27,
+      "status": "available",
+      "colors": [
+        {"id": "ca0100", "hex": "#AAAAAA", "name": "Pearl"}
+      ],
+      "images": [
+        {"src": "/products/A01/cover.jpg", "colorId": "ca0100", "order": 1}
+      ]
+    },
+    {
+      "ma": "H01",
+      "priceUsd": 40,
+      "status": "available",
+      "colors": [
+        {"id": "pink", "hex": "#BBBBBB", "name": "Pink"},
+        {"id": "blue", "hex": "#CCCCCC", "name": "Blue"},
+        {"id": "wine", "hex": "#DDDDDD", "name": "Wine"}
+      ],
+      "images": [
+        {"src": "/products/H01/cover.jpg", "colorId": "pink", "order": 1},
+        {"src": "/products/H01/photo-2.jpg", "colorId": "blue ", "order": 2}
+      ]
+    }
+  ]
+}
