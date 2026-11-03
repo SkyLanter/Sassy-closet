@@ -14,7 +14,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 | PR | Head at queue time | Title |
 | --- | --- | --- |
-| #225 | `77fde6ab2f3b` | Draft: one branch for the safe shop fixes. This lane verified PASS 2026-11-03 14:00 UTC and did not post a second comment. An outside PASS was already on this SHA. Also PASS at `5af406779a1e`, `953e460b8f46`, `4df538a9b6eb`, `44bde2ae5e90`, and `b29c6c7ee1ef`. FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. |
+| #225 | `ecb7b2015773` | Draft: one branch for the safe shop fixes. Moved 2026-11-03 19:52 UTC. Verified PASS at `77fde6ab2f3b` with no second comment. Also PASS at `5af406779a1e`, `953e460b8f46`, `4df538a9b6eb`, `44bde2ae5e90`, and `b29c6c7ee1ef`. FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. |
 | #217 | `ee9e2a34bfb4` | Combined safe bundle #208-#216 |
 | #218 | `03c23afc58a7` | Fail closed when Blob is down, and drop held folders from other mãs |
 | #219 | `5b590c0f734e` | Keep a blank intake sell blank and parse pasted yen safely |
@@ -332,6 +332,10 @@ Open drafts #217–#286 are still on the SHAs recorded above. #225 stays the ver
 ## 2026-11-03 19:30 UTC — #285 has outside PASS comments
 
 #285 head is still `78819eaf0d049db3ecfc6049635f17781952aa63`. Cursor[bot] comments say INDEPENDENT RECHECK PASS at that SHA. This lane did not run those rechecks and does not adopt them. The SHA has not moved since it was first seen, so this lane does not start a recheck and does not post another comment. #249 is this log and is not graded.
+
+## 2026-11-03 19:52 UTC — #225 moved to ecb7b20
+
+#225 head is now `ecb7b20157736f3b2eef8761b664c4c6e85b7c05` (“Reject junk dollar text in pickup whole-dollar checks.”). `77fde6ab2f3b` stays the verified PASS. One recheck of `ecb7b2015773` is running. #260 and #267–#286 are unchanged and are not started. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
