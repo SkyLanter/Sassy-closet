@@ -14,7 +14,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 | PR | Head at queue time | Title |
 | --- | --- | --- |
-| #225 | `dd4a4fbe2a55` | Draft: one branch for the safe shop fixes. Commented FAIL 2026-11-03 01:36 UTC. Script PASS. `72d792580d71` and `ba5f60fa767d` were also commented FAIL. `ed1f2ff7b534` and `fdedb65cd548` were not commented. |
+| #225 | `e6c41e1f7656` | Draft: one branch for the safe shop fixes. Moved 2026-11-03 01:45 UTC. `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d` were commented FAIL. `ed1f2ff7b534` and `fdedb65cd548` were not commented. |
 | #217 | `ee9e2a34bfb4` | Combined safe bundle #208-#216 |
 | #218 | `03c23afc58a7` | Fail closed when Blob is down, and drop held folders from other mãs |
 | #219 | `5b590c0f734e` | Keep a blank intake sell blank and parse pasted yen safely |
@@ -182,6 +182,10 @@ Those heads were still current. #259, #262, and #265 are FAIL because the copied
 ## 2026-11-03 01:36 UTC — #225 commented FAIL
 
 `dd4a4fbe2a55` was still the head. The script passed. The review failed: a rename still overwrites a photo another row claims, a soft hyphen or left-to-right mark after S06 still trips the $25 lock, and an empty USD sell still renames S06 away. That worker was not sent on. #260 stays `900de4827176` and is not started. #249 is this log and is not graded.
+
+## 2026-11-03 01:46 UTC — #225 moved to e6c41e1
+
+#225 head is now `e6c41e1f76564b40f4573f3e08d65f7ac4e41a99` (“Close the rename photo claim, invisible S06 suffix, and blank S06 move”). `dd4a4fbe2a55` stays the commented FAIL. One recheck of `e6c41e1f7656` is running. #260 stays `900de4827176` and is not started. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
