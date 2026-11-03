@@ -1,8 +1,8 @@
 # Pull request history
 
-Fetched read-only from GitHub on 2026-11-02 for `SkyLanter/Sassy-closet`, PRs **#1 through #247**. No numbers are missing in that range. This file is a snapshot of those PR records. It is not a live query, and an open PR is not shop law until it is merged.
+Fetched read-only from GitHub on 2026-11-02 for `SkyLanter/Sassy-closet`, PRs **#1 through #247**. No numbers were missing in that range. A later read on 2026-11-03 00:06 UTC added open drafts **#248 through #267**. No numbers are missing from #1 through #267. This file is a snapshot of those PR records. It is not a live query, and an open PR is not shop law until it is merged.
 
-Counts at fetch time: 116 merged, 125 open, 6 closed without merge.
+Counts on 2026-11-02 for #1–#247: 116 merged, 125 open, 6 closed without merge. Counts on 2026-11-03 00:06 UTC for #1–#267: 116 merged, 145 open, 6 closed without merge. No pull request merged after that first fetch. `origin/main` is still `04bfc35`.
 
 Every merged PR in this snapshot targets `main`, and each PR's GitHub merge commit is an ancestor of `origin/main`. For the 45 PRs combined by #203, that merge commit sits behind the second parent of `339e77b`, so `git log --first-parent` does not show it.
 
@@ -295,6 +295,26 @@ These were open on 2026-11-02. They are not merged. Current code wins until Boss
 | 245 | OPEN | — | Return 503 when a share card cannot read the catalog | `GET /share/m/{mã}` and `GET /share/c/{slug}` already 404 when the mã or category is missing. |
 | 246 | OPEN | — | Add a read-only draft merge-readiness report | Read-only list of open draft pull requests. |
 | 247 | OPEN | — | Draft: keep an in-window trailing .0 on intake shoe chips | Summary Intake `keepSizesForKind` treated `40.0` as a different chip from `40` and dropped it. |
+| 248 | OPEN | — | Keep a blank catalog status in the daily snapshot | The daily export dropped a catalog row whose status was null, spaces, or a newline. |
+| 249 | OPEN | — | Independent recheck log (draft, comments only) | Running log for the independent recheck lane. |
+| 250 | OPEN | — | Drop a removed photo's hash so find-mã stops matching it | Saving an intake row set `photo_paths` to the photos staff kept, and still copied the whole previous `photo_hashes` list whenever at least one photo stayed. |
+| 251 | OPEN | — | Lock pull-request workflows to a read-only token | The four GitHub Actions workflows that check out pull-request code now set `permissions: contents: read` and `persist-credentials: false` on checkout. |
+| 252 | OPEN | — | Skip a bad approved Giá instead of inventing $1 | The caption Giá check and the Meta inventory report turned a boolean true into an approved price of $1. |
+| 253 | OPEN | — | Draft: treat a trailing .0 as the allowed shoe chip in the gap report | Summary The intake gap report flagged a shoe size written as `40.0` even when `40` is already on that kind's list. |
+| 254 | OPEN | — | Pin third-party actions to commit SHAs | The four GitHub Actions workflows now pin third-party actions to the commits their major tags resolved to on 2026-11-02. |
+| 255 | OPEN | — | Draft: name missing, stale, and unusable cost-recheck files | The Boss streak report treated an empty or broken cost-recheck flags file as a clean day, so an unreachable streak disappeared. |
+| 256 | OPEN | — | Keep a new intake photo from replacing a file that was kept | Saving an intake row named the next photo from how many paths were kept. |
+| 257 | OPEN | — | Test catalog fallback, the S06 lock, held photo spellings, and intake export | Summary Test-only coverage for four paths. |
+| 258 | OPEN | — | Split gap-report sizes on the same separators as listing | The intake gap report now splits a size on space, comma, semicolon, slash, and pipe, the same separators listing uses. |
+| 259 | OPEN | — | Count a text sell price in the price approval queue | The price approval queue treated a sell price or a weight written as text as missing, so a priced mã was queued for a Boss decision. |
+| 260 | OPEN | — | Add the repo knowledge base | What A map of the shop for the next agent, in `docs/knowledge/`, plus a root `AGENTS.md` and `.cursor/rules/` that point at it. |
+| 261 | OPEN | — | Treat listing size aliases as the allowed gap-report chip | The intake gap report now treats listing size aliases as the allowed chip. |
+| 262 | OPEN | — | Serve a product image when the URL spells the mã the short way | `/m/a1` and `/m/A001` already redirect to `/m/A01`. |
+| 263 | OPEN | — | Reject workflows that install without the lockfile | A test fails if one of the four GitHub Actions workflows runs `npm install` instead of `npm ci`, references the GitHub secrets context, or uses `pull_request_target`. |
+| 264 | OPEN | — | Test the tiered under-$10 bump and the locked dress debox | Summary Test-only coverage for two pricing paths. |
+| 265 | OPEN | — | Fail the drift check when any S06 spelling leaves $25 | The sell-price drift report kept the last spelling of a mã. |
+| 266 | OPEN | — | Record the shop and listing split on loose shoe tokens | Shop `parseAsiaSizes` keeps EU 40 from `40.`, `4.0`, `40码`, and `(40)`. |
+| 267 | OPEN | — | Keep every spelling in the seed versus live price compare | The seed-versus-live price compare kept the last spelling of a mã. |
 
-Missing numbers: none.
+Missing numbers: none. Drafts #248–#267 are open. They are not shop law on `04bfc35`.
 

@@ -2,7 +2,7 @@
 
 Read this folder before changing the shop, the intake app, the Excel kit, or the scripts. It is a map of what is already in the repo. It is not a new policy.
 
-Pinned to `main` at `04bfc35` (commit dated 2026-10-30, checked 2026-11-02). Pull request notes cover **#1–#247** as fetched on 2026-11-02. Open pull requests are drafts until Boss merges them.
+Pinned to `main` at `04bfc35` (commit dated 2026-10-30, checked again 2026-11-03 00:06 UTC). Pull request notes cover **#1–#267**. The #1–#247 rows were fetched on 2026-11-02. Drafts #248–#267 were still open at that later read, and none of them had merged. Open pull requests are drafts until Boss merges them.
 
 ## How to read it
 
