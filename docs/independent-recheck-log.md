@@ -14,7 +14,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 | PR | Head at queue time | Title |
 | --- | --- | --- |
-| #225 | `a9580d8d70c4` | Draft: one branch for the safe shop fixes. Moved 2026-11-03 00:18 UTC. `72d792580d71` and `ba5f60fa767d` were commented FAIL. `e88e265ef221` is still in hard recheck and must not be commented. `d8170670ab41` and `cda92647236a` passed the script locally and were not commented. |
+| #225 | `02c2a8bbf414` | Draft: one branch for the safe shop fixes. Moved 2026-11-03 00:45 UTC. `72d792580d71` and `ba5f60fa767d` were commented FAIL. `a9580d8d70c4` and `e88e265ef221` were not commented. `d8170670ab41` and `cda92647236a` passed the script locally and were not commented. |
 | #217 | `ee9e2a34bfb4` | Combined safe bundle #208-#216 |
 | #218 | `03c23afc58a7` | Fail closed when Blob is down, and drop held folders from other mãs |
 | #219 | `5b590c0f734e` | Keep a blank intake sell blank and parse pasted yen safely |
@@ -150,6 +150,10 @@ Four hard rechecks are already running, so neither new head starts until a slot 
 ## 2026-11-03 00:42 UTC — #229, #230, and #231 commented
 
 #229 is commented FAIL at `99121ddc2948`. #230 is commented FAIL at `db9a5392bfdc`. #231 is commented PASS at `a704f452bd78`. #217–#228 in that batch were already commented. The old #225 SHA `cda92647236a` was not commented because it is not the head. That worker was not sent on. #249 is this log and is not graded.
+
+## 2026-11-03 00:45 UTC — #225 moved again
+
+#225 head is now `02c2a8bbf414a2bfb09b1dd2a9e14358378e9048` (“Fail the drift check when any S06 spelling leaves $25”). Since `a9580d8d70c4` the tree also changes the price-approval queue, short mã image URLs, and kept-photo replacement. `a9580d8d70c4` was checked out and never started, so it is not commented. Four hard rechecks are still running, so `02c2a8bbf414` waits. #260 remains `900de4827176` and also waits. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
