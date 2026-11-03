@@ -251,7 +251,7 @@ describe("find-mã after a photo is dropped", { concurrency: 1 }, () => {
         photos: [{ bytes: added, hash: addedHash, ext: ".png" }],
       }),
     );
-    assert.deepEqual(updated.photo_paths, ["A01/001.jpg", "A01/missing.jpg", "A01/003.png"]);
+    assert.deepEqual(updated.photo_paths, ["A01/001.jpg", "A01/missing.jpg", "A01/002.png"]);
     assert.deepEqual(updated.photo_hashes, [firstHash, "", addedHash]);
     assert.equal((await findByPhotoHash(addedHash))[0]?.ma, "A01");
     assert.equal((await findByPhotoHash(firstHash))[0]?.ma, "A01");
@@ -267,16 +267,16 @@ describe("find-mã after a photo is dropped", { concurrency: 1 }, () => {
         photos: [{ bytes: added, hash: addedHash, ext: ".jpg" }],
       }),
     );
-    assert.deepEqual(created.photo_paths, ["A01/not-uploaded.jpg", "A01/002.jpg"]);
+    assert.deepEqual(created.photo_paths, ["A01/not-uploaded.jpg", "A01/001.jpg"]);
     assert.deepEqual(created.photo_hashes, ["", addedHash]);
 
     const edited = await saveSubmission(
       blank({
         existingMa: "A01",
-        keep_photos: ["A01/002.jpg"],
+        keep_photos: ["A01/001.jpg"],
       }),
     );
-    assert.deepEqual(edited.photo_paths, ["A01/002.jpg"]);
+    assert.deepEqual(edited.photo_paths, ["A01/001.jpg"]);
     assert.deepEqual(edited.photo_hashes, [addedHash]);
     assert.equal((await findByPhotoHash(addedHash))[0]?.ma, "A01");
   });
