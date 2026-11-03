@@ -154,48 +154,69 @@ function photoHashKey(rel: string): string {
 
 /**
  * One hash per kept path, in keep order.
- * Equal-length path and hash lists pair by photoHashKey. The first stored
- * non-empty hash wins. A keep path with no pair stays "". Those lists are
- * not read from disk, so a path that was never stored stays empty.
- * Any other shape, including a missing hash list, is not lined up. Ignore
- * the stored hashes and hash the file the caller named, then the canonical
- * spelling when that path differs. A missing file stays "".
+ * Equal-length lists use the hash stored beside that exact path. A different
+ * spelling of the same file is used only when every stored hash for that
+ * photo agrees. Disagreeing hashes are not lined up. The file is hashed
+ * instead, and only when its folder is this mã.
+ * Any other list shape is not lined up. The same folder rule applies. A
+ * missing file, a directory, and another mã's file stay "".
  */
 async function keptPhotoHashes(
   existing: Submission | null,
   keep: readonly string[],
 ): Promise<string[]> {
   if (!existing) return keep.map(() => "");
+  const ma = existing.ma;
   const paths = existing.photo_paths;
   const hashes = existing.photo_hashes;
   if (Array.isArray(paths) && Array.isArray(hashes) && paths.length === hashes.length) {
+    const exact = new Map<string, string>();
     const byKey = new Map<string, string>();
+    const conflict = new Set<string>();
     for (let i = 0; i < paths.length; i += 1) {
       const rel = paths[i];
       const hash = hashes[i];
       if (typeof rel !== "string" || rel.length === 0) continue;
       if (typeof hash !== "string" || hash.length === 0) continue;
+      if (!exact.has(rel)) exact.set(rel, hash);
       const key = photoHashKey(rel);
-      if (key.length === 0 || byKey.has(key)) continue;
-      byKey.set(key, hash);
+      if (key.length === 0) continue;
+      const previous = byKey.get(key);
+      if (previous === undefined) byKey.set(key, hash);
+      else if (previous !== hash) conflict.add(key);
     }
-    return keep.map((rel) => {
-      if (typeof rel !== "string" || rel.length === 0) return "";
-      const key = photoHashKey(rel);
-      if (key.length === 0) return "";
-      return byKey.get(key) ?? "";
-    });
+    const out: string[] = [];
+    for (const rel of keep) {
+      out.push(await hashForKeep(ma, rel, exact, byKey, conflict));
+    }
+    return out;
   }
   const backend = activeBackend();
   const out: string[] = [];
   for (const rel of keep) {
-    out.push(await hashKeptFile(backend, rel));
+    out.push(await hashKeptFile(backend, rel, ma));
   }
   return out;
 }
 
-async function hashKeptFile(backend: StoreBackend, rel: string): Promise<string> {
+async function hashForKeep(
+  ma: string,
+  rel: string,
+  exact: ReadonlyMap<string, string>,
+  byKey: ReadonlyMap<string, string>,
+  conflict: ReadonlySet<string>,
+): Promise<string> {
   if (typeof rel !== "string" || rel.length === 0) return "";
+  const stored = exact.get(rel);
+  if (stored !== undefined) return stored;
+  const key = photoHashKey(rel);
+  if (key.length === 0) return "";
+  if (!conflict.has(key)) return byKey.get(key) ?? "";
+  return hashKeptFile(activeBackend(), rel, ma);
+}
+
+async function hashKeptFile(backend: StoreBackend, rel: string, ma: string): Promise<string> {
+  if (!folderMatchesMa(rel, ma)) return "";
   const canonical = photoHashKey(rel);
   const sanitized = sanitizePhotoRel(rel);
   // The path the caller named, then the canonical spelling. A lowercase folder
@@ -204,10 +225,25 @@ async function hashKeptFile(backend: StoreBackend, rel: string): Promise<string>
   if (sanitized.length > 0) candidates.push(sanitized);
   if (canonical.length > 0 && canonical !== sanitized) candidates.push(canonical);
   for (const candidate of candidates) {
-    const photo = await backend.readPhoto(candidate);
-    if (photo) return hashBytes(photo.bytes);
+    if (!folderMatchesMa(candidate, ma)) continue;
+    try {
+      const photo = await backend.readPhoto(candidate);
+      if (photo) return hashBytes(photo.bytes);
+    } catch (error) {
+      if (!isDirectoryRead(error)) throw error;
+    }
   }
   return "";
+}
+
+function folderMatchesMa(rel: string, ma: string): boolean {
+  const parsed = photoFolderAndRest(rel);
+  if (!parsed) return false;
+  return normalizeMa(parsed.folder) === normalizeMa(ma);
+}
+
+function isDirectoryRead(error: unknown): boolean {
+  return typeof error === "object" && error !== null && "code" in error && error.code === "EISDIR";
 }
 
 export async function saveSubmission(input: SaveInput): Promise<Submission> {

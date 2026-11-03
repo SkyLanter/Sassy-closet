@@ -204,4 +204,74 @@ describe("a kept path keeps that photo's hash", { concurrency: 1 }, () => {
     assert.equal((await findByPhotoHash(original.hash)).length, 0);
     assert.equal((await findByPhotoHash(added.hash))[0]?.ma, "A01");
   });
+
+  test("the exact keep spelling wins when the same photo key has two hashes", async () => {
+    const real = shot("lowercase-file-bytes", ".jpg");
+    const created = await saveSubmission(blank({ photos: [real] }));
+    const file = path.join(tmp, "submissions.json");
+    const store = JSON.parse(fs.readFileSync(file, "utf8")) as {
+      submissions: Submission[];
+    };
+    const row = store.submissions[0];
+    assert.ok(row);
+    row.photo_paths = ["A01/001.jpg", "a01/001.jpg"];
+    row.photo_hashes = ["removed-hash", real.hash];
+    fs.writeFileSync(file, JSON.stringify(store));
+    resetStoreBackendForTests();
+
+    const updated = await saveSubmission(
+      blank({ existingMa: created.ma, keep_photos: ["a01/001.jpg"] }),
+    );
+    assert.deepEqual(updated.photo_hashes, [real.hash]);
+    assert.equal((await findByPhotoHash("removed-hash")).length, 0);
+    const hits = await findByPhotoHash(real.hash);
+    assert.equal(hits.length, 1);
+    assert.equal(hits[0]?.ma, "A01");
+  });
+
+  test("a mismatched hash list does not take another mã's file", async () => {
+    const original = shot("a01-bytes", ".jpg");
+    await saveSubmission(blank({ photos: [original] }));
+    const other = shot("a02-bytes", ".jpg");
+    const second = await saveSubmission(blank({ photos: [other] }));
+    const file = path.join(tmp, "submissions.json");
+    const store = JSON.parse(fs.readFileSync(file, "utf8")) as {
+      submissions: Submission[];
+    };
+    const row = store.submissions.find((item) => item.ma === second.ma);
+    assert.ok(row);
+    row.photo_hashes = ["stale-hash", "extra-hash"];
+    fs.writeFileSync(file, JSON.stringify(store));
+    resetStoreBackendForTests();
+
+    const updated = await saveSubmission(
+      blank({ existingMa: second.ma, keep_photos: ["A01/001.jpg"] }),
+    );
+    assert.deepEqual(updated.photo_hashes, [""]);
+    const hits = await findByPhotoHash(original.hash);
+    assert.equal(hits.length, 1);
+    assert.equal(hits[0]?.ma, "A01");
+    assert.equal((await findByPhotoHash("stale-hash")).length, 0);
+  });
+
+  test("a folder path on a mismatched hash list does not fail the save", async () => {
+    const original = shot("dir-keep-bytes", ".jpg");
+    const created = await saveSubmission(blank({ photos: [original] }));
+    const file = path.join(tmp, "submissions.json");
+    const store = JSON.parse(fs.readFileSync(file, "utf8")) as {
+      submissions: Submission[];
+    };
+    const row = store.submissions[0];
+    assert.ok(row);
+    row.photo_hashes = ["stale-hash", "extra-hash"];
+    fs.writeFileSync(file, JSON.stringify(store));
+    resetStoreBackendForTests();
+
+    const updated = await saveSubmission(
+      blank({ existingMa: created.ma, keep_photos: ["A01"] }),
+    );
+    assert.deepEqual(updated.photo_hashes, [""]);
+    assert.equal((await findByPhotoHash("stale-hash")).length, 0);
+    assert.equal((await findByPhotoHash(original.hash)).length, 0);
+  });
 });
