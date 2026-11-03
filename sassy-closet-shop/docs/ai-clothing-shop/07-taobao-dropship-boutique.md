@@ -5,8 +5,10 @@ Learn track (Ultra burn) for **Sassy Closet**: a VN / Bay Area Facebook clothing
 **Live apply target:** [https://sassy-closet-shop.vercel.app](https://sassy-closet-shop.vercel.app)  
 **Keep:** current design language + fancy motion. Honesty is a copy / data / admin-guard change, not a redesign.
 
-**Date of live inspect:** 2026-09-09.  
-**This repo** (`SkyLanter/Sassy-closet`) owns kit + intake. **Origin** owns the sell-site app. Do not fight Origin `main` from here.
+**Date of live inspect:** 2026-09-09. Ownership note refreshed 2026-11-03.  
+**This repo** (`SkyLanter/Sassy-closet`) owns kit, intake (`sassy-closet/`), and the sell-site source (`sassy-closet-shop/`). Production shop stays on the Vercel host above. Do not deploy the shop over intake.
+
+**APPLY status:** Quiet apply of this playbook is recorded in [21-dropship-apply.md](./21-dropship-apply.md) (warehouse voice out; Message-first; Hold P02/P05 kept). This file is still the dropship law. Use §11 if copy or admin guards regress.
 
 ---
 
@@ -14,8 +16,8 @@ Learn track (Ultra burn) for **Sassy Closet**: a VN / Bay Area Facebook clothing
 
 | Reader | Use |
 | --- | --- |
-| Origin shop agent | §11 APPLY checklist. Change copy / guards. Do **not** restyle. |
-| Intake / kit agent | §5–§7, §10. Never invent mã / $ / stock. Keep `e.tb.cn` extract. |
+| Shop agent | §11 APPLY + [21-dropship-apply.md](./21-dropship-apply.md). Change copy / guards. Do **not** restyle. |
+| Intake / kit agent | §5–§7, §10. Never invent mã / $ / stock. Keep the short-link extract. |
 | Boss / Mini Boss | §3 flow + §4 scripts. Facebook inbox is the store. |
 | Stock | Square only after `#shop-decisions` yes. Track ON. SKU = owned mã. |
 
@@ -121,7 +123,7 @@ Intake `GET /api/ma/{code}` already encodes the split: `{ staged, on_hand, stage
 
 ## 3. Message-first order flow
 
-Facebook is the store ([README](../../README.md), `#shop-decisions` 2026-09-04). The site’s job is to start the thread. There is **no cart** on sell-test — keep it that way.
+Facebook is the store ([README](../../../README.md), `#shop-decisions` 2026-09-04). The site’s job is to start the thread. There is **no cart** on sell-test — keep it that way.
 
 ### Happy path (dropship)
 
@@ -325,11 +327,11 @@ catalog.v1 / sell tile              available | hold, qty always 1
 sold / dead                         retire mã, never reuse
 ```
 
-GF intake contract ([`excel-kit/prompts/GF_CLOTHES_INTAKE.md`](../../excel-kit/prompts/GF_CLOTHES_INTAKE.md)): Wishlist is not stock. Bought without mã → ASK STOCK. Official row ≠ Save. Reply templates **forbid** “Đã lên Square” / “hàng đang bán” while staged ([`excel-kit/inbox/gf_intake_reply_templates.md`](../../excel-kit/inbox/gf_intake_reply_templates.md)).
+GF intake contract ([`excel-kit/prompts/GF_CLOTHES_INTAKE.md`](../../../excel-kit/prompts/GF_CLOTHES_INTAKE.md)): Wishlist is not stock. Bought without mã → ASK STOCK. Official row ≠ Save. Reply templates **forbid** “Đã lên Square” / “hàng đang bán” while staged ([`excel-kit/inbox/gf_intake_reply_templates.md`](../../../excel-kit/inbox/gf_intake_reply_templates.md)).
 
-Intake types ([`sassy-closet/lib/types.ts`](../../sassy-closet/lib/types.ts)): every Lưu row is `status: "staged"`, `square: "not_square"`. On-hand is a **separate** bag. Tìm mã card shows the amber banner when that bag is empty.
+Intake types ([`sassy-closet/lib/types.ts`](../../../sassy-closet/lib/types.ts)): every Lưu row is `status: "staged"`, `square: "not_square"`. On-hand is a **separate** bag. Tìm mã card shows the amber banner when that bag is empty.
 
-Square import law ([`excel-kit/square/README.md`](../../excel-kit/square/README.md), Boss yes 2026-09-04): Track stock ON every item **and** variation; SKU = mã; Variation = Asia size + color; no wishlist import; no Save until Slack yes.
+Square import law ([`excel-kit/square/README.md`](../../../excel-kit/square/README.md), Boss yes 2026-09-04): Track stock ON every item **and** variation; SKU = mã; Variation = Asia size + color; no wishlist import; no Save until Slack yes.
 
 ### 5.2 What “qty = 1” means on the sell-site
 
@@ -386,7 +388,7 @@ OpenAPI examples treat `https://e.tb.cn/h.…` inside the share sentence as `mat
 
 ### 6.2 What this repo already does (intake)
 
-[`sassy-closet/lib/source-link.ts`](../../sassy-closet/lib/source-link.ts) + PR [#16](https://github.com/SkyLanter/Sassy-closet/pull/16):
+[`sassy-closet/lib/source-link.ts`](../../../sassy-closet/lib/source-link.ts) + PR [#16](https://github.com/SkyLanter/Sassy-closet/pull/16):
 
 - Extract the first HTTP URL; prefer hosts `e.tb.cn`, `tb.cn`, `taobao.com`, `tmall.com`.
 - Strip trailing punctuation and glue-on Chinese (`https://e.tb.cn/h.7KxYzAb点击链接`).
@@ -464,7 +466,7 @@ This is the boutique’s most expensive lie.
 | **Expired short link, live photo** | `e.tb.cn` 404, tile still pretty | Hold the tile; do not take Paid |
 | **Same garment, new `id=`** | Seller relists | New `source_link`; do not assume old skuId |
 
-Intake Tìm mã keeps **code box + photo detect** ([`FIND_MA_CARD_2026-09-08.md`](../../excel-kit/prompts/FIND_MA_CARD_2026-09-08.md)). Photo detect is “this file was saved under mã X,” not “this is the Taobao 颜色.”
+Intake Tìm mã keeps **code box + photo detect** ([`FIND_MA_CARD_2026-09-08.md`](../../../excel-kit/prompts/FIND_MA_CARD_2026-09-08.md)). Photo detect is “this file was saved under mã X,” not “this is the seller 颜色.”
 
 Sell-test static covers live at `/products/{MA}/cover.jpg`. Editorial lifestyle (`/editorial/hero.jpg`, `/editorial/ao.jpg`, …) is **mood**, never a SKU.
 
@@ -594,7 +596,7 @@ This is the dropship-specific foot-gun. Live `/admin` (2026-09-09):
 
 ## 11. APPLY checklist — [sassy-closet-shop.vercel.app](https://sassy-closet-shop.vercel.app)
 
-**Owner:** Origin shop repo (not this kit).  
+**Owner:** `sassy-closet-shop/` in this repo. Quiet apply: [21-dropship-apply.md](./21-dropship-apply.md).  
 **Goal:** dropship-honest catalog **without** losing the pretty shop.
 
 ### 11.0 Do not touch (design + motion lock)
@@ -679,7 +681,7 @@ Kit-side (this repo, already): `validate_sell_catalog.py` on `out/sell-catalog.v
 
 ### 11.6 Out of scope for APPLY
 
-- New Vercel official clone — [`excel-kit/docs/CLONE_TO_OFFICIAL.md`](../../excel-kit/docs/CLONE_TO_OFFICIAL.md) (PR #18).
+- New Vercel official clone — [`CLONE_TO_OFFICIAL.md`](../../CLONE_TO_OFFICIAL.md) (PR #18).
 - Intake tabs, Ask webhook, GF From GF packets.
 - Square library rows.
 - Inventing titles because the hub has none.
@@ -730,16 +732,16 @@ VI: §3. EN: §3.
 | --- | --- |
 | Live sell-test 2026-09-09 | IA, copy (“on hand”), Hold P02/P05, admin Next mã A03, Blob, motion names |
 | [sassy-closet.vercel.app](https://sassy-closet.vercel.app) | Intake Lưu / staged / Taobao field |
-| [README.md](../../README.md) | Facebook = store; Square Free = on-hand SoT; bots draft |
-| [sassy-closet/BOSS.md](../../sassy-closet/BOSS.md) + [sassy-closet/README.md](../../sassy-closet/README.md) | Staged-only banner; no Square Save; Blob or `/tmp` wipe |
+| [README.md](../../../README.md) | Facebook = store; Square Free = on-hand SoT; bots draft |
+| [sassy-closet/BOSS.md](../../../sassy-closet/BOSS.md) + [sassy-closet/README.md](../../../sassy-closet/README.md) | Staged-only banner; no Square Save; Blob or `/tmp` wipe |
 | [sassy-closet/lib/source-link.ts](../../sassy-closet/lib/source-link.ts), [tests/source-link.test.ts](../../sassy-closet/tests/source-link.test.ts), [PR #16](https://github.com/SkyLanter/Sassy-closet/pull/16) | Extract `e.tb.cn` only; never invent |
-| [sassy-closet/lib/types.ts](../../sassy-closet/lib/types.ts), [on-hand.ts](../../sassy-closet/lib/on-hand.ts), [store.ts](../../sassy-closet/lib/store.ts) | `staged` / `not_square`; mint-on-Lưu; on-hand separate |
-| [sassy-closet/lib/captions.ts](../../sassy-closet/lib/captions.ts) | Inbox + Zelle + US ship; no TB URL |
-| [sassy-closet/lib/ask-fallback.ts](../../sassy-closet/lib/ask-fallback.ts) | “staged, not Square” |
-| [excel-kit/square/README.md](../../excel-kit/square/README.md) | Track ON; SKU=mã; no wishlist import |
-| [excel-kit/prompts/GF_CLOTHES_INTAKE.md](../../excel-kit/prompts/GF_CLOTHES_INTAKE.md), [inbox/gf_intake_reply_templates.md](../../excel-kit/inbox/gf_intake_reply_templates.md) | Keep source forever; never claim Square |
-| [excel-kit/sot/append_wishlist_row.py](../../excel-kit/sot/append_wishlist_row.py), [append_order_row.py](../../excel-kit/sot/append_order_row.py) | `--source` or `--no-source`; Orders enums; no invent mã |
-| [excel-kit/schema.py](../../excel-kit/schema.py) | Official / Wishlist / Orders columns; `source` on Wishlist |
+| [sassy-closet/lib/types.ts](../../../sassy-closet/lib/types.ts), [on-hand.ts](../../../sassy-closet/lib/on-hand.ts), [store.ts](../../../sassy-closet/lib/store.ts) | `staged` / `not_square`; mint-on-Lưu; on-hand separate |
+| [sassy-closet/lib/captions.ts](../../../sassy-closet/lib/captions.ts) | Inbox + Zelle + US ship; no TB URL |
+| [sassy-closet/lib/ask-fallback.ts](../../../sassy-closet/lib/ask-fallback.ts) | “staged, not Square” |
+| [excel-kit/square/README.md](../../../excel-kit/square/README.md) | Track ON; SKU=mã; no wishlist import |
+| [excel-kit/prompts/GF_CLOTHES_INTAKE.md](../../../excel-kit/prompts/GF_CLOTHES_INTAKE.md), [inbox/gf_intake_reply_templates.md](../../../excel-kit/inbox/gf_intake_reply_templates.md) | Keep source forever; never claim Square |
+| [excel-kit/sot/append_wishlist_row.py](../../../excel-kit/sot/append_wishlist_row.py), [append_order_row.py](../../../excel-kit/sot/append_order_row.py) | `--source` or `--no-source`; Orders enums; no invent mã |
+| [excel-kit/schema.py](../../../excel-kit/schema.py) | Official / Wishlist / Orders columns; `source` on Wishlist |
 | Slack `#shop-decisions` 2026-09-04 | yes/no Save; Track ON; Facebook stays the store; hold extend |
 | PR #18 `SELL_CATALOG_CONTRACT.md` / `CLONE_TO_OFFICIAL.md` / `out/sell-catalog.v1.json` | Allowlist, Hold P02/P05, omit `source_link`, `colorId: null`, qty=1 |
 
@@ -783,7 +785,7 @@ This file is **07**. Sister agents (same burst) own chrome / SEO / media / Blob 
 | SEO / diaspora trust | Meta, reviews | Do not claim warehouse trust |
 | AI product media | Image gen | Never replace a SKU photo as proof |
 
-Kit playbook agent (`docs/ai-clothing-shop/` index) should list this file as the **dropship law**.
+The shop learn-track index ([README.md](./README.md)) lists this file as the **dropship law**.
 
 ---
 
