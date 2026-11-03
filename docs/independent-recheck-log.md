@@ -14,7 +14,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 | PR | Head at queue time | Title |
 | --- | --- | --- |
-| #225 | `e6c41e1f7656` | Draft: one branch for the safe shop fixes. Commented FAIL 2026-11-03 02:11 UTC. Script PASS. `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d` were also commented FAIL. `ed1f2ff7b534` and `fdedb65cd548` were not commented. |
+| #225 | `f9d33ed8d8b2` | Draft: one branch for the safe shop fixes. Moved 2026-11-03 02:18 UTC. `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d` were commented FAIL. `ed1f2ff7b534` and `fdedb65cd548` were not commented. |
 | #217 | `ee9e2a34bfb4` | Combined safe bundle #208-#216 |
 | #218 | `03c23afc58a7` | Fail closed when Blob is down, and drop held folders from other mãs |
 | #219 | `5b590c0f734e` | Keep a blank intake sell blank and parse pasted yen safely |
@@ -207,6 +207,10 @@ Those heads were still current. #259, #262, and #265 are FAIL because the copied
 ## 2026-11-03 02:15 UTC — two-hour poll, no moved head
 
 Open drafts #217–#268 and #225 are still on the SHAs recorded above. #260 is still `900de4827176`, so the older `e9729e40ab93` report stays uncommented and no new recheck started. #269–#281 are new and are recorded at the SHAs in the table. None of them has moved since it was first seen, so none was started. No recheck worker is running. The next poll is the 2-hour timer. #249 is this log and is not graded.
+
+## 2026-11-03 02:18 UTC — #225 moved to f9d33ed
+
+#225 head is now `f9d33ed8d8b2cd7199cb1e28932b5ba0c31fa9bb` (“Skip a claimed photo slot when a save stays on the same mã”). `e6c41e1f7656` stays the commented FAIL. One recheck of `f9d33ed8d8b2` is running. #260 and #269–#281 are unchanged and are not started. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
