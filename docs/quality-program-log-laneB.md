@@ -165,3 +165,19 @@ Boss, files left as they are:
 - `wouldBeLiveUsd` still rejects `A100` and `K003`. `A1` still maps to `A01` in `norm_ma` and is still rejected by the quote.
 
 Hard recheck: PASS against origin/main after npm ci in both apps, on 895b45a. pytest 2136 passed, 7 skipped. Privacy CLEAN. Intake tests 278 pass, 275 fail 0, skipped 3. Shop tests 222 pass, 219 fail 0, skipped 3. tsc passed in both apps. held.json unchanged. No recheck step was SKIP. The 7 and 3 skips are the existing empty never-list cases inside the suites. Log `out/recheck/20261103-000452-75765`.
+
+## 2026-11-03 pass 11
+
+Shop `parseAsiaSizes` and the size-gap letter scan keep one clothing letter when a seller note is glued on with no space. Listing drops that token. The intake gap report still flags the whole string. The four seed shapes are `M【建议80-100斤】` to M, `XXL【建议140-160斤】` to 2XL, `M女【推荐80-100斤】` to M, and `M（56-58cm）` to M. The checker records Boss note `glued-size-letter`. No size parser was changed. No catalog price was edited. `data/held.json` was not edited.
+
+Checker: code fails 0, Boss notes 20.
+
+Boss, files left as they are:
+
+- `sassy-closet-shop/data/intake-extras.json` has S06 at $26. The live snapshot has S06 at $25.
+- Extras versus live snapshot: A16 34 vs 31, S05 25 vs 26, S06 26 vs 25, S07 44 vs 38, S08 35 vs 37, S09 42 vs 36, V01 25 vs 39, V02 31 vs 40.
+- `products.json` versus the live snapshot: 28 mãs differ (A03 is 25 in the seed and 22 live). 22 live mãs are absent from the seed, including S06.
+- Shop `calcPricing` still prefers the yen figure when both cost fields are set. For kind Q the named USD landed is 17.50 and the shop landed is 22.37. That formula was not changed.
+- Shop still keeps a letter glued to a seller note. Listing still drops that token.
+
+Hard recheck: PASS against origin/main after npm ci in both apps, on 19d2dab. pytest 2137 passed, 7 skipped. Privacy CLEAN. Intake tests 278 pass, 275 fail 0, skipped 3. Shop tests 222 pass, 219 fail 0, skipped 3. tsc passed in both apps. held.json unchanged. No recheck step was SKIP. The 7 and 3 skips are the existing empty never-list cases inside the suites. Log `out/recheck/20261103-002612-81780`.

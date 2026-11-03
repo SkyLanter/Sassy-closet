@@ -27,7 +27,7 @@ if str(SCRIPTS) not in sys.path:
 from autolist import ASIA, S06_LOCK_USD, SHOE_EU, is_valid_size, margin_for_sell, norm_sizes, price
 from intake_gaps import disallowed_size_tokens, row_gaps
 from held_policy import load_held_policy, norm_ma
-from size_gap import CLOTHING_STEPS
+from size_gap import CLOTHING_STEPS, _letters
 
 PRODUCTS = ROOT / "sassy-closet-shop" / "data" / "products.json"
 EXTRAS = ROOT / "sassy-closet-shop" / "data" / "intake-extras.json"
@@ -67,6 +67,14 @@ DECIMAL_SHOE_TOKENS = IN_WINDOW_DECIMAL + DROPPED_DECIMAL + WINDOW_DECIMAL
 LOOSE_SHOE = (("40.", "40"), ("40码", "40"), ("(40)", "40"), ("4.0", "40"))
 # A spaced seller range. Shop drops the whole string. Listing keeps 36.
 LOOSE_SHOE_RANGE = "36 -37(适合平时35-36码)"
+# A clothing letter glued to a seller note, with no space. Shop and the size-gap
+# scan keep the letter. Listing drops the token. The gap report flags the whole string.
+GLUED_SIZE = (
+    ("M【建议80-100斤】", "M"),
+    ("XXL【建议140-160斤】", "2XL"),
+    ("M女【推荐80-100斤】", "M"),
+    ("M（56-58cm）", "M"),
+)
 
 
 @dataclass(frozen=True)
@@ -508,6 +516,7 @@ def _probe_request() -> dict[str, object]:
         "letters": letters,
         "aliasTokens": ["XXS", "3XL", "XXL"],
         "shoeTokens": [*shoe, *DECIMAL_SHOE_TOKENS, *[token for token, _eu in LOOSE_SHOE], LOOSE_SHOE_RANGE],
+        "gluedTokens": [token for token, _letter in GLUED_SIZE],
         "decimalChips": ["40.0", "34.0", "42.0", "40.00", "35", "S"],
         "currencyCase": {
             "ma": "A04",
@@ -633,6 +642,75 @@ def decimal_shoe_window(shop_parsed: Mapping[str, object]) -> tuple[Example, ...
         if py != shop_got:
             rows.append(Example(token, _joined(py), _joined(shop_got)))
     return tuple(rows)
+
+
+def glued_size_outcome(
+    token: str,
+    letter: str,
+    shop_got: tuple[str, ...],
+    listed: tuple[str, ...],
+    flagged: tuple[str, ...],
+    bad: tuple[str, ...],
+) -> str:
+    """boss when shop and the size-gap scan keep the letter and listing drops it.
+
+    clear when shop, listing, and the size-gap scan return the same sizes and the
+    gap report agrees: an empty size list still flags the original string, and a
+    kept letter means that string is an allowed chip. Anything else is fail.
+    """
+    if shop_got == (letter,) and flagged == (letter,) and listed == () and bad == (token,):
+        return "boss"
+    report_agrees = bad == () if shop_got else bad == (token,)
+    if shop_got == listed and flagged == shop_got and report_agrees:
+        return "clear"
+    return "fail"
+
+
+def glued_size_findings(shop_parsed: Mapping[str, object]) -> list[Finding]:
+    """A clothing letter glued to a seller note is not one token in every parser.
+
+    Shop parseAsiaSizes and the size-gap scan keep the letter. Listing drops the
+    token. The intake gap report still flags the whole string. No parser is changed.
+    A missing probe key, or a new split, is a fail.
+    """
+    misses: list[Example] = []
+    broken: list[Example] = []
+    for token, letter in GLUED_SIZE:
+        if token not in shop_parsed:
+            broken.append(Example(token, "dropped", "missing"))
+            continue
+        shop_got = _strings(shop_parsed.get(token))
+        listed = tuple(norm_sizes(token, "A"))
+        flagged = tuple(_letters(token))
+        bad = tuple(disallowed_size_tokens(token, ASIA))
+        outcome = glued_size_outcome(token, letter, shop_got, listed, flagged, bad)
+        if outcome == "boss":
+            misses.append(Example(token, "dropped", letter))
+            continue
+        if outcome == "clear":
+            continue
+        broken.append(Example(
+            token,
+            _joined(listed),
+            f"shop {_joined(shop_got)}; gap {_joined(flagged)}; report {_joined(bad)}",
+        ))
+    if broken:
+        return [_note(
+            "fail",
+            "glued-size-letter",
+            "the glued size probe does not match the recorded shop-versus-listing split",
+            broken,
+        )]
+    if not misses:
+        return []
+    return [_note(
+        "boss",
+        "glued-size-letter",
+        "shop parseAsiaSizes and the size-gap letter scan keep one clothing letter when the "
+        "seller note is glued on with no space. Listing drops that token. The intake gap report "
+        "still flags the whole string. No size parser was changed.",
+        misses,
+    )]
 
 
 def loose_shoe_findings(shop_parsed: Mapping[str, object]) -> list[Finding]:
@@ -934,6 +1012,7 @@ def _rule_findings(excel, intake: Mapping[str, object], shop: Mapping[str, objec
             decimal_window,
         ))
     findings.extend(loose_shoe_findings(shop_parsed))
+    findings.extend(glued_size_findings(_mapping(shop.get("gluedParsed"))))
     if is_valid_size("M", "G") and not _strings(intake.get("keepGLetters")):
         findings.append(_note(
             "boss",

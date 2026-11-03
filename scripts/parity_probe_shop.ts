@@ -18,6 +18,7 @@ type ProbeRequest = {
   landed: string[];
   aliasTokens: string[];
   shoeTokens: string[];
+  gluedTokens: string[];
   letters: string[];
   dualCost: {
     kind: string;
@@ -91,6 +92,10 @@ function main(): void {
   for (const token of request.shoeTokens) {
     shoeParsed[token] = parseAsiaSizes([token]);
   }
+  const gluedParsed: Record<string, string[]> = {};
+  for (const token of request.gluedTokens) {
+    gluedParsed[token] = parseAsiaSizes([token]);
+  }
   const debox: Record<string, number | null> = {};
   for (const letter of request.letters) {
     debox[letter] = deboxForLetter(letter);
@@ -110,6 +115,7 @@ function main(): void {
     normalizeMa: spell(request.mas, normalizeMa),
     aliasParsed: parseAsiaSizes(request.aliasTokens),
     shoeParsed,
+    gluedParsed,
     flat,
     debox,
     dualShopLanded: priced.landedUsd,
