@@ -112,12 +112,13 @@ export async function setFx(
  * Slot number of `{ma}/001.jpg`.
  * A keep path can spell that same file with a leading slash, `./`, or `..`
  * that the photo store collapses, so those aliases occupy the slot too.
+ * The folder matches through normalizeMa, so `a01` occupies the same slots as `A01`.
  */
 function photoSlot(rel: string, ma: string): number | null {
   const parts = sanitizePhotoRel(rel)
     .split("/")
     .filter((part) => part.length > 0 && part !== ".");
-  if (parts.length !== 2 || parts[0] !== ma) return null;
+  if (parts.length !== 2 || normalizeMa(parts[0] ?? "") !== normalizeMa(ma)) return null;
   const match = /^(\d+)\.[^.]+$/i.exec(parts[1] ?? "");
   if (!match) return null;
   const slot = Number(match[1]);
@@ -142,28 +143,71 @@ function nextPhotoRel(ma: string, taken: ReadonlySet<number>, ext: string): { re
 }
 
 /**
- * One hash per kept path, in keep order.
- * Pair a path with the hash stored beside it. Dropped paths must not keep
- * their hash, or find-by-photo still returns the mã. A kept path with no
- * stored hash gets an empty slot so a photo added in the same save stays
- * lined up with its own hash.
+ * `A01/001.jpg` for `/A01/001.jpg`, `A01/./001.jpg`, and `a01/001.jpg`.
+ * The filename keeps its own case, so `001.JPG` does not share `001.jpg`.
  */
-function keptPhotoHashes(existing: Submission | null, keep: readonly string[]): string[] {
+function photoHashKey(rel: string): string {
+  const parsed = photoFolderAndRest(rel);
+  if (!parsed) return "";
+  return `${normalizeMa(parsed.folder)}/${parsed.rest}`;
+}
+
+/**
+ * One hash per kept path, in keep order.
+ * Equal-length path and hash lists pair by photoHashKey. The first stored
+ * non-empty hash wins. A keep path with no pair stays "". Those lists are
+ * not read from disk, so a path that was never stored stays empty.
+ * Any other shape, including a missing hash list, is not lined up. Ignore
+ * the stored hashes and hash the file the caller named, then the canonical
+ * spelling when that path differs. A missing file stays "".
+ */
+async function keptPhotoHashes(
+  existing: Submission | null,
+  keep: readonly string[],
+): Promise<string[]> {
   if (!existing) return keep.map(() => "");
-  const paths = Array.isArray(existing.photo_paths) ? existing.photo_paths : [];
-  const hashes = Array.isArray(existing.photo_hashes) ? existing.photo_hashes : [];
-  const byPath = new Map<string, string>();
-  for (let i = 0; i < paths.length; i += 1) {
-    const rel = paths[i];
-    const hash = hashes[i];
-    if (typeof rel !== "string" || rel.length === 0) continue;
-    if (typeof hash !== "string" || hash.length === 0) continue;
-    if (!byPath.has(rel)) byPath.set(rel, hash);
+  const paths = existing.photo_paths;
+  const hashes = existing.photo_hashes;
+  if (Array.isArray(paths) && Array.isArray(hashes) && paths.length === hashes.length) {
+    const byKey = new Map<string, string>();
+    for (let i = 0; i < paths.length; i += 1) {
+      const rel = paths[i];
+      const hash = hashes[i];
+      if (typeof rel !== "string" || rel.length === 0) continue;
+      if (typeof hash !== "string" || hash.length === 0) continue;
+      const key = photoHashKey(rel);
+      if (key.length === 0 || byKey.has(key)) continue;
+      byKey.set(key, hash);
+    }
+    return keep.map((rel) => {
+      if (typeof rel !== "string" || rel.length === 0) return "";
+      const key = photoHashKey(rel);
+      if (key.length === 0) return "";
+      return byKey.get(key) ?? "";
+    });
   }
-  return keep.map((rel) => {
-    if (typeof rel !== "string" || rel.length === 0) return "";
-    return byPath.get(rel) ?? "";
-  });
+  const backend = activeBackend();
+  const out: string[] = [];
+  for (const rel of keep) {
+    out.push(await hashKeptFile(backend, rel));
+  }
+  return out;
+}
+
+async function hashKeptFile(backend: StoreBackend, rel: string): Promise<string> {
+  if (typeof rel !== "string" || rel.length === 0) return "";
+  const canonical = photoHashKey(rel);
+  const sanitized = sanitizePhotoRel(rel);
+  // The path the caller named, then the canonical spelling. A lowercase folder
+  // and `A01/001.jpg` can both exist; the named file is the one being kept.
+  const candidates: string[] = [];
+  if (sanitized.length > 0) candidates.push(sanitized);
+  if (canonical.length > 0 && canonical !== sanitized) candidates.push(canonical);
+  for (const candidate of candidates) {
+    const photo = await backend.readPhoto(candidate);
+    if (photo) return hashBytes(photo.bytes);
+  }
+  return "";
 }
 
 export async function saveSubmission(input: SaveInput): Promise<Submission> {
@@ -220,7 +264,7 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
   const costUsd = moneyForStore(input.cost_usd, "USD");
   const sellCny = moneyForStore(input.sell_cny, "CNY");
   const sellUsd = moneyForStore(input.sell_usd, "USD");
-  const photoHashes = keptPhotoHashes(existing, input.keep_photos);
+  const photoHashes = await keptPhotoHashes(existing, input.keep_photos);
   const oldMa = existing?.ma ?? "";
   const renaming = oldMa.length > 0 && normalizeMa(oldMa) !== normalizeMa(ma);
   const claimed = claimedPhotoPaths(store, existing?.id ?? null, input.keep_photos);
