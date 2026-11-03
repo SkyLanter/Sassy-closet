@@ -148,6 +148,7 @@ Open drafts still run through #266. #260 is the knowledge-base docs PR (`docs/kn
 | #282 | `b101f113e76b` | Reject invalid shop-desk USD text before save. Seen 2026-11-03 04:15 UTC. Not started. |
 | #283 | `754ed7e4b1f9` | Reject non-literal USD text in shop draft prices. Seen 2026-11-03 06:16 UTC. Not started. |
 | #284 | `b36383c1828d` | Parse calculator and intake amounts as plain dollars. Seen 2026-11-03 08:17 UTC. Not started by this lane. A cursor[bot] PASS comment at this SHA appeared at 08:25 UTC. This lane did not run that recheck and does not adopt it. |
+| #285 | `78819eaf0d04` | Read S06's own JSON-LD offer in host health. Seen 2026-11-03 10:17 UTC. Not started. |
 
 ## 2026-11-03 00:15 UTC — slower loop
 
@@ -282,6 +283,10 @@ Open drafts #217–#283 and #225 are still on the SHAs recorded above. #225 stay
 ## 2026-11-03 09:44 UTC — #260 has an outside PASS comment
 
 #260 head is still `900de482717671ebc3f0e5360fd8349ce022d704`. A cursor[bot] comment says INDEPENDENT RECHECK PASS at that SHA. This lane did not run that recheck and does not adopt the comment. The older `e9729e40ab93` report stays uncommented. The SHA has not moved, so this lane does not start a recheck and does not post a second comment. #249 is this log and is not graded.
+
+## 2026-11-03 10:17 UTC — two-hour poll, no moved head
+
+Open drafts #217–#284 and #225 are still on the SHAs recorded above. #225 stays the PASS at `953e460b8f46`. #285 is new and is recorded at `78819eaf0d04`. It has not moved since it was first seen, so it was not started. No recheck worker is running. The next poll is the 2-hour timer. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
