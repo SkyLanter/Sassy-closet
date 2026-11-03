@@ -1,0 +1,12 @@
+---
+description: Read the Sassy Closet knowledge base before editing
+alwaysApply: true
+---
+
+# Read the knowledge base first
+
+Before changing code, data, or docs, read `docs/knowledge/README.md` and the page that matches the task (`rules.md`, `shop.md`, `workflows.md`, `data-and-excel.md`, `pitfalls.md`, `how-to.md`).
+
+Use the repo as the source. If a fact is not in git or in the scrubbed snapshot pages, mark it UNKNOWN. Proof sentences and Excel headers are in `docs/knowledge/snapshot-proofs.md` and `docs/knowledge/snapshot-excel.md`. Do not invent a proof summary INDEX marks UNKNOWN, and do not invent live SoT columns, Order_Log, or Wishlist. See `docs/knowledge/proof-and-hub-snapshot.md`.
+
+`sassy-closet-shop/AGENTS.md` is the Next.js framework note. It does not replace `docs/knowledge/`.
