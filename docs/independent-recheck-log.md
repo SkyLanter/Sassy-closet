@@ -57,6 +57,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 | #225 | `72d792580d71f6af6447043a6f981c7a646bb178` | FAIL | Script PASS (pytest 2337). ASCII `S06B` is no longer S06. `S06Đ`, fullwidth `S06Ｂ`, and a zero-width space still lock $25. Log line 56 is still uncorrected. |
 | #242 | `f0b91129a050f5a796d2e343acf0c2b675fe15e5` | FAIL | Script PASS (pytest 2114). Intake save 503 matches. The lane A log claims image, CSV, and on-hand fixes that are not in this tree. |
 | #226 | `66fd312af0b7f6705ec1109aaed28e5c28aab785` | FAIL | Script PASS (pytest 2119). The flat midnight QC summary matches. The log claims the home-price regex and the digest fixes, which are not in this tree. |
+| #227 | `f39946047e80d9870390e6d5d6d1265d5b52648b` | FAIL | Script PASS (pytest 2114). `--proposal` matches. The log claims midnight QC, digest, and flat-summary fixes that are not in this tree. |
 | #243 | `9a9c2e8f9f7278925c385ad0829d3cacb7619309` | PASS | pytest 2127 passed, 7 skipped. Intake 278 / 275 / 0 / 3. Shop 222 / 219 / 0 / 3. Kind G keeps in-window `.0` sizes. Findings: none. |
 | #252 | `e66dd83417e31d046a9ddf0ac81ba8c0db092af8` | FAIL | Script PASS (pytest 2120). Bad approved Giá values are skipped. The log claims midnight QC and daily-snapshot fixes that are not in this tree. |
 | #253 | `32eb7581a8dc1d4609365e4c25e3fbe43af9f30c` | PASS | pytest 2130 passed, 7 skipped. Intake 278 / 275 / 0 / 3. Shop 222 / 219 / 0 / 3. Gap report counts one trailing `.0`. Findings: none. |
@@ -96,6 +97,17 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 | #257 | `dd240888ec8d` | Test catalog fallback, the S06 lock, held photo spellings, and intake export |
 | #258 | `623617591224` | Split gap-report sizes on the same separators as listing |
 | #259 | `0402dd50b1c6` | Count a text sell price in the price approval queue |
+| #260 | `e9729e40ab93` | Add the repo knowledge base |
+| #261 | `a0118636446d` | Treat listing size aliases as the allowed gap-report chip |
+| #262 | `879db4df23d8` | Serve a product image when the URL spells the mã the short way |
+| #263 | `a6af62cf4814` | Reject workflows that install without the lockfile |
+| #264 | `24308111f172` | Test the tiered under-$10 bump and the locked dress debox |
+| #265 | `3b5fa65c67c1` | Fail the drift check when any S06 spelling leaves $25 |
+| #266 | `384122fd106e` | Record the shop and listing split on loose shoe tokens |
+
+## 2026-11-03 00:00 UTC
+
+Open drafts still run through #266. #260 is the knowledge-base docs PR (`docs/knowledge/`, `AGENTS.md`, and three Cursor rules). It is checked out at `e9729e40ab93` and queued with #259 and #261–#266. #225 at `d8170670ab41`, #244, and #254 were in hard recheck. #227 is commented FAIL. No other head from #217–#258 moved. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
