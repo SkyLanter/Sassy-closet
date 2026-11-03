@@ -22,6 +22,7 @@ from pathlib import Path
 from held_policy import HeldPolicy, default_held_path, load_held_policy, norm_ma
 
 MA_RE = re.compile(r"^[A-Z][0-9]{2}$")
+_THOUSANDS = re.compile(r"\d{1,3}(?:,\d{3})+(?:\.\d+)?")
 S06_USD = Decimal("25")
 _FORBIDDEN_NAMES = frozenset(
     {"held.json", "submissions.json", "catalog.v1.json", "orders.json"}
@@ -222,7 +223,7 @@ def _price_text(value: object) -> str:
             raise ValueError("price must be a number")
         money = Decimal(str(value))
     elif isinstance(value, str):
-        text = value.strip().replace("$", "").replace(",", "")
+        text = _grouped_dollars(value)
         if text == "":
             raise ValueError("price must be a number")
         try:
@@ -237,6 +238,16 @@ def _price_text(value: object) -> str:
     if "." in rendered:
         rendered = rendered.rstrip("0").rstrip(".")
     return rendered or "0"
+
+
+def _grouped_dollars(raw: str) -> str:
+    """A thousands comma is a price. A shorter comma group is not."""
+    text = raw.strip().replace("$", "").strip()
+    if "," not in text:
+        return text
+    if _THOUSANDS.fullmatch(text) is None:
+        raise ValueError("price must be a number")
+    return text.replace(",", "")
 
 
 def _escape(value: str) -> str:

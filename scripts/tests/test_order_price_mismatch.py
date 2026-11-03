@@ -363,6 +363,26 @@ def test_cli_refuses_shop_and_held_targets(tmp_path: Path) -> None:
     assert fixture.read_bytes() == before
 
 
+def test_thousands_separator_matches_the_catalog() -> None:
+    result = flag_fixture(
+        {
+            "catalog": [{"ma": "A01", "priceUsd": "1200.50"}],
+            "lines": [{"ma": "A01", "priceUsd": "$1,200.50"}],
+        }
+    )
+    assert result.findings == ()
+    assert result.omitted == ()
+
+
+def test_short_comma_is_not_twelve_hundred_fifty() -> None:
+    payload = {
+        "catalog": [{"ma": "A01", "priceUsd": 1250}],
+        "lines": [{"ma": "A01", "priceUsd": "12,50"}],
+    }
+    with pytest.raises(ValueError, match="price must be a number"):
+        flag_fixture(payload)
+
+
 def test_source_stays_fixture_only() -> None:
     source = SCRIPT.read_text(encoding="utf-8").lower()
     for banned in (

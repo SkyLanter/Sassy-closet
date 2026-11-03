@@ -133,6 +133,20 @@ def test_s06_other_dollar_is_refused_and_not_rewritten() -> None:
     assert single["lines"][0]["priceUsd"] == 24
 
 
+def test_thousands_separator_stays_the_grouped_dollar() -> None:
+    payload = {"lines": [{"ma": "A01", "title": "Coat", "priceUsd": "$1,200"}]}
+    report = flag_order(payload)
+    assert [(line.ma, line.price_usd) for line in report.lines] == [("A01", "1200")]
+    assert payload["lines"][0]["priceUsd"] == "$1,200"
+
+
+def test_short_comma_is_not_a_price() -> None:
+    payload = {"lines": [{"ma": "A01", "title": "Coat", "priceUsd": "12,50"}]}
+    with pytest.raises(ValueError, match="price must be a number"):
+        flag_order(payload)
+    assert payload["lines"][0]["priceUsd"] == "12,50"
+
+
 def test_held_and_never_list_stay_off_without_writing_held() -> None:
     before = HELD.read_bytes()
     policy = HeldPolicy(held=("K06",), never_list=("Z98",))

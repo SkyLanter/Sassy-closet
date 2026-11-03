@@ -81,6 +81,20 @@ def test_s06_string_dollar_stays_25_and_another_dollar_is_refused() -> None:
     assert other["lines"][0]["priceUsd"] == 30
 
 
+def test_thousands_separator_stays_the_grouped_dollar() -> None:
+    payload = {"lines": [{"ma": "A01", "title": "Coat", "priceUsd": "$1,200.50"}]}
+    slip = preview_order(payload)
+    assert [(line.ma, line.price_usd) for line in slip.lines] == [("A01", "1200.5")]
+    assert payload["lines"][0]["priceUsd"] == "$1,200.50"
+
+
+def test_short_comma_is_not_a_price() -> None:
+    payload = {"lines": [{"ma": "A01", "title": "Coat", "priceUsd": "12,50"}]}
+    with pytest.raises(ValueError, match="price must be a number"):
+        preview_order(payload)
+    assert payload["lines"][0]["priceUsd"] == "12,50"
+
+
 def test_missing_s06_price_is_not_filled_in() -> None:
     payload = {"lines": [{"ma": "S06", "title": "Satin skirt"}]}
     slip = preview_order(payload)
