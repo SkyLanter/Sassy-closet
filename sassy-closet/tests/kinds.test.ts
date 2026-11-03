@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import { test } from "node:test";
 import {
   KIND_CODES,
@@ -7,6 +9,7 @@ import {
   intakeCatalog,
   keepSizesForKind,
   kindLabel,
+  restoreSizes,
   sizeOptionsLine,
   sizeScaleForKind,
   sizesForKind,
@@ -36,6 +39,42 @@ test("G H J D labels and size rules match intake catalog", () => {
   assert.equal(sizeOptionsLine("G"), SHOE_SIZES.join(" "));
   assert.deepEqual(keepSizesForKind(["M", "38", "2XS"], "G"), ["38"]);
   assert.deepEqual(keepSizesForKind(["M", "38", "2XS"], "A"), ["M", "2XS"]);
+});
+
+test("keepSizesForKind folds one trailing .0 onto a real chip and drops the rest", () => {
+  assert.deepEqual(keepSizesForKind(["35.0", "36"], "G"), ["35", "36"]);
+  assert.deepEqual(keepSizesForKind(["40.0"], "A"), []);
+  assert.deepEqual(keepSizesForKind(["40.00"], "G"), []);
+  assert.deepEqual(keepSizesForKind(["34.0", "42.0"], "G"), []);
+  assert.deepEqual(keepSizesForKind(["35.00"], "G"), []);
+  assert.deepEqual(keepSizesForKind(["40."], "G"), []);
+  assert.deepEqual(keepSizesForKind(["5.0"], "G"), []);
+  assert.deepEqual(keepSizesForKind(["100.0"], "G"), []);
+  assert.deepEqual(keepSizesForKind(["35.0", "35"], "G"), ["35"]);
+});
+
+test("restoreSizes splits saved size text and keeps non-chip tokens", () => {
+  assert.deepEqual(restoreSizes("35;36|37", "G"), ["35", "36", "37"]);
+  assert.deepEqual(restoreSizes("35.0 36", "G"), ["35", "36"]);
+  assert.deepEqual(restoreSizes(";;;", "G"), []);
+  assert.deepEqual(restoreSizes("均码", "G"), ["均码"]);
+  assert.deepEqual(restoreSizes("40.0", "A"), ["40.0"]);
+  assert.deepEqual(restoreSizes("35.0 35", "G"), ["35"]);
+  assert.deepEqual(restoreSizes("35-36", "G"), ["35-36"]);
+  assert.deepEqual(restoreSizes("35/36", "G"), ["35", "36"]);
+  assert.deepEqual(restoreSizes("XXS", "A"), ["XXS"]);
+  assert.deepEqual(restoreSizes("  35.0  ", "G"), ["35"]);
+});
+
+test("applySubmission restores the saved size through restoreSizes", () => {
+  const src = fs.readFileSync(path.join(process.cwd(), "components", "IntakeApp.tsx"), "utf8");
+  const start = src.indexOf("function applySubmission(");
+  const end = src.indexOf("async function save(", start);
+  assert.ok(start >= 0, "applySubmission not found");
+  assert.ok(end > start, "applySubmission slice must stop before save()");
+  const apply = src.slice(start, end);
+  assert.match(apply, /setSizes\(restoreSizes\(item\.size,\s*item\.kind\)\)/);
+  assert.equal(apply.includes("split(/[\\s,]+/)"), false);
 });
 
 test("catalog dataset carries kind label + size options without inventing mã", () => {
