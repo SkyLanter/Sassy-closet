@@ -14,7 +14,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 | PR | Head at queue time | Title |
 | --- | --- | --- |
-| #225 | `2c58e8868f4a` | Draft: one branch for the safe shop fixes. Moved 2026-11-03 21:47 UTC. Verified PASS at `2c58e8868f4a` with no second comment. Also PASS at `8f4f7c062442`, `0f4fcc2c255f`, `ecb7b2015773` (not commented; not the head), `77fde6ab2f3b`, `5af406779a1e`, `953e460b8f46`, `4df538a9b6eb`, `44bde2ae5e90`, and `b29c6c7ee1ef`. FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. |
+| #225 | `75e1d6580ed8` | Draft: one branch for the safe shop fixes. Moved 2026-11-03 22:36 UTC. Verified PASS at `2c58e8868f4a` with no second comment. Also PASS at `8f4f7c062442`, `0f4fcc2c255f`, `ecb7b2015773` (not commented; not the head), `77fde6ab2f3b`, `5af406779a1e`, `953e460b8f46`, `4df538a9b6eb`, `44bde2ae5e90`, and `b29c6c7ee1ef`. FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. Recheck of `75e1d6580ed8` is running. |
 | #217 | `ee9e2a34bfb4` | Combined safe bundle #208-#216 |
 | #218 | `03c23afc58a7` | Fail closed when Blob is down, and drop held folders from other mãs |
 | #219 | `5b590c0f734e` | Keep a blank intake sell blank and parse pasted yen safely |
@@ -390,6 +390,10 @@ Open drafts #217–#286 are still on the SHAs recorded above. #225 stays the ver
 ## 2026-11-03 22:19 UTC — two-hour poll, no moved head
 
 Open drafts #217–#287 are still on the SHAs recorded above. #225 stays the verified PASS at `2c58e8868f4a`. #288 is new and is recorded at `9dc8050db85b`. It has not moved since it was first seen, so it was not started. No recheck worker is running. The next poll is the 2-hour timer. #249 is this log and is not graded.
+
+## 2026-11-03 22:36 UTC — #225 moved to 75e1d65
+
+#225 head is now `75e1d6580ed88243c2339bb479d3d67cb319d028` (“Match color-bind slides to this branch's shop reel.”). Since `2c58e8868f4a` it also adds a read-only check for photo color binds (`f068aacf654b`). `2c58e8868f4a` stays the verified PASS. One recheck of `75e1d6580ed8` is running. #260 and #267–#288 are unchanged and are not started. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
