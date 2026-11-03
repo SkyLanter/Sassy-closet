@@ -68,8 +68,45 @@ test("an empty products array is corrupt and does not open the older catalog fil
       const message = error instanceof Error ? error.message : "";
       assert.match(message, /will not fall back to seed/);
       assert.match(message, /cannot be empty/);
+      assert.match(message, /catalog\.v1\.json/);
       return true;
     },
   );
   assert.deepEqual(reads, [CURRENT]);
+});
+
+test("a missing current catalog does not skip an empty older file", async () => {
+  const reads: string[] = [];
+  await assert.rejects(
+    readCatalogFromBlobPort(
+      {
+        async put() {
+          return { url: "memory://blob/catalog.v1.json" };
+        },
+        async list() {
+          return [];
+        },
+        async fetchJson() {
+          return null;
+        },
+        async getJson(pathname: string) {
+          reads.push(pathname);
+          if (pathname === LEGACY) {
+            return emptyCurrent;
+          }
+          return null;
+        },
+      },
+      CURRENT,
+    ),
+    (error: unknown) => {
+      assert.equal(isCatalogCorruptError(error), true);
+      const message = error instanceof Error ? error.message : "";
+      assert.match(message, /will not fall back to seed/);
+      assert.match(message, /cannot be empty/);
+      assert.match(message, /catalog\.json/);
+      return true;
+    },
+  );
+  assert.deepEqual(reads, [CURRENT, LEGACY]);
 });
