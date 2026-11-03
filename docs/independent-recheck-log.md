@@ -14,7 +14,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 | PR | Head at queue time | Title |
 | --- | --- | --- |
-| #225 | `fdedb65cd548` | Draft: one branch for the safe shop fixes. Moved 2026-11-03 00:56 UTC. `72d792580d71` and `ba5f60fa767d` were commented FAIL. `02c2a8bbf414`, `a9580d8d70c4`, and `e88e265ef221` were not commented. |
+| #225 | `ed1f2ff7b534` | Draft: one branch for the safe shop fixes. Moved 2026-11-03 01:09 UTC. `72d792580d71` and `ba5f60fa767d` were commented FAIL. `fdedb65cd548`, `02c2a8bbf414`, `a9580d8d70c4`, and `e88e265ef221` were not commented. |
 | #217 | `ee9e2a34bfb4` | Combined safe bundle #208-#216 |
 | #218 | `03c23afc58a7` | Fail closed when Blob is down, and drop held folders from other mãs |
 | #219 | `5b590c0f734e` | Keep a blank intake sell blank and parse pasted yen safely |
@@ -170,6 +170,10 @@ Four hard rechecks are already running, so neither new head starts until a slot 
 ## 2026-11-03 01:05 UTC — #259 and #261–#266 commented
 
 Those heads were still current. #259, #262, and #265 are FAIL because the copied quality log claims fixes the tree does not contain. The scripts passed. #261, #263, #264, and #266 are PASS. #260’s report is for `e9729e40ab93`, and the head is `900de4827176`, so it is not commented and not started while #225 is in recheck. That worker was not sent on. #249 is this log and is not graded.
+
+## 2026-11-03 01:10 UTC — #225 moved again
+
+#225 head is now `ed1f2ff7b5346b2194daa2fe810bad7b7b8ff22f` (“Reject a short comma in order sell prices”). Since `fdedb65cd548` it also keeps every spelling in the OneDrive mirror price compare. `fdedb65cd548` was in recheck and is not the head, so it will not be commented. One recheck of `ed1f2ff7b534` is running. #260 stays `900de4827176` and is not started. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
