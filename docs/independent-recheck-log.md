@@ -292,6 +292,10 @@ Open drafts #217–#284 and #225 are still on the SHAs recorded above. #225 stay
 
 #225 head is now `5af406779a1ed164b2f11492481412aa88641e59` (“Compare parsed S06 offers instead of digit substrings”). Since `953e460b8f46` it also reads S06’s own JSON-LD offer in host health. `953e460b8f46` stays the commented PASS. One recheck of `5af406779a1e` is running. #260 and #267–#285 are unchanged and are not started. #249 is this log and is not graded.
 
+## 2026-11-03 11:03 UTC — outside PASS on #225 while this lane is still running
+
+#225 head is still `5af406779a1ed164b2f11492481412aa88641e59`. A cursor[bot] comment says INDEPENDENT RECHECK PASS at that SHA. This lane did not write that comment and does not adopt it. The recheck started at 10:56 UTC is still running. This lane will not post a second comment unless that review disagrees. #249 is this log and is not graded.
+
 ## 2026-11-02 23:55 UTC — #225 moved again
 
 #225 head is `d8170670ab411fe21c38630f4a38b8ecdae711e8`. The FAIL on `72d792580d71` stays the comment for that older SHA. The new head is in hard recheck and is not commented yet. #226, #243, and #253 are commented at the SHAs in the verdict table. Their log directories are `out/recheck/20261102-234222-157269`, `out/recheck/20261102-234641-168787`, and `out/recheck/20261102-234412-161336`. No knowledge-lane docs PR.
