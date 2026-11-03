@@ -1,4 +1,5 @@
 import { emptyFitCm, isAsiaSizeLetter } from "@/lib/asia-size";
+import { plainAmount } from "@/lib/plain-amount";
 import type { ItemDraft } from "@/lib/item-draft";
 import type { ShopSize } from "@/lib/asia-size";
 
@@ -195,12 +196,7 @@ export type IntakePrefill = {
 };
 
 function parseMoney(raw: string): number | null {
-  const trimmed = raw.trim().replace(/,/g, "");
-  if (!trimmed) {
-    return null;
-  }
-  const value = Number(trimmed);
-  return Number.isFinite(value) && value >= 0 ? value : null;
+  return plainAmount(raw);
 }
 
 function slugifyName(name: string): string {

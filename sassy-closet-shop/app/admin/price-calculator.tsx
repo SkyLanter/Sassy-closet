@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { plainAmount } from "@/lib/plain-amount";
 import {
   calcPricing,
   deboxForLetter,
@@ -37,12 +38,7 @@ function FormulaSell({ landedUsd, sellUsd }: { landedUsd: number | null; sellUsd
 }
 
 function numOrNull(raw: string): number | null {
-  const trimmed = raw.trim().replace(/,/g, "");
-  if (!trimmed) {
-    return null;
-  }
-  const value = Number(trimmed);
-  return Number.isFinite(value) && value >= 0 ? value : null;
+  return plainAmount(raw);
 }
 
 function strOrEmpty(value: number | null | undefined): string {
