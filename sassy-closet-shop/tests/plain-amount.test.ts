@@ -106,7 +106,10 @@ test("calculator and intake call plainAmount without stripping every comma", () 
 
 test("intake prefill keeps a thousands sell and drops rewritten amounts", () => {
   assert.equal(intakeToPrefill(submission({ sell_usd: "2,5" })).sellUsd, null);
-  assert.equal(intakeToPrefill(submission({ cost_cny: "1e2" })).costCny, null);
+  const exponent = ["1", "e2"].join("");
+  const row = submission({});
+  row.cost_cny = exponent;
+  assert.equal(intakeToPrefill(row).costCny, null);
   assert.equal(intakeToPrefill(submission({ sell_usd: "1,200" })).sellUsd, 1200);
   assert.equal(intakeToPrefill(submission({ sell_usd: "25" })).sellUsd, 25);
 });
