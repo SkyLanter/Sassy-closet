@@ -8,9 +8,11 @@ type CopyKind = "ma" | "link" | "caption" | null;
 
 export function SavedCard({
   result,
+  newMaWebhookOn,
   onClose,
 }: {
   result: Submission | null;
+  newMaWebhookOn: boolean;
   onClose: () => void;
 }) {
   const [copied, setCopied] = useState<CopyKind>(null);
@@ -55,6 +57,11 @@ export function SavedCard({
           >
             Saved · Đã lưu
           </h2>
+          <p data-testid="saved-card-bot" className="mt-2 text-center text-sm text-rose-800">
+            {newMaWebhookOn
+              ? "Bot sẽ kiểm tra và đưa lên web trong vài phút"
+              : "Bot sẽ kiểm tra và đưa lên web trong ~15 phút"}
+          </p>
         </div>
         <p
           data-testid="saved-card-ma"

@@ -1,0 +1,136 @@
+{
+  "schema": "catalog.v1",
+  "products": [
+    {
+      "ma": "S06",
+      "priceUsd": 25,
+      "status": "available",
+      "colors": [
+        {
+          "id": "cs0600",
+          "hex": "#F4F0E8",
+          "name": "",
+          "note": ""
+        },
+        {
+          "id": "cs0601",
+          "hex": "#1C2A4A",
+          "name": "Xanh",
+          "note": ""
+        }
+      ]
+    },
+    {
+      "ma": "V05",
+      "priceUsd": null,
+      "status": "hold",
+      "colors": [
+        {
+          "id": "den",
+          "hex": "#111111",
+          "name": "  ",
+          "note": "Hoa"
+        }
+      ]
+    },
+    {
+      "ma": "A01",
+      "priceUsd": 27,
+      "status": "available",
+      "colors": [
+        {
+          "id": "ca0100",
+          "hex": "#F5D76E",
+          "name": "Yellow",
+          "note": ""
+        },
+        {
+          "id": "ca0101",
+          "hex": "#7B5EA7",
+          "name": "Purple",
+          "note": ""
+        }
+      ]
+    },
+    {
+      "ma": "K06",
+      "priceUsd": null,
+      "status": "hold",
+      "colors": [
+        {
+          "id": "ck0600",
+          "hex": "",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "ma": "Z91",
+      "priceUsd": 10,
+      "status": "available",
+      "colors": [
+        {
+          "id": "cz9100",
+          "hex": "#fff",
+          "note": "Ivory"
+        }
+      ]
+    },
+    {
+      "ma": "Z92",
+      "priceUsd": 12,
+      "status": "available",
+      "colors": [
+        {
+          "id": "cz9200",
+          "hex": "#C4A484",
+          "name": null
+        }
+      ]
+    },
+    {
+      "ma": "Z93",
+      "priceUsd": 13,
+      "status": "available",
+      "colors": [
+        {
+          "id": "cz9300",
+          "hex": "#FFFFFF",
+          "name": "#FFFFFF"
+        }
+      ]
+    },
+    {
+      "ma": "Z94",
+      "priceUsd": 14,
+      "status": "available",
+      "colors": [
+        {
+          "id": "cz9400",
+          "hex": "red",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "ma": "Z95",
+      "priceUsd": 15,
+      "status": "available",
+      "colors": [
+        {
+          "id": "kem",
+          "name": "",
+          "note": "#111111"
+        }
+      ]
+    },
+    {
+      "ma": "H01",
+      "priceUsd": 8,
+      "status": "available",
+      "colors": [
+        "Đen"
+      ]
+    }
+  ]
+}

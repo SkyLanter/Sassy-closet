@@ -1,0 +1,14 @@
+{
+  "schema": "catalog.v1",
+  "version": 1,
+  "siteId": "fixture",
+  "products": [
+    {"ma": "S06", "priceUsd": 25, "status": "available"},
+    {"ma": "A01", "priceUsd": 27, "status": "available"},
+    {"ma": "D05", "priceUsd": 26, "status": "available"},
+    {"ma": "K06", "priceUsd": null, "status": "available"},
+    {"ma": "V05", "priceUsd": null, "status": "hold"},
+    {"ma": "S14", "priceUsd": null, "status": "hold"},
+    {"ma": "K05", "priceUsd": null, "status": "sold"}
+  ]
+}

@@ -55,11 +55,63 @@ MA_PREFIX_MEANS: dict[str, str] = {
     "QU": "Quần / bottoms",
     "VA": "Váy / dresses",
     "AK": "Áo khoác / jackets",
-    "GI": "Giày / shoes",
+    "GI": "Giày / Cao gót / shoes",
     "PK": "Phụ kiện / accessories",
     "SET": "Set",
 }
 MA_RE = re.compile(r"^(AO|QU|VA|AK|GI|PK|SET)(\d{3})$")
+
+# Intake site letters (https://sassy-closet.vercel.app). Same codes/labels/size
+# rules as sassy-closet/lib/kinds.ts. Official Excel prefixes above stay
+# AO/QU/VA/AK/GI/PK/SET — do not invent new Official mã from these letters.
+INTAKE_KIND_LABELS: dict[str, str] = {
+    "A": "Áo",
+    "Q": "Quần",
+    "V": "Váy",
+    "D": "Đầm / Dress",
+    "K": "Áo khoác",
+    "G": "Giày / Cao gót",
+    "B": "Túi",
+    "P": "Phụ kiện",
+    "H": "Phụ kiện tóc / Hair accessories",
+    "J": "Trang sức / Jewelry",
+    "S": "Set đồ",
+    "O": "Khác / Other",
+}
+INTAKE_KIND_CODES: tuple[str, ...] = tuple(INTAKE_KIND_LABELS)
+INTAKE_CLOTHING_SIZES: tuple[str, ...] = ("2XS", "XS", "S", "M", "L", "XL", "2XL")
+INTAKE_SHOE_SIZES: tuple[str, ...] = ("35", "36", "37", "38", "39", "40", "41")
+INTAKE_CSV_HEADERS: tuple[str, ...] = (
+    "ma",
+    "kind",
+    "kind_vi",
+    "size",
+    "color",
+    "color_note",
+    "color_pieces",
+    "blurb",
+    "cost_cny",
+    "cost_usd",
+    "cost_currency",
+    "sell_cny",
+    "sell_usd",
+    "sell_currency",
+    "source_link",
+    "status",
+    "square",
+    "created_at",
+    "updated_at",
+    "photo_link",
+    "size_options",
+)
+
+
+def intake_sizes_for_kind(code: str) -> tuple[str, ...]:
+    """Size chips for one intake kind letter. G = Asia shoe 35–41; else clothing."""
+    key = (code or "").strip().upper()
+    if key == "G":
+        return INTAKE_SHOE_SIZES
+    return INTAKE_CLOTHING_SIZES
 
 # ---------------------------------------------------------------------------
 # Desktop kit headers — photo_link is last on Ma_List and Candidates
@@ -312,7 +364,11 @@ HEADER_ALIASES: dict[str, tuple[str, ...]] = {
     "max_cost": ("max_cost", "cost", "Cost ¥"),
     "target_price": ("target_price", "Sell $", "list_price", "price"),
     "type": ("Type", "type", "category"),
-    "category": ("category", "Type", "type"),
+    "category": ("category", "Type", "type", "kind_vi", "kind_label"),
+    "kind": ("kind",),
+    "kind_vi": ("kind_vi", "kind_label"),
+    "kind_label": ("kind_label", "kind_vi"),
+    "size_options": ("size_options",),
     "photo_file": ("photo_file",),
     "square_name": ("square_name",),
     "caption_ready": ("caption_ready",),

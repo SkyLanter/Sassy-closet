@@ -14,16 +14,19 @@ export const KINDS: Kind[] = [
   { code: "V", label: "Váy", hint: "V" },
   { code: "D", label: "Đầm / Dress", hint: "D" },
   { code: "K", label: "Áo khoác", hint: "K" },
-  { code: "G", label: "Giày", hint: "G" },
+  { code: "G", label: "Giày / Cao gót", hint: "G" },
   { code: "B", label: "Túi", hint: "B" },
-  { code: "H", label: "Tóc", hint: "H" },
-  { code: "J", label: "Trang sức", hint: "J" },
   { code: "P", label: "Phụ kiện", hint: "P" },
+  { code: "H", label: "Phụ kiện tóc / Hair accessories", hint: "H" },
+  { code: "J", label: "Trang sức / Jewelry", hint: "J" },
   { code: "S", label: "Set đồ", hint: "S" },
   { code: "O", label: "Khác / Other", hint: "O" },
 ];
 
-export const SIZES = ["2XS", "XS", "S", "M", "L", "XL", "2XL"] as const;
+export const CLOTHING_SIZES = ["2XS", "XS", "S", "M", "L", "XL", "2XL"] as const;
+export const SHOE_SIZES = ["35", "36", "37", "38", "39", "40", "41"] as const;
+/** Clothing Asia sizes. Prefer `sizesForKind` so giày (G) stays on 35–41. */
+export const SIZES = CLOTHING_SIZES;
 
 export type ColorChip = {
   code: string;
@@ -60,6 +63,19 @@ export const COLORS: ColorChip[] = [
   { code: "khac", vi: "Khác" },
 ];
 
+export type SizeScale = "shoe" | "clothing";
+
+export type IntakeCatalogKind = {
+  code: KindCode;
+  label: string;
+  hint: string;
+  sizes: string[];
+};
+
+export type IntakeCatalog = {
+  kinds: IntakeCatalogKind[];
+};
+
 export function isKindCode(value: string): value is KindCode {
   return (KIND_CODES as readonly string[]).includes(value);
 }
@@ -67,6 +83,53 @@ export function isKindCode(value: string): value is KindCode {
 export function kindLabel(code: string): string {
   const found = KINDS.find((k) => k.code === code);
   return found?.label ?? code;
+}
+
+export function sizeScaleForKind(kind: KindCode): SizeScale {
+  switch (kind) {
+    case "G":
+      return "shoe";
+    case "A":
+    case "Q":
+    case "V":
+    case "D":
+    case "K":
+    case "B":
+    case "P":
+    case "H":
+    case "J":
+    case "S":
+    case "O":
+      return "clothing";
+    default: {
+      const _never: never = kind;
+      return assertNever(_never, `Unknown kind ${String(kind)}`);
+    }
+  }
+}
+
+export function sizesForKind(kind: KindCode): readonly string[] {
+  return sizeScaleForKind(kind) === "shoe" ? SHOE_SIZES : CLOTHING_SIZES;
+}
+
+export function sizeOptionsLine(kind: KindCode): string {
+  return sizesForKind(kind).join(" ");
+}
+
+export function keepSizesForKind(selected: string[], kind: KindCode): string[] {
+  const allowed = new Set<string>(sizesForKind(kind));
+  return selected.filter((size) => allowed.has(size));
+}
+
+export function intakeCatalog(): IntakeCatalog {
+  return {
+    kinds: KINDS.map((kind) => ({
+      code: kind.code,
+      label: kind.label,
+      hint: kind.hint,
+      sizes: [...sizesForKind(kind.code)],
+    })),
+  };
 }
 
 export function assertNever(value: never, message: string): never {

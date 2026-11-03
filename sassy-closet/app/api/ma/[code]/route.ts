@@ -1,16 +1,28 @@
-import { NextResponse } from "next/server";
+import { intakeDirectJson, withIntakeDirectLinkHeaders } from "@/lib/intake-direct-link";
 import { lookupMaCard } from "@/lib/ma-card";
+import { storeUnavailableResponse } from "@/lib/store-unavailable";
 
 export async function GET(
   _request: Request,
   context: { params: Promise<{ code: string }> },
 ) {
   const { code } = await context.params;
-  const card = await lookupMaCard(decodeURIComponent(code ?? ""));
-  if (!card) {
-    return NextResponse.json({ error: "Không tìm thấy mã" }, { status: 404 });
+  let decoded = code ?? "";
+  try {
+    decoded = decodeURIComponent(decoded);
+  } catch {
+    // Next already decoded the param; a literal "%" stays as-is (lookup miss → 404).
   }
-  return NextResponse.json({
+  let card;
+  try {
+    card = await lookupMaCard(decoded);
+  } catch (error) {
+    return withIntakeDirectLinkHeaders(storeUnavailableResponse(error));
+  }
+  if (!card) {
+    return intakeDirectJson({ error: "Không tìm thấy mã" }, 404);
+  }
+  return intakeDirectJson({
     code: card.code,
     staged: card.staged,
     on_hand: card.on_hand,

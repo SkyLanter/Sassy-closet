@@ -1,0 +1,73 @@
+{
+  "schema": "catalog.v1",
+  "version": 1,
+  "products": [
+    {
+      "ma": "S06",
+      "priceUsd": 25,
+      "status": "available",
+      "images": [
+        {
+          "src": "/products/S06/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/S06/photo-2.jpeg",
+          "colorId": null,
+          "order": 2
+        },
+        {
+          "src": "/products/S06/photo-3.png",
+          "colorId": null,
+          "order": 3
+        },
+        {
+          "src": "/products/S06/photo-4.webp",
+          "colorId": null,
+          "order": 4
+        }
+      ]
+    },
+    {
+      "ma": "K06",
+      "priceUsd": 48,
+      "status": "hold",
+      "held": true,
+      "images": [
+        {
+          "src": "/products/K06/cover.webp",
+          "colorId": null,
+          "order": 1
+        }
+      ]
+    },
+    {
+      "ma": "A01",
+      "priceUsd": 27,
+      "status": "available",
+      "images": [
+        {
+          "src": "/products/A01/cover.JPG",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/A01/photo-2.JPEG",
+          "colorId": null,
+          "order": 2
+        },
+        {
+          "src": "/products/A01/photo-3.PNG",
+          "colorId": null,
+          "order": 3
+        },
+        {
+          "src": "/products/A01/photo-4.WEBP",
+          "colorId": null,
+          "order": 4
+        }
+      ]
+    }
+  ]
+}

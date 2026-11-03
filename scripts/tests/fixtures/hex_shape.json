@@ -1,0 +1,190 @@
+{
+  "schema": "catalog.v1",
+  "products": [
+    {
+      "ma": "S06",
+      "priceUsd": 25,
+      "status": "available",
+      "colors": [
+        {
+          "id": "cs0600",
+          "hex": "F4F0E8",
+          "name": "Kem",
+          "note": ""
+        },
+        {
+          "id": "cs0601",
+          "hex": "#1C2A4A",
+          "name": "Xanh",
+          "note": ""
+        },
+        {
+          "id": "cs0602",
+          "hex": "",
+          "name": "",
+          "note": ""
+        },
+        {
+          "id": "cs0603",
+          "hex": "#12",
+          "name": "Short",
+          "note": ""
+        }
+      ]
+    },
+    {
+      "ma": "V05",
+      "priceUsd": null,
+      "status": "hold",
+      "colors": [
+        {
+          "id": "den",
+          "hex": " #7A8B6F",
+          "name": "Đen",
+          "note": "Hoa"
+        }
+      ]
+    },
+    {
+      "ma": "A01",
+      "priceUsd": 27,
+      "status": "available",
+      "colors": [
+        {
+          "id": "ca0100",
+          "hex": "#F5D76E",
+          "name": "Yellow",
+          "note": ""
+        },
+        {
+          "id": "ca0101",
+          "hex": "#fff",
+          "name": "Short",
+          "note": ""
+        },
+        {
+          "id": "ca0102",
+          "hex": "#aBc",
+          "name": "Mixed",
+          "note": ""
+        }
+      ]
+    },
+    {
+      "ma": "K06",
+      "priceUsd": null,
+      "status": "hold",
+      "colors": [
+        {
+          "id": "den",
+          "hex": "",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "ma": "Z91",
+      "priceUsd": 10,
+      "status": "available",
+      "colors": [
+        {
+          "id": "cz9100",
+          "hex": "#ffff",
+          "name": "Four"
+        }
+      ]
+    },
+    {
+      "ma": "Z92",
+      "priceUsd": 12,
+      "status": "available",
+      "colors": [
+        {
+          "id": "cz9200",
+          "hex": "#ggg",
+          "name": "Nope"
+        }
+      ]
+    },
+    {
+      "ma": "Z93",
+      "priceUsd": 13,
+      "status": "available",
+      "colors": [
+        {
+          "id": "cz9300",
+          "hex": "red",
+          "name": "Red"
+        }
+      ]
+    },
+    {
+      "ma": "Z94",
+      "priceUsd": 14,
+      "status": "available",
+      "colors": [
+        {
+          "id": "cz9400",
+          "hex": "#12345678",
+          "name": "Long"
+        }
+      ]
+    },
+    {
+      "ma": "Z95",
+      "priceUsd": 15,
+      "status": "available",
+      "colors": [
+        {
+          "id": "cz9500",
+          "hex": "#AbCdEf",
+          "name": "Mixed"
+        }
+      ]
+    },
+    {
+      "ma": "Z96",
+      "priceUsd": 16,
+      "status": "available",
+      "colors": [
+        {
+          "id": "kem",
+          "name": "Kem",
+          "note": "#111111"
+        }
+      ]
+    },
+    {
+      "ma": "Z97",
+      "priceUsd": 17,
+      "status": "available",
+      "colors": [
+        {
+          "id": "cz9700",
+          "hex": null,
+          "name": "Null"
+        }
+      ]
+    },
+    {
+      "ma": "Z98",
+      "priceUsd": 18,
+      "status": "available",
+      "colors": [
+        {
+          "id": "cz9800",
+          "hex": "   ",
+          "name": "Space"
+        }
+      ]
+    },
+    {
+      "ma": "H01",
+      "priceUsd": 8,
+      "status": "available",
+      "colors": [
+        "Đen"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "captions": [
+    {
+      "id": "s06",
+      "text": "Mã S06\nSet đồ cưng xỉu\nGiá $25"
+    },
+    {
+      "id": "clean-colon",
+      "text": "Mã A07\nGiá: $26"
+    },
+    {
+      "id": "clean-cents",
+      "text": "Mã A08\nGiá: $24.50"
+    },
+    {
+      "id": "clean-usd-word",
+      "text": "Mã A01\nGiá: $12 USD"
+    },
+    {
+      "id": "inbox",
+      "text": "Mã K06\nGiá: Inbox giá"
+    },
+    {
+      "id": "inbox-only",
+      "text": "Mã D06\nInbox giá"
+    },
+    {
+      "id": "yen",
+      "text": "Mã P02\nGiá: ¥100"
+    },
+    {
+      "id": "yen-space",
+      "text": "Mã P03\nGiá: ¥ 88"
+    },
+    {
+      "id": "trailing",
+      "text": "Mã A02\nGiá: 25$"
+    },
+    {
+      "id": "trailing-space",
+      "text": "Mã B01\nGiá: 18 $"
+    },
+    {
+      "id": "trailing-cents",
+      "text": "Mã D05\nGiá 24.50$"
+    },
+    {
+      "id": "size-not-price",
+      "text": "Mã G02\nSize 36\nGiá: 42$"
+    },
+    {
+      "id": "spaced",
+      "text": "Mã S10\nGiá: $ 37"
+    },
+    {
+      "id": "spaced-example",
+      "text": "Mã A04\nGiá: $ 25"
+    },
+    {
+      "id": "spaced-cents",
+      "text": "Mã A03\nGiá: $ 20.00"
+    },
+    {
+      "id": "missing",
+      "text": "Mã V01\nGiá: 39"
+    },
+    {
+      "id": "missing-usd",
+      "text": "Mã V02\nGiá: 40 USD"
+    }
+  ]
+}

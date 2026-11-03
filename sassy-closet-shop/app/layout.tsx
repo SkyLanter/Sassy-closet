@@ -1,0 +1,46 @@
+import type { Viewport } from "next";
+import type { ReactNode } from "react";
+import { Be_Vietnam_Pro, Cormorant_Garamond } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { rootSeo } from "@/lib/seo";
+import "./globals.css";
+
+const sans = Be_Vietnam_Pro({
+  variable: "--font-be-vietnam",
+  subsets: ["latin", "latin-ext", "vietnamese"],
+  weight: ["300", "400", "500", "600"],
+  display: "swap",
+});
+
+const display = Cormorant_Garamond({
+  variable: "--font-cormorant",
+  subsets: ["latin", "latin-ext", "vietnamese"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+export const viewport: Viewport = {
+  viewportFit: "cover",
+  themeColor: "#fdece6",
+  colorScheme: "light",
+};
+
+export async function generateMetadata() {
+  return rootSeo();
+}
+
+export default function RootLayout({ children }: { children: ReactNode }) {
+  return (
+    <html
+      lang="en"
+      className={`${sans.variable} ${display.variable} h-full min-h-dvh antialiased`}
+    >
+      <body className="flex min-h-full min-h-dvh flex-col bg-paper font-sans text-ink">
+        {children}
+        <Analytics />
+        <SpeedInsights />
+      </body>
+    </html>
+  );
+}

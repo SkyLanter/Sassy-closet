@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ConfirmDialog, ToastStack, type ToastItem } from "@/components/AdminChrome";
 import { AskPanel } from "@/components/AskPanel";
 import { BrandHeader } from "@/components/BrandHeader";
 import { FindMaCard } from "@/components/FindMaCard";
@@ -8,9 +9,21 @@ import { PhotoLightbox } from "@/components/PhotoLightbox";
 import { PhotoThumbs } from "@/components/PhotoThumbs";
 import { SavedCard } from "@/components/SavedCard";
 import { convertCnyToUsd, convertUsdToCny } from "@/lib/fx";
-import { COLORS, KINDS, SIZES, assertNever } from "@/lib/kinds";
+import { COLORS, KINDS, assertNever, keepSizesForKind, sizeScaleForKind, sizesForKind } from "@/lib/kinds";
 import { nextMa, parseHubMa } from "@/lib/mint";
+import {
+  listingChip,
+  listingItemForMa,
+  listingPollIntervalMs,
+  listingStatusFromApi,
+  listingWebView,
+  type ListingItem,
+  type ListingStatusClient,
+} from "@/lib/listing-status";
 import { normalizeFindCode } from "@/lib/on-hand";
+import { intakePriceView, type SellPriceFlag } from "@/lib/pricing";
+import type { PriceBreakdown } from "@/lib/pricing";
+import type { TaobaoItem } from "@/lib/taobao";
 import type { KindCode } from "@/lib/kinds";
 import type { MaLookup, Submission, TabId } from "@/lib/types";
 
@@ -20,12 +33,17 @@ type PhotoDraft = {
   url: string;
 };
 
+const LISTING_REFRESH_AFTER_SAVE_MS = 1500;
+const INTAKE_READ_VI = "Kho mã đang không đọc được — báo Mini Boss nha.";
+
 export function IntakeApp({
   initialFxRate,
   initialFxLabel,
+  newMaWebhookOn,
 }: {
   initialFxRate: number;
   initialFxLabel: string;
+  newMaWebhookOn: boolean;
 }) {
   const [tab, setTab] = useState<TabId>("create");
   const [kind, setKind] = useState<KindCode>("A");
@@ -48,14 +66,35 @@ export function IntakeApp({
   const [knownMas, setKnownMas] = useState<string[]>([]);
   const [fxRate] = useState(initialFxRate);
   const [fxLabel] = useState(initialFxLabel);
+  // --- Taobao lookup (server-side prefill) ---
+  const [tbState, setTbState] = useState<"idle" | "loading" | "ok" | "blocked">("idle");
+  const [tbItem, setTbItem] = useState<TaobaoItem | null>(null);
+  const [tbReason, setTbReason] = useState("");
+  const [sellerColors, setSellerColors] = useState<string[]>([]);
+  const [needsResearch, setNeedsResearch] = useState(false);
+  // Stored breakdown only. The form does not calculate a sell price or require one.
+  const [autoPrice, setAutoPrice] = useState<PriceBreakdown | null>(null);
   const [findPreview, setFindPreview] = useState<string | null>(null);
   const [findMatches, setFindMatches] = useState<{ ma: string; kind: string; color: string }[]>([]);
   const [findCopied, setFindCopied] = useState<string | null>(null);
   const [findCode, setFindCode] = useState("");
   const [findCard, setFindCard] = useState<MaLookup | null>(null);
   const [findMiss, setFindMiss] = useState(false);
+  const [savedRows, setSavedRows] = useState<Submission[]>([]);
+  const [listing, setListing] = useState<ListingStatusClient>({ enabled: false, items: {} });
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const listingTimer = useRef<number | null>(null);
+  const loadListingRef = useRef<() => void>(() => {});
+  const [confirm, setConfirm] = useState<null | { kind: "rename" | "overwrite"; ma: string; next: string | null }>(null);
+  const toastSeq = useRef(0);
+
+  function pushToast(text: string, tone: ToastItem["tone"]) {
+    const id = (toastSeq.current += 1);
+    setToasts((current) => [...current, { id, text, tone }].slice(-4));
+  }
 
   useEffect(() => {
+    void refreshMas();
     const ma = new URLSearchParams(window.location.search).get("ma");
     if (!ma) return;
     setTab("edit");
@@ -63,12 +102,102 @@ export function IntakeApp({
     void loadMa(ma);
   }, []);
 
-  const colorLine = useMemo(() => colors.join(", "), [colors]);
+  useEffect(() => {
+    let pollTimer: number | null = null;
+
+    function stopPoll() {
+      if (pollTimer === null) return;
+      window.clearInterval(pollTimer);
+      pollTimer = null;
+    }
+
+    function startPoll() {
+      stopPoll();
+      const delay = listingPollIntervalMs(document.visibilityState);
+      if (delay === null) return;
+      pollTimer = window.setInterval(() => {
+        loadListingRef.current();
+      }, delay);
+    }
+
+    function onVisibility() {
+      if (listingPollIntervalMs(document.visibilityState) === null) {
+        stopPoll();
+        return;
+      }
+      loadListingRef.current();
+      startPoll();
+    }
+
+    loadListingRef.current();
+    startPoll();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      stopPoll();
+      if (listingTimer.current !== null) window.clearTimeout(listingTimer.current);
+    };
+  }, []);
+
+  const colorLine = useMemo(() => [...colors, ...sellerColors].join(", "), [colors, sellerColors]);
+
+  async function onTaobaoLookup() {
+    if (!link.trim()) {
+      setError("Dán link Taobao trước nha iu ơi.");
+      return;
+    }
+    setTbState("loading");
+    setTbReason("");
+    setError(null);
+    try {
+      const response = await fetch("/api/taobao-lookup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ link }),
+      });
+      const data = (await response.json()) as {
+        ok?: boolean;
+        blocked?: boolean;
+        reason?: string;
+        item?: TaobaoItem;
+      };
+      if (data.ok && data.item) {
+        const item = data.item;
+        setTbItem(item);
+        setTbState("ok");
+        setNeedsResearch(false);
+        // Seller SKU colors are seller truth — keep them marked, never translated.
+        setSellerColors((current) => {
+          const merged = [...current];
+          for (const color of item.colors) {
+            if (!colors.includes(color) && !merged.includes(color)) merged.push(color);
+          }
+          return merged;
+        });
+        // Prefill cost from the seller's list ¥ (promo noted in the panel).
+        if (item.listCny) {
+          setCostCny(item.listCny);
+          const usd = convertCnyToUsd(item.listCny, fxRate);
+          if (usd !== null) setCostUsd(usd);
+        }
+      } else {
+        setTbState("blocked");
+        setTbReason(data.reason || "Taobao chặn fetch tự động.");
+        // Graceful degrade: keep what the user typed, flag for manual research.
+        setNeedsResearch(true);
+      }
+    } catch {
+      setTbState("blocked");
+      setTbReason("Không gọi được server, thử lại nha.");
+      setNeedsResearch(true);
+    }
+  }
 
   function resetForm() {
     setKind("A");
     setSizes([]);
     setColors([]);
+    setSellerColors([]);
     setColorNote("");
     setLink("");
     setCostUsd("");
@@ -79,6 +208,11 @@ export function IntakeApp({
     setLoadedMa(null);
     setRenameTo("");
     setError(null);
+    setTbState("idle");
+    setTbItem(null);
+    setTbReason("");
+    setNeedsResearch(false);
+    setAutoPrice(null);
   }
 
   function switchTab(next: TabId) {
@@ -100,11 +234,40 @@ export function IntakeApp({
     }
   }
 
+  async function loadListingStatus() {
+    try {
+      const response = await fetch("/api/listing-status", { cache: "no-store" });
+      if (!response.ok) return;
+      const payload: unknown = await response.json();
+      setListing(listingStatusFromApi(payload));
+    } catch {
+      // Keep the last snapshot. A down status route must not change the save UI.
+    }
+  }
+
+  loadListingRef.current = () => {
+    void loadListingStatus();
+  };
+
+  function scheduleListingRefresh() {
+    if (listingTimer.current !== null) window.clearTimeout(listingTimer.current);
+    listingTimer.current = window.setTimeout(() => {
+      listingTimer.current = null;
+      loadListingRef.current();
+    }, LISTING_REFRESH_AFTER_SAVE_MS);
+  }
+
   async function refreshMas(): Promise<string[]> {
     try {
       const response = await fetch("/api/submissions");
-      const data = (await response.json()) as { submissions?: { ma?: string }[] };
-      const mas = (data.submissions ?? []).map((row) => String(row.ma ?? "")).filter(Boolean);
+      const data = (await response.json()) as { submissions?: Submission[]; error?: string };
+      if (!response.ok) {
+        setError(data.error ?? INTAKE_READ_VI);
+        return knownMas;
+      }
+      const rows = data.submissions ?? [];
+      setSavedRows(rows);
+      const mas = rows.map((row) => String(row.ma ?? "")).filter(Boolean);
       setKnownMas(mas);
       return mas;
     } catch {
@@ -140,18 +303,23 @@ export function IntakeApp({
     setLookupMa(item.ma);
     setKind(item.kind);
     setSizes(item.size.split(/[\s,]+/).filter(Boolean));
-    setColors(
-      item.color
-        .split(",")
-        .map((part) => part.trim())
-        .filter(Boolean),
-    );
+    const snapshotColors = item.taobao_snapshot?.colors ?? [];
+    const allColors = item.color
+      .split(",")
+      .map((part) => part.trim())
+      .filter(Boolean);
+    setSellerColors(allColors.filter((color) => snapshotColors.includes(color)));
+    setColors(allColors.filter((color) => !snapshotColors.includes(color)));
     setColorNote(item.color_note);
     setLink(item.link);
     setCostUsd(item.cost_usd);
     setCostCny(item.cost_cny);
     setSellUsd(item.sell_usd);
     setSellCny(item.sell_cny);
+    setNeedsResearch(Boolean(item.needs_research));
+    setTbItem(item.taobao_snapshot ?? null);
+    setTbState(item.taobao_snapshot ? "ok" : "idle");
+    setAutoPrice(item.auto_price ?? null);
     setPhotos(
       (item.photo_paths ?? []).map((rel) => ({
         id: `keep:${rel}`,
@@ -161,7 +329,7 @@ export function IntakeApp({
     setRenameTo("");
   }
 
-  async function save(renameMa?: string | null, editingMa?: string | null) {
+  async function save(renameMa?: string | null, editingMa?: string | null): Promise<boolean> {
     setError(null);
     setBusy(true);
     try {
@@ -173,12 +341,29 @@ export function IntakeApp({
       form.set("cost_usd", costUsd);
       form.set("cost_cny", costCny);
       form.set("cost_currency", costUsd ? "USD" : costCny ? "CNY" : "USD");
-      form.set("sell_usd", sellUsd);
-      form.set("sell_cny", sellCny);
-      form.set("sell_currency", sellUsd ? "USD" : sellCny ? "CNY" : "USD");
+      const priced = intakePriceView({
+        ma: (editingMa || (tab === "edit" ? loadedMa : "") || "").trim(),
+        kind,
+        costCny,
+        costUsd,
+        costCurrency: costUsd ? "USD" : costCny ? "CNY" : "USD",
+        sellUsd,
+        sellCny,
+        sellCurrency: sellUsd.trim() ? "USD" : sellCny.trim() ? "CNY" : "USD",
+        fxRate,
+      });
+      const fillCalculated = !sellUsd.trim() && !sellCny.trim() && priced.dollars != null;
+      const nextSellUsd = fillCalculated ? String(priced.dollars) : sellUsd;
+      const nextSellCny = fillCalculated ? (convertUsdToCny(nextSellUsd, fxRate) ?? "") : sellCny;
+      form.set("sell_usd", nextSellUsd);
+      form.set("sell_cny", nextSellCny);
+      form.set("sell_currency", nextSellUsd.trim() ? "USD" : nextSellCny.trim() ? "CNY" : "USD");
       form.set("color", colorLine);
       form.set("color_note", colorNote);
       form.set("pieces", JSON.stringify([]));
+      form.set("needs_research", needsResearch ? "1" : "");
+      form.set("taobao_snapshot", tbItem ? JSON.stringify(tbItem) : "");
+      form.set("auto_price", autoPrice ? JSON.stringify(autoPrice) : "");
       form.set("keep_photos", JSON.stringify(photos.filter((p) => p.id.startsWith("keep:")).map((p) => p.id.slice(5))));
       form.set("save", "1");
       if (renameMa) form.set("new_ma", renameMa);
@@ -191,17 +376,21 @@ export function IntakeApp({
       const data = (await response.json()) as { submission?: Submission; error?: string };
       if (!response.ok || !data.submission) {
         setError(data.error || "Chưa nhận được mã. Thử lại nha 🥺");
-        return;
+        return false;
       }
       setSaved(data.submission);
+      pushToast(`Đã lưu ${data.submission.ma}`, "ok");
       setLoadedMa(data.submission.ma);
       setLookupMa(data.submission.ma);
       setLastMa(data.submission.ma);
       if (tab === "create") resetForm();
       else applySubmission(data.submission);
       await refreshMas();
+      scheduleListingRefresh();
+      return true;
     } catch {
       setError("Chưa gửi được. Kiểm tra mạng rồi thử lại 💕");
+      return false;
     } finally {
       setBusy(false);
     }
@@ -214,15 +403,24 @@ export function IntakeApp({
       current = loaded?.ma ?? null;
     }
     if (tab === "edit" && !current) return;
-    if (tab === "edit" && current && renameTo.trim()) {
-      await save(renameTo.trim(), current);
+    if (tab === "edit" && current) {
+      const next = renameTo.trim();
+      setConfirm({ kind: next ? "rename" : "overwrite", ma: current, next: next || null });
       return;
     }
     await save(null, current);
   }
 
-  function onKind(next: KindCode) {
+  async function confirmSave() {
+    if (!confirm) return;
+    const pending = confirm;
+    const ok = await save(pending.kind === "rename" ? pending.next : null, pending.ma);
+    if (ok) setConfirm(null);
+  }
+
+  function toggleSize(value: string) { setSizes((current) => current.includes(value) ? current.filter((s) => s !== value) : [...current, value]); } function onKind(next: KindCode) {
     setKind(next);
+    setSizes((current) => keepSizesForKind(current, next));
     if (tab === "edit" && loadedMa) {
       const current = parseHubMa(loadedMa)?.kind;
       if (current && current !== next) {
@@ -296,10 +494,21 @@ export function IntakeApp({
       data-testid="intake-shell"
       className="relative z-10 mx-auto flex min-h-dvh w-full max-w-md flex-col px-4 py-6 md:max-w-2xl md:px-6 lg:max-w-5xl lg:px-10 lg:py-12 xl:max-w-6xl"
     >
-      <BrandHeader />
+      <div className="mb-4 flex items-end justify-between gap-3 border-b border-[#eadfdc] pb-4">
+        <BrandHeader />
+        <button
+          type="button"
+          className="inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-sm font-semibold text-[#5c3d48] ring-1 ring-[#eadfdc]"
+          onClick={() => switchTab("create")}
+        >
+          Món mới
+        </button>
+      </div>
       <div
         data-testid="intake-tabs"
-        className="mb-4 grid grid-cols-4 rounded-full bg-white/70 p-1 shadow-sm ring-1 ring-rose-100 lg:mx-auto lg:mb-6 lg:w-full lg:max-w-xl"
+        role="tablist"
+        aria-label="Intake"
+        className="adm-scroll mb-4 flex gap-1 overflow-x-auto rounded-full bg-white/80 p-1 ring-1 ring-[#eadfdc] lg:mx-auto lg:mb-6 lg:w-full lg:max-w-xl"
       >
         <TabButton id="create" current={tab} onClick={switchTab} mobile="Món mới" desktop="Món mới" />
         <TabButton id="edit" current={tab} onClick={switchTab} mobile="Sửa mã" desktop="Sửa theo mã" />
@@ -313,7 +522,7 @@ export function IntakeApp({
           ariaLabel="Hỏi Mini Boss · Ask"
         />
       </div>
-      <section className="flex flex-1 flex-col rounded-3xl bg-card/90 p-4 shadow-sm ring-1 ring-rose-100 lg:p-8">
+      <section className="flex flex-1 flex-col rounded-3xl bg-card p-4 ring-1 ring-[#eadfdc] lg:p-8">
         {renderTab({
           tab,
           kind,
@@ -347,6 +556,15 @@ export function IntakeApp({
           busy,
           fxRate,
           fxLabel,
+          tbState,
+          tbItem,
+          tbReason,
+          onTaobaoLookup,
+          sellerColors,
+          setSellerColors,
+          needsResearch,
+          setNeedsResearch,
+          toggleSize,
           findPreview,
           findMatches,
           findCopied,
@@ -359,19 +577,58 @@ export function IntakeApp({
           findBusy: busy,
         })}
         {error ? (
-          <p data-testid="intake-error" className="mt-4 text-center text-sm text-rose-700">
+          <p data-testid="intake-error" role="alert" className="mt-4 text-center text-sm text-[#9b2c2c]">
             {error}
           </p>
         ) : null}
       </section>
+      <SavedList
+        rows={savedRows}
+        listing={listing}
+        fxRate={fxRate}
+        onOpen={(ma) => {
+          setTab("edit");
+          setLookupMa(ma);
+          void loadMa(ma);
+        }}
+        onCreate={() => switchTab("create")}
+      />
+      {confirm ? (
+        <ConfirmDialog
+          title={confirm.kind === "rename" ? `Đổi mã ${confirm.ma}?` : `Lưu đè ${confirm.ma}?`}
+          body={
+            confirm.kind === "rename"
+              ? `${confirm.ma} sẽ thành ${confirm.next ?? ""}.`
+              : `Ghi đè món ${confirm.ma} bằng form này.`
+          }
+          confirmLabel={confirm.kind === "rename" ? "Đổi mã" : "Lưu đè"}
+          danger={confirm.kind === "rename"}
+          pending={busy}
+          onCancel={() => setConfirm(null)}
+          onConfirm={() => void confirmSave()}
+        />
+      ) : null}
+      <ToastStack toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((toast) => toast.id !== id))} />
       <p className="mt-4 text-center text-xs text-rose-700/70">
-        <a className="underline-offset-2 hover:underline" href="/admin">
+        <a className="inline-flex min-h-11 items-center underline-offset-2 hover:underline" href="/admin">
           Kit export CSV
-        </a>{" "}
-        · Boss one-pager trong README / BOSS.md
+        </a>
+        <span className="mx-1">·</span>
+        <a className="inline-flex min-h-11 items-center underline-offset-2 hover:underline" href="/admin/shop">
+          Shop tools
+        </a>
+        <span className="mx-1">· Boss one-pager trong README / BOSS.md</span>
       </p>
-      <SavedCard result={saved} onClose={() => setSaved(null)} />
-      <FindMaCard result={findCard} onClose={() => setFindCard(null)} />
+      <SavedCard result={saved} newMaWebhookOn={newMaWebhookOn} onClose={() => setSaved(null)} />
+      <FindMaCard
+        result={findCard}
+        web={
+          findCard && listing.enabled
+            ? listingWebView(listingItemForMa(listing.items, findCard.staged.ma))
+            : null
+        }
+        onClose={() => setFindCard(null)}
+      />
     </main>
   );
 }
@@ -409,6 +666,15 @@ function renderTab(props: {
   busy: boolean;
   fxRate: number;
   fxLabel: string;
+  tbState: "idle" | "loading" | "ok" | "blocked";
+  tbItem: TaobaoItem | null;
+  tbReason: string;
+  onTaobaoLookup: () => void;
+  sellerColors: string[];
+  setSellerColors: (value: string[]) => void;
+  needsResearch: boolean;
+  setNeedsResearch: (value: boolean) => void;
+  toggleSize: (value: string) => void;
   findPreview: string | null;
   findMatches: { ma: string; kind: string; color: string }[];
   findCopied: string | null;
@@ -467,10 +733,12 @@ function TabButton({
   return (
     <button
       type="button"
+      role="tab"
+      aria-selected={active}
       data-testid={`tab-${id}`}
       aria-label={ariaLabel}
-      className={`h-12 rounded-full px-0.5 text-[9px] font-semibold leading-tight sm:px-2 sm:text-[11px] lg:text-sm ${
-        active ? "bg-primary text-primary-foreground shadow" : "text-rose-700"
+      className={`inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full px-3 text-[13px] font-semibold ${
+        active ? "bg-white text-[#3c2a2e] shadow-sm ring-1 ring-[#eadfdc]" : "text-[#7d5360]"
       }`}
       onClick={() => onClick(id)}
     >
@@ -513,6 +781,15 @@ function ItemForm(props: {
   busy: boolean;
   fxRate: number;
   fxLabel: string;
+  tbState: "idle" | "loading" | "ok" | "blocked";
+  tbItem: TaobaoItem | null;
+  tbReason: string;
+  onTaobaoLookup: () => void;
+  sellerColors: string[];
+  setSellerColors: (value: string[]) => void;
+  needsResearch: boolean;
+  setNeedsResearch: (value: boolean) => void;
+  toggleSize: (value: string) => void;
 }) {
   return (
     <div data-testid="intake-grid" className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-x-10">
@@ -566,10 +843,10 @@ function ItemForm(props: {
                 key={item.code}
                 type="button"
                 data-testid={`kind-${item.code}`}
-                className={`min-h-11 rounded-full px-3 py-2 text-sm font-semibold ring-1 ${
+                className={`inline-flex min-h-11 min-w-11 items-center rounded-full px-3 py-2 text-sm font-semibold ring-1 ${
                   props.kind === item.code
-                    ? "bg-primary text-primary-foreground ring-primary"
-                    : "bg-white text-rose-800 ring-rose-100"
+                    ? "bg-[#f3e6e2] text-[#3c2a2e] ring-[#e6d0ca]"
+                    : "bg-white text-[#5c3d48] ring-[#eadfdc]"
                 }`}
                 onClick={() => props.onKind(item.code)}
               >
@@ -626,8 +903,8 @@ function ItemForm(props: {
                     type="button"
                     data-testid={`color-chip-${chip.code}`}
                     aria-pressed={on}
-                    className={`inline-flex min-h-10 items-center rounded-full px-3 text-xs font-semibold ring-1 ${
-                      on ? "bg-primary text-primary-foreground ring-primary" : "bg-white text-rose-800 ring-rose-100"
+                    className={`inline-flex min-h-11 min-w-11 items-center rounded-full px-3 text-xs font-semibold ring-1 ${
+                      on ? "bg-[#f3e6e2] text-[#3c2a2e] ring-[#e6d0ca]" : "bg-white text-[#5c3d48] ring-[#eadfdc]"
                     }`}
                     onClick={() =>
                       props.setColors(
@@ -654,18 +931,22 @@ function ItemForm(props: {
         </fieldset>
       </div>
       <div>
-        <fieldset className="mb-4">
-          <label className="mb-2 block text-sm font-medium">Size (tuỳ chọn)</label>
-          <div className="flex flex-wrap gap-1.5">
-            {SIZES.map((size) => {
+        <fieldset className="mb-4" data-testid="size-board">
+          <label className="mb-2 block text-sm font-medium">
+            {sizeScaleForKind(props.kind) === "shoe"
+              ? "Size giày Á châu · 35–41 (tuỳ chọn)"
+              : "Size (tuỳ chọn)"}
+          </label>
+          <div className="flex flex-wrap gap-1.5" data-testid="size-options">
+            {sizesForKind(props.kind).map((size) => {
               const on = props.sizes.includes(size);
               return (
                 <button
                   key={size}
                   type="button"
                   data-testid={`size-${size}`}
-                  className={`min-h-10 rounded-full px-3 text-sm font-semibold ring-1 ${
-                    on ? "bg-primary text-primary-foreground ring-primary" : "bg-white text-rose-800 ring-rose-100"
+                  className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-full px-3 text-sm font-semibold ring-1 ${
+                    on ? "bg-[#f3e6e2] text-[#3c2a2e] ring-[#e6d0ca]" : "bg-white text-[#5c3d48] ring-[#eadfdc]"
                   }`}
                   onClick={() =>
                     props.setSizes(on ? props.sizes.filter((s) => s !== size) : [...props.sizes, size])
@@ -706,7 +987,7 @@ function ItemForm(props: {
             />
           </div>
         </fieldset>
-        <fieldset className="mb-4">
+        <fieldset className="mb-4" data-testid="sell-price">
           <label className="mb-2 block text-sm font-medium">Giá bán / sell (tuỳ chọn)</label>
           <div className="grid grid-cols-2 gap-2">
             <input
@@ -734,6 +1015,9 @@ function ItemForm(props: {
               className="h-11 rounded-xl bg-white px-3 ring-1 ring-rose-100"
             />
           </div>
+          <p data-testid="sell-optional" className="mt-2 text-[12px] text-[#7d5360]">
+            {sellHint(props)}
+          </p>
         </fieldset>
         <p className="mb-4 text-center text-[11px] text-rose-700/70">{props.fxLabel}</p>
         <fieldset className="mb-5">
@@ -749,13 +1033,44 @@ function ItemForm(props: {
             className="h-11 w-full rounded-xl bg-white px-3 ring-1 ring-rose-100"
           />
         </fieldset>
+        <TaobaoPanel
+          state={props.tbState}
+          item={props.tbItem}
+          reason={props.tbReason}
+          onLookup={props.onTaobaoLookup}
+          sellerColors={props.sellerColors}
+          onRemoveSellerColor={(color) =>
+            props.setSellerColors(props.sellerColors.filter((c) => c !== color))
+          }
+          sizes={props.sizes}
+          toggleSize={props.toggleSize}
+        />
+        {props.needsResearch ? (
+          <p data-testid="needs-research-banner" className="mb-5 rounded-2xl bg-amber-50 p-3 text-xs text-amber-800 ring-1 ring-amber-200">
+            ⚠ Submission này gắn “cần nghiên cứu tay” (Taobao chặn fetch).
+            <button
+              type="button"
+              className="ml-2 font-semibold underline"
+              onClick={() => props.setNeedsResearch(false)}
+            >
+              Bỏ đánh dấu
+            </button>
+          </p>
+        ) : null}
+        <StatusChips
+          photos={props.photos.length}
+          sizes={props.sizes.length}
+          priceFlag={intakeSellFlag(props)}
+          needsResearch={props.needsResearch}
+        />
         <button
           type="button"
           data-testid="save-mint"
           disabled={props.busy || !props.canSave}
-          className="h-12 w-full rounded-full bg-primary text-base font-bold text-primary-foreground disabled:opacity-50 lg:h-14 lg:text-lg"
+          className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary text-base font-bold text-primary-foreground disabled:opacity-50 lg:h-14 lg:text-lg"
           onClick={() => void props.onSaveClick()}
         >
+          {props.busy ? <span className="adm-spin" aria-hidden /> : null}
           {props.busy
             ? "Đang lưu…"
             : props.tab === "edit"
@@ -766,6 +1081,131 @@ function ItemForm(props: {
     </div>
   );
 }
+
+function TaobaoPanel({
+  state,
+  item,
+  reason,
+  onLookup,
+  sellerColors,
+  onRemoveSellerColor,
+  sizes,
+  toggleSize,
+}: {
+  state: "idle" | "loading" | "ok" | "blocked";
+  item: TaobaoItem | null;
+  reason: string;
+  onLookup: () => void;
+  sellerColors: string[];
+  onRemoveSellerColor: (color: string) => void;
+  sizes: string[];
+  toggleSize: (value: string) => void;
+}) {
+  return (
+    <div data-testid="taobao-panel" className="mb-5 rounded-2xl bg-white p-3 ring-1 ring-rose-100">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm font-medium">🔍 Tra link Taobao</p>
+        <button
+          type="button"
+          data-testid="taobao-lookup"
+          onClick={onLookup}
+          disabled={state === "loading"}
+          className="inline-flex min-h-11 items-center rounded-full bg-white px-4 text-sm font-semibold text-[#5c3d48] ring-1 ring-[#eadfdc] disabled:opacity-50"
+        >
+          {state === "loading" ? "Đang tra…" : "Tra link"}
+        </button>
+      </div>
+      <p className="mt-1 text-[11px] text-rose-700/70">
+        Server tự đọc listing: màu seller, size, giá ¥, ảnh. Taobao hay chặn — khi chặn thì nhập tay nha.
+      </p>
+      {state === "blocked" ? (
+        <p data-testid="taobao-blocked" className="mt-2 rounded-xl bg-amber-50 p-2 text-xs text-amber-800 ring-1 ring-amber-200">
+          ⚠ {reason} Giữ nguyên những gì đã nhập — submission được gắn “cần nghiên cứu tay”.
+        </p>
+      ) : null}
+      {state === "ok" && item ? (
+        <div data-testid="taobao-result" className="mt-2 space-y-2">
+          {item.title ? <p className="text-xs font-medium text-rose-900">{item.title}</p> : null}
+          <p className="text-xs text-rose-800">
+            Giá list: {item.listCny ? <span className="font-bold">¥{item.listCny}</span> : "không thấy"}
+            {item.promoCny ? (
+              <span className="ml-2">· 优惠价 <span className="font-bold">¥{item.promoCny}</span></span>
+            ) : null}
+            {item.promoNote === "pre_promo" ? (
+              <span className="ml-2 text-amber-700">(giá 优惠前 — chưa trừ khuyến mãi)</span>
+            ) : null}
+          </p>
+          {sellerColors.length ? (
+            <div>
+              <p className="text-[11px] font-medium text-rose-700">
+                🏷 Màu của seller <span className="font-normal">(seller truth — không dịch)</span>
+              </p>
+              <div className="mt-1 flex flex-wrap gap-1.5">
+                {sellerColors.map((color) => (
+                  <span
+                    key={color}
+                    className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2.5 py-1 text-xs font-semibold text-rose-900 ring-1 ring-rose-200"
+                  >
+                    🏷 {color}
+                    <button
+                      type="button"
+                      aria-label={`Bỏ màu ${color}`}
+                      className="text-rose-500"
+                      onClick={() => onRemoveSellerColor(color)}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs text-rose-700/70">Không đọc được màu seller từ link này.</p>
+          )}
+          {item.sizeAxes.map((axis) => (
+            <div key={axis.name}>
+              <p className="text-[11px] font-medium text-rose-700">
+                📐 {axis.name} <span className="font-normal">(seller)</span>
+              </p>
+              <div className="mt-1 flex flex-wrap gap-1.5">
+                {axis.values.map((value) => {
+                  const on = sizes.includes(value);
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => toggleSize(value)}
+                      aria-pressed={on}
+                      className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-full px-3 text-xs font-semibold ring-1 ${
+                        on ? "bg-[#f3e6e2] text-[#3c2a2e] ring-[#e6d0ca]" : "bg-white text-[#5c3d48] ring-[#eadfdc]"
+                      }`}
+                    >
+                      {value}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+          {item.gallery.length ? (
+            <div>
+              <p className="text-[11px] font-medium text-rose-700">🖼 Ảnh từ Taobao ({item.gallery.length})</p>
+              <div className="mt-1 flex gap-1.5 overflow-x-auto">
+                {item.gallery.slice(0, 8).map((src) => (
+                  <img key={src} src={src} alt="" loading="lazy" className="h-16 w-16 rounded-lg object-cover ring-1 ring-rose-100" />
+                ))}
+              </div>
+              <p className="mt-1 text-[11px] text-rose-700/70">
+                Link ảnh đã lưu kèm submission để bước sau kéo về.
+              </p>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 
 function FindPreview({ src }: { src: string }) {
   const [open, setOpen] = useState(false);
@@ -872,7 +1312,7 @@ function FindPanel({
           </p>
           <button
             type="button"
-            className="h-9 rounded-full bg-primary px-3 text-xs font-semibold text-primary-foreground"
+            className="inline-flex min-h-11 items-center rounded-full bg-primary px-3 text-xs font-semibold text-primary-foreground"
             onClick={async () => {
               await navigator.clipboard.writeText(match.ma);
               setCopied(match.ma);
@@ -883,5 +1323,224 @@ function FindPanel({
         </div>
       ))}
     </div>
+  );
+}
+
+function formPriceView(props: {
+  loadedMa: string | null;
+  sellUsd: string;
+  sellCny: string;
+  costUsd: string;
+  costCny: string;
+  kind: KindCode;
+  fxRate: number;
+}) {
+  return intakePriceView({
+    ma: props.loadedMa ?? "",
+    kind: props.kind,
+    sellUsd: props.sellUsd,
+    sellCny: props.sellCny,
+    sellCurrency: props.sellUsd.trim() ? "USD" : props.sellCny.trim() ? "CNY" : "USD",
+    costUsd: props.costUsd,
+    costCny: props.costCny,
+    costCurrency: props.costUsd.trim() ? "USD" : props.costCny.trim() ? "CNY" : "USD",
+    fxRate: props.fxRate,
+  });
+}
+
+function intakeSellFlag(props: {
+  loadedMa: string | null;
+  sellUsd: string;
+  sellCny: string;
+  costUsd: string;
+  costCny: string;
+  kind: KindCode;
+  fxRate: number;
+}): SellPriceFlag {
+  return formPriceView(props).flag;
+}
+
+function sellHint(props: {
+  loadedMa: string | null;
+  sellUsd: string;
+  sellCny: string;
+  costUsd: string;
+  costCny: string;
+  kind: KindCode;
+  fxRate: number;
+}): string {
+  const view = formPriceView(props);
+  if (view.flag === "later") return "Để trống vẫn lưu. Chưa đủ giá vốn để tính.";
+  if (!props.sellUsd.trim() && !props.sellCny.trim() && view.dollars != null) {
+    return `Tự tính ${view.label}. Để trống vẫn lưu — không cần gõ giá.`;
+  }
+  if (view.flag === "under-margin") return "Dưới margin — vẫn lưu được. Không bắt buộc sửa giá.";
+  return "Để trống vẫn lưu. Giá bán không bắt buộc.";
+}
+
+function StatusChips({
+  photos,
+  sizes,
+  priceFlag,
+  needsResearch,
+}: {
+  photos: number;
+  sizes: number;
+  priceFlag: SellPriceFlag;
+  needsResearch: boolean;
+}) {
+  const chips: { tone: "warn" | "info" | "ok"; label: string }[] = [];
+  if (photos === 0) chips.push({ tone: "warn", label: "Thiếu ảnh" });
+  if (sizes === 0) chips.push({ tone: "warn", label: "Thiếu size" });
+  switch (priceFlag) {
+    case "later":
+      chips.push({ tone: "info", label: "Tính giá sau" });
+      break;
+    case "under-margin":
+      chips.push({ tone: "warn", label: "Dưới margin" });
+      break;
+    case "ok":
+      break;
+    default: {
+      const neverFlag: never = priceFlag;
+      throw new Error(`unknown sell price flag ${String(neverFlag)}`);
+    }
+  }
+  if (needsResearch) chips.push({ tone: "info", label: "Cần xem tay" });
+  if (!chips.some((chip) => chip.tone === "warn")) chips.unshift({ tone: "ok", label: "Đủ để lưu" });
+  const toneClass = {
+    warn: "bg-[#fbf3e4] text-[#8a5a12]",
+    info: "bg-[#e7f1f6] text-[#1f5670]",
+    ok: "bg-[#e7f4ec] text-[#246044]",
+  };
+  return (
+    <div className="mb-3 flex flex-wrap gap-1.5" data-testid="intake-status-chips">
+      {chips.map((chip) => (
+        <span
+          key={chip.label}
+          className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] ${toneClass[chip.tone]}`}
+        >
+          {chip.label}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function ListingChip({ item, ma }: { item: ListingItem | undefined; ma: string }) {
+  const chip = listingChip(item);
+  const toneClass = {
+    ok: "bg-[#e7f4ec] text-[#246044]",
+    warn: "bg-[#fbf3e4] text-[#8a5a12]",
+    muted: "bg-[#f3e6e2] text-[#5c3d48]",
+  } as const;
+  return (
+    <span
+      data-testid={`listing-chip-${ma}`}
+      className={`rounded-full px-2 py-0.5 text-[11px] font-semibold tracking-[0.08em] ${toneClass[chip.tone]}`}
+    >
+      {chip.label}
+    </span>
+  );
+}
+
+function SavedList({
+  rows,
+  listing,
+  fxRate,
+  onOpen,
+  onCreate,
+}: {
+  rows: Submission[];
+  listing: ListingStatusClient;
+  fxRate: number;
+  onOpen: (ma: string) => void;
+  onCreate: () => void;
+}) {
+  return (
+    <section className="mt-6" aria-labelledby="saved-list-title">
+      <h2 id="saved-list-title" className="text-[21px] leading-tight text-[#3c2a2e]">
+        Đã lưu
+      </h2>
+      <p className="mt-1 text-[12.5px] text-[#7d5360]">Món đã bấm lưu trên máy này.</p>
+      {rows.length === 0 ? (
+        <div className="mt-3 rounded-2xl bg-white px-4 py-5 ring-1 ring-[#eadfdc]">
+          <p className="text-[13.5px] text-[#3c2a2e]">Chưa có món.</p>
+          <button
+            type="button"
+            className="mt-3 inline-flex min-h-11 items-center rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground"
+            onClick={onCreate}
+          >
+            Thêm món
+          </button>
+        </div>
+      ) : (
+        <ul className="mt-3 divide-y divide-[#eadfdc] overflow-hidden rounded-2xl bg-white ring-1 ring-[#eadfdc]">
+          {rows.map((row) => {
+            const thumb = row.photo_paths?.[0];
+            const view = intakePriceView({
+              ma: row.ma,
+              kind: row.kind,
+              costCny: row.cost_cny,
+              costUsd: row.cost_usd,
+              costCurrency: row.cost_currency,
+              sellUsd: row.sell_usd,
+              sellCny: row.sell_cny,
+              sellCurrency: row.sell_currency,
+              fxRate,
+            });
+            const price = view.label;
+            return (
+              <li key={row.ma}>
+                <button
+                  type="button"
+                  className="flex min-h-11 w-full items-center gap-3 px-3 py-2 text-left hover:bg-[#fbf6f4]"
+                  onClick={() => onOpen(row.ma)}
+                >
+                  {thumb ? (
+                    <img src={`/api/photos/${thumb}`} alt="" className="h-12 w-10 rounded-lg object-cover" />
+                  ) : (
+                    <span className="flex h-12 w-10 items-center justify-center rounded-lg bg-[#f3e6e2] text-[11px] text-[#7d5360]">
+                      Ảnh
+                    </span>
+                  )}
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[13.5px] font-semibold tabular text-[#3c2a2e]">{row.ma}</span>
+                    <span className="mt-1 flex flex-wrap gap-1">
+                      <span className="rounded-full bg-[#f3e6e2] px-2 py-0.5 text-[11px] uppercase tracking-[0.08em] text-[#5c3d48]">
+                        {row.kind}
+                      </span>
+                      {row.size ? (
+                        <span className="rounded-full bg-white px-2 py-0.5 text-[11px] uppercase tracking-[0.08em] text-[#7d5360] ring-1 ring-[#eadfdc]">
+                          {row.size}
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-[#fbf3e4] px-2 py-0.5 text-[11px] uppercase tracking-[0.08em] text-[#8a5a12]">
+                          Thiếu size
+                        </span>
+                      )}
+                      {row.needs_research ? (
+                        <span className="rounded-full bg-[#e7f1f6] px-2 py-0.5 text-[11px] uppercase tracking-[0.08em] text-[#1f5670]">
+                          Cần xem tay
+                        </span>
+                      ) : null}
+                      {listing.enabled ? <ListingChip item={listingItemForMa(listing.items, row.ma)} ma={row.ma} /> : null}
+                    </span>
+                  </span>
+                  <span className="shrink-0 text-right" data-testid={`saved-price-${row.ma}`}>
+                    <span className="block text-[13.5px] font-semibold tabular text-[#3c2a2e]">{price}</span>
+                    {view.flag === "under-margin" ? (
+                      <span className="mt-1 inline-flex rounded-full bg-[#fbf3e4] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#8a5a12]">
+                        Dưới margin
+                      </span>
+                    ) : null}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
   );
 }

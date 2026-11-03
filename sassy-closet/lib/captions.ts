@@ -1,4 +1,6 @@
 import { kindLabel } from "./kinds";
+import { normalizeMa } from "./mint";
+import { DEFAULT_FX, captionPriceLine } from "./pricing";
 import type { Submission } from "./types";
 
 const BLURB_VI: Record<string, string> = {
@@ -10,7 +12,7 @@ const BLURB_VI: Record<string, string> = {
   G: "Đôi giày cưng xỉu 💕",
   B: "Chiếc túi cưng xỉu 💕",
   P: "Món nhỏ xinh xỉu 💕",
-  H: "Món tóc xinh xỉu 💕",
+  H: "Phụ kiện tóc xinh xỉu 💕",
   J: "Món trang sức xinh xỉu 💕",
   S: "Set đồ cưng xỉu 💕",
   O: "Món cưng xỉu 💕",
@@ -36,11 +38,29 @@ export function kindColorsLine(input: {
   return kind;
 }
 
-export function buildCaptionVi(item: Pick<Submission, "ma" | "kind" | "size" | "color" | "color_note" | "sell_usd" | "sell_cny" | "sell_currency" | "price" | "blurb">): string {
+export function buildCaptionVi(
+  item: Pick<
+    Submission,
+    | "ma"
+    | "kind"
+    | "size"
+    | "color"
+    | "color_note"
+    | "sell_usd"
+    | "sell_cny"
+    | "sell_currency"
+    | "cost_cny"
+    | "cost_usd"
+    | "cost_currency"
+    | "price"
+    | "blurb"
+  >,
+  fxRate: number = DEFAULT_FX,
+): string {
   const blurb = item.blurb.trim() || BLURB_VI[item.kind] || BLURB_VI.A;
   const size = item.size.trim() ? `Size ${item.size.trim()}` : "";
   const color = colorLine(item.color, item.color_note);
-  const price = priceLine(item);
+  const price = priceLine(item, fxRate);
   return [item.ma, blurb, size, color, price, FOOTER].filter(Boolean).join("\n");
 }
 
@@ -62,16 +82,31 @@ function colorLine(color: string, note: string): string {
   return "";
 }
 
-function priceLine(item: Pick<Submission, "sell_usd" | "sell_cny" | "sell_currency" | "price">): string {
-  if ((item.sell_currency ?? "").toUpperCase() === "CNY" && item.sell_cny) {
-    return `¥${item.sell_cny}`;
-  }
-  if (item.sell_usd) return `$${item.sell_usd}`;
-  if (item.sell_cny) return `¥${item.sell_cny}`;
-  if (item.price) return `$${item.price}`;
-  return "";
+function priceLine(
+  item: Pick<
+    Submission,
+    | "sell_usd"
+    | "sell_cny"
+    | "sell_currency"
+    | "cost_cny"
+    | "cost_usd"
+    | "cost_currency"
+    | "kind"
+  >,
+  fxRate: number,
+): string {
+  return captionPriceLine({
+    sellUsd: item.sell_usd,
+    sellCny: item.sell_cny,
+    sellCurrency: item.sell_currency,
+    costCny: item.cost_cny,
+    costUsd: item.cost_usd,
+    costCurrency: item.cost_currency,
+    kind: item.kind,
+    fxRate,
+  });
 }
 
 function normalizeCaptionMa(ma: string): string {
-  return ma.trim().toUpperCase();
+  return normalizeMa(ma);
 }

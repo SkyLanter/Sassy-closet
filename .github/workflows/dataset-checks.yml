@@ -1,0 +1,25 @@
+name: dataset-checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: pip install -r requirements.txt pytest
+      - name: Fixture unit tests
+        run: python -m pytest scripts/tests -q
+      - name: Intake shop link flags (fixtures, no live intake)
+        run: python scripts/intake_shop_link_flags.py --fixture scripts/tests/fixtures/intake_shop_links_clean.json --out out
+      - name: HTTP shop link flags (fixtures, no live catalog)
+        run: python scripts/http_shop_link_flags.py --fixture scripts/tests/fixtures/shop_link_https_clean.json --out out
+      - name: Shop link space or newline flags (fixtures, no live catalog)
+        run: python scripts/space_newline_shop_link_flags.py --fixture scripts/tests/fixtures/shop_link_space_clean.json --out out

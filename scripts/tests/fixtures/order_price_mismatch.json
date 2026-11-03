@@ -1,0 +1,16 @@
+{
+  "orderId": "FIX-PRICE",
+  "catalog": [
+    {"ma": "S06", "priceUsd": "25"},
+    {"ma": "A02", "priceUsd": "23"},
+    {"ma": "A07", "priceUsd": "28"},
+    {"ma": "A01", "priceUsd": "27"}
+  ],
+  "lines": [
+    {"ma": "S06", "title": "Satin skirt", "priceUsd": 25},
+    {"ma": "A07", "title": "Frequency lace top", "priceUsd": "28.00"},
+    {"ma": "A02", "title": "Polka-dot dress", "priceUsd": 20},
+    {"ma": "A01", "title": "Puppy cardigan"},
+    {"ma": "Z99", "title": "Unlisted piece", "priceUsd": 40}
+  ]
+}

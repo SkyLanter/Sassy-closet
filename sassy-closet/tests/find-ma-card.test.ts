@@ -63,6 +63,7 @@ test("buildMaLookup does not invent on-hand rows from staged sizes or colors", (
   assert.equal(card.staged.kind_label, "Áo");
   assert.equal(card.staged.colors, "Kem, Xanh");
   assert.equal(card.staged.sizes, "M L");
+  assert.equal(card.staged.size_options, "2XS XS S M L XL 2XL");
   assert.equal(card.staged.source_link, "https://e.tb.cn/example");
   assert.deepEqual(card.on_hand, []);
   assert.equal(card.staged_only, true);
@@ -102,6 +103,17 @@ test("staged photo_paths stay as stored — never invent extra files", () => {
   assert.deepEqual(withPhotos.staged.photo_paths, ["A01/001.jpg"]);
   const none = buildMaLookup(stagedItem({ photo_paths: [] }), []);
   assert.deepEqual(none.staged.photo_paths, []);
+});
+
+test("G find card uses shoe size options and hair/jewelry labels", () => {
+  const shoes = buildMaLookup(stagedItem({ ma: "G01", kind: "G", size: "38" }), []);
+  assert.equal(shoes.staged.kind_label, "Giày / Cao gót");
+  assert.equal(shoes.staged.sizes, "38");
+  assert.equal(shoes.staged.size_options, "35 36 37 38 39 40 41");
+  const hair = buildMaLookup(stagedItem({ ma: "H01", kind: "H", size: "" }), []);
+  assert.equal(hair.staged.kind_label, "Phụ kiện tóc / Hair accessories");
+  const jewelry = buildMaLookup(stagedItem({ ma: "J01", kind: "J", size: "" }), []);
+  assert.equal(jewelry.staged.kind_label, "Trang sức / Jewelry");
 });
 
 test("card passes through real on-hand rows when the store actually has them", () => {

@@ -14,6 +14,9 @@ test("caption starter is mã on line 1", () => {
   assert.equal(captionStarter("a01"), "A01");
   assert.equal(kindColorsLine({ kind: "A", color: "Kem, Xanh" }), "Áo · Kem, Xanh");
   assert.equal(kindColorsLine({ kind: "D", color: "Đen" }), "Đầm / Dress · Đen");
+  assert.equal(kindColorsLine({ kind: "G", color: "Đen" }), "Giày / Cao gót · Đen");
+  assert.equal(kindColorsLine({ kind: "H", color: "Hồng" }), "Phụ kiện tóc / Hair accessories · Hồng");
+  assert.equal(kindColorsLine({ kind: "J", color: "Bạc" }), "Trang sức / Jewelry · Bạc");
   assert.equal(kindColorsLine({ kind: "V", color: "Kem" }), "Váy · Kem");
   assert.equal(
     editDeepLink("https://sassy-closet.vercel.app/foo", "P05"),
@@ -51,6 +54,8 @@ test("local fallback banner fields when webhook envs missing", async () => {
   assert.equal(local.source, "local");
   assert.equal(local.offline, true);
   assert.match(local.answer, /2XS/);
+  assert.match(local.answer, /35/);
+  assert.match(local.answer, /41/);
   const fetched = await getAsk(local.id);
   assert.equal(fetched?.offline, true);
 });

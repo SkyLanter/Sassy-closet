@@ -32,6 +32,9 @@ from schema import (  # noqa: E402
     BOT_ACTIVITY_WIDTHS,
     BOTS_DRAFT_ONLY,
     INK,
+    INTAKE_CLOTHING_SIZES,
+    INTAKE_KIND_LABELS,
+    INTAKE_SHOE_SIZES,
     MA_PREFIX_MEANS,
     MUTED,
     ONEDRIVE_PHOTOS,
@@ -143,6 +146,12 @@ def _build_lists(wb: Workbook) -> None:
         ("pay", SOT_PAY),
         ("fulfill", SOT_FULFILL),
         ("prefix", tuple(MA_PREFIX_MEANS)),
+        (
+            "intake_kind",
+            tuple(f"{code} {label}" for code, label in INTAKE_KIND_LABELS.items()),
+        ),
+        ("intake_size_clothing", INTAKE_CLOTHING_SIZES),
+        ("intake_size_shoe", INTAKE_SHOE_SIZES),
     ]
     for col, (title, values) in enumerate(columns, start=1):
         head = ws.cell(1, col, title)

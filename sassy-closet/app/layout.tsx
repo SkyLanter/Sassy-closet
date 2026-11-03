@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Allura, Nunito } from "next/font/google";
+import { INTAKE_LISTING_ROBOTS } from "@/lib/intake-direct-link-headers";
 import "./globals.css";
 
 const nunito = Nunito({
@@ -14,10 +15,18 @@ const allura = Allura({
   variable: "--font-allura",
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#fbf6f3",
+};
+
 export const metadata: Metadata = {
   title: "Sassy Closet",
   description:
     "Nhập ảnh, size, màu, link shop. App tự cấp mã Sassy Closet và caption Facebook để copy.",
+  robots: INTAKE_LISTING_ROBOTS,
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

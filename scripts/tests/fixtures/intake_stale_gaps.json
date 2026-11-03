@@ -1,0 +1,23 @@
+{
+  "submissions": [
+    {"ma": "S06", "saved_at": "2026-09-01T00:00:00Z", "sell_usd": "25"},
+    {"ma": "A01", "saved_at": "2026-09-15T00:00:00Z", "sell_usd": "27"},
+    {"ma": "K06", "saved_at": "2026-09-20T00:00:00Z", "sell_usd": "48"},
+    {"ma": "V05", "saved_at": "2026-10-14T00:00:00Z"},
+    {"ma": "Z01", "saved_at": "2026-10-08T00:00:00Z", "sell_usd": "30"},
+    {"ma": "Z02", "saved_at": "2026-10-07T23:59:59Z", "sell_usd": "31"},
+    {"ma": "Z03", "saved_at": "2026-10-10T00:00:00Z", "sell_usd": "32"},
+    {"ma": "Z04", "saved_at": "2026-10-07", "sell_usd": "40"},
+    {"ma": "Z05", "sell_usd": "33"},
+    {"ma": "Z06", "saved_at": "yesterday", "sell_usd": "34"},
+    {"ma": "D05", "updated_at": "2026-08-01T00:00:00Z", "sell_usd": "26"},
+    {"ma": "Z07", "created_at": "2026-01-01T00:00:00Z", "sell_usd": "19"},
+    {
+      "ma": "Z08",
+      "saved_at": "2026-10-14T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z",
+      "sell_usd": "21"
+    },
+    {"ma": "Z10", "saved_date": "2026-09-01", "sell_usd": "22"}
+  ]
+}

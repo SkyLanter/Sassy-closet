@@ -1,0 +1,230 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import {
+  decodeShopSearchHeader,
+  draftAfterHomeQuery,
+  encodeShopSearchHeader,
+  exactMaLook,
+  filterLooksByQuery,
+  firstSearchQueryParam,
+  LOOK_SEARCH_PLACEHOLDER,
+  lookSearchHref,
+  resolveLookSearch,
+  shopSearchNeedle,
+  suggestLooks,
+  toLookSearchItems,
+} from "../lib/look-search";
+import { parseCatalogDocument } from "../lib/product-parse";
+import { shopVisibleLooks } from "../lib/site-settings";
+
+function fail(message: string): never {
+  throw new Error(message);
+}
+
+function read(rel: string): string {
+  return readFileSync(path.join(process.cwd(), rel), "utf8");
+}
+
+const seed = parseCatalogDocument(
+  JSON.parse(readFileSync(path.join(process.cwd(), "data", "products.json"), "utf8")) as unknown,
+);
+const looks = toLookSearchItems(shopVisibleLooks(seed.products));
+const mas = new Set(looks.map((look) => look.ma));
+
+if (!mas.has("A01") || !mas.has("H01")) {
+  fail("Search index must keep seed A01 and H01");
+}
+if (mas.has("Z99") || mas.has("AO001")) {
+  fail("Search must not invent Z99 or AO001");
+}
+
+const h01 = resolveLookSearch(looks, "h01");
+if (h01.kind !== "exact" || h01.ma !== "H01" || lookSearchHref(h01) !== "/m/H01") {
+  fail("Exact mã H01 must navigate to /m/H01");
+}
+
+const a01 = exactMaLook(looks, "A01");
+if (!a01 || a01.ma !== "A01") {
+  fail("A01 must resolve as an existing look");
+}
+
+const invented = resolveLookSearch(looks, "Z99");
+if (invented.kind !== "results" || lookSearchHref(invented).startsWith("/m/")) {
+  fail("Unknown mã must not navigate to a PDP");
+}
+
+const official = resolveLookSearch(looks, "AO001");
+if (official.kind !== "results" || lookSearchHref(official).includes("/m/AO001")) {
+  fail("Official AO001 must not become a shop PDP href");
+}
+
+const puppy = filterLooksByQuery(looks, "puppy");
+if (!puppy.some((look) => look.ma === "A01")) {
+  fail("Name search must find A01 Puppy cardigan");
+}
+if (puppy.some((look) => !mas.has(look.ma))) {
+  fail("Name search must not invent mãs");
+}
+
+const rabbit = suggestLooks(looks, "rabbit");
+if (!rabbit.some((look) => look.ma === "H01")) {
+  fail("Name search must find H01 Rabbit hair bows");
+}
+
+const empty = resolveLookSearch(looks, "   ");
+if (empty.kind !== "results" || lookSearchHref(empty) !== "/#featured-collection") {
+  fail("Empty search must return to Looks");
+}
+
+if (firstSearchQueryParam(["H01", "A01"]) !== "H01" || firstSearchQueryParam(undefined) !== "") {
+  fail("Search query param helper must keep the first value");
+}
+
+if (decodeShopSearchHeader(encodeShopSearchHeader("  puppy cardigan  ")) !== "puppy cardigan") {
+  fail("Search header must round-trip a trimmed query");
+}
+if (decodeShopSearchHeader("%") !== "" || decodeShopSearchHeader(null) !== "") {
+  fail("Broken search header must stay empty");
+}
+
+const header = read("components/header.tsx");
+const featured = read("components/featured-board.tsx");
+const layout = read("app/(shop)/layout.tsx");
+const searchUi = read("components/header-search.tsx");
+const pdp = read("app/(shop)/m/[ma]/page.tsx");
+
+if (!header.includes("<HeaderSearch") || !header.includes("<MessengerCta")) {
+  fail("Header search must sit next to Messenger on every shop page");
+}
+if (!header.includes("<HeaderSearchSheet") || !header.includes("<HeaderSearchProvider")) {
+  fail("Search sheet must mount on the sticky header, not inside the field");
+}
+const navMark = header.indexOf("Danh mục · Categories");
+const sheetMark = header.indexOf("<HeaderSearchSheet");
+if (navMark < 0 || sheetMark < 0 || sheetMark < navMark) {
+  fail("Opaque search sheet must sit after category tabs, not over them");
+}
+if (!layout.includes("ShopSearchProvider") || !pdp.includes("ProductLook")) {
+  fail("PDP must keep shop layout search chrome");
+}
+if (featured.includes("shop-header-search") || featured.includes("HeaderSearch")) {
+  fail("Home Looks must defer to header search");
+}
+if (!searchUi.includes('data-testid="shop-header-search"') || !searchUi.includes("/m/${look.ma}")) {
+  fail("Header hits must be existing /m/{ma} links");
+}
+if (
+  !searchUi.includes("shop-search-sheet") ||
+  !searchUi.includes('data-testid="shop-search-sheet"') ||
+  searchUi.includes("liquid-glass-sheet")
+) {
+  fail("Search empty panel must be opaque .shop-search-sheet, not liquid glass");
+}
+if (searchUi.includes('pathname === "/" ? searchParams.get("q") ?? "" : ""')) {
+  fail("Leaving home must not wipe the header query");
+}
+if (!searchUi.includes("initialQuery") && !layout.includes("initialQuery")) {
+  fail("Header search must paint the committed query on first load");
+}
+if (!layout.includes("decodeShopSearchHeader") || !layout.includes("relative sticky")) {
+  fail("Shop chrome must carry the committed query and position the sheet below the tabs");
+}
+if (!featured.includes("searched.filter((product) => product.type === filter)")) {
+  fail("Search must still honor the Looks tab");
+}
+if (searchUi.includes("/m/Z99") || searchUi.includes("AO001")) {
+  fail("Header search must not hardcode invented mãs");
+}
+
+const categoryPage = read("app/(shop)/c/[slug]/page.tsx");
+const catalog = read("components/looks-catalog.tsx");
+if (!catalog.includes("filterLooksByQuery")) {
+  fail("Category looks must follow the header query");
+}
+if (categoryPage.includes('type="search"') || catalog.includes('type="search"') || catalog.includes("Tìm mã")) {
+  fail("Category pages must not host a second search box; header is the source of truth");
+}
+
+if (draftAfterHomeQuery(null, "A01") !== "A01") {
+  fail("Leaving home must keep the header text until the customer returns");
+}
+if (draftAfterHomeQuery("", "A01") !== "" || draftAfterHomeQuery("  ", "A15") !== "") {
+  fail("Home without ?q must clear a stuck mã");
+}
+if (draftAfterHomeQuery("A15", "puppy") !== "A15") {
+  fail("Home ?q= must replace the client draft");
+}
+if (shopSearchNeedle("", "A01") !== "" || shopSearchNeedle(null, "A01") !== "A01") {
+  fail("An explicit clear must beat a stale q, and a null draft must follow the URL");
+}
+if (shopSearchNeedle("  puppy  ", "") !== "puppy") {
+  fail("A typed draft must stay the active filter");
+}
+
+const shopSearch = read("components/shop-search.tsx");
+const resultsBar = read("components/search-results-bar.tsx");
+const footer = read("components/footer.tsx");
+if (!header.includes('data-testid="shop-logo"') || !header.includes("onShopHomeClick")) {
+  fail("Header logo must clear search and go home");
+}
+if (!footer.includes("onShopHomeClick") || !footer.includes('href="/"')) {
+  fail("Footer wordmark must clear search and go home");
+}
+if (!shopSearch.includes("clearSearch") || !shopSearch.includes("localStorage.removeItem") || !shopSearch.includes("sessionStorage.removeItem")) {
+  fail("Clear search must drop the client draft and any stored query");
+}
+if (!shopSearch.includes('router.push("/")')) {
+  fail("Clear search must drop the q param by returning to /");
+}
+if (!searchUi.includes("useLayoutEffect") || !searchUi.includes("onHomeQuery(homeQuery.trim())")) {
+  fail("Browser Back to home without ?q must sync an empty query before paint");
+}
+if (searchUi.includes('pathname === "/" ? searchParams.get("q") ?? "" : ""')) {
+  fail("Leaving home must not wipe the header query");
+}
+if (!featured.includes("SearchResultsBar") || !featured.includes("shopSearchNeedle")) {
+  fail("Home grid must follow shopSearchNeedle and show the results bar");
+}
+if (!resultsBar.includes('data-testid="shop-search-results"') || !resultsBar.includes("Showing results for")) {
+  fail('Active search must show Showing results for "…" · Clear');
+}
+if (!resultsBar.includes('data-testid="shop-search-results-clear"')) {
+  fail("Results bar must have a Clear control");
+}
+if (!catalog.includes("SearchResultsBar")) {
+  fail("Category grid must show the same search results bar");
+}
+
+if (LOOK_SEARCH_PLACEHOLDER !== "Tìm mã (A15)… / Search mã") {
+  fail("Header placeholder must show an example mã and stay bilingual");
+}
+if (!searchUi.includes("shop-search-field") || !searchUi.includes('data-testid="shop-header-search-icon"')) {
+  fail("Header search must be a solid field with a left icon");
+}
+if (!searchUi.includes("bg-white") || !searchUi.includes("min-h-11") || !searchUi.includes("pl-10")) {
+  fail("Header search must keep a white fill, a 44px target, and room for the icon");
+}
+if (!searchUi.includes('data-testid="shop-header-search-clear"') || !searchUi.includes("shop-search-clear")) {
+  fail("Header search must show a clear control once there is text");
+}
+const shopCss = read("app/globals.css");
+if (
+  !shopCss.includes("input.shop-search-field") ||
+  !shopCss.includes("background-color: #ffffff") ||
+  !shopCss.includes("border: 2px solid #b44762") ||
+  !shopCss.includes("outline: 3px solid #a33d58")
+) {
+  fail("Header search must keep a 2px rose border, white fill, and a 3px focus ring");
+}
+if (!shopCss.includes("color: #5c3140") || !shopCss.includes("opacity: 1")) {
+  fail("Header search placeholder must stay a dark rose at full opacity");
+}
+if (shopCss.includes("--gold: #b08968") === false || shopCss.includes("--blush: #f3eee8") === false) {
+  fail("Search restyle must not change locked gold or blush");
+}
+
+console.log("look search ok", {
+  indexed: looks.length,
+  exactH01: lookSearchHref(h01),
+  puppy: puppy.map((look) => look.ma).join(","),
+});

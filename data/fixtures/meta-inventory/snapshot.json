@@ -1,0 +1,5 @@
+{"schema":"daily-inputs/v1","date":"2026-01-01","items":[
+{"ma":"A09","live":true,"sellUsd":30,"held":false},
+{"ma":"D06","live":true,"sellUsd":28,"held":false},
+{"ma":"S06","live":true,"sellUsd":25,"held":false},
+{"ma":"S19","live":false,"sellUsd":null,"held":true}]}

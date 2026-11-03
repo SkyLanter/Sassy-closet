@@ -28,6 +28,8 @@ describe("durable / local store", { concurrency: 1 }, () => {
       "BLOB_READ_WRITE_TOKEN",
       "BLOB_STORE_ID",
       "BLOB_ACCESS",
+      "INTAKE_DATASET_SYNC_WEBHOOK_URL",
+      "INTAKE_DATASET_SYNC_WEBHOOK_KEY",
     ]) {
       prev[key] = process.env[key];
       delete process.env[key];
@@ -95,6 +97,9 @@ describe("durable / local store", { concurrency: 1 }, () => {
     assert.match(csv, /^ma,/);
     assert.match(csv, /A01/);
     assert.match(csv, /https:\/\/e\.tb\.cn\/example/);
+    assert.match(csv, /kind_vi/);
+    assert.match(csv, /size_options/);
+    assert.match(csv, /2XS XS S M L XL 2XL/);
     assert.ok(!csv.includes("qty"));
 
     const disk = JSON.parse(fs.readFileSync(path.join(tmp, "submissions.json"), "utf8")) as {
@@ -102,6 +107,55 @@ describe("durable / local store", { concurrency: 1 }, () => {
     };
     assert.equal(disk.submissions.length, 1);
     assert.ok(fs.existsSync(path.join(tmp, "photos", "A01", "001.jpg")));
+  });
+
+  test("kind G will not mint held G01; shoe G02 saves with size_options 35–41", async () => {
+    await assert.rejects(
+      saveSubmission({
+        kind: "G",
+        size: "37 38",
+        link: "",
+        color: "Đen",
+        color_note: "",
+        pieces: [],
+        cost_usd: "",
+        cost_cny: "",
+        cost_currency: "USD",
+        sell_usd: "",
+        sell_cny: "",
+        sell_currency: "USD",
+        keep_photos: [],
+        photos: [],
+      }),
+      /Không mint G01 \(held\)/,
+    );
+    const saved = await saveSubmission({
+      kind: "G",
+      size: "37 38",
+      link: "",
+      color: "Đen",
+      color_note: "",
+      pieces: [],
+      cost_usd: "",
+      cost_cny: "",
+      cost_currency: "USD",
+      sell_usd: "",
+      sell_cny: "",
+      sell_currency: "USD",
+      keep_photos: [],
+      photos: [],
+      newMa: "G02",
+    });
+    assert.equal(saved.ma, "G02");
+    assert.equal(saved.kind, "G");
+    assert.equal(saved.size, "37 38");
+    const csv = await exportCsv();
+    assert.match(csv, /G02/);
+    assert.match(csv, /Giày \/ Cao gót/);
+    assert.match(csv, /35 36 37 38 39 40 41/);
+    const listed = await listSubmissions();
+    assert.equal(listed.length, 1);
+    assert.equal(listed[0].ma, "G02");
   });
 
   test("kind D mints D01 and does not invent extra mãs", async () => {
@@ -123,9 +177,44 @@ describe("durable / local store", { concurrency: 1 }, () => {
     });
     assert.equal(saved.ma, "D01");
     assert.equal(saved.kind, "D");
+    assert.equal(saved.sell_usd, "");
+    assert.equal(saved.sell_cny, "");
+    assert.equal(saved.price, "");
+    assert.equal(saved.auto_price ?? null, null);
+    assert.match(saved.caption_vi, /Inbox giá/);
+    assert.doesNotMatch(saved.caption_vi, /\$\d/);
     const listed = await listSubmissions();
     assert.equal(listed.length, 1);
     assert.equal(listed[0].ma, "D01");
+  });
+
+  test("blank sell price saves S06 and does not invent a calculated sell", async () => {
+    const saved = await saveSubmission({
+      kind: "S",
+      size: "M",
+      link: "",
+      color: "Den",
+      color_note: "",
+      pieces: [],
+      cost_usd: "",
+      cost_cny: "",
+      cost_currency: "USD",
+      sell_usd: "",
+      sell_cny: "",
+      sell_currency: "USD",
+      keep_photos: [],
+      photos: [],
+      needs_research: false,
+      taobao_snapshot: null,
+      auto_price: null,
+      newMa: "S06",
+    });
+    assert.equal(saved.ma, "S06");
+    assert.equal(saved.sell_usd, "");
+    assert.equal(saved.price, "");
+    assert.equal(saved.auto_price ?? null, null);
+    assert.match(saved.caption_vi, /Inbox giá/);
+    assert.doesNotMatch(saved.caption_vi, /\$\d/);
   });
 
   test("second save mints A02 and find-by-hash only matches the real photo", async () => {

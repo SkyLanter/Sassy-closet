@@ -1,0 +1,136 @@
+{
+  "schema": "catalog.v1",
+  "version": 1,
+  "products": [
+    {
+      "ma": "S06",
+      "priceUsd": 25,
+      "status": "available",
+      "images": [
+        {
+          "src": "/products/S06/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/S06/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        }
+      ]
+    },
+    {
+      "ma": "A01",
+      "priceUsd": 27,
+      "status": "available",
+      "images": [
+        {
+          "src": "/products/A01/cover.jpg",
+          "colorId": null,
+          "order": 1
+        }
+      ]
+    },
+    {
+      "ma": "K06",
+      "priceUsd": 48,
+      "status": "hold",
+      "images": [
+        {
+          "src": "/products/K06/cover.jpg",
+          "colorId": null,
+          "order": 1
+        }
+      ]
+    },
+    {
+      "ma": "V05",
+      "priceUsd": 36,
+      "status": "hold",
+      "images": []
+    },
+    {
+      "ma": "Z81",
+      "priceUsd": 40,
+      "status": "available"
+    },
+    {
+      "ma": "Z82",
+      "priceUsd": 22,
+      "status": "available",
+      "images": [
+        {
+          "src": "/products/Z82/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/Z82/cover.jpg",
+          "colorId": null,
+          "order": 2
+        }
+      ]
+    },
+    {
+      "ma": "Z83",
+      "priceUsd": 21,
+      "status": "available",
+      "images": [
+        {
+          "src": "/products/Z83/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "  ",
+          "colorId": null,
+          "order": 2
+        },
+        {
+          "src": null,
+          "colorId": null,
+          "order": 3
+        }
+      ]
+    },
+    {
+      "ma": "D02",
+      "priceUsd": 30,
+      "status": "available",
+      "images": [
+        {
+          "src": "/products/D02/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/D02/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        },
+        {
+          "src": "/products/D02/photo-3.jpg",
+          "colorId": null,
+          "order": 3
+        }
+      ]
+    },
+    {
+      "ma": "K02",
+      "priceUsd": 44,
+      "status": "hold",
+      "images": [
+        {
+          "src": "/products/K02/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/K02/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        }
+      ]
+    }
+  ]
+}

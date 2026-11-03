@@ -1,0 +1,10 @@
+{
+  "products": [
+    {"ma": "Q02"},
+    {"ma": "S06", "priceUsd": 25},
+    {"ma": "A01"},
+    {"ma": "A1", "priceUsd": 41},
+    {"ma": "AA01", "priceUsd": 42},
+    {"ma": "a01", "priceUsd": 43}
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "submissions": [
+    {
+      "ma": "S06",
+      "sell_usd": "25",
+      "link": "https://e.tb.cn/h.8sN0OlfvL4eWjAz?tk=P0HOTjnnu3L"
+    },
+    {
+      "ma": "Z81",
+      "link": "http://e.tb.cn/h.httpShopLink"
+    },
+    {
+      "ma": "Z82",
+      "link": "HTTP://item.taobao.com/item.htm?id=123456789012"
+    },
+    {
+      "ma": "V05",
+      "link": ""
+    },
+    {
+      "ma": "Z83",
+      "link": "   "
+    },
+    {
+      "ma": "Z84",
+      "link": null
+    },
+    {
+      "ma": "Z85",
+      "link": "https://example.com/shop?next=http://insecure.example/item"
+    },
+    {
+      "ma": "Z70",
+      "link": "",
+      "source_link": "http://e.tb.cn/h.hidden"
+    },
+    {
+      "ma": "Z86",
+      "sourceLink": "http://shop.example/item"
+    },
+    {
+      "ma": "A01",
+      "priceUsd": 27,
+      "sourceLink": "https://e.tb.cn/h.8KCQeaHH3dz1iSl?tk=WeuOTTBXHOu"
+    }
+  ]
+}

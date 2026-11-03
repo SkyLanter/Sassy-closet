@@ -23,6 +23,7 @@ Boss yes/no stays in Slack `#shop-decisions`. Facebook inbox is the store.
 - **Official Excel** (`Sassy_Closet_SoT.xlsx`) is the ONE desktop working copy / mã index / captions — **not** a second inventory.
 - **Photos** live in `Documents/Sassy Closet/Photos/` named `#001.jpg` / `AO001.jpg`. Excel stores `photo_link` only — **never embed images**.
 - **Mã** = `AO` / `QU` / `VA` / `AK` / `GI` / `PK` / `SET` + 3 digits. Never invent stock. Never reuse a Sold mã. Ask Stock (Dashboard `B21:B27`).
+- Incomplete Taobao mãs stay off the sell catalog: S14, A24, A25, S15, A26, K02, K03, K04, K05, V04, K06, V05, S16, S17, S18, S19, A27, A28, A29, H02, G01. Dataset and admin only (`data/held.json`).
 - **Bots draft only.** The owner posts on Facebook, sends the message, takes Zelle, and taps Save in Square.
 - **Cursor Cloud Agents** change kit code in this repo. **Kit** syncs generated workbooks to OneDrive.
 
@@ -49,6 +50,37 @@ python3 excel-kit/tests/run_checks.py
 
 Prompts also live in `excel-kit/prompts/` (`BOUTIQUE_DESKTOP_EFFICIENT.md`, `BOUTIQUE_PHONE_SAFE.md`, `GF_CLOTHES_INTAKE.md`, `SAVED_CARD_AND_REAL_MINIBOSS_ASK_2026-09-07.md`).
 
+## Desk status
+
+Read-only counts: intake, catalog, held mãs, open pull-request numbers, freshness, and what is waiting on Boss. The command does not write Blob, intake, Meta, or `data/held.json`.
+
+```bash
+python3 scripts/desk_status.py --fixture ./desk.json
+python3 scripts/desk_status.py --fixture ./desk.json --page ./out/desk.html
+```
+
+`--page` writes HTML only from files already loaded. `--read-prs` asks `gh` for open pull-request numbers and does not write that page.
+
+## Restock note
+
+Read-only list of catalog mãs whose status is sold. The command reads a local fixture and writes a markdown note. It does not change catalog rows, prices, or `data/held.json`. Held mãs stay held. S06 stays $25. It does not post to Meta or mark a mã sold or available.
+
+```bash
+python3 scripts/restock_note.py --fixture ./catalog.json --note ./out/restock-note.md
+```
+
+## Sell shop
+
+Next.js sell shop in [`sassy-closet-shop/`](sassy-closet-shop/). Live URL stays [https://sassy-closet-shop.vercel.app](https://sassy-closet-shop.vercel.app).
+
+GitHub is the source of truth for this app (Boss 2026-09-21). Origin temp `tiensidequests/tmp-87ea3acf7683fefe` is deprecated for new commits. **Do not delete Origin** until Mini Boss / Boss reconnects Vercel:
+
+1. Connect the Vercel project `sassy-closet-shop` to this GitHub repo.
+2. Set **Root Directory** to `sassy-closet-shop`.
+3. Leave the live URL as https://sassy-closet-shop.vercel.app.
+
+Product photos stay on Vercel Blob / CDN (`/products/...`). They are not in git. A pull request does not deploy production.
+
 ## Intake site
 
-Next.js app in [`sassy-closet/`](sassy-closet/). Vercel Root Directory: `sassy-closet`. Env **names** (no values): `MINIBOSS_ASK_WEBHOOK_URL`, `MINIBOSS_ASK_WEBHOOK_KEY`, `ASK_REPLY_SECRET`, plus Blob (`BLOB_READ_WRITE_TOKEN` / `BLOB_STORE_ID`) so Production redeploys do not wipe mãs — see `excel-kit/KIT.md` and `sassy-closet/README.md`.
+Next.js app in [`sassy-closet/`](sassy-closet/). Vercel Root Directory: `sassy-closet`. Env **names** (no values): `MINIBOSS_ASK_WEBHOOK_URL`, `MINIBOSS_ASK_WEBHOOK_KEY`, `ASK_REPLY_SECRET`, `INTAKE_DATASET_SYNC_WEBHOOK_URL`, `INTAKE_DATASET_SYNC_WEBHOOK_KEY` (webhook is the immediate dataset sync; poll backup already exists on Grok Bot so Mini Boss does not need to be online), plus Blob (`BLOB_READ_WRITE_TOKEN` / `BLOB_STORE_ID`) so Production redeploys do not wipe mãs — see `excel-kit/KIT.md` and `sassy-closet/README.md`. Shop tools on that same app need `SHOP_BLOB_READ_WRITE_TOKEN`, `SHOP_REVALIDATE_SECRET`, and `SHOP_REVALIDATE_URL` (`sassy-closet/docs/SHOP_ADMIN.md`). There is no intake password. The sell shop project needs the same `SHOP_REVALIDATE_SECRET` and does not serve `/admin`.

@@ -6,7 +6,8 @@
     "build": "next build",
     "start": "next start -p 3000",
     "test": "node --import tsx --test --test-concurrency=1 tests/*.test.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "intake:sell-backfill": "tsx scripts/intake-sell-backfill.ts"
   },
   "dependencies": {
     "@vercel/blob": "^2.8.0",

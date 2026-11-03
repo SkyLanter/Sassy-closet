@@ -1,0 +1,122 @@
+{
+  "schema": "catalog.v1",
+  "version": 1,
+  "siteId": "sassy-closet-shop",
+  "products": [
+    {
+      "ma": "S06",
+      "status": "available",
+      "priceUsd": 25,
+      "colors": [
+        {"id": "cs0600", "hex": "#F4F0E8", "name": "Kem", "note": ""},
+        {"id": "cs0601", "hex": "#1C2A4A", "name": "Xanh", "note": ""}
+      ]
+    },
+    {
+      "ma": "A07",
+      "status": "available",
+      "priceUsd": 26,
+      "colors": [
+        {"id": "ca0700", "hex": "#FFFFFF", "name": "White", "note": ""}
+      ]
+    },
+    {
+      "ma": "S01",
+      "status": "available",
+      "priceUsd": 39,
+      "colors": []
+    },
+    {
+      "ma": "P02",
+      "status": "available",
+      "priceUsd": 12,
+      "color": "Kem, Xanh",
+      "colors": [
+        {"id": "cp0200", "hex": "#F4F0E8", "name": "Kem, Xanh", "note": ""}
+      ]
+    },
+    {
+      "ma": "K06",
+      "status": "hold",
+      "priceUsd": null,
+      "colors": [
+        {"id": "ck0600", "hex": "#111111", "name": "Đen", "note": ""},
+        {"id": "ck0601", "hex": "#F4F0E8", "name": "Kem", "note": ""}
+      ]
+    },
+    {
+      "ma": "Z99",
+      "status": "available",
+      "priceUsd": 11,
+      "colors": [
+        {"id": "cz9900", "hex": "#111111", "name": "", "note": ""},
+        {"id": "cz9901", "hex": "#F4F0E8", "name": "", "note": "preset hex only"}
+      ]
+    },
+    {
+      "ma": "H01",
+      "status": "available",
+      "priceUsd": 8,
+      "colors": [
+        {"id": "ch0100", "hex": "#E8A0BF", "name": "", "note": ""}
+      ]
+    },
+    {
+      "ma": "B01",
+      "status": "available",
+      "priceUsd": 18,
+      "colors": ["Pink", "Blue"]
+    },
+    {
+      "ma": "A02",
+      "status": "available",
+      "priceUsd": 22,
+      "colors": [
+        {"id": "cham-bi", "hex": "#6B6B6B", "name": "Chấm bi", "note": ""}
+      ],
+      "images": [
+        {"src": "/products/A02/cover.jpg", "colorId": "cham-bi", "order": 1},
+        {"src": "/products/A02/photo-2.jpg", "colorId": "kem", "order": 2}
+      ]
+    },
+    {
+      "ma": "O04",
+      "status": "available",
+      "priceUsd": 10,
+      "color": "Kem, Xanh"
+    },
+    {
+      "ma": "J01",
+      "status": "available",
+      "priceUsd": 9,
+      "colors": ["Kem, Xanh"]
+    },
+    {
+      "ma": "D01",
+      "status": "available",
+      "priceUsd": 30,
+      "colors": [
+        {"id": "cd0100", "hex": "#E8D5C4", "name": "Pink", "note": ""},
+        {"id": "cd0101", "hex": "#E8A0BF", "name": "Pink", "note": ""}
+      ]
+    },
+    {
+      "ma": "Q01",
+      "status": "available",
+      "priceUsd": 21,
+      "colors": [
+        {"id": "cq0100", "hex": "#FFFFFF", "name": "White", "note": ""},
+        3
+      ]
+    },
+    {
+      "ma": "AO001",
+      "status": "available",
+      "priceUsd": 20,
+      "colors": [
+        {"id": "old0", "name": "Kem"},
+        {"id": "old1", "name": "Xanh"}
+      ]
+    }
+  ]
+}

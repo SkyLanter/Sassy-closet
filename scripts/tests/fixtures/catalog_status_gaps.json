@@ -1,0 +1,148 @@
+{
+  "schema": "catalog.v1",
+  "version": 1,
+  "siteId": "sassy-closet-shop",
+  "products": [
+    {
+      "ma": "S06",
+      "titleEn": "Washed distressed overalls",
+      "status": "available",
+      "priceUsd": 25
+    },
+    {
+      "ma": "A01",
+      "titleEn": "Puppy cardigan",
+      "status": "available",
+      "priceUsd": 27
+    },
+    {
+      "ma": "D05",
+      "titleEn": "Apricot ruched lace mini dress",
+      "status": "sold",
+      "priceUsd": 26
+    },
+    {
+      "ma": "K06",
+      "titleEn": "Held jacket",
+      "status": "held",
+      "priceUsd": null
+    },
+    {
+      "ma": "V05",
+      "titleEn": "Held vest",
+      "status": "hold",
+      "priceUsd": null
+    },
+    {
+      "ma": "Z81",
+      "titleEn": "Reserved sample",
+      "status": "reserved",
+      "priceUsd": 40
+    },
+    {
+      "ma": "Z82",
+      "status": null,
+      "priceUsd": 21
+    },
+    {
+      "ma": "Z83",
+      "priceUsd": 22
+    },
+    {
+      "ma": "Z84",
+      "status": "",
+      "priceUsd": 23
+    },
+    {
+      "ma": "Z85",
+      "status": "  ",
+      "priceUsd": 24
+    },
+    {
+      "ma": "Z86",
+      "status": "Available",
+      "priceUsd": 28
+    },
+    {
+      "ma": "Z87",
+      "status": "staged",
+      "priceUsd": 29
+    },
+    {
+      "ma": "Z88",
+      "status": 1,
+      "priceUsd": 30
+    },
+    {
+      "ma": "Z89",
+      "status": true,
+      "priceUsd": 31
+    },
+    {
+      "ma": "Z90",
+      "status": "sold-out",
+      "priceUsd": 32
+    },
+    {
+      "ma": "Z91",
+      "status": "live",
+      "priceUsd": 33
+    },
+    {
+      "ma": "Z92",
+      "status": "HOLD",
+      "priceUsd": 34
+    },
+    {
+      "ma": "Z93",
+      "status": "in_stock",
+      "priceUsd": 35
+    },
+    {
+      "ma": "K02",
+      "titleEn": "Held draft",
+      "status": "draft",
+      "priceUsd": null
+    },
+    {
+      "ma": "Z94",
+      "status": "held",
+      "priceUsd": 36
+    },
+    {
+      "ma": "Z95",
+      "status": "hold",
+      "priceUsd": null
+    },
+    {
+      "ma": "Z96",
+      "status": ["sold"],
+      "priceUsd": 37
+    },
+    {
+      "ma": "Z97",
+      "status": "pending",
+      "priceUsd": 38
+    },
+    {
+      "ma": "Z98",
+      "status": "archived",
+      "priceUsd": 39
+    },
+    {
+      "ma": "Z99",
+      "status": "sold ",
+      "priceUsd": 41
+    },
+    {
+      "ma": "Z70",
+      "status": "n/a",
+      "priceUsd": 42
+    },
+    {
+      "ma": "Z71",
+      "status": "Sold",
+      "priceUsd": 43
+    }
+  ]
+}

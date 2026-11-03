@@ -1,0 +1,61 @@
+{
+  "schema": "catalog.v1",
+  "version": 1,
+  "siteId": "sassy-closet-shop",
+  "products": [
+    {
+      "ma": "S06",
+      "titleEn": "Washed distressed overalls",
+      "status": "available",
+      "priceUsd": 25
+    },
+    {
+      "ma": "A01",
+      "titleEn": "Puppy cardigan",
+      "status": "available",
+      "priceUsd": 27
+    },
+    {
+      "ma": "D05",
+      "titleEn": "Apricot ruched lace mini dress",
+      "status": "sold",
+      "priceUsd": 26
+    },
+    {
+      "ma": "K06",
+      "titleEn": "Held jacket",
+      "status": "held",
+      "priceUsd": null
+    },
+    {
+      "ma": "V05",
+      "titleEn": "Held vest",
+      "status": "hold",
+      "priceUsd": null
+    },
+    {
+      "ma": "Z96",
+      "titleEn": "Sold and still held",
+      "status": "sold",
+      "priceUsd": 48
+    },
+    {
+      "ma": "Z98",
+      "titleEn": "Available and still held",
+      "status": "available",
+      "priceUsd": 30
+    },
+    {
+      "ma": "Z97",
+      "titleEn": "Sold on the never list",
+      "status": "sold",
+      "priceUsd": 41
+    },
+    {
+      "ma": "Z92",
+      "titleEn": "Other sold spelling",
+      "status": "SOLD",
+      "priceUsd": 34
+    }
+  ]
+}

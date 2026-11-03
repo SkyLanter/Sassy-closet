@@ -1,0 +1,558 @@
+{
+  "schema": "catalog.v1",
+  "version": 1,
+  "siteId": "sassy-closet-shop",
+  "products": [
+    {
+      "ma": "A01",
+      "type": "A",
+      "titleVn": "Áo len puppy",
+      "titleEn": "Puppy cardigan",
+      "priceUsd": 35,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "csku0000",
+          "hex": "#F5D76E",
+          "name": "Yellow",
+          "note": "黄色"
+        },
+        {
+          "id": "csku0001",
+          "hex": "#7B5EA7",
+          "name": "Purple",
+          "note": "紫色"
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/A01/cover.jpg",
+          "colorId": "csku0000",
+          "order": 1
+        },
+        {
+          "src": "/products/A01/photo-2.jpg",
+          "colorId": "csku0001",
+          "order": 2
+        }
+      ],
+      "descriptionVn": "Áo len puppy nút kẹo.",
+      "descriptionEn": "Puppy knit cardigan with candy-colored buttons.",
+      "fulfillment": "dropship",
+      "sourceLink": null,
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ]
+    },
+    {
+      "ma": "S01",
+      "type": "S",
+      "titleVn": "Đầm polo",
+      "titleEn": "Polo wrap dress",
+      "priceUsd": 53,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "csku0000",
+          "hex": "#F4F0E8",
+          "name": "[CN] 连衣裙",
+          "note": "连衣裙"
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/S01/cover.jpg",
+          "colorId": "csku0000",
+          "order": 1
+        }
+      ],
+      "descriptionVn": "Đầm polo kem gân, cột eo, lai bèo.",
+      "descriptionEn": "Ivory ribbed polo dress with a wrap waist and ruffle hem.",
+      "fulfillment": "dropship",
+      "sourceLink": null,
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "ma": "P01",
+      "type": "P",
+      "titleVn": "Băng đô hoa",
+      "titleEn": "Floral headbands",
+      "priceUsd": 10,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "csku0000",
+          "hex": "#E8D5C4",
+          "name": "Pink (粉色发箍)",
+          "note": "粉色发箍"
+        },
+        {
+          "id": "csku0001",
+          "hex": "#F4F0E8",
+          "name": "Pink (粉色+米白)",
+          "note": "粉色+米白"
+        },
+        {
+          "id": "csku0002",
+          "hex": "#F4F0E8",
+          "name": "[CN] 米白发箍",
+          "note": "米白发箍"
+        },
+        {
+          "id": "csku0003",
+          "hex": "#C4A484",
+          "name": "[CN] 咖色发箍",
+          "note": "咖色发箍"
+        },
+        {
+          "id": "csku0004",
+          "hex": "#E8D5C4",
+          "name": "Pink (粉色+咖色)",
+          "note": "粉色+咖色"
+        },
+        {
+          "id": "csku0005",
+          "hex": "#F4F0E8",
+          "name": "[CN] 米白+咖色",
+          "note": "米白+咖色"
+        },
+        {
+          "id": "csku0006",
+          "hex": "#F4F0E8",
+          "name": "[CN] 百搭3件",
+          "note": "百搭3件"
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/P01/cover.jpg",
+          "colorId": "csku0000",
+          "order": 1
+        },
+        {
+          "src": "/products/P01/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        }
+      ],
+      "descriptionVn": "Băng đô vải hoa, nút vàng.",
+      "descriptionEn": "Floral fabric headbands with gold studs.",
+      "fulfillment": "dropship",
+      "sourceLink": null,
+      "sizes": []
+    },
+    {
+      "ma": "P02",
+      "type": "P",
+      "titleVn": "Bình Judy Hopps",
+      "titleEn": "Judy Hopps tumbler",
+      "priceUsd": 31,
+      "qty": 1,
+      "status": "hold",
+      "colors": [
+        {
+          "id": "csku0000",
+          "hex": "#F4F0E8",
+          "name": "[CN] 朱迪800ml-冰霸杯-茶仓 【正版授权】",
+          "note": "朱迪800ml-冰霸杯-茶仓 【正版授权】"
+        },
+        {
+          "id": "csku0001",
+          "hex": "#F4F0E8",
+          "name": "[CN] 尼克800ml-冰霸杯-茶仓 【正版授权】",
+          "note": "尼克800ml-冰霸杯-茶仓 【正版授权】"
+        },
+        {
+          "id": "csku0002",
+          "hex": "#F4F0E8",
+          "name": "[CN] 史迪仔800ml-冰霸杯-茶仓 【正版授权】",
+          "note": "史迪仔800ml-冰霸杯-茶仓 【正版授权】"
+        },
+        {
+          "id": "csku0003",
+          "hex": "#F4F0E8",
+          "name": "[CN] 朱迪800ml-冰霸杯-茶仓+随机3d贴+清洁杯刷 【正版授权】",
+          "note": "朱迪800ml-冰霸杯-茶仓+随机3d贴+清洁杯刷 【正版授权】"
+        },
+        {
+          "id": "csku0004",
+          "hex": "#F4F0E8",
+          "name": "[CN] 尼克800ml-冰霸杯-茶仓+随机3d贴+清洁杯刷 【正版授权】",
+          "note": "尼克800ml-冰霸杯-茶仓+随机3d贴+清洁杯刷 【正版授权】"
+        },
+        {
+          "id": "csku0005",
+          "hex": "#F4F0E8",
+          "name": "[CN] 史迪仔800ml-冰霸杯-茶仓+随机3d贴+清洁杯刷 【正版授权】",
+          "note": "史迪仔800ml-冰霸杯-茶仓+随机3d贴+清洁杯刷 【正版授权】"
+        },
+        {
+          "id": "csku0006",
+          "hex": "#F4F0E8",
+          "name": "[CN] 【闺蜜情侣优惠套餐】朱迪800ml+尼克800ml 【正版授权】",
+          "note": "【闺蜜情侣优惠套餐】朱迪800ml+尼克800ml 【正版授权】"
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/P02/cover.jpg",
+          "colorId": "csku0000",
+          "order": 1
+        },
+        {
+          "src": "/products/P02/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        }
+      ],
+      "descriptionVn": "Bình Judy Hopps vườn cà rốt.",
+      "descriptionEn": "Judy Hopps garden tumbler with a character lid.",
+      "fulfillment": "dropship",
+      "sourceLink": null,
+      "sizes": []
+    },
+    {
+      "ma": "P03",
+      "type": "P",
+      "titleVn": "Bình nhân vật",
+      "titleEn": "Character thermos",
+      "priceUsd": 17,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "csku0000",
+          "hex": "#F4F0E8",
+          "name": "[CN] 朱迪500ml-双饮+赠3d贴+清洁杯刷",
+          "note": "朱迪500ml-双饮+赠3d贴+清洁杯刷"
+        },
+        {
+          "id": "csku0001",
+          "hex": "#F4F0E8",
+          "name": "[CN] 尼克500ml-双饮+赠3d贴+清洁杯刷",
+          "note": "尼克500ml-双饮+赠3d贴+清洁杯刷"
+        },
+        {
+          "id": "csku0002",
+          "hex": "#F4F0E8",
+          "name": "[CN] 草莓熊500ml-双饮+赠3d贴+清洁杯刷",
+          "note": "草莓熊500ml-双饮+赠3d贴+清洁杯刷"
+        },
+        {
+          "id": "csku0003",
+          "hex": "#F4F0E8",
+          "name": "[CN] 史迪奇500ml-双饮+赠3d贴+清洁杯刷",
+          "note": "史迪奇500ml-双饮+赠3d贴+清洁杯刷"
+        },
+        {
+          "id": "csku0004",
+          "hex": "#F4F0E8",
+          "name": "[CN] 蜡笔小新500ml-双饮+赠3d贴+清洁杯刷",
+          "note": "蜡笔小新500ml-双饮+赠3d贴+清洁杯刷"
+        },
+        {
+          "id": "csku0005",
+          "hex": "#F4F0E8",
+          "name": "[CN] 【礼物款】蜡笔小新500ml-双饮+赠3d贴+清洁杯刷+精美礼袋",
+          "note": "【礼物款】蜡笔小新500ml-双饮+赠3d贴+清洁杯刷+精美礼袋"
+        },
+        {
+          "id": "csku0006",
+          "hex": "#F4F0E8",
+          "name": "[CN] 【礼物款】朱迪500ml-双饮+赠3d贴+清洁杯刷+精美礼袋",
+          "note": "【礼物款】朱迪500ml-双饮+赠3d贴+清洁杯刷+精美礼袋"
+        },
+        {
+          "id": "csku0007",
+          "hex": "#F4F0E8",
+          "name": "[CN] 【礼物款】尼克500ml-双饮+赠3d贴+清洁杯刷+精美礼袋",
+          "note": "【礼物款】尼克500ml-双饮+赠3d贴+清洁杯刷+精美礼袋"
+        },
+        {
+          "id": "csku0008",
+          "hex": "#F4F0E8",
+          "name": "[CN] 【礼物款】草莓熊500ml-双饮+赠3d贴+清洁杯刷+精美礼袋",
+          "note": "【礼物款】草莓熊500ml-双饮+赠3d贴+清洁杯刷+精美礼袋"
+        },
+        {
+          "id": "csku0009",
+          "hex": "#F4F0E8",
+          "name": "[CN] 【礼物款】史迪奇500ml-双饮+赠3d贴+清洁杯刷+精美礼袋",
+          "note": "【礼物款】史迪奇500ml-双饮+赠3d贴+清洁杯刷+精美礼袋"
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/P03/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/P03/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        },
+        {
+          "src": "/products/P03/photo-3.jpg",
+          "colorId": null,
+          "order": 3
+        }
+      ],
+      "descriptionVn": "Bình giữ nhiệt Stitch và Judy Hopps.",
+      "descriptionEn": "Character thermos bottles — Stitch and Judy Hopps.",
+      "fulfillment": "dropship",
+      "sourceLink": null,
+      "sizes": []
+    },
+    {
+      "ma": "P04",
+      "type": "P",
+      "titleVn": "Mũ dâu",
+      "titleEn": "Strawberry cap",
+      "priceUsd": 14,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "csku0000",
+          "hex": "#F4F0E8",
+          "name": "Off-white",
+          "note": "米白色"
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/P04/cover.jpg",
+          "colorId": "csku0000",
+          "order": 1
+        },
+        {
+          "src": "/products/P04/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        }
+      ],
+      "descriptionVn": "Mũ baker boy kem thêu dâu.",
+      "descriptionEn": "Cream baker boy cap with strawberry patches.",
+      "fulfillment": "dropship",
+      "sourceLink": null,
+      "sizes": [
+        "M"
+      ]
+    },
+    {
+      "ma": "P05",
+      "type": "P",
+      "titleVn": "Bình Sanrio",
+      "titleEn": "Sanrio tumbler",
+      "priceUsd": 31,
+      "qty": 1,
+      "status": "hold",
+      "colors": [
+        {
+          "id": "csku0000",
+          "hex": "#F4F0E8",
+          "name": "[CN] 必爱诺700ml-316保温保冷 正版保障",
+          "note": "必爱诺700ml-316保温保冷 正版保障"
+        },
+        {
+          "id": "csku0001",
+          "hex": "#F4F0E8",
+          "name": "[CN] 必爱诺700ml-赠3d贴+清洁杯刷 正版保障",
+          "note": "必爱诺700ml-赠3d贴+清洁杯刷 正版保障"
+        },
+        {
+          "id": "csku0002",
+          "hex": "#F4F0E8",
+          "name": "[CN] 【送礼推荐】必爱诺700ml-赠3d贴+清洁杯刷+精美礼袋 正版保障",
+          "note": "【送礼推荐】必爱诺700ml-赠3d贴+清洁杯刷+精美礼袋 正版保障"
+        },
+        {
+          "id": "csku0003",
+          "hex": "#F4F0E8",
+          "name": "[CN] 凯蒂猫700ml-316保温保冷-赠3d贴+清洁杯刷 正版保障",
+          "note": "凯蒂猫700ml-316保温保冷-赠3d贴+清洁杯刷 正版保障"
+        },
+        {
+          "id": "csku0004",
+          "hex": "#F4F0E8",
+          "name": "[CN] 美乐蒂700ml-316保温保冷-赠3d贴+清洁杯刷 正版保障",
+          "note": "美乐蒂700ml-316保温保冷-赠3d贴+清洁杯刷 正版保障"
+        },
+        {
+          "id": "csku0005",
+          "hex": "#F4F0E8",
+          "name": "[CN] 玉桂狗700ml-316保温保冷-赠3d贴+清洁杯刷 正版保障",
+          "note": "玉桂狗700ml-316保温保冷-赠3d贴+清洁杯刷 正版保障"
+        },
+        {
+          "id": "csku0006",
+          "hex": "#F4F0E8",
+          "name": "[CN] 库洛米700ml-316保温保冷-赠3d贴+清洁杯刷 正版保障",
+          "note": "库洛米700ml-316保温保冷-赠3d贴+清洁杯刷 正版保障"
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/P05/cover.jpg",
+          "colorId": "csku0000",
+          "order": 1
+        },
+        {
+          "src": "/products/P05/photo-2.jpg",
+          "colorId": "csku0001",
+          "order": 2
+        },
+        {
+          "src": "/products/P05/photo-3.jpg",
+          "colorId": "csku0002",
+          "order": 3
+        }
+      ],
+      "descriptionVn": "Bình My Sweet Piano và Kuromi.",
+      "descriptionEn": "Sanrio tumblers — My Sweet Piano and Kuromi.",
+      "fulfillment": "dropship",
+      "sourceLink": null,
+      "sizes": []
+    },
+    {
+      "ma": "K01",
+      "type": "K",
+      "titleVn": "Áo khoác puppy",
+      "titleEn": "Puppy zip jacket",
+      "priceUsd": 48,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "csku0000",
+          "hex": "#F5D76E",
+          "name": "Yellow",
+          "note": "黄色"
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/K01/cover.jpg",
+          "colorId": null,
+          "order": 1
+        }
+      ],
+      "descriptionVn": "Áo khoác zip vàng đính puppy.",
+      "descriptionEn": "Yellow zip jacket with puppy appliqués.",
+      "fulfillment": "dropship",
+      "sourceLink": null,
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ]
+    },
+    {
+      "ma": "H01",
+      "type": "H",
+      "titleVn": "Nơ tóc thỏ",
+      "titleEn": "Rabbit hair bows",
+      "priceUsd": 12,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "csku0000",
+          "hex": "#E8D5C4",
+          "name": "Pink (粉色 蝴蝶结发夹)",
+          "note": "粉色 蝴蝶结发夹"
+        },
+        {
+          "id": "csku0001",
+          "hex": "#1C2A4A",
+          "name": "Blue (蓝色 蝴蝶结发夹)",
+          "note": "蓝色 蝴蝶结发夹"
+        },
+        {
+          "id": "csku0002",
+          "hex": "#8B3A3A",
+          "name": "Red (酒红色 蝴蝶结发夹)",
+          "note": "酒红色 蝴蝶结发夹"
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/H01/cover.jpg",
+          "colorId": null,
+          "order": 1
+        },
+        {
+          "src": "/products/H01/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        },
+        {
+          "src": "/products/H01/photo-3.jpg",
+          "colorId": null,
+          "order": 3
+        }
+      ],
+      "descriptionVn": "Nơ tóc thêu thỏ Peter Rabbit.",
+      "descriptionEn": "Satin hair bows with embroidered rabbits.",
+      "fulfillment": "dropship",
+      "sourceLink": null,
+      "sizes": []
+    },
+    {
+      "ma": "A02",
+      "type": "A",
+      "titleVn": "Áo chấm bi",
+      "titleEn": "Polka-dot dress",
+      "priceUsd": 30,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "csku0000",
+          "hex": "#F4F0E8",
+          "name": "Off-white",
+          "note": "米白色"
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/A02/cover.jpg",
+          "colorId": "csku0000",
+          "order": 1
+        },
+        {
+          "src": "/products/A02/photo-2.jpg",
+          "colorId": null,
+          "order": 2
+        }
+      ],
+      "descriptionVn": "Áo cổ chấm bi tay phồng, thân dạ.",
+      "descriptionEn": "Polka-dot collar puff-sleeve dress with a grey wool body.",
+      "fulfillment": "dropship",
+      "sourceLink": null,
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ]
+    }
+  ],
+  "settings": {
+    "announcementLines": [
+      "Sassy Closet"
+    ],
+    "facebookPageUrl": "https://www.facebook.com/profile.php?id=61594312648057"
+  }
+}

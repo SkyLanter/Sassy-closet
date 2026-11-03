@@ -1,0 +1,5 @@
+{
+ "note": "Sell USD only. OneDrive mirror rows and live Blob sell from proof-241 snapshot 2026-10-28 ~11:18 PM PT (piece-259 fixture). No costs/links.",
+ "od_mirror": {"D05": 28.0, "V03": 24.0},
+ "live": {"D05": 26.0, "V03": 21.0}
+}

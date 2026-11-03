@@ -1,0 +1,254 @@
+{
+ "source": "live Blob catalog.v1 snapshot 2026-10-22 (midnight QC 2026-10-29: live matches 62/62)",
+ "fields": "ma, priceUsd (sell USD only)",
+ "products": [
+  {
+   "ma": "A01",
+   "priceUsd": 27
+  },
+  {
+   "ma": "S01",
+   "priceUsd": 39
+  },
+  {
+   "ma": "P01",
+   "priceUsd": 5
+  },
+  {
+   "ma": "P02",
+   "priceUsd": 25
+  },
+  {
+   "ma": "P03",
+   "priceUsd": 11
+  },
+  {
+   "ma": "P04",
+   "priceUsd": 10
+  },
+  {
+   "ma": "P05",
+   "priceUsd": 25
+  },
+  {
+   "ma": "K01",
+   "priceUsd": 36
+  },
+  {
+   "ma": "H01",
+   "priceUsd": 8
+  },
+  {
+   "ma": "A02",
+   "priceUsd": 23
+  },
+  {
+   "ma": "A03",
+   "priceUsd": 22
+  },
+  {
+   "ma": "A04",
+   "priceUsd": 21
+  },
+  {
+   "ma": "A05",
+   "priceUsd": 25
+  },
+  {
+   "ma": "A06",
+   "priceUsd": 23
+  },
+  {
+   "ma": "A07",
+   "priceUsd": 26
+  },
+  {
+   "ma": "A08",
+   "priceUsd": 29
+  },
+  {
+   "ma": "A09",
+   "priceUsd": 26
+  },
+  {
+   "ma": "A10",
+   "priceUsd": 29
+  },
+  {
+   "ma": "A11",
+   "priceUsd": 27
+  },
+  {
+   "ma": "A12",
+   "priceUsd": 29
+  },
+  {
+   "ma": "A13",
+   "priceUsd": 25
+  },
+  {
+   "ma": "A14",
+   "priceUsd": 24
+  },
+  {
+   "ma": "A15",
+   "priceUsd": 25
+  },
+  {
+   "ma": "B01",
+   "priceUsd": 46
+  },
+  {
+   "ma": "B02",
+   "priceUsd": 31
+  },
+  {
+   "ma": "B03",
+   "priceUsd": 67
+  },
+  {
+   "ma": "D01",
+   "priceUsd": 40
+  },
+  {
+   "ma": "D02",
+   "priceUsd": 40
+  },
+  {
+   "ma": "D03",
+   "priceUsd": 31
+  },
+  {
+   "ma": "J01",
+   "priceUsd": 29
+  },
+  {
+   "ma": "J02",
+   "priceUsd": 40
+  },
+  {
+   "ma": "O01",
+   "priceUsd": 22
+  },
+  {
+   "ma": "O02",
+   "priceUsd": 24
+  },
+  {
+   "ma": "O03",
+   "priceUsd": 7
+  },
+  {
+   "ma": "O04",
+   "priceUsd": 12
+  },
+  {
+   "ma": "O05",
+   "priceUsd": 15
+  },
+  {
+   "ma": "Q01",
+   "priceUsd": 28
+  },
+  {
+   "ma": "S02",
+   "priceUsd": 25
+  },
+  {
+   "ma": "S03",
+   "priceUsd": 26
+  },
+  {
+   "ma": "S04",
+   "priceUsd": 41
+  },
+  {
+   "ma": "A16",
+   "priceUsd": 31
+  },
+  {
+   "ma": "D04",
+   "priceUsd": 35
+  },
+  {
+   "ma": "S05",
+   "priceUsd": 26
+  },
+  {
+   "ma": "S06",
+   "priceUsd": 25
+  },
+  {
+   "ma": "S07",
+   "priceUsd": 38
+  },
+  {
+   "ma": "S08",
+   "priceUsd": 37
+  },
+  {
+   "ma": "S09",
+   "priceUsd": 36
+  },
+  {
+   "ma": "V01",
+   "priceUsd": 39
+  },
+  {
+   "ma": "V02",
+   "priceUsd": 40
+  },
+  {
+   "ma": "D05",
+   "priceUsd": 26
+  },
+  {
+   "ma": "V03",
+   "priceUsd": 21
+  },
+  {
+   "ma": "A17",
+   "priceUsd": 27
+  },
+  {
+   "ma": "A18",
+   "priceUsd": 27
+  },
+  {
+   "ma": "A19",
+   "priceUsd": 27
+  },
+  {
+   "ma": "A20",
+   "priceUsd": 23
+  },
+  {
+   "ma": "A21",
+   "priceUsd": 21
+  },
+  {
+   "ma": "S10",
+   "priceUsd": 37
+  },
+  {
+   "ma": "A22",
+   "priceUsd": 33
+  },
+  {
+   "ma": "S11",
+   "priceUsd": 51
+  },
+  {
+   "ma": "A23",
+   "priceUsd": 27
+  },
+  {
+   "ma": "S12",
+   "priceUsd": 33
+  },
+  {
+   "ma": "S13",
+   "priceUsd": 26
+  }
+ ]
+}

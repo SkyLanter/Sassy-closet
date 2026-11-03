@@ -2,6 +2,8 @@
 
 GF intake at https://sassy-closet.vercel.app. Existing tabs only: **Món mới**, **Sửa theo mã**, **Tìm mã**, **Hỏi Mini Boss · Ask**.
 
+Shop catalog edits are a direct link at `/admin/shop` (footer link **Shop tools**). Open by link, no sign-in form. They are not a fifth tab. See [docs/SHOP_ADMIN.md](docs/SHOP_ADMIN.md).
+
 This folder is the site source. The Excel kit stays at repo-root `excel-kit/`. Vercel Root Directory should be `sassy-closet`.
 
 ## Saved card
@@ -52,6 +54,20 @@ Ask relay:
 - `ASK_REPLY_SECRET`
 - optional `GROK_API_KEY` (unused unless you wire LLM later; rules draft is default)
 
+Intake → dataset sync (Grok Bot routine `intake-dataset-sync-webhook`). This webhook is the **immediate** path after GF create/update persist. A **poll backup already exists on Grok Bot**, so Mini Boss does not need to be online for the dataset to catch up.
+
+Boss paste (intake project only — never sell-test):
+
+1. Desktop routine panel → copy Webhook URL + sender key (often `crsr_…`).
+2. Vercel → https://sassy-closet.vercel.app project (Root Directory `sassy-closet`) → Settings → Environment Variables (Production + Preview as needed).
+3. Paste `INTAKE_DATASET_SYNC_WEBHOOK_URL` and `INTAKE_DATASET_SYNC_WEBHOOK_KEY`.
+4. **Redeploy intake only.**
+
+Both required or the helper no-ops (save still succeeds). Header: `Authorization: Bearer <key>` (optional `X-Automation-Key`). Never commit or log the key. Webhook fail → log + save still OK.
+
+- `INTAKE_DATASET_SYNC_WEBHOOK_URL`
+- `INTAKE_DATASET_SYNC_WEBHOOK_KEY`
+
 Local only:
 
 - optional `SASSY_DATA_DIR` — data root. Default local: `sassy-closet/data/` (gitignored). On Vercel *without* Blob: `/tmp/sassy-closet-data` (ephemeral).
@@ -99,3 +115,5 @@ Two boxes on the same tab (do not drop either):
 `GET /api/ma/{code}` is read-only `{ staged, on_hand, staged_only }`. Empty `on_hand` → **Staged only — not on Square On_Hand yet**. Never invent stock, $, storage, or mã.
 
 Hard stops: no invent mã / qty / $, no Square Save, no Facebook Post/Send.
+
+Incomplete Taobao mãs stay off the sell catalog: S14, A24, A25, S15, A26, K02, K03, K04, K05, V04, K06, V05, S16, S17, S18, S19, A27, A28, A29, H02, G01. Dataset and admin only (`data/held.json`, loaded by `lib/held-incomplete.ts`).

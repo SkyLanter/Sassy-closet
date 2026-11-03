@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
-import { isKindCode, kindLabel } from "./kinds";
+import { isKindCode, kindLabel, sizeOptionsLine } from "./kinds";
+import { notifyIntakeDatasetSyncWebhook } from "./intakeDatasetSyncWebhook";
 import { formatMa, maExists, nextMa, normalizeMa, parseHubMa } from "./mint";
+import { mintBlock, publishBlock } from "./publish-guard";
 import { normalizeSourceLink } from "./source-link";
 import { sanitizeOnHandRows } from "./on-hand";
 import { buildCaptionVi } from "./captions";
@@ -15,6 +17,8 @@ import {
 import type { StoreFile } from "./store-backend";
 import type { KindCode } from "./kinds";
 import type { OnHandRow, Piece, Submission } from "./types";
+import type { PriceBreakdown } from "./pricing";
+import type { TaobaoItem } from "./taobao";
 
 export type { StoreFile, StorageMode } from "./store-backend";
 export { storageMode, storageStatus, blobConfigured } from "./store-backend";
@@ -36,6 +40,9 @@ export type SaveInput = {
   photos: { bytes: Buffer; hash: string; ext: string }[];
   existingMa?: string;
   newMa?: string;
+  needs_research: boolean;
+  taobao_snapshot: TaobaoItem | null;
+  auto_price: PriceBreakdown | null;
 };
 
 async function loadStore(): Promise<StoreFile> {
@@ -108,6 +115,15 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
     newMa: input.newMa,
     mas,
   });
+  const blocked = publishBlock({
+    action: existing ? "update" : "create",
+    ma,
+    sellUsd: postedSell(input.sell_currency, input.sell_usd, input.sell_cny),
+    sellCurrency: input.sell_currency,
+  });
+  if (blocked) {
+    throw Object.assign(new Error(`Không lưu ${ma} (${blocked}).`), { status: 409 });
+  }
 
   const now = new Date().toISOString();
   const photoPaths = [...input.keep_photos];
@@ -148,6 +164,9 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
     photo_hashes: photoHashes,
     status: "staged",
     square: "not_square",
+    needs_research: input.needs_research,
+    taobao_snapshot: input.taobao_snapshot,
+    auto_price: input.auto_price,
     created_at: existing?.created_at ?? now,
     updated_at: now,
     caption_vi: "",
@@ -155,7 +174,7 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
     blurb_suggested: "",
     photo_link: `Documents/Sassy Closet/Photos/${ma}/`,
   };
-  base.caption_vi = buildCaptionVi(base);
+  base.caption_vi = buildCaptionVi(base, store.fx.usd_cny);
 
   if (existing) {
     store.submissions = store.submissions.map((row) => (row.id === existing.id ? base : row));
@@ -164,6 +183,7 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
     store.submissions.push(base);
   }
   await persistStore(store);
+  await notifyIntakeDatasetSyncWebhook(existing ? "update" : "create", base, existing);
   return base;
 }
 
@@ -203,6 +223,7 @@ export async function exportCsv(): Promise<string> {
     "created_at",
     "updated_at",
     "photo_link",
+    "size_options",
   ];
   const rows = (await loadStore()).submissions.map((row) =>
     [
@@ -229,6 +250,7 @@ export async function exportCsv(): Promise<string> {
       row.created_at,
       row.updated_at,
       row.photo_link,
+      sizeOptionsLine(row.kind),
     ]
       .map(csvCell)
       .join(","),
@@ -245,6 +267,24 @@ function csvCell(value: string): string {
   return value;
 }
 
+function postedSell(currency: string, usd: string, cny: string): string {
+  const cur = currency.trim().toUpperCase();
+  const usdTrim = usd.trim();
+  const cnyTrim = cny.trim();
+  if (cur === "CNY" && cnyTrim) return cnyTrim;
+  if (cur === "USD" && usdTrim) return usdTrim;
+  return usdTrim || cnyTrim;
+}
+
+function guardedMint(kind: KindCode, mas: string[]): string {
+  const blocked = mintBlock(kind, mas);
+  if (blocked) {
+    const ma = nextMa(kind, mas);
+    throw Object.assign(new Error(`Không mint ${ma} (${blocked}).`), { status: 409 });
+  }
+  return nextMa(kind, mas);
+}
+
 function resolveSaveMa(input: {
   kind: KindCode;
   existing: Submission | null;
@@ -254,11 +294,15 @@ function resolveSaveMa(input: {
   const raw = (input.newMa ?? "").trim();
   if (!raw) {
     if (input.existing) return input.existing.ma;
-    return nextMa(input.kind, input.mas);
+    return guardedMint(input.kind, input.mas);
   }
   const parsed = parseHubMa(raw);
   if (parsed) {
     const formatted = formatMa(parsed.kind, parsed.n);
+    const blocked = publishBlock({ action: input.existing ? "update" : "create", ma: formatted });
+    if (blocked) {
+      throw Object.assign(new Error(`Không lưu ${formatted} (${blocked}).`), { status: 409 });
+    }
     if (input.existing && formatted === input.existing.ma) return formatted;
     if (maExists(input.mas, formatted, input.existing?.ma)) {
       throw Object.assign(new Error(`Mã ${formatted} đã có rồi — không gộp nha 💕`), {
@@ -268,9 +312,7 @@ function resolveSaveMa(input: {
     return formatted;
   }
   if (isKindCode(raw.toUpperCase())) {
-    const minted = nextMa(raw.toUpperCase() as KindCode, input.mas);
-    if (input.existing && minted === input.existing.ma) return minted;
-    return minted;
+    return guardedMint(raw.toUpperCase() as KindCode, input.mas);
   }
   throw Object.assign(
     new Error("Mã mới: chữ P (ra P kế) hoặc đủ số kiểu P10 nha 💕"),

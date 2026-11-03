@@ -121,7 +121,7 @@ export function AskPanel() {
                 <button
                   type="button"
                   data-testid={`mini-boss-copy-${copyItem.id}`}
-                  className="mt-2 h-10 rounded-full bg-primary px-4 text-xs font-semibold text-primary-foreground"
+                  className="mt-2 inline-flex min-h-11 items-center rounded-full bg-primary px-4 text-xs font-semibold text-primary-foreground"
                   onClick={() => void copy(`${item.id}-${copyItem.id}`, copyItem.text)}
                 >
                   {copied === `${item.id}-${copyItem.id}` ? "Đã copy" : copyItem.label}
@@ -145,7 +145,7 @@ export function AskPanel() {
             key={chip.id}
             type="button"
             data-testid={`mini-boss-chip-${chip.id}`}
-            className="min-h-10 rounded-full bg-white px-3 text-xs font-semibold text-rose-800 ring-1 ring-rose-100"
+            className="inline-flex min-h-11 items-center rounded-full bg-white px-3 text-xs font-semibold text-rose-800 ring-1 ring-rose-100"
             disabled={busy}
             onClick={() => void send(chip.text)}
           >

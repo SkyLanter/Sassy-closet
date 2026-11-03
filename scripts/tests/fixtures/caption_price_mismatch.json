@@ -1,0 +1,96 @@
+{
+  "catalog": [
+    {"ma": "S06", "price_usd": "25"},
+    {"ma": "A07", "price_usd": "26"},
+    {"ma": "A02", "price_usd": "23"},
+    {"ma": "A08", "price_usd": "24.50"},
+    {"ma": "S10", "price_usd": "37"},
+    {"ma": "P02", "price_usd": "12"}
+  ],
+  "captions": [
+    {
+      "id": "s06",
+      "text": "Mã S06\nSet đồ cưng xỉu\nGiá $25"
+    },
+    {
+      "id": "s06-cents",
+      "text": "Mã S06\nGiá: $25.00"
+    },
+    {
+      "id": "s06-ascii",
+      "text": "Mã S06\nGia $25"
+    },
+    {
+      "id": "a07-match",
+      "text": "Mã A07\nGiá: $26"
+    },
+    {
+      "id": "a07-high",
+      "text": "Mã A07\nGiá: $30"
+    },
+    {
+      "id": "a02-low",
+      "text": "Mã A02\nGiá $20"
+    },
+    {
+      "id": "cents-match",
+      "text": "Mã A08\nGiá: $24.50"
+    },
+    {
+      "id": "cents-off",
+      "text": "Mã A08\nGiá: $24.00"
+    },
+    {
+      "id": "s10-match",
+      "text": "Mã S10\nGiá: $37"
+    },
+    {
+      "id": "spaced-off",
+      "text": "Mã S10\nGiá: $ 40"
+    },
+    {
+      "id": "size-not-price",
+      "text": "Mã A02\nSize 36\nGiá: $23"
+    },
+    {
+      "id": "bare-match",
+      "text": "Mã S10\nGiá: 37"
+    },
+    {
+      "id": "bare-off",
+      "text": "Mã A07\nGiá: 28"
+    },
+    {
+      "id": "usd-match",
+      "text": "Mã S10\nGiá: 37 USD"
+    },
+    {
+      "id": "usd-off",
+      "text": "Mã A08\nGiá: 24 USD"
+    },
+    {
+      "id": "inbox",
+      "text": "Mã K06\nGiá: Inbox giá"
+    },
+    {
+      "id": "yen",
+      "text": "Mã P02\nGiá: ¥100"
+    },
+    {
+      "id": "yen-suffix",
+      "text": "Mã P02\nGiá: 100 ¥"
+    },
+    {
+      "id": "missing-gia",
+      "text": "Mã S10\nSet đồ mới"
+    },
+    {
+      "id": "no-ma",
+      "text": "WHITE ANGEL SET\nGiá $99"
+    },
+    {
+      "id": "unknown-ma",
+      "text": "Mã Q09\nGiá $40"
+    }
+  ]
+}

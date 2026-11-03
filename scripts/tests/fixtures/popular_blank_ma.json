@@ -1,0 +1,12 @@
+{
+  "order": [
+    {"ma": "A05", "priceUsd": 28},
+    {"ma": "S06", "priceUsd": 25},
+    {"ma": "", "priceUsd": 30},
+    {"ma": "   ", "priceUsd": 22},
+    {"ma": null, "priceUsd": 19},
+    {"priceUsd": 21},
+    {"ma": " s06 ", "priceUsd": "25"},
+    {"ma": "D05", "priceUsd": 26}
+  ]
+}

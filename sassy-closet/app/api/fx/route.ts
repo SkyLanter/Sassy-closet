@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { getFx, setFx } from "@/lib/store";
+import { storeUnavailableResponse } from "@/lib/store-unavailable";
 
 export async function GET() {
-  return NextResponse.json(await getFx());
+  try {
+    return NextResponse.json(await getFx());
+  } catch (error) {
+    return storeUnavailableResponse(error);
+  }
 }
 
 export async function POST(request: Request) {

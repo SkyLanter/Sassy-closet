@@ -1,0 +1,313 @@
+{
+  "schema": "catalog.v1",
+  "version": 1,
+  "siteId": "sassy-closet-shop",
+  "products": [
+    {
+      "ma": "A16",
+      "type": "A",
+      "titleVn": "Chân váy tầng tạp chí Nhật",
+      "titleEn": "Magazine ruffle petal skirt",
+      "priceUsd": 34,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "civorya16look",
+          "hex": "#F4F0E8",
+          "name": "Ivory",
+          "note": ""
+        },
+        {
+          "id": "cgraya16look",
+          "hex": "#6B6B6B",
+          "name": "Gray",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/A16/cover.jpg",
+          "colorId": null,
+          "order": 1
+        }
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Chân váy tầng ivory và xám, lai cánh hoa.",
+      "descriptionEn": "Ivory and gray ruffle petal skirt from the magazine listing.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8sgnoXy0iYIXejS?tk=RAhNTQiY01f"
+    },
+    {
+      "ma": "D04",
+      "type": "D",
+      "titleVn": "Đầm acetate Pháp",
+      "titleEn": "French acetate slip dress",
+      "priceUsd": 35,
+      "qty": 1,
+      "status": "available",
+      "colors": [
+        {
+          "id": "cwhited04look",
+          "hex": "#FFFFFF",
+          "name": "White",
+          "note": ""
+        },
+        {
+          "id": "cpurpled04look",
+          "hex": "#6B2B5B",
+          "name": "Purple",
+          "note": ""
+        }
+      ],
+      "images": [
+        {
+          "src": "/products/D04/cover.jpg",
+          "colorId": null,
+          "order": 1
+        }
+      ],
+      "sizes": [
+        "M",
+        "L"
+      ],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Đầm acetate hai dây, lai ren. Trắng và tím.",
+      "descriptionEn": "French acetate lace slip dress. White and purple.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8stDg4rsWWyJhwX?tk=vTdoTQDJvI7"
+    },
+    {
+      "ma": "S05",
+      "type": "S",
+      "titleVn": "Set pyjama satin hoạt hình",
+      "titleEn": "Satin cartoon pajama set",
+      "priceUsd": 25,
+      "qty": 1,
+      "status": "available",
+      "colors": [],
+      "images": [
+        {
+          "src": "/products/S05/cover.jpg",
+          "colorId": null,
+          "order": 1
+        }
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "2XL"
+      ],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Set pyjama satin in hoạt hình.",
+      "descriptionEn": "Satin cartoon pajama set.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8ID1RxZ6nE8eXMS?tk=FcCIT8DZeOd"
+    },
+    {
+      "ma": "S06",
+      "type": "S",
+      "titleVn": "Yếm jean wash rách",
+      "titleEn": "Washed distressed overalls",
+      "priceUsd": 26,
+      "qty": 1,
+      "status": "available",
+      "colors": [],
+      "images": [
+        {
+          "src": "/products/S06/cover.jpg",
+          "colorId": null,
+          "order": 1
+        }
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Yếm jean wash rách kiểu Mỹ.",
+      "descriptionEn": "Washed distressed denim overalls.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8sN0OlfvL4eWjAz?tk=P0HOTjnnu3L"
+    },
+    {
+      "ma": "S07",
+      "type": "S",
+      "titleVn": "Set 2 dây thêu thường xuân",
+      "titleEn": "Ivy embroidered camisole set",
+      "priceUsd": 44,
+      "qty": 1,
+      "status": "available",
+      "colors": [],
+      "images": [
+        {
+          "src": "/products/S07/cover.jpg",
+          "colorId": null,
+          "order": 1
+        }
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Set áo 2 dây và chân váy thêu thường xuân.",
+      "descriptionEn": "Ivy embroidered camisole and skirt set.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8HDQyt6rucUnKmV?tk=7mhUTjJgN1L"
+    },
+    {
+      "ma": "S08",
+      "type": "S",
+      "titleVn": "Set len trắng kèm belt",
+      "titleEn": "White knit set with belt",
+      "priceUsd": 35,
+      "qty": 1,
+      "status": "available",
+      "colors": [],
+      "images": [
+        {
+          "src": "/products/S08/cover.jpg",
+          "colorId": null,
+          "order": 1
+        }
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Set len trắng lệch vai, kèm belt.",
+      "descriptionEn": "White knit one-shoulder set with belt.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8suWHVsCVodL8sj?tk=tjGwTQCbZX0"
+    },
+    {
+      "ma": "S09",
+      "type": "S",
+      "titleVn": "Set áo cổ lọ và chân váy",
+      "titleEn": "Turtleneck skirt suit set",
+      "priceUsd": 42,
+      "qty": 1,
+      "status": "available",
+      "colors": [],
+      "images": [
+        {
+          "src": "/products/S09/cover.jpg",
+          "colorId": null,
+          "order": 1
+        }
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Set áo cổ lọ tay lỡ và chân váy ngắn.",
+      "descriptionEn": "Turtleneck mid-sleeve top with a short skirt.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8HlzlLqMzXvzyqR?tk=DAX9T9qVJua"
+    },
+    {
+      "ma": "V01",
+      "type": "V",
+      "titleVn": "Chân váy midi acetate lai ren",
+      "titleEn": "Acetate midi skirt with lace",
+      "priceUsd": 25,
+      "qty": 1,
+      "status": "available",
+      "colors": [],
+      "images": [
+        {
+          "src": "/products/V01/cover.jpg",
+          "colorId": null,
+          "order": 1
+        }
+      ],
+      "sizes": [],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Chân váy midi acetate lai ren.",
+      "descriptionEn": "French acetate midi skirt with a lace hem.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8G6c90Kfv1ItOvN?tk=YE4UTjMuBSY"
+    },
+    {
+      "ma": "V02",
+      "type": "V",
+      "titleVn": "Chân váy đuôi cá satin",
+      "titleEn": "Satin mermaid skirt",
+      "priceUsd": 31,
+      "qty": 1,
+      "status": "available",
+      "colors": [],
+      "images": [
+        {
+          "src": "/products/V02/cover.jpg",
+          "colorId": null,
+          "order": 1
+        }
+      ],
+      "sizes": [],
+      "fitCm": {
+        "bustChestCm": null,
+        "waistCm": null,
+        "lengthCm": null
+      },
+      "descriptionVn": "Chân váy satin acetate dáng đuôi cá.",
+      "descriptionEn": "Glossy acetate satin mermaid skirt.",
+      "fulfillment": "dropship",
+      "sourceLink": "https://e.tb.cn/h.8snhZY2rqCGCUfo?tk=Tz7oTjMD3pM"
+    }
+  ],
+  "settings": {
+    "announcementLines": [
+      "Sassy Closet"
+    ],
+    "facebookPageUrl": "https://www.facebook.com/profile.php?id=61594312648057"
+  }
+}
