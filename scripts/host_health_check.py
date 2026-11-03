@@ -6,7 +6,7 @@ For each of the two vercel.app sell hosts it reports:
   tls      TLS handshake on :443 with cert verification -> ok / error text
   status   HTTP status of GET /
   held     a held mã PDP (default /m/S19) returns 404 (not live)
-  s06      the S06 PDP (/m/S06) returns 200 and shows $25
+  s06      the S06 PDP (/m/S06) returns 200 and the check reads S06's own Product JSON-LD offer ($25)
 
 Severity: any host problem is FAIL. (There is no custom domain: sassycloset.shop
 was never registered, NXDOMAIN.) GET/HEAD-free of side effects:
@@ -17,13 +17,17 @@ Exit codes: 0 PASS, 1 WARN, 2 FAIL.
 from __future__ import annotations
 
 import argparse
+import html
 import json
+import math
 import re
 import socket
 import ssl
 import sys
 import urllib.error
 import urllib.request
+
+from held_policy import norm_ma
 
 VERCEL_HOSTS = ("sassycloset.vercel.app", "sassy-closet-shop.vercel.app")
 HELD_MA = "S19"
@@ -63,8 +67,121 @@ def fetch(url: str, timeout: float = TIMEOUT) -> tuple[int | None, str, str]:
         return None, "", f"{type(e).__name__}: {getattr(e, 'reason', e)}"
 
 
-def shows_price(body: str, usd: int) -> bool:
-    return re.search(rf"\$\s?{usd}(?:\.00)?(?![0-9])", body) is not None
+_SCRIPT_OPEN_RE = re.compile(r"<script\b([^>]*)>", re.IGNORECASE)
+_SCRIPT_CLOSE_RE = re.compile(r"</script\s*>", re.IGNORECASE)
+_LD_TYPE_RE = re.compile(
+    r"(?:^|\s)type\s*=\s*(['\"])application/ld\+json\1",
+    re.IGNORECASE,
+)
+_PLAIN_WHOLE_RE = re.compile(r"(?:0|[1-9]\d*)(?:\.0+)?")
+_S06 = "S06"
+
+
+def whole_dollar_usd(value: object) -> int | None:
+    """Plain whole-dollar amount, or None when the price cannot be read.
+
+    Accepts an int 25 and the strings 25, 25.0, and 25.00. Rejects booleans,
+    blanks, scientific notation, hex, commas, currency signs, fractions, and
+    non-finite numbers. True is not 1.
+    """
+    # bool is a subclass of int; True must not become 1.
+    if isinstance(value, bool) or value is None:
+        return None
+    if isinstance(value, int):
+        return value if value >= 0 else None
+    if isinstance(value, float):
+        if not math.isfinite(value) or value < 0 or not value.is_integer():
+            return None
+        return int(value)
+    if isinstance(value, str):
+        text = value.strip()
+        if _PLAIN_WHOLE_RE.fullmatch(text) is None:
+            return None
+        return int(text.split(".", 1)[0])
+    return None
+
+
+def _ld_json_payloads(body: str) -> list[object]:
+    payloads: list[object] = []
+    for match in _SCRIPT_OPEN_RE.finditer(body):
+        if _LD_TYPE_RE.search(match.group(1)) is None:
+            continue
+        close = _SCRIPT_CLOSE_RE.search(body, match.end())
+        if close is None:
+            continue
+        raw = html.unescape(body[match.end():close.start()])
+        try:
+            payloads.append(json.loads(raw))
+        except json.JSONDecodeError:
+            continue
+    return payloads
+
+
+def _jsonld_nodes(payload: object):
+    if isinstance(payload, list):
+        for item in payload:
+            yield from _jsonld_nodes(item)
+        return
+    if not isinstance(payload, dict):
+        return
+    yield payload
+    graph = payload.get("@graph")
+    if isinstance(graph, (dict, list)):
+        yield from _jsonld_nodes(graph)
+
+
+def _is_s06_product(node: dict) -> bool:
+    kind = node.get("@type")
+    if isinstance(kind, str):
+        is_product = kind == "Product"
+    elif isinstance(kind, list):
+        is_product = any(item == "Product" for item in kind)
+    else:
+        is_product = False
+    return is_product and norm_ma(node.get("sku")) == _S06
+
+
+def _offer_amounts(offers: object) -> list[int | None]:
+    if isinstance(offers, dict):
+        nodes = [offers]
+    elif isinstance(offers, list):
+        nodes = list(offers)
+    else:
+        nodes = []
+    if not nodes:
+        return [None]
+    amounts: list[int | None] = []
+    for offer in nodes:
+        if not isinstance(offer, dict) or "price" not in offer:
+            amounts.append(None)
+            continue
+        amounts.append(whole_dollar_usd(offer.get("price")))
+    return amounts
+
+
+def _s06_offer_prices(body: str) -> list[int | None]:
+    prices: list[int | None] = []
+    for payload in _ld_json_payloads(body):
+        for node in _jsonld_nodes(payload):
+            if _is_s06_product(node):
+                prices.extend(_offer_amounts(node.get("offers")))
+    return prices
+
+
+def s06_offer_usd(body: str) -> str | None:
+    """Agreed S06 Product JSON-LD offer, as a whole-dollar string like 25.00."""
+    prices = _s06_offer_prices(body)
+    if not prices or any(price is None for price in prices):
+        return None
+    unique = set(prices)
+    if len(unique) != 1:
+        return None
+    return f"{unique.pop():.2f}"
+
+
+def s06_shows_25(body: str) -> bool:
+    """True when S06's own Product JSON-LD offer is exactly the $25 lock."""
+    return s06_offer_usd(body) == f"{S06_LOCK:.2f}"
 
 
 def check_host(host: str, held_ma: str = HELD_MA) -> dict:
@@ -88,8 +205,13 @@ def check_host(host: str, held_ma: str = HELD_MA) -> dict:
     if st != 404:
         r["problems"].append(f"held {held_ma} PDP -> {r['held_pdp']['status']} (want 404)")
     st, body, err = fetch(base + PDP.format(ma="S06"))
-    ok = st == 200 and shows_price(body, S06_LOCK)
-    r["s06_pdp"] = {"status": st if st is not None else err, "shows_25": ok}
+    offer_usd = s06_offer_usd(body) if st == 200 else None
+    ok = st == 200 and offer_usd == f"{S06_LOCK:.2f}"
+    r["s06_pdp"] = {
+        "status": st if st is not None else err,
+        "shows_25": ok,
+        "offer_usd": offer_usd,
+    }
     if not ok:
         r["problems"].append(f"S06 PDP -> {r['s06_pdp']['status']}, ${S06_LOCK} shown={ok}")
     return r
