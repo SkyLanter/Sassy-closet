@@ -14,7 +14,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 | PR | Head at queue time | Title |
 | --- | --- | --- |
-| #225 | `77fde6ab2f3b` | Draft: one branch for the safe shop fixes. Moved 2026-11-03 13:50 UTC. Verified PASS at `5af406779a1e` with no second comment. Also PASS at `953e460b8f46`, `4df538a9b6eb`, `44bde2ae5e90`, and `b29c6c7ee1ef`. FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. |
+| #225 | `77fde6ab2f3b` | Draft: one branch for the safe shop fixes. This lane verified PASS 2026-11-03 14:00 UTC and did not post a second comment. An outside PASS was already on this SHA. Also PASS at `5af406779a1e`, `953e460b8f46`, `4df538a9b6eb`, `44bde2ae5e90`, and `b29c6c7ee1ef`. FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. |
 | #217 | `ee9e2a34bfb4` | Combined safe bundle #208-#216 |
 | #218 | `03c23afc58a7` | Fail closed when Blob is down, and drop held folders from other mãs |
 | #219 | `5b590c0f734e` | Keep a blank intake sell blank and parse pasted yen safely |
@@ -311,6 +311,10 @@ Open drafts #217–#285 are still on the SHAs recorded above. #225 stays the ver
 ## 2026-11-03 13:57 UTC — outside PASS on #225 while this lane is still running
 
 #225 head is still `77fde6ab2f3b6a680c5de7b3654ac66582a1961e`. A cursor[bot] comment says INDEPENDENT RECHECK PASS at that SHA. This lane did not write that comment and does not adopt it. The recheck started at 13:50 UTC is still running. This lane will not post a second comment unless that review disagrees. #249 is this log and is not graded.
+
+## 2026-11-03 14:00 UTC — #225 verified PASS at 77fde6a, no second comment
+
+`77fde6ab2f3b` was still the head. This lane’s script passed: pytest 2428 passed, 7 skipped; privacy CLEAN; intake npm 353 / 350 / 0 / 3; shop npm 251 / 248 / 0 / 3; both tsc ok; `held.json` unchanged. Required skips: none. Log `out/recheck/20261103-135302-417160`. `parse_usd` returns null for `2$5` and `2,5`. `$25` stays 25 and `1,200` stays 1200. A null S06 price fails the $25 guard instead of becoming 25. Findings: none. The outside PASS was already on this SHA and this review agrees, so no second comment was posted. That worker was not sent on. #260 and #267–#285 are unchanged and are not started. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
