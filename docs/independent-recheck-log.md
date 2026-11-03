@@ -14,7 +14,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 | PR | Head at queue time | Title |
 | --- | --- | --- |
-| #225 | `b29c6c7ee1ef` | Draft: one branch for the safe shop fixes. Moved 2026-11-03 02:41 UTC. `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d` were commented FAIL. `f9d33ed8d8b2` passed locally and was not commented. |
+| #225 | `b29c6c7ee1ef` | Draft: one branch for the safe shop fixes. Commented PASS 2026-11-03 03:02 UTC. `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d` were commented FAIL. `f9d33ed8d8b2` passed locally and was not commented. |
 | #217 | `ee9e2a34bfb4` | Combined safe bundle #208-#216 |
 | #218 | `03c23afc58a7` | Fail closed when Blob is down, and drop held folders from other mãs |
 | #219 | `5b590c0f734e` | Keep a blank intake sell blank and parse pasted yen safely |
@@ -215,6 +215,10 @@ Open drafts #217–#268 and #225 are still on the SHAs recorded above. #260 is s
 ## 2026-11-03 02:41 UTC — #225 moved to b29c6c7
 
 #225 head is now `b29c6c7ee1efe64416f189df7fb66af9bcfb85fc` (“Reject invalid shop-desk USD text before save”). Since `f9d33ed8d8b2` it also returns 503 when the shop catalog cannot be read. The worker report for `f9d33ed8d8b2` is PASS and that SHA is not the head, so it is not commented. One recheck of `b29c6c7ee1ef` is running. #260 and #269–#281 are unchanged and are not started. #249 is this log and is not graded.
+
+## 2026-11-03 03:02 UTC — #225 commented PASS at b29c6c7
+
+`b29c6c7ee1ef` was still the head. The script passed. A thrown catalog read returns 503 without writing Blob. Invalid desk USD text is rejected before the save request, and S06 stays available at $25. The same-mã photo claim skip and the invisible S06 suffix glue are still present. Findings: none. That worker was not sent on. #260 and #269–#281 are unchanged and are not started. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
