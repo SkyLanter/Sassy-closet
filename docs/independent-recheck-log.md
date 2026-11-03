@@ -14,7 +14,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 | PR | Head at queue time | Title |
 | --- | --- | --- |
-| #225 | `8f4f7c062442` | Draft: one branch for the safe shop fixes. This lane verified PASS 2026-11-03 20:49 UTC and did not post a second comment. An outside PASS was already on this SHA. Also PASS at `0f4fcc2c255f`, `ecb7b2015773` (not commented; not the head), `77fde6ab2f3b`, `5af406779a1e`, `953e460b8f46`, `4df538a9b6eb`, `44bde2ae5e90`, and `b29c6c7ee1ef`. FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. |
+| #225 | `2c58e8868f4a` | Draft: one branch for the safe shop fixes. Moved 2026-11-03 21:47 UTC. Verified PASS at `8f4f7c062442` with no second comment. Also PASS at `0f4fcc2c255f`, `ecb7b2015773` (not commented; not the head), `77fde6ab2f3b`, `5af406779a1e`, `953e460b8f46`, `4df538a9b6eb`, `44bde2ae5e90`, and `b29c6c7ee1ef`. FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. |
 | #217 | `ee9e2a34bfb4` | Combined safe bundle #208-#216 |
 | #218 | `03c23afc58a7` | Fail closed when Blob is down, and drop held folders from other mãs |
 | #219 | `5b590c0f734e` | Keep a blank intake sell blank and parse pasted yen safely |
@@ -373,6 +373,10 @@ Open drafts #217–#286 are still on the SHAs recorded above. #225 stays the ver
 ## 2026-11-03 20:49 UTC — #225 verified PASS at 8f4f7c0, no second comment
 
 `8f4f7c062442` was still the head. This lane’s script passed: pytest 2434 passed, 7 skipped; privacy CLEAN; intake npm 361 / 358 / 0 / 3; shop npm 251 / 248 / 0 / 3; both tsc ok; `held.json` unchanged. Required skips: none. Log `out/recheck/20261103-204039-443377`. The exact keep spelling keeps the hash stored beside it. A different spelling is reused only when every stored hash for that photo agrees. Disagreeing hashes are re-read, and another mã’s file cannot supply the hash. A directory read does not abort the save. Findings: none. The outside PASS was already on this SHA and this review agrees, so no second comment was posted. That worker was not sent on. #260 and #267–#287 are unchanged and are not started. #249 is this log and is not graded.
+
+## 2026-11-03 21:47 UTC — #225 moved to 2c58e88
+
+#225 head is now `2c58e8868f4a172223f401737ff3f300faa1b5e7` (“Restore a saved shoe size onto the intake chip.”). `8f4f7c062442` stays the verified PASS. One recheck of `2c58e8868f4a` is running. #260 and #267–#287 are unchanged and are not started. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
