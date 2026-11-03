@@ -14,7 +14,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 | PR | Head at queue time | Title |
 | --- | --- | --- |
-| #225 | `6136247cbe57` | Draft: one branch for the safe shop fixes. Moved 2026-11-03 03:10 UTC. Commented PASS at `b29c6c7ee1ef`. Commented FAIL at `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. |
+| #225 | `6136247cbe57` | Draft: one branch for the safe shop fixes. Commented FAIL 2026-11-03 03:33 UTC. Script PASS. Commented PASS at `b29c6c7ee1ef`. Also FAIL at `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. |
 | #217 | `ee9e2a34bfb4` | Combined safe bundle #208-#216 |
 | #218 | `03c23afc58a7` | Fail closed when Blob is down, and drop held folders from other mãs |
 | #219 | `5b590c0f734e` | Keep a blank intake sell blank and parse pasted yen safely |
@@ -223,6 +223,10 @@ Open drafts #217–#268 and #225 are still on the SHAs recorded above. #260 is s
 ## 2026-11-03 03:10 UTC — #225 moved to 6136247
 
 #225 head is now `6136247cbe57150c36c1e196851ef2c2d9aafb4c` (“Show every numeric S06 price on the desk status”). `b29c6c7ee1ef` stays the commented PASS. One recheck of `6136247cbe57` is running. #260 and #269–#281 are unchanged and are not started. #249 is this log and is not graded.
+
+## 2026-11-03 03:33 UTC — #225 commented FAIL at 6136247
+
+`6136247cbe57` was still the head. The script passed. The review failed: deleting every `$` turns `"2$5"` into `$25`, and a null price on one S06 spelling aborts the scan before another spelling’s numeric price is printed. That worker was not sent on. #260 and #269–#281 are unchanged and are not started. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
