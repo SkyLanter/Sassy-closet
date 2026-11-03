@@ -242,6 +242,44 @@ def test_one_real_dollar_survives_a_blank_second_key() -> None:
     assert "S06: —, $30" in render_text(stored_on_the_other_key)
 
 
+def test_a_dollar_sign_between_digits_is_not_the_lock() -> None:
+    payload = {"catalog": {"products": [{"ma": "S06", "priceUsd": "2$5"}]}}
+    alone = status_from_json(payload)
+    assert alone.s06_usd is None
+    assert "S06:" not in render_text(alone)
+    assert payload["catalog"]["products"][0]["priceUsd"] == "2$5"
+    mixed = status_from_json(
+        {
+            "catalog": {
+                "products": [
+                    {"ma": "S06", "priceUsd": 25},
+                    {"ma": "S006", "priceUsd": "2$5"},
+                    {"ma": "S6", "priceUsd": 30},
+                ]
+            }
+        }
+    )
+    assert mixed.s06_usd == "25, —, 30"
+    assert "S06: $25, —, $30" in render_text(mixed)
+    for bad in ("$$25", "$25$", "25$$", "$1$", "1$2", "1$.00"):
+        status = status_from_json(
+            {
+                "catalog": {
+                    "products": [
+                        {"ma": "S06", "priceUsd": bad},
+                        {"ma": "S006", "priceUsd": 30},
+                    ]
+                }
+            }
+        )
+        assert status.s06_usd == "—, 30", bad
+        assert "$25" not in render_text(status)
+        assert "$1" not in render_text(status)
+    assert status_from_json({"catalog": {"products": [{"ma": "S06", "priceUsd": "$25"}]}}).s06_usd == "25"
+    assert status_from_json({"catalog": {"products": [{"ma": "S06", "priceUsd": "25$"}]}}).s06_usd == "25"
+    assert status_from_json({"catalog": {"products": [{"ma": "S06", "priceUsd": "$ 25"}]}}).s06_usd == "25"
+
+
 def test_thousands_comma_still_reads() -> None:
     status = status_from_json(
         {"catalog": {"products": [{"ma": "S06", "priceUsd": "$1,025"}]}}

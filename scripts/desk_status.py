@@ -426,7 +426,9 @@ def _plain_number(value: object) -> str | None:
         text = format(value, "f").rstrip("0").rstrip(".")
         return text or "0"
     if isinstance(value, str):
-        text = value.strip().replace("$", "").strip()
+        text = _without_one_dollar_sign(value)
+        if text is None:
+            return None
         if "," in text:
             if _THOUSANDS.fullmatch(text) is None:
                 return None
@@ -438,6 +440,24 @@ def _plain_number(value: object) -> str | None:
             return None
         return text
     return None
+
+
+def _without_one_dollar_sign(value: str) -> str | None:
+    """A single leading or trailing $ is currency. Any other $ is not a price."""
+    text = value.strip()
+    if text.startswith("$"):
+        rest = text[1:].strip()
+        if "$" in rest:
+            return None
+        return rest
+    if text.endswith("$"):
+        rest = text[:-1].strip()
+        if "$" in rest:
+            return None
+        return rest
+    if "$" in text:
+        return None
+    return text
 
 
 def _ascii_digits(part: str) -> bool:
