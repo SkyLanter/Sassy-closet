@@ -26,6 +26,36 @@ export type ItemDraft = {
   sourceLink: string;
 };
 
+/** 0, or a non-zero integer, with an optional 1–2 digit fraction. No sign or leading zeros. */
+const PLAIN_USD_LITERAL = /^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/;
+const MAX_SAFE_CENTS_TEXT = String(Number.MAX_SAFE_INTEGER);
+
+/**
+ * Dollar text whose cent count is a safe integer.
+ * A longer digit string is rejected so Number cannot round it.
+ */
+function numberFromPlainUsd(literal: string): number {
+  if (!PLAIN_USD_LITERAL.test(literal)) {
+    return Number.NaN;
+  }
+  const dot = literal.indexOf(".");
+  const whole = dot === -1 ? literal : literal.slice(0, dot);
+  const fraction = dot === -1 ? "" : literal.slice(dot + 1);
+  const centsDigits = `${whole}${fraction.padEnd(2, "0")}`.replace(/^0+(?=\d)/, "");
+  if (
+    centsDigits.length > MAX_SAFE_CENTS_TEXT.length ||
+    (centsDigits.length === MAX_SAFE_CENTS_TEXT.length && centsDigits > MAX_SAFE_CENTS_TEXT)
+  ) {
+    return Number.NaN;
+  }
+  const cents = Number(centsDigits);
+  const value = cents / 100;
+  if (!Number.isSafeInteger(cents) || Math.round(value * 100) !== cents) {
+    return Number.NaN;
+  }
+  return value;
+}
+
 export function parseDraftPrice(status: ProductStatus, priceInput: string): number | null | typeof Number.NaN {
   switch (status) {
     case "hold":
@@ -36,8 +66,7 @@ export function parseDraftPrice(status: ProductStatus, priceInput: string): numb
       if (!trimmed) {
         return null;
       }
-      const value = Number(trimmed);
-      return Number.isFinite(value) ? value : Number.NaN;
+      return numberFromPlainUsd(trimmed);
     }
     default: {
       const _exhaustive: never = status;
