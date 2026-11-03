@@ -14,6 +14,12 @@ S06_LOCK = 25
 INTAKE_FX = Decimal("6.723")
 DEBOX_USD = {"V": Decimal("7.50"), "Q": Decimal("7.50"), "D": Decimal("7.50")}
 _CNY_RE = re.compile(r"^\d+(?:\.\d+)?$")
+# A price is digits, or digits with thousands groups. One $ may sit at either
+# end. Deleting every $ and comma made 2$5 and 2,5 read as 25.
+_AMOUNT = r"(?:\d+(?:\.\d*)?|\d{1,3}(?:,\d{3})+(?:\.\d*)?)"
+_WHOLE_DOLLAR_TEXT = re.compile(
+    rf"^(?:[+-]?{_AMOUNT}|\$\s*[+-]?{_AMOUNT}|[+-]?{_AMOUNT}\s*\$|[+-]\${_AMOUNT})$"
+)
 
 
 @dataclass(frozen=True)
@@ -294,13 +300,17 @@ def _decision(
 
 
 def _whole_dollars(value: str | None) -> int | None:
+    """Whole dollars, or None when the text is not one price.
+
+    $25, 25.00, and 1,200 stay. 2$5, 2,5, 12,50, and $$25 do not become 25.
+    """
     if value is None:
         return None
-    text = value.strip().replace("$", "").replace(",", "")
-    if text == "":
+    text = value.strip()
+    if text == "" or _WHOLE_DOLLAR_TEXT.fullmatch(text) is None:
         return None
     try:
-        number = Decimal(text)
+        number = Decimal(text.replace("$", "").replace(",", ""))
     except (InvalidOperation, ValueError):
         return None
     if not number.is_finite():
