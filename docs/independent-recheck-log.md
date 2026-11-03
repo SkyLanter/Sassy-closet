@@ -146,6 +146,7 @@ Open drafts still run through #266. #260 is the knowledge-base docs PR (`docs/kn
 | #280 | `e30f09bca797` | Show every S06 price on the desk status. Seen 2026-11-03 02:15 UTC. Not started. |
 | #281 | `e7b504cde3ee` | Return 503 when the shop catalog cannot be read. Seen 2026-11-03 02:15 UTC. Not started. |
 | #282 | `b101f113e76b` | Reject invalid shop-desk USD text before save. Seen 2026-11-03 04:15 UTC. Not started. |
+| #283 | `754ed7e4b1f9` | Reject non-literal USD text in shop draft prices. Seen 2026-11-03 06:16 UTC. Not started. |
 
 ## 2026-11-03 00:15 UTC — slower loop
 
@@ -244,6 +245,10 @@ Open drafts #217–#281 and #225 are still on the SHAs recorded above. #225 stay
 ## 2026-11-03 06:15 UTC — #225 moved to 4df538a
 
 #225 head is now `4df538a9b6eb0af873ac1e7b21787ae6a26d7218` (“Reject non-literal USD text in shop draft prices”). `44bde2ae5e90` stays the commented PASS. One recheck of `4df538a9b6eb` is running. #260 and #269–#282 are unchanged and are not started. #249 is this log and is not graded.
+
+## 2026-11-03 06:16 UTC — two-hour poll
+
+The only moved head is #225 at `4df538a9b6eb`, and that recheck is already running. #217–#224 and #226–#282 are still on the recorded SHAs. #283 is new and is recorded at `754ed7e4b1f9`. It has not moved since it was first seen, so it was not started. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
