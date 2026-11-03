@@ -86,6 +86,9 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 | #245 | `3d798dfe4560f170b945a66508e3c54de1ddc6aa` | FAIL | Script PASS (pytest 2114). Share-card catalog failure is 503. The lane A log claims image, CSV, on-hand, and intake-save fixes that are not in this tree. Log `out/recheck/20261103-000454-210086`. |
 | #246 | `ce7471481dd407d038434537976e574a09c9adae` | PASS | pytest 2127 passed, 7 skipped. Intake 277 / 274 / 0 / 3. Shop 218 / 215 / 0 / 3. Merge-readiness report is read-only. Findings: none. Log `out/recheck/20261103-001628-237779`. |
 | #247 | `ea06ce1ed0a9359dcda27f177aa51b60674f8925` | PASS | pytest 2128 passed, 7 skipped. Intake 278 / 275 / 0 / 3. Shop 222 / 219 / 0 / 3. In-window trailing `.0` stays. Findings: none. Log `out/recheck/20261103-002607-259720`. |
+| #229 | `99121ddc2948d33b852999f2e8b4d2b7d8f91b7c` | FAIL | Script PASS (pytest 2115). Padded caption mãs match the catalog price. `Mã S06Đ` is still read as S06, and the log claims other fixes that are not in this tree. Log `out/recheck/20261103-001123-223165`. |
+| #230 | `db9a5392bfdc8aadf0d1e4cc017edaf99019b5ca` | FAIL | Script PASS (pytest 2118). A bad live price no longer drops the cost-basis report. The log claims other fixes that are not in this tree. Log `out/recheck/20261103-002055-247763`. |
+| #231 | `a704f452bd78a0372008c2e4754fd1313d59483d` | PASS | pytest 2114 passed, 7 skipped. Intake 277 / 274 / 0 / 3. Shop 220 / 217 / 0 / 3. A live image URL does not read a held folder. Findings: none. Log `out/recheck/20261103-002914-268425`. |
 
 #222 was still in `hard_recheck.sh` when #239 was commented. #223, #224, #226–#231, and #240–#247 stay with the earlier workers. No knowledge-lane docs PR. #250–#258 are in progress. #259 is queued. #249 is this log and is not graded.
 
@@ -143,6 +146,10 @@ Four hard rechecks are already running, so neither new head starts until a slot 
 ## 2026-11-03 00:40 UTC — #245, #246, and #247 commented
 
 #245 is commented FAIL at `3d798dfe4560`. #246 is commented PASS at `ce7471481dd4`. #247 is commented PASS at `ea06ce1ed0a9`. Those SHAs were still the heads. #232–#244 in the same batch were already commented and were not commented again. That worker was not sent on. #225 at `a9580d8d70c4` and #260 at `900de4827176` are still waiting. #249 is this log and is not graded.
+
+## 2026-11-03 00:42 UTC — #229, #230, and #231 commented
+
+#229 is commented FAIL at `99121ddc2948`. #230 is commented FAIL at `db9a5392bfdc`. #231 is commented PASS at `a704f452bd78`. #217–#228 in that batch were already commented. The old #225 SHA `cda92647236a` was not commented because it is not the head. That worker was not sent on. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
