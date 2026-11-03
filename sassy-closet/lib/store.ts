@@ -250,8 +250,13 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
       const slot = photoSlot(rel, ma);
       if (slot !== null) takenSlots.add(slot);
     }
+    const canon = normalizeMa(ma);
     for (const photo of input.photos) {
-      const next = nextPhotoRel(ma, takenSlots, photo.ext);
+      let next = nextPhotoRel(ma, takenSlots, photo.ext);
+      while (claimed.has(`${canon}/${String(next.slot).padStart(3, "0")}${photo.ext}`)) {
+        takenSlots.add(next.slot);
+        next = nextPhotoRel(ma, takenSlots, photo.ext);
+      }
       takenSlots.add(next.slot);
       addedPhotos.push({ rel: next.rel, photo });
     }
@@ -261,6 +266,11 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
 
   const backend = activeBackend();
   for (const item of addedPhotos) {
+    const parsed = photoFolderAndRest(item.rel);
+    const claimKey = parsed ? `${normalizeMa(parsed.folder)}/${parsed.rest}` : "";
+    if (claimKey.length > 0 && claimed.has(claimKey)) {
+      throw Object.assign(new Error("Ảnh này đang thuộc mã khác."), { status: 409 });
+    }
     await backend.writePhoto(item.rel, item.photo.bytes, photoContentType(item.rel));
     photoPaths.push(item.rel);
     photoHashes.push(item.photo.hash);

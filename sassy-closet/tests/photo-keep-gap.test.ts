@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, test } from "node:test";
 import { resetStoreBackendForTests } from "../lib/store-backend";
-import { hashBytes, readPhoto, saveSubmission } from "../lib/store";
+import { getSubmission, hashBytes, readPhoto, saveSubmission } from "../lib/store";
 import type { SaveInput } from "../lib/store";
 
 function blank(overrides: Partial<SaveInput> = {}): SaveInput {
@@ -144,6 +144,40 @@ describe("new photos do not replace a kept file", { concurrency: 1 }, () => {
       fs.rmSync(path.join(tmp, "photos"), { recursive: true, force: true });
       resetStoreBackendForTests();
     }
+  });
+
+  test("a same-mã save does not replace a file another row still uses", async () => {
+    const legacy = shot("legacy-live", ".jpg");
+    const kept = shot("kept-cover", ".jpg");
+    const added = shot("added-cover", ".jpg");
+    await saveSubmission(blank({ photos: [legacy] }));
+    const legacyFile = path.join(tmp, "photos", "A01", "001.jpg");
+    const claimedFile = path.join(tmp, "photos", "A09", "002.jpg");
+    fs.mkdirSync(path.dirname(claimedFile), { recursive: true });
+    fs.copyFileSync(legacyFile, claimedFile);
+    const storeFile = path.join(tmp, "submissions.json");
+    const store = JSON.parse(fs.readFileSync(storeFile, "utf8")) as {
+      submissions: { ma: string; photo_paths: string[] }[];
+    };
+    store.submissions[0].ma = "A08";
+    store.submissions[0].photo_paths = ["A09/002.jpg"];
+    fs.writeFileSync(storeFile, JSON.stringify(store));
+
+    const created = await saveSubmission(blank({ newMa: "A09", photos: [kept] }));
+    assert.equal(created.ma, "A09");
+    assert.deepEqual(created.photo_paths, ["A09/001.jpg"]);
+    const updated = await saveSubmission(
+      blank({
+        existingMa: "A09",
+        keep_photos: ["A09/001.jpg"],
+        photos: [added],
+      }),
+    );
+    assert.deepEqual(updated.photo_paths, ["A09/001.jpg", "A09/003.jpg"]);
+    assert.equal((await readPhoto("A09/001.jpg"))?.bytes.toString(), "kept-cover");
+    assert.equal((await readPhoto("A09/002.jpg"))?.bytes.toString(), "legacy-live");
+    assert.equal((await readPhoto("A09/003.jpg"))?.bytes.toString(), "added-cover");
+    assert.deepEqual((await getSubmission("A08"))?.photo_paths, ["A09/002.jpg"]);
   });
 
   test("two new photos on a fresh mã are still 001 then 002", async () => {
