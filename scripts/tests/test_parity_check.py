@@ -24,6 +24,8 @@ from parity_check import (
     dollar_text,
     gap_alias_findings,
     gap_size_findings,
+    glued_size_findings,
+    glued_size_outcome,
     gap_split_findings,
     dual_cost_findings,
     import_size_findings,
@@ -61,6 +63,7 @@ BOSS_CODES = (
     "extras-s06-lock",
     "shop-loose-shoe",
     "quote-ma-width",
+    "glued-size-letter",
 )
 
 
@@ -232,6 +235,35 @@ def test_quote_width_rejects_a_canonical_three_digit_ma_and_an_overpad():
     assert quote_width_findings({})[0].severity == "fail"
 
 
+def test_glued_size_letter_notes_the_shop_and_listing_split():
+    split = {
+        "M【建议80-100斤】": ["M"],
+        "XXL【建议140-160斤】": ["2XL"],
+        "M女【推荐80-100斤】": ["M"],
+        "M（56-58cm）": ["M"],
+    }
+    rows = glued_size_findings(split)
+    assert [item.severity for item in rows] == ["boss"]
+    assert rows[0].code == "glued-size-letter"
+    assert rows[0].examples == (
+        Example("M【建议80-100斤】", "dropped", "M"),
+        Example("XXL【建议140-160斤】", "dropped", "2XL"),
+        Example("M女【推荐80-100斤】", "dropped", "M"),
+        Example("M（56-58cm）", "dropped", "M"),
+    )
+    dropped = {token: [] for token in split}
+    assert glued_size_findings(dropped)[0].severity == "fail"
+    assert glued_size_findings({})[0].severity == "fail"
+    assert glued_size_findings({})[0].code == "glued-size-letter"
+    token = "M【建议80-100斤】"
+    assert glued_size_outcome(token, "M", ("M",), (), ("M",), (token,)) == "boss"
+    assert glued_size_outcome(token, "M", (), (), (), (token,)) == "clear"
+    assert glued_size_outcome(token, "M", ("M",), ("M",), ("M",), ()) == "clear"
+    assert glued_size_outcome(token, "M", (), (), ("M",), (token,)) == "fail"
+    assert glued_size_outcome(token, "M", ("M",), ("M",), ("M",), (token,)) == "fail"
+    assert glued_size_outcome(token, "M", (), (), (), ()) == "fail"
+
+
 def test_loose_shoe_notes_the_shop_and_listing_split():
     split = {
         "40.": ["40"],
@@ -322,6 +354,14 @@ def test_repo_reports_the_known_boss_splits(report):
     assert width.examples == (
         Example("A100", "A100", "rejected"),
         Example("K003", "K03", "rejected"),
+    )
+    glued = by_code["glued-size-letter"]
+    assert glued.severity == "boss"
+    assert glued.examples == (
+        Example("M【建议80-100斤】", "dropped", "M"),
+        Example("XXL【建议140-160斤】", "dropped", "2XL"),
+        Example("M女【推荐80-100斤】", "dropped", "M"),
+        Example("M（56-58cm）", "dropped", "M"),
     )
 
 
