@@ -953,6 +953,45 @@ def _rule_findings(excel, intake: Mapping[str, object], shop: Mapping[str, objec
     return findings
 
 
+def quote_width_findings(probes: Mapping[str, object]) -> list[Finding]:
+    """wouldBeLiveUsd accepts one letter and exactly two digits, aside from the S06 rewrite.
+
+    A100 is already canonical and is still rejected. K003 canonicalizes to K03 and is
+    rejected instead of rewritten. Accepting either spelling is a fail. No quote is stored.
+    """
+    expected = (("A100", "A100"), ("K003", "K03"))
+    misses: list[Example] = []
+    broken: list[Example] = []
+    for raw, canonical in expected:
+        if norm_ma(raw) != canonical:
+            broken.append(Example(raw, canonical, norm_ma(raw)))
+            continue
+        row = _mapping(probes.get(raw))
+        if row.get("ok") is False:
+            misses.append(Example(raw, canonical, "rejected"))
+        elif row.get("ok") is True:
+            broken.append(Example(raw, canonical, str(row.get("ma") or "accepted")))
+        else:
+            broken.append(Example(raw, canonical, "missing"))
+    if broken:
+        return [_note(
+            "fail",
+            "quote-ma-width",
+            "the quote-width probe does not match the recorded rejection",
+            broken,
+        )]
+    if not misses:
+        return []
+    return [_note(
+        "boss",
+        "quote-ma-width",
+        "wouldBeLiveUsd accepts one letter and exactly two digits, aside from the S06 rewrite. "
+        "A100 is already the canonical mã and is still rejected. K003 canonicalizes to K03 and is "
+        "rejected instead of rewritten. No quote was stored.",
+        misses,
+    )]
+
+
 def _ma_findings(intake: Mapping[str, object], shop: Mapping[str, object]) -> list[Finding]:
     inputs = _vector_inputs()
     helpers = {
@@ -1001,6 +1040,10 @@ def _ma_findings(intake: Mapping[str, object], shop: Mapping[str, object]) -> li
         findings.append(_note("fail", "s06-short-spelling", "s6 is not locked at $25", [
             Example("s6", str(S06_LOCK_USD), str(s6))
         ]))
+    findings.extend(quote_width_findings({
+        "A100": intake.get("wideA100"),
+        "K003": intake.get("wideK003"),
+    }))
     return findings
 
 

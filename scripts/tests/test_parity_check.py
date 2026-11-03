@@ -31,6 +31,7 @@ from parity_check import (
     intake_g_decimal_expected,
     loose_shoe_findings,
     main,
+    quote_width_findings,
     price_disagreements,
     quote_examples,
     render_text,
@@ -59,6 +60,7 @@ BOSS_CODES = (
     "extras-vs-live-price",
     "extras-s06-lock",
     "shop-loose-shoe",
+    "quote-ma-width",
 )
 
 
@@ -211,6 +213,25 @@ def test_gap_report_accepts_listing_size_aliases():
     assert gap_alias_findings(())[0].code == "gap-size-alias"
 
 
+def test_quote_width_rejects_a_canonical_three_digit_ma_and_an_overpad():
+    rejected = {"ok": False, "error": "invalid"}
+    rows = quote_width_findings({"A100": rejected, "K003": rejected})
+    assert [item.severity for item in rows] == ["boss"]
+    assert rows[0].code == "quote-ma-width"
+    assert rows[0].examples == (
+        Example("A100", "A100", "rejected"),
+        Example("K003", "K03", "rejected"),
+    )
+    accepted = quote_width_findings({
+        "A100": {"ok": True, "ma": "A100"},
+        "K003": rejected,
+    })
+    assert accepted[0].severity == "fail"
+    assert accepted[0].code == "quote-ma-width"
+    assert accepted[0].examples == (Example("A100", "A100", "A100"),)
+    assert quote_width_findings({})[0].severity == "fail"
+
+
 def test_loose_shoe_notes_the_shop_and_listing_split():
     split = {
         "40.": ["40"],
@@ -296,6 +317,12 @@ def test_repo_reports_the_known_boss_splits(report):
                for example in loose.examples)
     assert any(example.key == "range" and example.left == "36" and example.right == "dropped"
                for example in loose.examples)
+    width = by_code["quote-ma-width"]
+    assert width.severity == "boss"
+    assert width.examples == (
+        Example("A100", "A100", "rejected"),
+        Example("K003", "K03", "rejected"),
+    )
 
 
 def test_snapshot_copies_agree(report):
