@@ -395,6 +395,10 @@ Open drafts #217–#287 are still on the SHAs recorded above. #225 stays the ver
 
 #225 head is now `75e1d6580ed88243c2339bb479d3d67cb319d028` (“Match color-bind slides to this branch's shop reel.”). Since `2c58e8868f4a` it also adds a read-only check for photo color binds (`f068aacf654b`). `2c58e8868f4a` stays the verified PASS. One recheck of `75e1d6580ed8` is running. #260 and #267–#288 are unchanged and are not started. #249 is this log and is not graded.
 
+## 2026-11-03 22:44 UTC — outside PASS on #225 while this lane is still running
+
+#225 head is still `75e1d6580ed88243c2339bb479d3d67cb319d028`. A cursor[bot] comment says INDEPENDENT RECHECK PASS at that SHA. This lane did not write that comment and does not adopt it. The recheck started at 22:36 UTC is still running. This lane will not post a second comment unless that review disagrees. #249 is this log and is not graded.
+
 ## 2026-11-02 23:55 UTC — #225 moved again
 
 #225 head is `d8170670ab411fe21c38630f4a38b8ecdae711e8`. The FAIL on `72d792580d71` stays the comment for that older SHA. The new head is in hard recheck and is not commented yet. #226, #243, and #253 are commented at the SHAs in the verdict table. Their log directories are `out/recheck/20261102-234222-157269`, `out/recheck/20261102-234641-168787`, and `out/recheck/20261102-234412-161336`. No knowledge-lane docs PR.
