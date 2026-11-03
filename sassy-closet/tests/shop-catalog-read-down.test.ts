@@ -36,7 +36,6 @@ function sampleCatalog(): Record<string, unknown> {
         colors: [{ id: "ca0100", hex: "#F5D76E", name: "Yellow", note: "" }],
         images: [{ src: "/products/A01/cover.jpg", colorId: "ca0100", order: 1 }],
         sizes: ["S", "M"],
-        sourceLink: "https://e.tb.cn/example",
         extra: "keep-me",
       },
       {
