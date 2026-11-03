@@ -15,6 +15,7 @@ const ENV_KEYS = ["SHOP_BLOB_READ_WRITE_TOKEN", "BLOB_READ_WRITE_TOKEN", "VERCEL
 
 const SECRET_READ_ERROR = "Failed to fetch https://blob.example/secret-token";
 const SAFE_READ_ERROR = "Shop catalog could not be read.";
+const SAFE_WRITE_ERROR = "Shop catalog could not be written.";
 const MISSING_ERROR = "Shop catalog is missing.";
 
 function sampleCatalog(): Record<string, unknown> {
@@ -122,6 +123,43 @@ test("save returns 503 when catalog read throws and does not write", async () =>
       assert.equal(result.error.includes("secret-token"), false);
     }
     assert.equal(writes, 0);
+    const logs = logged.join("\n");
+    assert.equal(logs.includes("blob.example"), false);
+    assert.equal(logs.includes("secret-token"), false);
+  } finally {
+    console.error = original;
+  }
+});
+
+test("save returns 503 when catalog write throws and does not report a write", async () => {
+  const port = memoryShopCatalogPort(sampleCatalog());
+  const before = port.snapshot();
+  const throwing: ShopCatalogPort = {
+    read: () => port.read(),
+    async write() {
+      throw new Error(SECRET_READ_ERROR);
+    },
+  };
+  const logged: string[] = [];
+  const original = console.error;
+  console.error = (...args: unknown[]) => {
+    logged.push(args.map((arg) => String(arg)).join(" "));
+  };
+  try {
+    const result = await saveShopCatalogProduct(throwing, { ma: "A01", priceUsd: 27 }, {
+      revalidate: async () => ({ ok: true }),
+    });
+    assert.equal(result.ok, false);
+    if (!result.ok) {
+      assert.equal(result.status, 503);
+      assert.equal(result.blobWritten, false);
+      assert.equal(result.error, SAFE_WRITE_ERROR);
+      const encoded = JSON.stringify(result);
+      assert.equal(encoded.includes("blob.example"), false);
+      assert.equal(encoded.includes("secret-token"), false);
+    }
+    assert.equal(port.snapshot(), before);
+    assert.equal(catalogPrice(before, "S06"), 25);
     const logs = logged.join("\n");
     assert.equal(logs.includes("blob.example"), false);
     assert.equal(logs.includes("secret-token"), false);

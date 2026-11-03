@@ -402,7 +402,11 @@ export async function saveShopCatalogProduct(
       return { ok: false, status: 503, error: config.error, blobWritten: false };
     }
   }
-  await port.write(applied.json);
+  try {
+    await port.write(applied.json);
+  } catch (error) {
+    return { ...shopCatalogIoError(error, "write"), blobWritten: false };
+  }
   const refreshed = await (options?.revalidate ?? (() => callShopRevalidate()))();
   if (!refreshed.ok) {
     return {
