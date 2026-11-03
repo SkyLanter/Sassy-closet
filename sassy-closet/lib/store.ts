@@ -115,14 +115,30 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
     newMa: input.newMa,
     mas,
   });
+  const sellUsd = postedSell(input.sell_currency, input.sell_usd, input.sell_cny);
   const blocked = publishBlock({
     action: existing ? "update" : "create",
     ma,
-    sellUsd: postedSell(input.sell_currency, input.sell_usd, input.sell_cny),
+    sellUsd,
     sellCurrency: input.sell_currency,
   });
   if (blocked) {
     throw Object.assign(new Error(`Không lưu ${ma} (${blocked}).`), { status: 409 });
+  }
+  // The destination check above does not see the old code. Leaving a held
+  // mã, or leaving S06 at a price the lock refuses, is the same save.
+  if (existing && normalizeMa(existing.ma) !== normalizeMa(ma)) {
+    const sourceBlocked = publishBlock({
+      action: "update",
+      ma: existing.ma,
+      sellUsd,
+      sellCurrency: input.sell_currency,
+    });
+    if (sourceBlocked) {
+      throw Object.assign(new Error(`Không lưu ${normalizeMa(existing.ma)} (${sourceBlocked}).`), {
+        status: 409,
+      });
+    }
   }
 
   const now = new Date().toISOString();
