@@ -83,6 +83,9 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 | #244 | `5a80c19474b425410b9aa8ab8f477586e3e91d65` | FAIL | Script PASS (pytest 2118). Every live S06 row is checked at $25. The log claims sold/hold filtering and other fixes that are not in this tree. Log `out/recheck/20261102-235357-184718`. |
 | #254 | `a8d4be0844677a3ead83486795de6a0fcb017fbb` | PASS | pytest 2117 passed, 7 skipped. Intake 277 / 274 / 0 / 3. Shop 218 / 215 / 0 / 3. The four workflows pin checkout, setup-node, and setup-python. Findings: none. Log `out/recheck/20261102-235316-183289`. |
 | #228 | `957d1d257cdfcf0eb6620e53ff4d9233e6490474` | FAIL | Script PASS (pytest 2118). One-to-four-digit caption mãs match, and S06 stays $25. The log claims midnight QC, digest, flat-summary, and `--proposal` fixes that are not in this tree. Log `out/recheck/20261103-000059-198481`. |
+| #245 | `3d798dfe4560f170b945a66508e3c54de1ddc6aa` | FAIL | Script PASS (pytest 2114). Share-card catalog failure is 503. The lane A log claims image, CSV, on-hand, and intake-save fixes that are not in this tree. Log `out/recheck/20261103-000454-210086`. |
+| #246 | `ce7471481dd407d038434537976e574a09c9adae` | PASS | pytest 2127 passed, 7 skipped. Intake 277 / 274 / 0 / 3. Shop 218 / 215 / 0 / 3. Merge-readiness report is read-only. Findings: none. Log `out/recheck/20261103-001628-237779`. |
+| #247 | `ea06ce1ed0a9359dcda27f177aa51b60674f8925` | PASS | pytest 2128 passed, 7 skipped. Intake 278 / 275 / 0 / 3. Shop 222 / 219 / 0 / 3. In-window trailing `.0` stays. Findings: none. Log `out/recheck/20261103-002607-259720`. |
 
 #222 was still in `hard_recheck.sh` when #239 was commented. #223, #224, #226–#231, and #240–#247 stay with the earlier workers. No knowledge-lane docs PR. #250–#258 are in progress. #259 is queued. #249 is this log and is not graded.
 
@@ -136,6 +139,10 @@ From here the lane polls every 2 hours, not every 45 minutes. At most two rechec
 #260 head is now `900de482717671ebc3f0e5360fd8349ce022d704`. The checkout at `e9729e40ab93` finished its script and will not be commented. Another reviewer’s PASS note on #260 is not this lane’s recheck.
 
 Four hard rechecks are already running, so neither new head starts until a slot is free. #249 is this log and is not graded.
+
+## 2026-11-03 00:40 UTC — #245, #246, and #247 commented
+
+#245 is commented FAIL at `3d798dfe4560`. #246 is commented PASS at `ce7471481dd4`. #247 is commented PASS at `ea06ce1ed0a9`. Those SHAs were still the heads. #232–#244 in the same batch were already commented and were not commented again. That worker was not sent on. #225 at `a9580d8d70c4` and #260 at `900de4827176` are still waiting. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
