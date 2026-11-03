@@ -321,6 +321,10 @@ Open drafts #217–#285 are still on the SHAs recorded above. #225 stays the ver
 
 Open drafts #217–#285 are still on the SHAs recorded above. #225 stays the verified PASS at `77fde6ab2f3b`. #286 is new and is recorded at `adcb7c41d760`. It has not moved since it was first seen, so it was not started. No recheck worker is running. The next poll is the 2-hour timer. #249 is this log and is not graded.
 
+## 2026-11-03 16:18 UTC — two-hour poll, no moved head
+
+Open drafts #217–#286 are still on the SHAs recorded above. #225 stays the verified PASS at `77fde6ab2f3b`. No new draft appeared. No recheck worker is running. The next poll is the 2-hour timer. #249 is this log and is not graded.
+
 ## 2026-11-02 23:55 UTC — #225 moved again
 
 #225 head is `d8170670ab411fe21c38630f4a38b8ecdae711e8`. The FAIL on `72d792580d71` stays the comment for that older SHA. The new head is in hard recheck and is not commented yet. #226, #243, and #253 are commented at the SHAs in the verdict table. Their log directories are `out/recheck/20261102-234222-157269`, `out/recheck/20261102-234641-168787`, and `out/recheck/20261102-234412-161336`. No knowledge-lane docs PR.
