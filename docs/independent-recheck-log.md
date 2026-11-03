@@ -14,7 +14,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 | PR | Head at queue time | Title |
 | --- | --- | --- |
-| #225 | `e88e265ef221` | Draft: one branch for the safe shop fixes. Moved 2026-11-03 00:04 UTC. `72d792580d71` and `ba5f60fa767d` were commented FAIL. `d8170670ab41` and `cda92647236a` passed the script locally and were not commented. |
+| #225 | `a9580d8d70c4` | Draft: one branch for the safe shop fixes. Moved 2026-11-03 00:18 UTC. `72d792580d71` and `ba5f60fa767d` were commented FAIL. `e88e265ef221` is still in hard recheck and must not be commented. `d8170670ab41` and `cda92647236a` passed the script locally and were not commented. |
 | #217 | `ee9e2a34bfb4` | Combined safe bundle #208-#216 |
 | #218 | `03c23afc58a7` | Fail closed when Blob is down, and drop held folders from other mãs |
 | #219 | `5b590c0f734e` | Keep a blank intake sell blank and parse pasted yen safely |
@@ -127,7 +127,15 @@ Open drafts still run through #266. #260 is the knowledge-base docs PR (`docs/kn
 
 From here the lane polls every 2 hours, not every 45 minutes. At most two recheck workers run at once. A pull request is rechecked only when its head SHA changes from the SHA already recorded in this log. A draft that has not moved stays as recorded, including drafts that have not had a first recheck. Already-commented SHAs are not run again.
 
-#228 is commented FAIL at `957d1d257cdf`. #225 at `e88e265ef221` is the one head that changed and is in hard recheck. #229 and #245 were already inside `hard_recheck.sh` when this cap landed. They will be commented if that SHA is still the head. Those workers will not be sent on to the next pull request. #249 is this log and is not graded.
+#228 is commented FAIL at `957d1d257cdf`. #225 at `e88e265ef221` was in hard recheck when this cap landed. #229 and #245 were already inside `hard_recheck.sh`. They will be commented only if that SHA is still the head. Those workers will not be sent on to the next pull request. #249 is this log and is not graded.
+
+## 2026-11-03 00:18 UTC — #225 and #260 moved
+
+#225 head is now `a9580d8d70c49a5e045a01c58f06135f5b8c6b61` (“Name missing, stale, and unusable cost-recheck files”). Since `e88e265ef221` the tree also pins the four workflows and rejects an install without the lockfile. That head is checked out and not started. The run on `e88e265ef221` is still inside `hard_recheck.sh` and will not be commented.
+
+#260 head is now `900de482717671ebc3f0e5360fd8349ce022d704`. The checkout at `e9729e40ab93` finished its script and will not be commented. Another reviewer’s PASS note on #260 is not this lane’s recheck.
+
+Four hard rechecks are already running, so neither new head starts until a slot is free. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
