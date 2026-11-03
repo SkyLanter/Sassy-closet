@@ -29,6 +29,7 @@ from parity_check import (
     gap_split_findings,
     dual_cost_findings,
     import_size_findings,
+    kind_label_findings,
     intake_decimal_findings,
     intake_g_decimal_expected,
     loose_shoe_findings,
@@ -64,6 +65,7 @@ BOSS_CODES = (
     "shop-loose-shoe",
     "quote-ma-width",
     "glued-size-letter",
+    "shop-kind-label",
 )
 
 
@@ -235,6 +237,45 @@ def test_quote_width_rejects_a_canonical_three_digit_ma_and_an_overpad():
     assert quote_width_findings({})[0].severity == "fail"
 
 
+def test_shop_kind_labels_stay_shorter_than_intake():
+    letters = ("A", "D", "G", "H", "J", "O")
+    excel = {
+        "A": "Áo",
+        "D": "Đầm / Dress",
+        "G": "Giày / Cao gót",
+        "H": "Phụ kiện tóc / Hair accessories",
+        "J": "Trang sức / Jewelry",
+        "O": "Khác / Other",
+    }
+    shop = {
+        "A": "Áo",
+        "D": "Đầm",
+        "G": "Giày",
+        "H": "Tóc",
+        "J": "Trang sức",
+        "O": "Khác",
+    }
+    rows = kind_label_findings(letters, excel, excel, shop)
+    assert [item.severity for item in rows] == ["boss"]
+    assert rows[0].code == "shop-kind-label"
+    assert rows[0].examples == (
+        Example("D", "Đầm / Dress", "Đầm"),
+        Example("G", "Giày / Cao gót", "Giày"),
+        Example("H", "Phụ kiện tóc / Hair accessories", "Tóc"),
+        Example("J", "Trang sức / Jewelry", "Trang sức"),
+        Example("O", "Khác / Other", "Khác"),
+    )
+    assert kind_label_findings(letters, excel, excel, excel) == []
+    drifted = dict(shop)
+    drifted["H"] = "Hair"
+    assert kind_label_findings(letters, excel, excel, drifted)[0].severity == "fail"
+    intake = dict(excel)
+    intake["A"] = "Top"
+    paired = kind_label_findings(letters, excel, intake, shop)
+    assert any(item.code == "kind-label" and item.severity == "fail" for item in paired)
+    assert kind_label_findings(letters, excel, {}, {})[0].severity == "fail"
+
+
 def test_glued_size_letter_notes_the_shop_and_listing_split():
     split = {
         "M【建议80-100斤】": ["M"],
@@ -354,6 +395,15 @@ def test_repo_reports_the_known_boss_splits(report):
     assert width.examples == (
         Example("A100", "A100", "rejected"),
         Example("K003", "K03", "rejected"),
+    )
+    labels = by_code["shop-kind-label"]
+    assert labels.severity == "boss"
+    assert labels.examples == (
+        Example("D", "Đầm / Dress", "Đầm"),
+        Example("G", "Giày / Cao gót", "Giày"),
+        Example("H", "Phụ kiện tóc / Hair accessories", "Tóc"),
+        Example("J", "Trang sức / Jewelry", "Trang sức"),
+        Example("O", "Khác / Other", "Khác"),
     )
     glued = by_code["glued-size-letter"]
     assert glued.severity == "boss"

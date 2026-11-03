@@ -11,6 +11,7 @@ import {
   SHOE_SIZES,
   isKindCode,
   keepSizesForKind,
+  kindLabel,
   sizesForKind,
 } from "../sassy-closet/lib/kinds";
 import { normalizeMa } from "../sassy-closet/lib/mint";
@@ -253,6 +254,7 @@ function main(): void {
   }
   const body = {
     kindLetters: [...KIND_CODES],
+    kindLabels: Object.fromEntries(KIND_CODES.map((code) => [code, kindLabel(code)])),
     clothing: [...CLOTHING_SIZES],
     shoe: [...SHOE_SIZES],
     scales: scales(),

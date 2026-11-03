@@ -67,6 +67,15 @@ DECIMAL_SHOE_TOKENS = IN_WINDOW_DECIMAL + DROPPED_DECIMAL + WINDOW_DECIMAL
 LOOSE_SHOE = (("40.", "40"), ("40码", "40"), ("(40)", "40"), ("4.0", "40"))
 # A spaced seller range. Shop drops the whole string. Listing keeps 36.
 LOOSE_SHOE_RANGE = "36 -37(适合平时35-36码)"
+# Shop Vietnamese kind names that are shorter than the intake and Excel labels.
+# The shop strings stay as stored. Intake and Excel intake labels stay paired.
+SHOP_KIND_SHORT = {
+    "D": "Đầm",
+    "G": "Giày",
+    "H": "Tóc",
+    "J": "Trang sức",
+    "O": "Khác",
+}
 # A clothing letter glued to a seller note, with no space. Shop and the size-gap
 # scan keep the letter. Listing drops the token. The gap report flags the whole string.
 GLUED_SIZE = (
@@ -923,6 +932,68 @@ def _excel_findings(excel) -> list[Finding]:
     return findings
 
 
+def kind_label_findings(
+    letters: Sequence[str],
+    excel_labels: Mapping[str, str],
+    intake_labels: Mapping[str, object],
+    shop_labels: Mapping[str, object],
+) -> list[Finding]:
+    """Intake and Excel intake kind labels stay paired. Shop Vietnamese names are shorter.
+
+    A letter outside SHOP_KIND_SHORT must match on all three sides. A recorded short
+    name is a Boss note. A third spelling, or a missing probe label, is a fail.
+    No label string is rewritten.
+    """
+    paired: list[Example] = []
+    misses: list[Example] = []
+    broken: list[Example] = []
+    for letter in letters:
+        excel_label = str(excel_labels.get(letter, ""))
+        intake_label = intake_labels.get(letter)
+        shop_label = shop_labels.get(letter)
+        if not isinstance(intake_label, str) or intake_label != excel_label:
+            shown = intake_label if isinstance(intake_label, str) else "missing"
+            paired.append(Example(letter, excel_label, shown))
+        if not isinstance(shop_label, str):
+            broken.append(Example(letter, excel_label, "missing"))
+            continue
+        short = SHOP_KIND_SHORT.get(letter)
+        if short is None:
+            if shop_label != excel_label:
+                broken.append(Example(letter, excel_label, shop_label))
+            continue
+        if shop_label == short and shop_label != excel_label:
+            misses.append(Example(letter, excel_label, shop_label))
+        elif shop_label == excel_label:
+            continue
+        else:
+            broken.append(Example(letter, short, shop_label))
+    findings: list[Finding] = []
+    if paired:
+        findings.append(_note(
+            "fail",
+            "kind-label",
+            "an intake kind label does not match the Excel intake label",
+            paired,
+        ))
+    if broken:
+        findings.append(_note(
+            "fail",
+            "shop-kind-label",
+            "the shop kind-label probe does not match the recorded short Vietnamese names",
+            broken,
+        ))
+    elif misses:
+        findings.append(_note(
+            "boss",
+            "shop-kind-label",
+            "shop Vietnamese kind names are shorter than the intake and Excel intake labels. "
+            "Shop was not relabeled. Intake and Excel intake labels still match each other.",
+            misses,
+        ))
+    return findings
+
+
 def _rule_findings(excel, intake: Mapping[str, object], shop: Mapping[str, object]) -> list[Finding]:
     findings: list[Finding] = []
     ladders = {
@@ -954,6 +1025,12 @@ def _rule_findings(excel, intake: Mapping[str, object], shop: Mapping[str, objec
         findings.append(_note("fail", "kind-letters", "kind letter lists disagree", [
             Example(name, "".join(kind_sets[name]), "".join(excel.INTAKE_KIND_CODES)) for name in kind_drift
         ]))
+    findings.extend(kind_label_findings(
+        tuple(excel.INTAKE_KIND_CODES),
+        excel.INTAKE_KIND_LABELS,
+        _mapping(intake.get("kindLabels")),
+        _mapping(shop.get("kindLabels")),
+    ))
 
     tokens = [str(number) for number in range(32, 48)]
     derived_py = tuple(norm_sizes(" ".join(tokens), "G"))
