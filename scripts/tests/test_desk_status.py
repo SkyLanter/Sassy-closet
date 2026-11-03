@@ -185,9 +185,61 @@ def test_blank_spelling_does_not_hide_a_later_price() -> None:
 
 def test_short_comma_is_not_the_lock() -> None:
     payload = {"catalog": {"products": [{"ma": "S06", "priceUsd": "2,5"}]}}
-    with pytest.raises(ValueError, match="S06 price is not a number"):
-        status_from_json(payload)
+    status = status_from_json(payload)
+    assert status.s06_usd is None
+    assert "S06:" not in render_text(status)
     assert payload["catalog"]["products"][0]["priceUsd"] == "2,5"
+
+
+def test_bad_price_does_not_hide_a_later_spelling_or_the_desk() -> None:
+    bad_prices: tuple[object, ...] = (None, "", "  ", True, False, "2,5", "²", "2²", float("inf"), float("nan"))
+    for bad in bad_prices:
+        payload = {
+            "intake": {"submissions": [{"ma": "A01"}]},
+            "catalog": {
+                "products": [
+                    {"ma": "S06", "priceUsd": bad},
+                    {"ma": "S006", "priceUsd": 30},
+                ]
+            },
+        }
+        status = status_from_json(payload)
+        assert status.intake.value == 1, bad
+        assert status.s06_usd == "—, 30", bad
+        assert "S06: —, $30" in render_text(status)
+        assert "$25" not in render_text(status)
+        assert "$1" not in render_text(status)
+        assert payload["catalog"]["products"][0]["priceUsd"] is bad
+        assert payload["catalog"]["products"][1]["priceUsd"] == 30
+
+
+def test_a_later_bad_price_does_not_hide_an_earlier_one() -> None:
+    payload = {
+        "catalog": {
+            "products": [
+                {"ma": "S06", "priceUsd": 25},
+                {"ma": "S006", "priceUsd": "2,5"},
+                {"ma": "S6", "priceUsd": 30},
+            ]
+        }
+    }
+    status = status_from_json(payload)
+    assert status.s06_usd == "25, —, 30"
+    assert "S06: $25, —, $30" in render_text(status)
+    assert payload["catalog"]["products"][1]["priceUsd"] == "2,5"
+
+
+def test_one_real_dollar_survives_a_blank_second_key() -> None:
+    blank_second = status_from_json(
+        {"catalog": {"products": [{"ma": "S06", "priceUsd": 25, "price_usd": None}]}}
+    )
+    assert blank_second.s06_usd == "25, —"
+    assert "S06: $25, —" in render_text(blank_second)
+    stored_on_the_other_key = status_from_json(
+        {"catalog": {"products": [{"ma": "S06", "priceUsd": "", "price_usd": 30}]}}
+    )
+    assert stored_on_the_other_key.s06_usd == "—, 30"
+    assert "S06: —, $30" in render_text(stored_on_the_other_key)
 
 
 def test_thousands_comma_still_reads() -> None:

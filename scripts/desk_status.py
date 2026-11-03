@@ -19,14 +19,14 @@ import subprocess
 import sys
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, replace
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import NoReturn
 
 from held_policy import default_held_path, norm_ma, policy_from_mapping
 
 _FORBIDDEN_PAGE_NAMES = frozenset({"held.json", "submissions.json", "catalog.v1.json"})
-_THOUSANDS = re.compile(r"\d{1,3}(?:,\d{3})+(?:\.\d+)?")
+_THOUSANDS = re.compile(r"[0-9]{1,3}(?:,[0-9]{3})+(?:\.[0-9]+)?")
 
 
 @dataclass(frozen=True)
@@ -386,14 +386,12 @@ def _s06_price(rows: Sequence[object]) -> str | None:
 
 
 def _s06_row_prices(item: dict[str, object]) -> list[str | None]:
+    """One entry per stored price field. Unreadable stays blank and does not stop the scan."""
     found: list[str | None] = []
     for key in ("priceUsd", "price_usd"):
         if key not in item:
             continue
-        parsed = _plain_number(item.get(key))
-        if parsed is None:
-            raise ValueError("S06 price is not a number")
-        found.append(parsed)
+        found.append(_plain_number(item.get(key)))
     if not found:
         return [None]
     return found
@@ -402,7 +400,10 @@ def _s06_row_prices(item: dict[str, object]) -> list[str | None]:
 def _same_dollars(left: str | None, right: str | None) -> bool:
     if left is None or right is None:
         return False
-    return Decimal(left) == Decimal(right)
+    try:
+        return Decimal(left) == Decimal(right)
+    except InvalidOperation:
+        return False
 
 
 def _s06_line(value: str) -> str:
@@ -433,10 +434,14 @@ def _plain_number(value: object) -> str | None:
         if text == "":
             return None
         parts = text.split(".")
-        if len(parts) > 2 or not all(part.isdigit() for part in parts) or parts[0] == "":
+        if len(parts) > 2 or parts[0] == "" or not all(_ascii_digits(part) for part in parts):
             return None
         return text
     return None
+
+
+def _ascii_digits(part: str) -> bool:
+    return part.isascii() and part.isdigit()
 
 
 def _pull_requests(value: object) -> tuple[list[int], list[BossWait]]:
