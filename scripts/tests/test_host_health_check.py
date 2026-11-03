@@ -10,6 +10,12 @@ import daily_shop_check as dsc
 import host_health_check as hh
 
 
+def script_json(body: str) -> dict:
+    start = body.index(">") + 1
+    end = body.index("</script>")
+    return json.loads(body[start:end])
+
+
 def product_html(sku="S06", price="25.00", extra="<h1>S06</h1><span>$25</span><span>$30</span>",
                  attrs='type="application/ld+json"', node=None):
     if node is None:
@@ -93,7 +99,8 @@ def test_s06_off_25_is_fail(monkeypatch):
 
 def test_s06_offer_30_with_stray_25_is_fail(monkeypatch):
     body = product_html("S06", "30.00", extra="<h1>S06</h1><span>$25</span>")
-    assert "$25" in body and "30.00" in body
+    assert "$25" in body
+    assert script_json(body)["offers"]["price"] == "30.00"
     fake(monkeypatch, pages=s06_pages(body))
     s = hh.run()
     assert s["overall"] == "FAIL"
@@ -127,7 +134,7 @@ def test_lowercase_s06_sku_at_25_passes(monkeypatch):
 def test_price_25_000_equals_25_and_shows_25():
     assert hh.whole_dollar_usd("25.000") == 25
     page = product_html("S06", "25.000")
-    assert "25.000" in page
+    assert script_json(page)["offers"]["price"] == "25.000"
     assert hh.s06_shows_25(page) is True
     assert hh.s06_offer_usd(page) == "25.00"
 
