@@ -1,5 +1,6 @@
 import { normalizeMa as canonicalMa } from "@/lib/mint";
 import { callShopRevalidate, readShopRevalidateConfig } from "@/lib/shop-revalidate";
+import { storeErrorReason } from "@/lib/store-unavailable";
 
 export const SHOP_CATALOG_BLOB_PATH = "sassy-closet-shop/catalog.v1.json";
 export const SHOP_CATALOG_SITE_ID = "sassy-closet-shop";
@@ -328,6 +329,38 @@ export function applyShopCatalogPatch(
   };
 }
 
+export type ShopCatalogReadResult =
+  | { ok: true; document: unknown }
+  | { ok: false; status: 404 | 503; error: string };
+
+type ShopCatalogIoKind = "read" | "write";
+
+function shopCatalogIoError(error: unknown, kind: ShopCatalogIoKind): { ok: false; status: 503; error: string } {
+  console.error(`[shop-catalog] ${kind} failed: ${storeErrorReason(error)}`);
+  switch (kind) {
+    case "read":
+      return { ok: false, status: 503, error: "Shop catalog could not be read." };
+    case "write":
+      return { ok: false, status: 503, error: "Shop catalog could not be written." };
+    default: {
+      const _exhaustive: never = kind;
+      return _exhaustive;
+    }
+  }
+}
+
+export async function readShopCatalogDocument(port: ShopCatalogPort): Promise<ShopCatalogReadResult> {
+  try {
+    const document = await port.read();
+    if (document === null) {
+      return { ok: false, status: 404, error: "Shop catalog is missing." };
+    }
+    return { ok: true, document };
+  } catch (error) {
+    return shopCatalogIoError(error, "read");
+  }
+}
+
 export function memoryShopCatalogPort(initial: unknown | null): ShopCatalogPort & { snapshot: () => string | null } {
   let body = initial === null ? null : `${JSON.stringify(initial, null, 2)}\n`;
   return {
@@ -355,11 +388,11 @@ export async function saveShopCatalogProduct(
     revalidate?: () => Promise<{ ok: true } | { ok: false; error: string }>;
   },
 ): Promise<ShopCatalogSaveResult> {
-  const current = await port.read();
-  if (current === null) {
-    return { ok: false, status: 404, error: "Shop catalog is missing.", blobWritten: false };
+  const current = await readShopCatalogDocument(port);
+  if (!current.ok) {
+    return { ok: false, status: current.status, error: current.error, blobWritten: false };
   }
-  const applied = applyShopCatalogPatch(current, patch, options?.now ?? new Date().toISOString());
+  const applied = applyShopCatalogPatch(current.document, patch, options?.now ?? new Date().toISOString());
   if (!applied.ok) {
     return { ok: false, status: 400, error: applied.error, blobWritten: false };
   }
