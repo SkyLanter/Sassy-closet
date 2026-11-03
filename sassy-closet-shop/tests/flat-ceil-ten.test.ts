@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { calcPricing, FX_DEFAULT, quoteSellUsd } from "../lib/pricing";
+import { calcPricing, FX_DEFAULT, MARGIN_DIVISOR, quoteSellUsd } from "../lib/pricing";
 
 function digits(parts: string[]): string {
   return parts.join("");
@@ -14,6 +14,12 @@ const exactTen = Number(digits(["7", ".5"]));
 const eleven = Number(digits(["7", ".51"]));
 
 test("the flat quote adds $2 only when the ceil is under $10", () => {
+  for (let quoted = 1; quoted <= 9; quoted += 1) {
+    const landed = quoted * MARGIN_DIVISOR;
+    const quote = quoteSellUsd(landed);
+    assert.equal(quote.quotedUsd, quoted, String(quoted));
+    assert.equal(quote.sellUsd, quoted + 2, String(quoted));
+  }
   assert.equal(quoteSellUsd(ceilNine).quotedUsd, 9);
   assert.equal(quoteSellUsd(ceilNine).sellUsd, 11);
   assert.equal(quoteSellUsd(tenLow).quotedUsd, 10);

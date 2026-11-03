@@ -76,11 +76,14 @@ describe("a padded new mã is stored in its canonical spelling", { concurrency: 
     assert.equal(top.ma, "A01");
     assert.equal(top.photo_link, "Documents/Sassy Closet/Photos/A01/");
 
-    const wide = await saveSubmission(saveInput({ kind: "A", newMa: "a100" }));
+    const wide = await saveSubmission(saveInput({ kind: "A", newMa: "a0100" }));
     assert.equal(wide.ma, "A100");
 
     const ten = await saveSubmission(saveInput({ kind: "A", newMa: "a010" }));
     assert.equal(ten.ma, "A10");
+
+    const otherLetter = await saveSubmission(saveInput({ kind: "A", newMa: "b010" }));
+    assert.equal(otherLetter.ma, "B10");
 
     const locked = await saveSubmission(
       saveInput({ kind: "S", newMa: " s0006 ", sell_usd: "25" }),
@@ -107,9 +110,9 @@ describe("a padded new mã is stored in its canonical spelling", { concurrency: 
     const rows = await listSubmissions();
     assert.deepEqual(
       rows.map((row) => row.ma),
-      ["A01", "A100", "A10", "S06"],
+      ["A01", "A100", "A10", "B10", "S06"],
     );
-    assert.deepEqual(maColumn(await exportCsv()), ["A01", "A100", "A10", "S06"]);
+    assert.deepEqual(maColumn(await exportCsv()), ["A01", "A100", "A10", "B10", "S06"]);
   });
 
   test("a padded held mã and an off-lock S06 spelling do not create a row", async () => {
@@ -124,12 +127,11 @@ describe("a padded new mã is stored in its canonical spelling", { concurrency: 
       () => saveSubmission(saveInput({ kind: "S", newMa: "s006", sell_usd: "40" })),
       /s06-lock/,
     );
-    try {
-      const short = await saveSubmission(saveInput({ kind: "S", newMa: "s6", sell_usd: "40" }));
-      assert.equal(short.ma, "S06");
-      assert.equal(short.sell_usd, "25");
-    } catch {
-      assert.deepEqual(await listSubmissions(), []);
-    }
+    await assert.rejects(
+      () => saveSubmission(saveInput({ kind: "S", newMa: "s6", sell_usd: "40" })),
+      /Mã mới/,
+    );
+    await assert.rejects(() => saveSubmission(saveInput({ kind: "A", newMa: "a1" })), /Mã mới/);
+    assert.deepEqual(await listSubmissions(), []);
   });
 });
