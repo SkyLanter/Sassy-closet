@@ -1,0 +1,2 @@
+REJECT row 1: checked_at
+not saved: 1 bad row(s)
