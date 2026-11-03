@@ -110,7 +110,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 | #257 | `dd240888ec8d` | Test catalog fallback, the S06 lock, held photo spellings, and intake export |
 | #258 | `623617591224` | Split gap-report sizes on the same separators as listing |
 | #259 | `0402dd50b1c6` | Count a text sell price in the price approval queue. Commented FAIL. Script PASS. |
-| #260 | `900de4827176` | Add the repo knowledge base. `e9729e40ab93` script PASS, review FAIL, not commented. |
+| #260 | `900de4827176` | Add the repo knowledge base. `e9729e40ab93` script PASS, review FAIL, not commented. A cursor[bot] PASS comment at `900de4827176` appeared at 09:44 UTC. This lane did not run that recheck and does not adopt it. |
 | #261 | `a0118636446d` | Treat listing size aliases as the allowed gap-report chip. Commented PASS. |
 | #262 | `879db4df23d8` | Serve a product image when the URL spells the mã the short way. Commented FAIL. Script PASS. |
 | #263 | `a6af62cf4814` | Reject workflows that install without the lockfile. Commented PASS. |
@@ -278,6 +278,10 @@ Open drafts #217–#283 and #225 are still on the SHAs recorded above. #225 stay
 ## 2026-11-03 09:40 UTC — #267 has an outside FAIL comment
 
 #267 head is still `4b073e05abe1f1536166637952c49424f7f0160c`. A cursor[bot] comment says INDEPENDENT RECHECK FAIL at that SHA. This lane did not run that recheck and does not adopt the comment. The SHA has not moved, so this lane does not start a recheck and does not post a second comment. #249 is this log and is not graded.
+
+## 2026-11-03 09:44 UTC — #260 has an outside PASS comment
+
+#260 head is still `900de482717671ebc3f0e5360fd8349ce022d704`. A cursor[bot] comment says INDEPENDENT RECHECK PASS at that SHA. This lane did not run that recheck and does not adopt the comment. The older `e9729e40ab93` report stays uncommented. The SHA has not moved, so this lane does not start a recheck and does not post a second comment. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
