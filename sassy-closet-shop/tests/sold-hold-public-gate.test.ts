@@ -62,6 +62,7 @@ test("a sold piece stays off the public list while a hold piece stays on it", ()
   assert.match(sitemap, /const products = shopVisibleProducts\(document\.products\);/);
   assert.match(sitemap, /\.\.\.products\.map\(\(product\) =>/);
   assert.equal(sitemap.includes("document.products.map"), false);
+  assert.equal(sitemap.match(/document\.products/g)?.length, 1);
 
   const settings = readFileSync(path.join(process.cwd(), "lib/site-settings.ts"), "utf8");
   assert.match(settings, /return shopVisibleProducts\(products\)\.map\(toShopLook\);/);
