@@ -14,7 +14,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 | PR | Head at queue time | Title |
 | --- | --- | --- |
-| #225 | `953e460b8f46` | Draft: one branch for the safe shop fixes. Commented PASS 2026-11-03 07:26 UTC. Also PASS at `4df538a9b6eb`, `44bde2ae5e90`, and `b29c6c7ee1ef`. FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. |
+| #225 | `5af406779a1e` | Draft: one branch for the safe shop fixes. Moved 2026-11-03 10:56 UTC. Commented PASS at `953e460b8f46`, `4df538a9b6eb`, `44bde2ae5e90`, and `b29c6c7ee1ef`. FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. |
 | #217 | `ee9e2a34bfb4` | Combined safe bundle #208-#216 |
 | #218 | `03c23afc58a7` | Fail closed when Blob is down, and drop held folders from other mãs |
 | #219 | `5b590c0f734e` | Keep a blank intake sell blank and parse pasted yen safely |
@@ -287,6 +287,10 @@ Open drafts #217–#283 and #225 are still on the SHAs recorded above. #225 stay
 ## 2026-11-03 10:17 UTC — two-hour poll, no moved head
 
 Open drafts #217–#284 and #225 are still on the SHAs recorded above. #225 stays the PASS at `953e460b8f46`. #285 is new and is recorded at `78819eaf0d04`. It has not moved since it was first seen, so it was not started. No recheck worker is running. The next poll is the 2-hour timer. #249 is this log and is not graded.
+
+## 2026-11-03 10:56 UTC — #225 moved to 5af4067
+
+#225 head is now `5af406779a1ed164b2f11492481412aa88641e59` (“Compare parsed S06 offers instead of digit substrings”). Since `953e460b8f46` it also reads S06’s own JSON-LD offer in host health. `953e460b8f46` stays the commented PASS. One recheck of `5af406779a1e` is running. #260 and #267–#285 are unchanged and are not started. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
