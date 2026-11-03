@@ -30,8 +30,6 @@ ALLOWED = {
     ("held_price_proposal.py", "out[kind.strip().upper()] = n"),
     ("intake_gaps.py", 'code = str(k.get("code", "")).strip().upper()'),
     ("intake_gaps.py", 'kind = str(row.get("kind", "") or "").strip().upper()'),
-    # shop folder compare uses normalizeMa (trim + upper, no zero-pad), not the canonical key
-    ("color_bind.py", "return ma.strip().upper()"),
     # shape checks: must see the raw spelling so K003 / k3 still fail the one-letter-two-digit rule
     ("letter_type.py", "match = MA_RE.fullmatch(ma.strip().upper())"),
     ("unknown_letter.py", "match = MA_RE.fullmatch(ma.strip().upper())"),

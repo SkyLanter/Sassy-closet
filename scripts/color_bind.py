@@ -10,11 +10,14 @@ its photos exactly, stay quiet.
 
 The stored id is copied into the flag and is not rewritten. A photo in
 another hub mã's `/products/` folder does not count as a slide: the shop
-reel drops those files (`srcBelongsToMa`). Other paths, including
-`/uploads/` and a folder that is not a hub mã, still count. Nothing here
-writes a catalog row, a price, a photo, intake, Blob, or data/held.json.
-S06 stays $25. Held mãs stay held. Pass a local fixture. A URL, held.json,
-and the shop catalog are refused.
+reel drops those files (`srcBelongsToMa`). The folder is the canonical
+mã, so `a01` and `A001` are A01. Another mã's held folder does not count
+either. This mã's own folder still counts, including a held mã's own
+photos. Other paths, including `/uploads/` and a folder that is not a hub
+mã and is not held, still count. The held list is read and not written.
+Nothing here writes a catalog row, a price, a photo, intake, Blob, or
+data/held.json. S06 stays $25. Held mãs stay held. Pass a local fixture.
+A URL, held.json, and the shop catalog are refused.
 """
 
 from __future__ import annotations
@@ -24,10 +27,11 @@ import json
 import math
 import re
 import sys
+import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 
-from held_policy import norm_ma
+from held_policy import HeldPolicy, load_held_policy, norm_ma
 
 # Same list as sassy-closet-shop/lib/catalog-contract.ts KNOWN_SEED_MAS.
 # srcBelongsToMa drops /products/{these}/ when the folder is not this mã.
@@ -44,7 +48,14 @@ _KNOWN_SEED_FOLDERS = (
     "A02",
 )
 _SEED_FOLDERS = frozenset(_KNOWN_SEED_FOLDERS)
-_PRODUCT_FOLDER = re.compile(r"/products/([^/]+)/", re.IGNORECASE)
+# ASCII case fold, like the shop's /products/ regex. Unicode case fold would
+# treat U+017F as "s" and match a different folder than the reel.
+_PRODUCT_FOLDER = re.compile(r"/products/([^/]+)/", re.IGNORECASE | re.ASCII)
+# JavaScript String.prototype.trim: Unicode space separators, plus these.
+# Python strip also removes U+0085 and U+001C–U+001F, and it leaves U+FEFF.
+_JS_TRIM_EXTRA = frozenset("\t\v\f\n\r\u00a0\u2028\u2029\ufeff")
+# ASCII digits only. Python \d also matches fullwidth ０-９, and the shop regex does not.
+_JS_MA = re.compile(r"^([A-Z])([0-9]+)$")
 
 _BLANK_COLOR_ID = "blank_color_id"
 _DUPLICATE_COLOR_ID = "duplicate_color_id"
@@ -101,12 +112,13 @@ class BindFlag:
 
 def flag_color_binds(rows: list[CatalogRow]) -> list[BindFlag]:
     """Return flags. Leave every CatalogRow as it was passed in."""
+    policy = load_held_policy()
     flags: list[BindFlag] = []
     for row in rows:
         code = norm_ma(row.ma)
         flags.extend(_color_id_flags(code, row))
-        flags.extend(_image_flags(code, row, rows))
-        flags.extend(_missing_slide_flags(code, row))
+        flags.extend(_image_flags(code, row, rows, policy))
+        flags.extend(_missing_slide_flags(code, row, policy))
     return flags
 
 
@@ -204,10 +216,12 @@ def _color_id_flags(code: str, row: CatalogRow) -> list[BindFlag]:
     return flags
 
 
-def _image_flags(code: str, row: CatalogRow, rows: list[CatalogRow]) -> list[BindFlag]:
+def _image_flags(
+    code: str, row: CatalogRow, rows: list[CatalogRow], policy: HeldPolicy
+) -> list[BindFlag]:
     flags: list[BindFlag] = []
     for index, image in enumerate(row.images):
-        if not _counts_for_ma(image.src, row.ma):
+        if not _counts_for_ma(image.src, row.ma, policy):
             continue
         stored = image.color_id
         if stored is None:
@@ -224,8 +238,8 @@ def _image_flags(code: str, row: CatalogRow, rows: list[CatalogRow]) -> list[Bin
     return flags
 
 
-def _missing_slide_flags(code: str, row: CatalogRow) -> list[BindFlag]:
-    matched = _ids_with_slide(row)
+def _missing_slide_flags(code: str, row: CatalogRow, policy: HeldPolicy) -> list[BindFlag]:
+    matched = _ids_with_slide(row, policy)
     if not matched:
         return []
     flags: list[BindFlag] = []
@@ -239,10 +253,10 @@ def _missing_slide_flags(code: str, row: CatalogRow) -> list[BindFlag]:
     return flags
 
 
-def _ids_with_slide(row: CatalogRow) -> set[str]:
+def _ids_with_slide(row: CatalogRow, policy: HeldPolicy) -> set[str]:
     found: set[str] = set()
     for image in row.images:
-        if not _counts_for_ma(image.src, row.ma) or image.color_id is None:
+        if not _counts_for_ma(image.src, row.ma, policy) or image.color_id is None:
             continue
         for color in row.colors:
             if color.id is not None and color.id == image.color_id:
@@ -279,30 +293,55 @@ def _also_on(rows: list[CatalogRow], code: str, stored: str) -> tuple[str, ...]:
     return tuple(sorted(found))
 
 
-def _shop_ma(ma: str) -> str:
-    """Shop normalizeMa: trim and upper only. Folder compare does not zero-pad."""
-    return ma.strip().upper()
+def _js_trim_char(char: str) -> bool:
+    return char in _JS_TRIM_EXTRA or unicodedata.category(char) == "Zs"
 
 
-def _counts_for_ma(src: str | None, ma: str) -> bool:
-    """True when the shop reel can show this src on this mã.
+def _js_trim(value: str) -> str:
+    """Trim the way JavaScript does. Leaves U+0085 and U+001C–U+001F."""
+    start = 0
+    end = len(value)
+    while start < end and _js_trim_char(value[start]):
+        start += 1
+    while end > start and _js_trim_char(value[end - 1]):
+        end -= 1
+    return value[start:end]
 
-    Blank src is dropped. A `/products/{folder}/` file is dropped when
-    folder is a known hub mã and not this mã. The query string is ignored.
+
+def _js_canonical(value: str) -> str:
+    """Shop canonicalMaSpelling: JS trim, upper, then one letter and digits."""
+    code = _js_trim(value).upper()
+    match = _JS_MA.match(code)
+    if match is None:
+        return code
+    return f"{match.group(1)}{int(match.group(2)):02d}"
+
+
+def _counts_for_ma(src: str | None, ma: str, policy: HeldPolicy) -> bool:
+    """True when this branch's shop reel can show this src on this mã.
+
+    Blank src is dropped. Trim matches JavaScript, so a BOM-only src is
+    blank and U+0085 is not. A `/products/{folder}/` file is dropped when
+    the folder is another mã and that mã is held or a known hub mã. The
+    match is ASCII case-insensitive, like the shop regex. Folder and mã
+    use the shop canonical spelling, so `a01` and `A001` are A01. This
+    mã's own folder still counts. The query string is ignored.
     """
     if src is None:
         return False
-    trimmed = src.strip()
+    trimmed = _js_trim(src)
     if trimmed == "":
         return False
     path = trimmed.split("?", 1)[0]
     match = _PRODUCT_FOLDER.search(path)
     if match is None:
         return True
-    folder = match.group(1)
-    if folder == _shop_ma(ma):
+    folder_code = _js_canonical(match.group(1))
+    if folder_code == _js_canonical(ma):
         return True
-    return folder not in _SEED_FOLDERS
+    if folder_code in policy.held or folder_code in policy.never_list:
+        return False
+    return folder_code not in _SEED_FOLDERS
 
 
 def _product_list(payload: object) -> list[object]:

@@ -71,7 +71,7 @@ python3 scripts/restock_note.py --fixture ./catalog.json --note ./out/restock-no
 
 ## Color binds
 
-Read-only check that a photo `colorId` matches a color `id` on the same mã the way the shop reel does: exact text, no trimming. A null `colorId` stays an untagged photo. A color with no slide is named only when another color on that mã already has one. A photo filed under another hub mã's `/products/` folder does not count. The command prints JSON and does not change catalog rows, prices, photos, or `data/held.json`. Held mãs stay held. S06 stays $25.
+Read-only check that a photo `colorId` matches a color `id` on the same mã the way the shop reel does: exact text, no trimming. A null `colorId` stays an untagged photo. A color with no slide is named only when another color on that mã already has one. A photo filed under another hub mã's `/products/` folder does not count, including a lowercase or padded spelling of that folder. Another mã's held folder does not count. This mã's own folder still counts. The command prints JSON and does not change catalog rows, prices, photos, or `data/held.json`. Held mãs stay held. S06 stays $25.
 
 ```bash
 python3 scripts/color_bind.py --fixture ./catalog.json

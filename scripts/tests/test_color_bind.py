@@ -314,6 +314,182 @@ def test_uploads_and_extra_folders_still_count() -> None:
     assert flag_color_binds(rows) == []
 
 
+def test_lowercase_and_padded_hub_folders_do_not_cover_another_ma() -> None:
+    rows = rows_from_payload(
+        [
+            {
+                "ma": "A02",
+                "priceUsd": 36,
+                "status": "available",
+                "colors": [{"id": "kem"}, {"id": "xanh"}],
+                "images": [
+                    {"src": "/products/a01/extra.jpg", "colorId": "kem"},
+                    {"src": "/products/A001/cover.jpg", "colorId": "kem"},
+                    {"src": "/products/A02/cover.jpg", "colorId": "xanh"},
+                ],
+            },
+            {
+                "ma": "A01",
+                "priceUsd": 27,
+                "status": "available",
+                "colors": [{"id": "den"}],
+                "images": [
+                    {"src": "/products/a01/extra.jpg", "colorId": "den"},
+                    {"src": "/products/A001/cover.jpg", "colorId": "den"},
+                ],
+            },
+            {
+                "ma": "S06",
+                "priceUsd": 25,
+                "status": "available",
+                "colors": [{"id": "cs0600"}],
+                "images": [{"src": "/products/S06/cover.jpg", "colorId": "cs0600"}],
+            },
+        ]
+    )
+    before = _snapshot(rows)
+    flags = flag_color_binds(rows)
+    assert _snapshot(rows) == before
+    assert _view(flags) == [("A02", "color_without_slide", 0, "kem", ())]
+    assert rows[2].price_usd == 25
+    assert type(rows[2].price_usd) is int
+
+
+def test_another_mas_held_folder_does_not_cover_a_color() -> None:
+    rows = rows_from_payload(
+        [
+            {
+                "ma": "A02",
+                "status": "available",
+                "colors": [{"id": "kem"}, {"id": "xanh"}],
+                "images": [
+                    {"src": "/products/k06/cover.jpg", "colorId": "kem"},
+                    {"src": "/products/K006/cover.jpg", "colorId": "kem"},
+                    {"src": "https://cdn.example.com/products/K06/cover.jpg", "colorId": "kem"},
+                    {"src": "/products/A02/cover.jpg", "colorId": "xanh"},
+                ],
+            },
+            {
+                "ma": "K06",
+                "status": "hold",
+                "colors": [{"id": "ck0600"}],
+                "images": [{"src": "/products/k6/cover.jpg", "colorId": "ck0600"}],
+            },
+        ]
+    )
+    before = _snapshot(rows)
+    flags = flag_color_binds(rows)
+    assert _snapshot(rows) == before
+    assert _view(flags) == [("A02", "color_without_slide", 0, "kem", ())]
+    assert rows[1].status == "hold"
+    assert rows[1].images[0].src == "/products/k6/cover.jpg"
+
+
+def test_only_a_held_folder_photo_does_not_invent_a_covered_color() -> None:
+    rows = rows_from_payload(
+        [
+            {
+                "ma": "A02",
+                "status": "available",
+                "colors": [{"id": "kem"}, {"id": "xanh"}],
+                "images": [{"src": "/products/K06/cover.jpg", "colorId": "kem"}],
+            }
+        ]
+    )
+    assert flag_color_binds(rows) == []
+    assert rows[0].images[0].src == "/products/K06/cover.jpg"
+
+
+def test_held_folder_file_with_a_bad_id_is_not_an_orphan() -> None:
+    rows = rows_from_payload(
+        [
+            {
+                "ma": "A02",
+                "status": "hold",
+                "colors": [{"id": "kem"}],
+                "images": [{"src": "/products/k06/cover.jpg", "colorId": "missing"}],
+            }
+        ]
+    )
+    assert flag_color_binds(rows) == []
+    assert rows[0].status == "hold"
+
+
+def test_shop_trim_and_ascii_folder_match() -> None:
+    bom = "\ufeff"
+    nel = "\u0085"
+    file_sep = "\u001c"
+    long_s = "\u017f"
+    rows = rows_from_payload(
+        [
+            {
+                "ma": "A02",
+                "priceUsd": 36,
+                "status": "available",
+                "colors": [{"id": "kem"}, {"id": "xanh"}],
+                "images": [
+                    {"src": bom, "colorId": "kem"},
+                    {"src": f"/product{long_s}/OK/products/A01/a.jpg", "colorId": "kem"},
+                    {"src": "/products/A02/cover.jpg", "colorId": "xanh"},
+                ],
+            },
+            {
+                "ma": f"K06{nel}",
+                "status": "hold",
+                "colors": [{"id": "ck0600"}, {"id": "other"}],
+                "images": [
+                    {"src": "/products/K06/cover.jpg", "colorId": "ck0600"},
+                    {"src": "/uploads/x.jpg", "colorId": "other"},
+                ],
+            },
+            {
+                "ma": "K０６",
+                "status": "hold",
+                "colors": [{"id": "ck0600"}, {"id": "other"}],
+                "images": [
+                    {"src": "/products/K06/cover.jpg", "colorId": "ck0600"},
+                    {"src": "/uploads/x.jpg", "colorId": "other"},
+                ],
+            },
+            {
+                "ma": "A02",
+                "priceUsd": 36,
+                "status": "available",
+                "colors": [{"id": "kem"}, {"id": "xanh"}],
+                "images": [
+                    {"src": f"/products/A01{nel}/a.jpg", "colorId": "kem"},
+                    {"src": f"/products/{file_sep}A01/a.jpg", "colorId": "kem"},
+                    {"src": f"/product{long_s}/A01/cover.jpg", "colorId": "kem"},
+                    {"src": nel, "colorId": "kem"},
+                    {"src": file_sep, "colorId": "kem"},
+                    {"src": "/products/A02/b.jpg", "colorId": "xanh"},
+                ],
+            },
+            {
+                "ma": "S06",
+                "priceUsd": 25,
+                "status": "available",
+                "colors": [{"id": "cs0600"}],
+                "images": [{"src": "/products/S06/cover.jpg", "colorId": "cs0600"}],
+            },
+        ]
+    )
+    before = _snapshot(rows)
+    flags = flag_color_binds(rows)
+    assert _snapshot(rows) == before
+    assert _view(flags) == [
+        ("A02", "color_without_slide", 0, "kem", ()),
+        ("K06", "color_without_slide", 0, "ck0600", ()),
+        ("K０６", "color_without_slide", 0, "ck0600", ()),
+    ]
+    assert rows[1].ma == f"K06{nel}"
+    assert rows[1].status == "hold"
+    assert rows[2].ma == "K０６"
+    assert rows[2].status == "hold"
+    assert rows[4].price_usd == 25
+    assert type(rows[4].price_usd) is int
+
+
 def test_blank_src_does_not_count_as_a_slide() -> None:
     rows = [
         CatalogRow(
@@ -521,7 +697,9 @@ def test_script_is_read_only_and_does_not_rewrite_a_bind() -> None:
     assert "open(" not in text
     assert "urlopen" not in text
     assert "requests" not in text
-    assert "load_held_policy" not in text
+    assert "load_held_policy()" in text
+    assert "policy.held" in text
+    assert "policy.never_list" in text
     assert "vercel" not in text.casefold()
     assert '["priceUsd"] = 25' not in text
     assert "price_usd = 25" not in text
