@@ -490,6 +490,10 @@ Open drafts #217–#290 are still on the SHAs recorded above. #225 stays the ver
 
 `39cd5cbe994c` was still the head. This lane’s script passed: pytest 2478 passed, 7 skipped; privacy CLEAN; intake npm 364 / 361 / 0 / 3; shop npm 254 / 251 / 0 / 3; both tsc ok; `held.json` unchanged. Required skips: none. Log `out/recheck/20261104-083533-502040`. `held_price_proposal._num` reads `1,200` as 1200 and `$25` and `¥110` as those amounts. `2$5`, `2¥5`, `2,5`, `2.5e1`, `2_5`, `0,025`, and `12,50` stay blank, and `0,025` is not 25. The copy check matches the shop lists in `public-safety.ts` and the lead pattern in `warehouse-voice.ts`. `Flat $8` flags on a description in any ASCII case. A title or a color does not carry that lead. The four copy fields are joined with a space and no trim, so `on` plus `hand` flags and `on ` plus `hand` does not. The check does not write a price. Findings: none. The outside PASS was already on this SHA and this review agrees, so no second comment was posted. That worker was not sent on. #260 and #267–#291 are unchanged and are not started. #249 is this log and is not graded.
 
+## 2026-11-04 10:23 UTC — two-hour poll, no moved head
+
+Open drafts #217–#291 are still on the SHAs recorded above. #225 stays the verified PASS at `39cd5cbe994c`. No new draft appeared. No recheck worker is running. The next poll is the 2-hour timer. #249 is this log and is not graded.
+
 ## 2026-11-02 23:55 UTC — #225 moved again
 
 #225 head is `d8170670ab411fe21c38630f4a38b8ecdae711e8`. The FAIL on `72d792580d71` stays the comment for that older SHA. The new head is in hard recheck and is not commented yet. #226, #243, and #253 are commented at the SHAs in the verdict table. Their log directories are `out/recheck/20261102-234222-157269`, `out/recheck/20261102-234641-168787`, and `out/recheck/20261102-234412-161336`. No knowledge-lane docs PR.
