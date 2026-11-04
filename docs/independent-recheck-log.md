@@ -411,6 +411,10 @@ Open drafts #217–#288 are still on the SHAs recorded above. #225 stays the ver
 
 #225 head is now `1eb4b39f124dd4fb8deb9980ee8f14e9f17d0eef` (“Reject a dollar sign between digits in intake gap numbers.”). `75e1d6580ed8` stays the verified PASS. One recheck of `1eb4b39f124d` is running. #260 and #267–#288 are unchanged and are not started. #249 is this log and is not graded.
 
+## 2026-11-04 02:03 UTC — outside PASS on #225 while this lane is still running
+
+#225 head is still `1eb4b39f124dd4fb8deb9980ee8f14e9f17d0eef`. A cursor[bot] comment says INDEPENDENT RECHECK PASS at that SHA. This lane did not write that comment and does not adopt it. A second outside PASS on the same SHA is not recorded again. The recheck started at 01:57 UTC is still running. This lane will not post a second comment unless that review disagrees. #249 is this log and is not graded.
+
 ## 2026-11-02 23:55 UTC — #225 moved again
 
 #225 head is `d8170670ab411fe21c38630f4a38b8ecdae711e8`. The FAIL on `72d792580d71` stays the comment for that older SHA. The new head is in hard recheck and is not commented yet. #226, #243, and #253 are commented at the SHAs in the verdict table. Their log directories are `out/recheck/20261102-234222-157269`, `out/recheck/20261102-234641-168787`, and `out/recheck/20261102-234412-161336`. No knowledge-lane docs PR.
