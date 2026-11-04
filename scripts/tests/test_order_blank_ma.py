@@ -280,7 +280,21 @@ def test_bad_price_is_rejected_without_rewriting(tmp_path: Path) -> None:
 
 
 def test_spliced_price_text_is_rejected_and_real_spellings_stay(tmp_path: Path) -> None:
-    for bad in ("2$5", "12,50", "$$25", "$2,5", "1,2000", "1,2,000"):
+    for bad in (
+        "2$5",
+        "12,50",
+        "$$25",
+        "$2,5",
+        "1,2000",
+        "1,2,000",
+        "0,025",
+        "$0,025",
+        "0,025$",
+        "00,025",
+        "000,025",
+        "0,000,025",
+        "0,250",
+    ):
         payload = {"lines": [{"ma": "", "priceUsd": bad}]}
         path = tmp_path / "spliced.json"
         path.write_text(json.dumps(payload), encoding="utf-8")
@@ -290,6 +304,8 @@ def test_spliced_price_text_is_rejected_and_real_spellings_stay(tmp_path: Path) 
         assert path.read_bytes() == before
     with pytest.raises(ValueError, match="price must be a number"):
         flag_fixture(_s06("2$5"), _open_policy())
+    with pytest.raises(ValueError, match="price must be a number"):
+        flag_fixture(_s06("0,025"), _open_policy())
     kept = flag_fixture(_s06("$25"), _open_policy())
     assert kept.flags == ()
     assert kept.lines[0].price_usd == "25"
