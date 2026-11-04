@@ -29,7 +29,8 @@ NEVER_LIST = "never-list"
 OMIT_REASONS = (NO_PRICE, HELD, NEVER_LIST)
 
 _MA_CODE = re.compile(r"^[A-Z][0-9]{2}$")
-_AMOUNT = re.compile(r"\d+(?:\.\d+)?")
+_PLAIN_AMOUNT = re.compile(r"\d+(?:\.\d+)?")
+_THOUSANDS = re.compile(r"\d{1,3}(?:,\d{3})+(?:\.\d+)?")
 _FORBIDDEN_NAMES = frozenset(
     {
         "held.json",
@@ -323,9 +324,7 @@ def _price_text(value: object) -> str:
             raise ValueError("price must be a non-negative number")
         return format(Decimal(str(value)), "f")
     if isinstance(value, str):
-        text = value.strip().replace("$", "").replace(",", "").strip()
-        if _AMOUNT.fullmatch(text) is None:
-            raise ValueError("price must be a number")
+        text = _price_body(value)
         try:
             amount = Decimal(text)
         except InvalidOperation as error:
@@ -334,6 +333,25 @@ def _price_text(value: object) -> str:
             raise ValueError("price must be a non-negative number")
         return text
     raise ValueError("price must be a number")
+
+
+def _price_body(raw: str) -> str:
+    """Digits of one price. One $ may sit at either end. A comma is a thousands group."""
+    text = raw.strip()
+    if text.count("$") > 1:
+        raise ValueError("price must be a number")
+    if text.count("$") == 1:
+        if text.startswith("$"):
+            text = text[1:].strip()
+        elif text.endswith("$"):
+            text = text[:-1].strip()
+        else:
+            raise ValueError("price must be a number")
+    if _THOUSANDS.fullmatch(text):
+        return text.replace(",", "")
+    if _PLAIN_AMOUNT.fullmatch(text) is None:
+        raise ValueError("price must be a number")
+    return text
 
 
 def _reject_unknown(result: BlankResult) -> None:
