@@ -57,9 +57,20 @@ export function parseAsiaSizes(raw: unknown): ShopSize[] {
       if (isAsiaSizeLetter(letter)) {
         next = letter;
       }
-    } else if (isEuShoeSize(rawText.replace(/[^0-9]/g, ""))) {
-      // Footwear secondary only — never invent US
-      next = rawText.replace(/[^0-9]/g, "") as ShopSize;
+    } else {
+      // Footwear secondary only — never invent US.
+      // Exact "NN.0" keeps NN when that chip is already EU. Any other token
+      // with a digit before "." and a digit after it is dropped so decimals are not glued.
+      const trailingDotZero = /^([0-9]{2})\.0$/.exec(rawText);
+      const digitBeforeAndAfterDot = /[0-9][\s\S]*\.[\s\S]*[0-9]/.test(rawText);
+      if (trailingDotZero && isEuShoeSize(trailingDotZero[1])) {
+        next = trailingDotZero[1];
+      } else if (!digitBeforeAndAfterDot) {
+        const digits = rawText.replace(/[^0-9]/g, "");
+        if (isEuShoeSize(digits)) {
+          next = digits;
+        }
+      }
     }
     if (!next || seen.has(next)) {
       continue;
