@@ -14,7 +14,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 | PR | Head at queue time | Title |
 | --- | --- | --- |
-| #225 | `1c913dadc465` | Draft: one branch for the safe shop fixes. Moved 2026-11-04 11:10 UTC. Commented FAIL at `1c913dadc465`. Tree matches the FAIL at `dea7e325b3a8`. `269fea55fc85` is in recheck and is not the head. Verified PASS at `39cd5cbe994c`, `4fc9fa61ee3e`, `6d1744a149ef`, `75e1d6580ed8`, `2c58e8868f4a`, `8f4f7c062442`, `0f4fcc2c255f`, `ecb7b2015773` (not commented; not the head), `77fde6ab2f3b`, `5af406779a1e`, `953e460b8f46`, `4df538a9b6eb`, `44bde2ae5e90`, and `b29c6c7ee1ef`. Commented FAIL at `d3a8fc9162c3` and `1eb4b39f124d`. FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. `dea7e325b3a8` is FAIL and was not commented. |
+| #225 | `1c913dadc465` | Draft: one branch for the safe shop fixes. Moved 2026-11-04 11:10 UTC. Commented FAIL at `1c913dadc465`. Tree matches the FAIL at `dea7e325b3a8`. `269fea55fc85` is FAIL and was not commented because it is not the head. Verified PASS at `39cd5cbe994c`, `4fc9fa61ee3e`, `6d1744a149ef`, `75e1d6580ed8`, `2c58e8868f4a`, `8f4f7c062442`, `0f4fcc2c255f`, `ecb7b2015773` (not commented; not the head), `77fde6ab2f3b`, `5af406779a1e`, `953e460b8f46`, `4df538a9b6eb`, `44bde2ae5e90`, and `b29c6c7ee1ef`. Commented FAIL at `d3a8fc9162c3` and `1eb4b39f124d`. FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. `dea7e325b3a8` is FAIL and was not commented. |
 | #217 | `ee9e2a34bfb4` | Combined safe bundle #208-#216 |
 | #218 | `03c23afc58a7` | Fail closed when Blob is down, and drop held folders from other mãs |
 | #219 | `5b590c0f734e` | Keep a blank intake sell blank and parse pasted yen safely |
@@ -531,6 +531,10 @@ Open drafts #217–#291 are still on the SHAs recorded above. #225 stays the ver
 ## 2026-11-04 11:24 UTC — outside PASS on #225 withdrawn
 
 #225 head is still `1c913dadc46565bdb0387569d7fb1f19bc176d88`. Two outside threads withdrew their PASS comments and now say INDEPENDENT RECHECK FAIL for the same `%2F` hole. This lane did not write those corrections. The FAIL comment already on this SHA agrees, so no second comment was posted. #249 is this log and is not graded.
+
+## 2026-11-04 11:27 UTC — #225 FAIL at 269fea5, not commented
+
+`269fea55fc85` is not the head. The head is `1c913dadc465`. This lane’s script on `269fea55fc85` passed: pytest 2478 passed, 7 skipped; privacy CLEAN; intake npm 364 / 361 / 0 / 3; shop npm 261 / 258 / 0 / 3; both tsc ok; `held.json` unchanged. Required skips: none. Log `out/recheck/20261104-111723-527516`. The review is FAIL. `heldPublicImage` still returns before the second decode when the string does not literally start with `/products/`. Direct `/products%2FS14%2Fcover.jpg`, `/products%2FS14/cover.jpg`, `/products%2fS14%2fcover.jpg`, and `/products%2F%53%31%34%2Fcover.jpg` get status 200. An encoded optimizer `url` that is still one of those strings also gets status 200. One decode is `/products/S14/cover.jpg`, which is off-live, and Next’s public lookup serves that file when it exists. A recognized held optimizer url does 404, and a live optimizer url continues. The outside PASS on `269fea55fc85` disagrees. The SHA is not the head, so no comment was posted. That worker was not sent on. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
