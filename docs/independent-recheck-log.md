@@ -14,7 +14,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 | PR | Head at queue time | Title |
 | --- | --- | --- |
-| #225 | `4fc9fa61ee3e` | Draft: one branch for the safe shop fixes. Moved 2026-11-04 04:15 UTC. Verified PASS at `4fc9fa61ee3e` with no second comment. Also PASS at `6d1744a149ef`, `75e1d6580ed8`, `2c58e8868f4a`, `8f4f7c062442`, `0f4fcc2c255f`, `ecb7b2015773` (not commented; not the head), `77fde6ab2f3b`, `5af406779a1e`, `953e460b8f46`, `4df538a9b6eb`, `44bde2ae5e90`, and `b29c6c7ee1ef`. Commented FAIL at `d3a8fc9162c3` and `1eb4b39f124d`. FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. |
+| #225 | `39cd5cbe994c` | Draft: one branch for the safe shop fixes. Moved 2026-11-04 08:32 UTC. Recheck running. Verified PASS at `4fc9fa61ee3e`, `6d1744a149ef`, `75e1d6580ed8`, `2c58e8868f4a`, `8f4f7c062442`, `0f4fcc2c255f`, `ecb7b2015773` (not commented; not the head), `77fde6ab2f3b`, `5af406779a1e`, `953e460b8f46`, `4df538a9b6eb`, `44bde2ae5e90`, and `b29c6c7ee1ef`. Commented FAIL at `d3a8fc9162c3` and `1eb4b39f124d`. FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. |
 | #217 | `ee9e2a34bfb4` | Combined safe bundle #208-#216 |
 | #218 | `03c23afc58a7` | Fail closed when Blob is down, and drop held folders from other mãs |
 | #219 | `5b590c0f734e` | Keep a blank intake sell blank and parse pasted yen safely |
@@ -477,6 +477,10 @@ Open drafts #217–#289 are still on the SHAs recorded above. #225 stays the ver
 ## 2026-11-04 08:23 UTC — two-hour poll, no moved head
 
 Open drafts #217–#290 are still on the SHAs recorded above. #225 stays the verified PASS at `4fc9fa61ee3e`. #291 is new and is recorded at `633531e577e6`. It has not moved since it was first seen, so it was not started. No recheck worker is running. The next poll is the 2-hour timer. #249 is this log and is not graded.
+
+## 2026-11-04 08:33 UTC — #225 moved to 39cd5cb
+
+#225 head is now `39cd5cbe994cc4839275ccb6ff9b382d9cd043b7` (“Match the shop's copy check on lead promises and spacing.”). Since `4fc9fa61ee3e` the tree also rejects a currency mark and exponent text in held price proposals and flags customer copy the shop treats as stock or ops voice. `4fc9fa61ee3e` stays the verified PASS. One recheck of `39cd5cbe994c` is running. No comment is on this SHA yet. #260 and #267–#291 are unchanged and are not started. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
