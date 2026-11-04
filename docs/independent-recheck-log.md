@@ -153,6 +153,7 @@ Open drafts still run through #266. #260 is the knowledge-base docs PR (`docs/kn
 | #287 | `cdb6d0451758` | Reject junk dollar text in pickup whole-dollar checks. Seen 2026-11-03 20:19 UTC. Not started. |
 | #288 | `9dc8050db85b` | Flag photo color ids the shop reel will not attach. Seen 2026-11-03 22:19 UTC. Not started. |
 | #289 | `40699842ba18` | Reject a dollar sign between digits in intake gap numbers. Seen 2026-11-04 02:22 UTC. Not started. |
+| #290 | `03236ca0caf0` | Reject a currency mark between digits in held price proposals. Seen 2026-11-04 06:22 UTC. Not started. |
 
 ## 2026-11-03 00:15 UTC — slower loop
 
@@ -463,6 +464,10 @@ Open drafts #217–#289 are still on the SHAs recorded above. #225 stays `4fc9fa
 ## 2026-11-04 04:32 UTC — #225 verified PASS at 4fc9fa6, no second comment
 
 `4fc9fa61ee3e` was still the head. This lane’s script passed: pytest 2457 passed, 7 skipped; privacy CLEAN; intake npm 364 / 361 / 0 / 3; shop npm 254 / 251 / 0 / 3; both tsc ok; `held.json` unchanged. Required skips: none. Log `out/recheck/20261104-042627-493567`. `parseAsiaSizes` keeps an exact `NN.0` when `NN` is already in `EU_SHOE_SIZES`, which was already 34–42. `40.0` becomes `40`. `34.0` and `42.0` become those chips because they were already on that list. `4.0`, `35.00`, and `40.00` stay empty. `40.` already became `40` before this commit, because the old strip removed the dot, and the new code still does that only when there is no digit on both sides of the dot. Findings: none. The outside PASS was already on this SHA and this review agrees, so no second comment was posted. That worker was not sent on. #260 and #267–#289 are unchanged and are not started. #249 is this log and is not graded.
+
+## 2026-11-04 06:22 UTC — two-hour poll, no moved head
+
+Open drafts #217–#289 are still on the SHAs recorded above. #225 stays the verified PASS at `4fc9fa61ee3e`. #290 is new and is recorded at `03236ca0caf0`. It has not moved since it was first seen, so it was not started. No recheck worker is running. The next poll is the 2-hour timer. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
