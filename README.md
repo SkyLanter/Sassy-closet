@@ -69,6 +69,16 @@ Read-only list of catalog mãs whose status is sold. The command reads a local f
 python3 scripts/restock_note.py --fixture ./catalog.json --note ./out/restock-note.md
 ```
 
+## Customer copy voice
+
+Read-only check for catalog titles, descriptions, and color names the shop treats as stock or ops wording. A phrase split across those fields is named too. The command names the mã and the matched phrase. It does not print the rest of the sentence, and it does not change catalog rows, prices, or `data/held.json`. Held mãs stay held. S06 stays $25.
+
+```bash
+python3 scripts/customer_copy_voice.py --fixture ./catalog.json
+```
+
+Pass a local fixture. A URL, `held.json`, and the shop `products.json` are refused.
+
 ## Sell shop
 
 Next.js sell shop in [`sassy-closet-shop/`](sassy-closet-shop/). Live URL stays [https://sassy-closet-shop.vercel.app](https://sassy-closet-shop.vercel.app).
