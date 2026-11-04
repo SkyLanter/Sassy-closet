@@ -33,6 +33,9 @@ test("proxy 404s a held product image before any redirect", async () => {
   await assertOffLiveImage(`/products/A01/../${held}/cover.jpg`);
   await assertOffLiveImage(`/products/${held}%2Fcover.jpg`);
   await assertOffLiveImage(`/products/${held}%2fcover.jpg`);
+  await assertOffLiveImage(`/products%2F${held}%2Fcover.jpg`);
+  await assertOffLiveImage(`/products%2F${held}/cover.jpg`);
+  await assertOffLiveImage(`/products%2f${held}%2fcover.jpg`);
 });
 
 test("proxy 308s a short live product image spelling to the canonical folder", () => {
@@ -44,7 +47,14 @@ test("proxy 308s a short live product image spelling to the canonical folder", (
 });
 
 test("canonical live images and held product pages are not the image 404", () => {
-  for (const pathname of ["/products/A01/cover.jpg", `/m/${held}`]) {
+  for (const pathname of [
+    "/products/A01/cover.jpg",
+    "/products/S06/cover.jpg",
+    "/products%2FA01%2Fcover.jpg",
+    "/products%2FS06%2Fcover.jpg",
+    "/products%2Fa1%2Fcover.jpg",
+    `/m/${held}`,
+  ]) {
     const response = get(pathname);
     assert.notEqual(response.status, 404, pathname);
     assert.notEqual(response.status, 308, pathname);
@@ -52,10 +62,12 @@ test("canonical live images and held product pages are not the image 404", () =>
 });
 
 test("a malformed product image percent-escape does not throw and is not the off-live 404", () => {
-  let response: Response | undefined;
-  assert.doesNotThrow(() => {
-    response = get("/products/%E0%A4%A/cover.jpg");
-  });
-  assert.ok(response);
-  assert.notEqual(response.status, 404);
+  for (const pathname of ["/products/%E0%A4%A/cover.jpg", "/products%2F%E0%A4%A"]) {
+    let response: Response | undefined;
+    assert.doesNotThrow(() => {
+      response = get(pathname);
+    });
+    assert.ok(response);
+    assert.notEqual(response.status, 404, pathname);
+  }
 });

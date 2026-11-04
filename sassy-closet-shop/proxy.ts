@@ -9,14 +9,11 @@ import { isShopPrivateSurface, PRIVATE_ROBOTS_TAG } from "@/lib/private-robots";
 
 /**
  * A held folder under public/products is served before the image route can 404.
- * `%2F` stays one path segment here, so decode it once and check the folder again.
+ * `%2F` stays one path segment until decoded, including the slash after `products`.
  */
 function heldPublicImage(pathname: string): boolean {
   if (catalogImageFolder(pathname) === "off-live") {
     return true;
-  }
-  if (!pathname.startsWith("/products/")) {
-    return false;
   }
   let decoded: string;
   try {
