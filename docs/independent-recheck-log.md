@@ -520,6 +520,10 @@ Open drafts #217–#291 are still on the SHAs recorded above. #225 stays the ver
 
 #225 head is now `1c913dadc46565bdb0387569d7fb1f19bc176d88` (“Revert 404 a held product photo when the image optimizer asks for it.”). Its tree is `aa41610c8f7984c765fea8013e622123c7c6c6db`, the same tree as the FAIL at `dea7e325b3a8`. One recheck of `1c913dadc465` is running. `269fea55fc85` is no longer the head. A cursor[bot] comment says INDEPENDENT RECHECK PASS at `269fea55fc85`. This lane did not write that comment and does not adopt it. The recheck of that SHA is still running and will not be commented. #249 is this log and is not graded.
 
+## 2026-11-04 11:17 UTC — outside PASS on #225 at 1c913da, not adopted
+
+#225 head is still `1c913dadc46565bdb0387569d7fb1f19bc176d88`. A cursor[bot] comment says INDEPENDENT RECHECK PASS at that SHA. This lane did not write that comment and does not adopt it. The tree matches the FAIL at `dea7e325b3a8`. The recheck started at 11:10 UTC is still running. This lane will not post a second comment unless that review disagrees. #249 is this log and is not graded.
+
 ## 2026-11-02 23:55 UTC — #225 moved again
 
 #225 head is `d8170670ab411fe21c38630f4a38b8ecdae711e8`. The FAIL on `72d792580d71` stays the comment for that older SHA. The new head is in hard recheck and is not commented yet. #226, #243, and #253 are commented at the SHAs in the verdict table. Their log directories are `out/recheck/20261102-234222-157269`, `out/recheck/20261102-234641-168787`, and `out/recheck/20261102-234412-161336`. No knowledge-lane docs PR.
