@@ -14,7 +14,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 | PR | Head at queue time | Title |
 | --- | --- | --- |
-| #225 | `ec78e0836cbb` | Draft: one branch for the safe shop fixes. Moved 2026-11-04 11:28 UTC. Recheck running. Two outside cursor[bot] PASS comments on this SHA are not adopted yet. Commented FAIL at `1c913dadc465`. Tree of that SHA matches the FAIL at `dea7e325b3a8`. `269fea55fc85` is FAIL and was not commented because it is not the head. Verified PASS at `39cd5cbe994c`, `4fc9fa61ee3e`, `6d1744a149ef`, `75e1d6580ed8`, `2c58e8868f4a`, `8f4f7c062442`, `0f4fcc2c255f`, `ecb7b2015773` (not commented; not the head), `77fde6ab2f3b`, `5af406779a1e`, `953e460b8f46`, `4df538a9b6eb`, `44bde2ae5e90`, and `b29c6c7ee1ef`. Commented FAIL at `d3a8fc9162c3` and `1eb4b39f124d`. FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. `dea7e325b3a8` is FAIL and was not commented. |
+| #225 | `ec78e0836cbb` | Draft: one branch for the safe shop fixes. Moved 2026-11-04 11:28 UTC. Verified PASS at `ec78e0836cbb`. Two outside cursor[bot] PASS comments on this SHA agree, so no second comment was posted. Commented FAIL at `1c913dadc465`. Tree of that SHA matches the FAIL at `dea7e325b3a8`. `269fea55fc85` is FAIL and was not commented because it is not the head. Verified PASS at `39cd5cbe994c`, `4fc9fa61ee3e`, `6d1744a149ef`, `75e1d6580ed8`, `2c58e8868f4a`, `8f4f7c062442`, `0f4fcc2c255f`, `ecb7b2015773` (not commented; not the head), `77fde6ab2f3b`, `5af406779a1e`, `953e460b8f46`, `4df538a9b6eb`, `44bde2ae5e90`, and `b29c6c7ee1ef`. Commented FAIL at `d3a8fc9162c3` and `1eb4b39f124d`. FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. `dea7e325b3a8` is FAIL and was not commented. |
 | #217 | `ee9e2a34bfb4` | Combined safe bundle #208-#216 |
 | #218 | `03c23afc58a7` | Fail closed when Blob is down, and drop held folders from other mãs |
 | #219 | `5b590c0f734e` | Keep a blank intake sell blank and parse pasted yen safely |
@@ -547,6 +547,10 @@ cursor[bot] comment `6629533799` says INDEPENDENT RECHECK PASS at `ec78e0836cbb3
 ## 2026-11-04 11:36 UTC — second outside PASS on #225 ec78e08
 
 cursor[bot] comment `6629574632` also says INDEPENDENT RECHECK PASS at `ec78e0836cbb31d956fb83c68a9d7f9c71d05891`. The head is still that SHA. This lane did not write it. The recheck is still running, so neither outside PASS is adopted and no comment was posted. #249 is this log and is not graded.
+
+## 2026-11-04 11:39 UTC — #225 PASS at ec78e08, outside comments agree
+
+#225 head is still `ec78e0836cbb31d956fb83c68a9d7f9c71d05891`. This lane’s recheck passed. pytest 2478 passed, 7 skipped; privacy CLEAN; intake npm 364 / 361 / 0 / 3; shop npm 258 / 255 / 0 / 3; both tsc ok; `held.json` unchanged. Required skips: none. Log `out/recheck/20261104-113105-536396`. `heldPublicImage` now decodes the whole pathname when the first folder check is not `off-live`. `/products%2FS14%2Fcover.jpg`, `/products%2FS14/cover.jpg`, and `/products%2fS14%2fcover.jpg` return 404 `Not found` with `no-store` and no `Location`. One decode of each is `/products/S14/cover.jpg`, which Next’s public lookup would serve when the file exists. `/products/A01/cover.jpg` and `/products/S06/cover.jpg` continue. `/products/a1/cover.jpg` still 308s to `/products/A01/cover.jpg`. `/products%2FA01%2Fcover.jpg`, `/products%2FS06%2Fcover.jpg`, and `/products%2Fa1%2Fcover.jpg` are not this 404. `/products%252FS14%252Fcover.jpg` continues, and one server decode is not the held file. No CSS, price, or `held.json` change. S06 stays off the held list. Outside comments `6629533799` and `6629574632` already say PASS on this SHA and agree, so no second comment was posted. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
