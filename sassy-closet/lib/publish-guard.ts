@@ -40,9 +40,9 @@ export function publishBlock(intent: PublishIntent): string | null {
 
 export function wholeDollars(raw: string | null | undefined): number | null {
   if (raw == null) return null;
-  const text = raw.trim().replace(/^\$/, "").replace(/,/g, "");
-  if (text === "") return null;
-  if (!/^\d+(?:\.\d+)?$/.test(text)) return Number.NaN;
+  const text = wholeDollarText(raw);
+  if (text == null) return null;
+  if (text === "") return Number.NaN;
   const value = Number(text);
   if (!Number.isFinite(value) || value !== Math.trunc(value)) return Number.NaN;
   return value;
@@ -50,6 +50,22 @@ export function wholeDollars(raw: string | null | undefined): number | null {
 
 export function mintBlock(kind: KindCode, existing: readonly string[]): string | null {
   return publishBlock({ action: "mint", ma: nextMa(kind, [...existing]) });
+}
+
+const THOUSANDS = /^[1-9]\d{0,2}(?:,\d{3})+(?:\.\d+)?$/;
+const PLAIN_AMOUNT = /^\d+(?:\.\d+)?$/;
+
+/** Digits of one whole-dollar price. Blank is null. Junk is "". A thousands group starts at 1-999. */
+function wholeDollarText(raw: string): string | null {
+  const trimmed = raw.trim();
+  if (trimmed === "") return null;
+  const marks = trimmed.split("$").length - 1;
+  if (marks > 1 || (marks === 1 && !trimmed.startsWith("$"))) return "";
+  const body = marks === 1 ? trimmed.slice(1) : trimmed;
+  if (body === "") return null;
+  if (THOUSANDS.test(body)) return body.replace(/,/g, "");
+  if (PLAIN_AMOUNT.test(body)) return body;
+  return "";
 }
 
 function knownAction(action: PublishAction): void {
