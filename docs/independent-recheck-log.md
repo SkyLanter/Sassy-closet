@@ -155,7 +155,7 @@ Open drafts still run through #266. #260 is the knowledge-base docs PR (`docs/kn
 | #289 | `40699842ba18` | Reject a dollar sign between digits in intake gap numbers. Seen 2026-11-04 02:22 UTC. Not started. |
 | #290 | `03236ca0caf0` | Reject a currency mark between digits in held price proposals. Seen 2026-11-04 06:22 UTC. Not started. A cursor[bot] PASS at this SHA appeared at 06:25 UTC. This lane did not run that recheck and does not adopt it. |
 | #291 | `633531e577e6` | Flag customer copy the shop treats as stock or ops voice. Seen 2026-11-04 08:23 UTC. Not started. |
-| #292 | `7ea4e6c91368` | Reject spliced dollar text in blank-mã order prices. Moved 2026-11-04 13:51 UTC. Recheck running. The first-seen SHA `7b6830ae0473` was not graded. Outside cursor[bot] PASS `6630552776` and FAIL `6632172647` on that older SHA are not adopted. |
+| #292 | `7ea4e6c91368` | PASS. Reject spliced dollar text in blank-mã order prices. Moved 2026-11-04 13:51 UTC. Commented PASS `6632568655`. A thousands group that starts with zero raises. S06 `$25` stays the string `25`. The first-seen SHA `7b6830ae0473` was not graded. Outside cursor[bot] PASS `6630552776` and FAIL `6632172647` on that older SHA are not adopted. |
 
 ## 2026-11-03 00:15 UTC — slower loop
 
@@ -638,6 +638,10 @@ cursor[bot] comment `6631541732` also says INDEPENDENT RECHECK PASS at `52df79f5
 #225 head is still `7e1ef27ef77321757e623b7a324afbde0163703e`. cursor[bot] comment `6632382304` withdraws the PASS whose log is `out/recheck/20261104-134224-126676`, which is comment `6632278826`, and says FAIL on this SHA. This lane did not write it and does not adopt it. PASS `6632291274` is a different log and is not named by that withdrawal. This lane’s recheck of `7e1ef27ef773` is still running, so no comment was posted.
 
 #292 head is now `7ea4e6c9136840f063c8dd8e4d66280f1b7fa110` (“Reject a thousands group that starts with zero.”). `7b6830ae0473` was the first-seen SHA and was not graded. One recheck of `7ea4e6c91368` is running. The new pattern is `[1-9]\d{0,2}(?:,\d{3})+(?:\.\d+)?`, so a thousands group that starts with zero is supposed to raise. No comment is on this SHA yet. #249 is this log and is not graded.
+
+## 2026-11-04 13:59 UTC — #292 PASS at 7ea4e6c
+
+#292 head is still `7ea4e6c9136840f063c8dd8e4d66280f1b7fa110`. This lane’s recheck passed. pytest 2115 passed, 7 skipped; privacy CLEAN; intake npm 277 / 274 / 0 / 3; shop npm 218 / 215 / 0 / 3; both tsc ok; `held.json` unchanged. Required skips: none. Log `out/recheck/20261104-135320-579445`. `_THOUSANDS` is `[1-9]\d{0,2}(?:,\d{3})+(?:\.\d+)?`. `0,025`, `$0,025`, `0,025$`, `00,025`, `000,025`, `0,000,025`, `0,250`, `01,200`, and `01,025` raise `price must be a number`. `1,025` returns `1025`. `$1,200.00` returns `1200.00`. S06 `$25` is a clean line at the string `25` with no flag. S06 `0,025` raises. Plain `025` returns `025`, the same string the parent returned. `flag_fixture` does not rewrite the fixture. No CSS. The diff is only `scripts/order_blank_ma.py` and `scripts/tests/test_order_blank_ma.py`. Comment `6632568655` says PASS on this SHA. No other comment is on this SHA. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
