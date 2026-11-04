@@ -36,23 +36,24 @@ def test_good_row_still_quotes():
 
 
 def test_currency_mark_between_digits_does_not_quote():
-    assert h._num("¥110") == Decimal("110")
+    yen = chr(0xA5)
+    assert h._num(yen + "110") == Decimal("110")
     assert h._num("$25") == Decimal("25")
-    assert h._num("80¥") == Decimal("80")
-    assert h._num("¥ 80") == Decimal("80")
+    assert h._num("80" + yen) == Decimal("80")
+    assert h._num(yen + " 80") == Decimal("80")
     assert h._num("+$25") == Decimal("25")
-    for bad in ("2$5", "2¥5", "$$25", "¥¥80", "¥$80", "2,5", "1,200"):
+    for bad in ("2$5", "2" + yen + "5", "$$25", yen + yen + "80", yen + "$80", "2,5", "1,200"):
         assert h._num(bad) is None, bad
     plain = h.propose(_row("110", kg="0.3"), P)
-    marked = h.propose(_row("¥110", kg="0.3"), P)
+    marked = h.propose(_row(yen + "110", kg="0.3"), P)
     assert marked.status == "quote"
     assert marked.tiered_usd == plain.tiered_usd
     assert marked.flat25_usd == plain.flat25_usd
-    cost = h.propose(_row("2$5", kg="0.3"), P)
-    assert cost.status == "needs-boss"
-    assert cost.tiered_usd is None
-    assert cost.flat25_usd is None
-    assert any("not usable" in flag for flag in cost.flags)
+    garbled = h.propose(_row("2$5", kg="0.3"), P)
+    assert garbled.status == "needs-boss"
+    assert garbled.tiered_usd is None
+    assert garbled.flat25_usd is None
+    assert any("not usable" in flag for flag in garbled.flags)
     weight = h.propose(_row("110", kg="2$5"), P)
     assert weight.status == "needs-boss"
     assert weight.tiered_usd is None
