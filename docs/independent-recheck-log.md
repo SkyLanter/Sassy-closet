@@ -498,6 +498,10 @@ Open drafts #217–#291 are still on the SHAs recorded above. #225 stays the ver
 
 #225 head is now `dea7e325b3a8b68a03bb890e630aa918b2fbee6e` (“404 a held product photo before the public file is served.”). `39cd5cbe994c` stays the verified PASS. One recheck of `dea7e325b3a8` is running. No comment is on this SHA yet. #260 and #267–#291 are unchanged and are not started. #249 is this log and is not graded.
 
+## 2026-11-04 10:52 UTC — outside PASS on #225, not adopted
+
+#225 head is still `dea7e325b3a8b68a03bb890e630aa918b2fbee6e`. Two cursor[bot] comments say INDEPENDENT RECHECK PASS at that SHA. This lane did not write those comments and does not adopt them. The recheck started at 10:45 UTC is still running. This lane will not post a second comment unless that review disagrees. #249 is this log and is not graded.
+
 ## 2026-11-02 23:55 UTC — #225 moved again
 
 #225 head is `d8170670ab411fe21c38630f4a38b8ecdae711e8`. The FAIL on `72d792580d71` stays the comment for that older SHA. The new head is in hard recheck and is not commented yet. #226, #243, and #253 are commented at the SHAs in the verdict table. Their log directories are `out/recheck/20261102-234222-157269`, `out/recheck/20261102-234641-168787`, and `out/recheck/20261102-234412-161336`. No knowledge-lane docs PR.
