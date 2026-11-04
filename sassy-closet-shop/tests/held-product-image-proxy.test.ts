@@ -1,8 +1,32 @@
 import assert from "node:assert/strict";
+import { createRequire } from "node:module";
 import test from "node:test";
 import { NextRequest } from "next/server";
 import { HELD_INCOMPLETE_MAS } from "../lib/held-incomplete";
-import { proxy } from "../proxy";
+import { config, proxy } from "../proxy";
+
+type MiddlewareMatcher = { regexp: string };
+
+type GetMiddlewareMatchers = (
+  matcher: readonly string[],
+  nextConfig: { basePath?: string },
+) => MiddlewareMatcher[];
+
+type GetMiddlewareRouteMatcher = (
+  matchers: readonly MiddlewareMatcher[],
+) => (pathname: string) => boolean;
+
+const nodeRequire = createRequire(import.meta.url);
+const { getMiddlewareMatchers } = nodeRequire("next/dist/build/analysis/get-page-static-info") as {
+  getMiddlewareMatchers: GetMiddlewareMatchers;
+};
+const { getMiddlewareRouteMatcher } = nodeRequire(
+  "next/dist/shared/lib/router/utils/middleware-route-matcher",
+) as {
+  getMiddlewareRouteMatcher: GetMiddlewareRouteMatcher;
+};
+
+const matchesProxy = getMiddlewareRouteMatcher(getMiddlewareMatchers([...config.matcher], {}));
 
 const held = HELD_INCOMPLETE_MAS[0]!;
 
@@ -36,6 +60,26 @@ test("proxy 404s a held product image before any redirect", async () => {
   await assertOffLiveImage(`/products%2F${held}%2Fcover.jpg`);
   await assertOffLiveImage(`/products%2F${held}/cover.jpg`);
   await assertOffLiveImage(`/products%2f${held}%2fcover.jpg`);
+  await assertOffLiveImage(`/products%2F${held.toLowerCase()}%2Fcover.jpg`);
+  await assertOffLiveImage(`/products%2F${held[0] + "0" + held.slice(1)}%2Fcover.jpg`);
+  await assertOffLiveImage(`/products%2F${held}%2Fcover.jpg/`);
+  await assertOffLiveImage(`/products%2F${held}%2Fcover.jpg?w=640`);
+  await assertOffLiveImage(`/%2Fproducts%2F${held}%2Fcover.jpg`);
+  await assertOffLiveImage(`/%2fproducts%2F${held}%2Fcover.jpg`);
+  await assertOffLiveImage(`/%2F%2Fproducts%2F${held}%2Fcover.jpg`);
+  await assertOffLiveImage(`/%2E%2Fproducts%2F${held}%2Fcover.jpg`);
+  await assertOffLiveImage(`/.%2Fproducts%2F${held}%2Fcover.jpg`);
+  await assertOffLiveImage(`/%2e%2fproducts%2F${held}%2Fcover.jpg`);
+  await assertOffLiveImage(`/%2E%2F%2E%2Fproducts%2F${held}%2Fcover.jpg`);
+  await assertOffLiveImage(`/foo%2F..%2Fproducts%2F${held}%2Fcover.jpg`);
+  await assertOffLiveImage(`/foo%2F%2E%2E%2Fproducts%2F${held}%2Fcover.jpg`);
+  await assertOffLiveImage(`/foo%2F.%2F..%2Fproducts%2F${held}%2Fcover.jpg`);
+  await assertOffLiveImage(`/foo%2F..%2F.%2Fproducts%2F${held}%2Fcover.jpg`);
+  await assertOffLiveImage(`/a%2F..%2Fproducts%2F${held}%2Fcover.jpg`);
+  await assertOffLiveImage(`/foo%2Fbar%2F..%2F..%2Fproducts%2F${held}%2Fcover.jpg`);
+  await assertOffLiveImage(`/products%2F..%2Fproducts%2F${held}%2Fcover.jpg`);
+  await assertOffLiveImage(`/foo%2F..%2Fproducts%2FA24%2Fcover.jpg`);
+  await assertOffLiveImage(`/%2Fproducts%2FA24%2Fphoto-2.jpg`);
 });
 
 test("proxy 308s a short live product image spelling to the canonical folder", () => {
@@ -50,14 +94,77 @@ test("canonical live images and held product pages are not the image 404", () =>
   for (const pathname of [
     "/products/A01/cover.jpg",
     "/products/S06/cover.jpg",
+    `/m/${held}`,
     "/products%2FA01%2Fcover.jpg",
     "/products%2FS06%2Fcover.jpg",
     "/products%2Fa1%2Fcover.jpg",
-    `/m/${held}`,
+    `/products%252F${held}%252Fcover.jpg`,
+    `/m%2F${held}`,
+    `/foo%2Fproducts%2F${held}%2Fcover.jpg`,
+    `/foo%2F..%2Fproducts%2FA01%2Fcover.jpg`,
+    `/foo%2F..%2Fproducts%2FS06%2Fcover.jpg`,
+    `/%2Fproducts%2FA01%2Fcover.jpg`,
+    `/%2E%2Fproducts%2FS06%2Fcover.jpg`,
+    `/..%2Fproducts%2F${held}%2Fcover.jpg`,
+    `/foo%2F..%2F..%2Fproducts%2F${held}%2Fcover.jpg`,
   ]) {
     const response = get(pathname);
     assert.notEqual(response.status, 404, pathname);
     assert.notEqual(response.status, 308, pathname);
+  }
+});
+
+test("a dot segment under a skipped static prefix still 404s the held file", async () => {
+  const pathnames = [
+    `/uploads/..%2Fproducts/${held}/cover.jpg`,
+    `/uploads/..%2fproducts/${held}/cover.jpg`,
+    `/uploads/%2E%2E%2Fproducts%2F${held}%2Fcover.jpg`,
+    `/uploads/%2e%2e%2fproducts%2f${held}%2fcover.jpg`,
+    `/uploads/.%2E%2Fproducts/${held}/cover.jpg`,
+    `/uploads/%2E.%2Fproducts/${held}/cover.jpg`,
+    `/uploads/foo/..%2F..%2Fproducts/${held}/cover.jpg`,
+    "/uploads/..%2Fproducts/A24/photo-2.jpg",
+    `/editorial/..%2Fproducts/${held}/cover.jpg`,
+    "/editorial/..%2Fproducts/A24/photo-2.jpg",
+    `/favicon.ico/..%2Fproducts/${held}/cover.jpg`,
+    `/favicon.ico%2F..%2Fproducts%2F${held}%2Fcover.jpg`,
+    `/icon.svg/..%2Fproducts/${held}/cover.jpg`,
+    `/icon.svg%2F..%2Fproducts%2F${held}%2Fcover.jpg`,
+    `/_next/static/..%2F..%2Fproducts/${held}/cover.jpg`,
+    `/_next/static%2F..%2F..%2Fproducts%2F${held}%2Fcover.jpg`,
+    "/_next/static/..%2F..%2Fproducts/A24/photo-2.jpg",
+    `/_next/image/..%2F..%2Fproducts/${held}/cover.jpg`,
+    `/_next/image%2F..%2F..%2Fproducts%2F${held}%2Fcover.jpg`,
+  ];
+  for (const pathname of pathnames) {
+    assert.equal(matchesProxy(pathname), true, pathname);
+    await assertOffLiveImage(pathname);
+  }
+});
+
+test("plain static files stay outside the proxy", () => {
+  for (const pathname of [
+    "/favicon.ico",
+    "/icon.svg",
+    "/_next/static/chunks/main.js",
+    "/_next/image",
+    "/uploads/photo.jpg",
+    "/uploads/foo%2Ejpg",
+    "/editorial/hero.jpg",
+  ]) {
+    assert.equal(matchesProxy(pathname), false, pathname);
+  }
+});
+
+test("a dot segment under a skipped prefix does not 404 a live folder", () => {
+  for (const pathname of [
+    "/uploads/..%2Fproducts/S06/cover.jpg",
+    "/uploads/..%2Fproducts/A01/cover.jpg",
+    "/editorial/..%2Fproducts/a1/cover.jpg",
+  ]) {
+    assert.equal(matchesProxy(pathname), true, pathname);
+    const response = get(pathname);
+    assert.notEqual(response.status, 404, pathname);
   }
 });
 

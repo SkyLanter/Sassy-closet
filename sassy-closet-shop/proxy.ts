@@ -9,22 +9,43 @@ import { isShopPrivateSurface, PRIVATE_ROBOTS_TAG } from "@/lib/private-robots";
 
 /**
  * A held folder under public/products is served before the image route can 404.
- * `%2F` stays one path segment until decoded, including the slash after `products`.
+ * Next decodes the pathname once. Dev then joins that path onto public and
+ * collapses duplicate slashes, `.`, and `..`. An encoded slash or dot can land
+ * on the file. A `..` that leaves the URL root does not.
  */
-function heldPublicImage(pathname: string): boolean {
-  if (catalogImageFolder(pathname) === "off-live") {
-    return true;
-  }
+function pathAfterOneDecode(pathname: string): string | null {
   let decoded: string;
   try {
     decoded = decodeURIComponent(pathname);
   } catch {
+    return null;
+  }
+  const segments: string[] = [];
+  for (const raw of decoded.split("/")) {
+    if (raw === "" || raw === ".") {
+      continue;
+    }
+    if (raw === "..") {
+      if (segments.length === 0) {
+        return null;
+      }
+      segments.pop();
+      continue;
+    }
+    segments.push(raw);
+  }
+  return `/${segments.join("/")}`;
+}
+
+function heldPublicImage(pathname: string): boolean {
+  if (catalogImageFolder(pathname) === "off-live") {
+    return true;
+  }
+  const normalized = pathAfterOneDecode(pathname);
+  if (normalized === null || !normalized.startsWith("/products/")) {
     return false;
   }
-  if (decoded === pathname) {
-    return false;
-  }
-  return catalogImageFolder(decoded) === "off-live";
+  return catalogImageFolder(normalized) === "off-live";
 }
 
 export function proxy(request: NextRequest) {
@@ -77,5 +98,9 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|icon.svg|editorial/|uploads/).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|icon.svg|editorial/|uploads/).*)",
+    // A dot segment under those prefixes still joins onto public/products in dev.
+    "/((?:uploads|editorial|_next/static|_next/image|favicon\\.ico|icon\\.svg).*(?:(?:\\.|%2[Ee]){2}).*)",
+  ],
 };
