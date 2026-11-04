@@ -152,6 +152,7 @@ Open drafts still run through #266. #260 is the knowledge-base docs PR (`docs/kn
 | #286 | `adcb7c41d760` | Reject junk dollar and comma text in parse_usd. Seen 2026-11-03 14:18 UTC. Not started. |
 | #287 | `cdb6d0451758` | Reject junk dollar text in pickup whole-dollar checks. Seen 2026-11-03 20:19 UTC. Not started. |
 | #288 | `9dc8050db85b` | Flag photo color ids the shop reel will not attach. Seen 2026-11-03 22:19 UTC. Not started. |
+| #289 | `40699842ba18` | Reject a dollar sign between digits in intake gap numbers. Seen 2026-11-04 02:22 UTC. Not started. |
 
 ## 2026-11-03 00:15 UTC — slower loop
 
@@ -418,6 +419,10 @@ Open drafts #217–#288 are still on the SHAs recorded above. #225 stays the ver
 ## 2026-11-04 02:21 UTC — #225 commented FAIL at 1eb4b39
 
 `1eb4b39f124d` was still the head. The script passed: pytest 2457 passed, 7 skipped; privacy CLEAN; intake npm 364 / 361 / 0 / 3; shop npm 251 / 248 / 0 / 3; both tsc ok; `held.json` unchanged. Required skips: none. Log `out/recheck/20261104-021238-468691`. The review is FAIL. `_num` leaves `2.5e1` and `2_5` as 25, and `load_live` stores that as the price. `1,200` is None, and the new test locks that. The outside PASS on this SHA disagrees, so this lane posted the FAIL. That worker was not sent on. #260 and #267–#288 are unchanged and are not started. #249 is this log and is not graded.
+
+## 2026-11-04 02:22 UTC — two-hour poll, no moved head
+
+Open drafts #217–#288 are still on the SHAs recorded above. #225 stays the commented FAIL at `1eb4b39f124d`. #289 is new and is recorded at `40699842ba18`. It has not moved since it was first seen, so it was not started. No recheck worker is running. The next poll is the 2-hour timer. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
