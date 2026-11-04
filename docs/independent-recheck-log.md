@@ -14,7 +14,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 | PR | Head at queue time | Title |
 | --- | --- | --- |
-| #225 | `ec78e0836cbb` | Draft: one branch for the safe shop fixes. Moved 2026-11-04 11:28 UTC. Recheck running. Commented FAIL at `1c913dadc465`. Tree of that SHA matches the FAIL at `dea7e325b3a8`. `269fea55fc85` is FAIL and was not commented because it is not the head. Verified PASS at `39cd5cbe994c`, `4fc9fa61ee3e`, `6d1744a149ef`, `75e1d6580ed8`, `2c58e8868f4a`, `8f4f7c062442`, `0f4fcc2c255f`, `ecb7b2015773` (not commented; not the head), `77fde6ab2f3b`, `5af406779a1e`, `953e460b8f46`, `4df538a9b6eb`, `44bde2ae5e90`, and `b29c6c7ee1ef`. Commented FAIL at `d3a8fc9162c3` and `1eb4b39f124d`. FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. `dea7e325b3a8` is FAIL and was not commented. |
+| #225 | `ec78e0836cbb` | Draft: one branch for the safe shop fixes. Moved 2026-11-04 11:28 UTC. Recheck running. An outside cursor[bot] PASS on this SHA is not adopted yet. Commented FAIL at `1c913dadc465`. Tree of that SHA matches the FAIL at `dea7e325b3a8`. `269fea55fc85` is FAIL and was not commented because it is not the head. Verified PASS at `39cd5cbe994c`, `4fc9fa61ee3e`, `6d1744a149ef`, `75e1d6580ed8`, `2c58e8868f4a`, `8f4f7c062442`, `0f4fcc2c255f`, `ecb7b2015773` (not commented; not the head), `77fde6ab2f3b`, `5af406779a1e`, `953e460b8f46`, `4df538a9b6eb`, `44bde2ae5e90`, and `b29c6c7ee1ef`. Commented FAIL at `d3a8fc9162c3` and `1eb4b39f124d`. FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. `dea7e325b3a8` is FAIL and was not commented. |
 | #217 | `ee9e2a34bfb4` | Combined safe bundle #208-#216 |
 | #218 | `03c23afc58a7` | Fail closed when Blob is down, and drop held folders from other mãs |
 | #219 | `5b590c0f734e` | Keep a blank intake sell blank and parse pasted yen safely |
@@ -538,7 +538,11 @@ Open drafts #217–#291 are still on the SHAs recorded above. #225 stays the ver
 
 ## 2026-11-04 11:28 UTC — #225 moved to ec78e08
 
-#225 head is now `ec78e0836cbb31d956fb83c68a9d7f9c71d05891` (“404 a held product photo when the products slash is percent-encoded.”). `1c913dadc465` stays the commented FAIL. One recheck of `ec78e0836cbb` is running. No comment is on this SHA yet. #249 is this log and is not graded.
+#225 head is now `ec78e0836cbb31d956fb83c68a9d7f9c71d05891` (“404 a held product photo when the products slash is percent-encoded.”). `1c913dadc465` stays the commented FAIL. One recheck of `ec78e0836cbb` is running. #249 is this log and is not graded.
+
+## 2026-11-04 11:34 UTC — outside PASS on #225 ec78e08
+
+cursor[bot] comment `6629533799` says INDEPENDENT RECHECK PASS at `ec78e0836cbb31d956fb83c68a9d7f9c71d05891`. This lane did not write it. The recheck of that SHA is still running, so the PASS is not adopted and no second comment was posted. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
