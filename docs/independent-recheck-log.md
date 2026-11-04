@@ -14,7 +14,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 | PR | Head at queue time | Title |
 | --- | --- | --- |
-| #225 | `1eb4b39f124d` | Draft: one branch for the safe shop fixes. Moved 2026-11-04 01:57 UTC. Verified PASS at `75e1d6580ed8` with no second comment. Also PASS at `2c58e8868f4a`, `8f4f7c062442`, `0f4fcc2c255f`, `ecb7b2015773` (not commented; not the head), `77fde6ab2f3b`, `5af406779a1e`, `953e460b8f46`, `4df538a9b6eb`, `44bde2ae5e90`, and `b29c6c7ee1ef`. FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. Recheck of `1eb4b39f124d` is running. |
+| #225 | `1eb4b39f124d` | Draft: one branch for the safe shop fixes. Moved 2026-11-04 01:57 UTC. Commented FAIL at `1eb4b39f124d`. Verified PASS at `75e1d6580ed8` with no second comment. Also PASS at `2c58e8868f4a`, `8f4f7c062442`, `0f4fcc2c255f`, `ecb7b2015773` (not commented; not the head), `77fde6ab2f3b`, `5af406779a1e`, `953e460b8f46`, `4df538a9b6eb`, `44bde2ae5e90`, and `b29c6c7ee1ef`. FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. |
 | #217 | `ee9e2a34bfb4` | Combined safe bundle #208-#216 |
 | #218 | `03c23afc58a7` | Fail closed when Blob is down, and drop held folders from other mãs |
 | #219 | `5b590c0f734e` | Keep a blank intake sell blank and parse pasted yen safely |
@@ -414,6 +414,10 @@ Open drafts #217–#288 are still on the SHAs recorded above. #225 stays the ver
 ## 2026-11-04 02:03 UTC — outside PASS on #225 while this lane is still running
 
 #225 head is still `1eb4b39f124dd4fb8deb9980ee8f14e9f17d0eef`. A cursor[bot] comment says INDEPENDENT RECHECK PASS at that SHA. This lane did not write that comment and does not adopt it. A second outside PASS on the same SHA is not recorded again. The recheck started at 01:57 UTC is still running. This lane will not post a second comment unless that review disagrees. #249 is this log and is not graded.
+
+## 2026-11-04 02:21 UTC — #225 commented FAIL at 1eb4b39
+
+`1eb4b39f124d` was still the head. The script passed: pytest 2457 passed, 7 skipped; privacy CLEAN; intake npm 364 / 361 / 0 / 3; shop npm 251 / 248 / 0 / 3; both tsc ok; `held.json` unchanged. Required skips: none. Log `out/recheck/20261104-021238-468691`. The review is FAIL. `_num` leaves `2.5e1` and `2_5` as 25, and `load_live` stores that as the price. `1,200` is None, and the new test locks that. The outside PASS on this SHA disagrees, so this lane posted the FAIL. That worker was not sent on. #260 and #267–#288 are unchanged and are not started. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
