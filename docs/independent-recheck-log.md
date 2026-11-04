@@ -528,6 +528,10 @@ Open drafts #217–#291 are still on the SHAs recorded above. #225 stays the ver
 
 `1c913dadc465` was still the head. This lane’s script passed: pytest 2478 passed, 7 skipped; privacy CLEAN; intake npm 364 / 361 / 0 / 3; shop npm 258 / 255 / 0 / 3; both tsc ok; `held.json` unchanged. Required skips: none. Log `out/recheck/20261104-111232-519532`. The tree is the same as `dea7e325b3a8`. The review is FAIL. `heldPublicImage` returns at `sassy-closet-shop/proxy.ts` lines 18–19 when the pathname does not literally start with `/products/`. A real `proxy()` call gets status 200 for `/products%2FS14%2Fcover.jpg`, `/products%2FS14/cover.jpg`, and `/products%2fS14%2fcover.jpg`. One decode of each is `/products/S14/cover.jpg`, which is off-live, and Next’s public lookup serves that file when it exists. The canonical path does 404. The outside PASS comments disagree, so this lane posted INDEPENDENT RECHECK FAIL. That worker was not sent on. `269fea55fc85` is still not the head. #249 is this log and is not graded.
 
+## 2026-11-04 11:24 UTC — outside PASS on #225 withdrawn
+
+#225 head is still `1c913dadc46565bdb0387569d7fb1f19bc176d88`. Two outside threads withdrew their PASS comments and now say INDEPENDENT RECHECK FAIL for the same `%2F` hole. This lane did not write those corrections. The FAIL comment already on this SHA agrees, so no second comment was posted. #249 is this log and is not graded.
+
 ## 2026-11-02 23:55 UTC — #225 moved again
 
 #225 head is `d8170670ab411fe21c38630f4a38b8ecdae711e8`. The FAIL on `72d792580d71` stays the comment for that older SHA. The new head is in hard recheck and is not commented yet. #226, #243, and #253 are commented at the SHAs in the verdict table. Their log directories are `out/recheck/20261102-234222-157269`, `out/recheck/20261102-234641-168787`, and `out/recheck/20261102-234412-161336`. No knowledge-lane docs PR.
