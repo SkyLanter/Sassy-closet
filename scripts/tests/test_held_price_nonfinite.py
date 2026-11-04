@@ -1,5 +1,6 @@
 """Piece 164: NaN/Infinity cost, kg or live price must be 'not usable', never crash."""
 import json
+from decimal import Decimal
 
 import held_price_proposal as h
 from held_policy import HeldPolicy
@@ -32,3 +33,45 @@ def test_nan_live_catalog_price_skipped(tmp_path):
 
 def test_good_row_still_quotes():
     assert h.propose(_row(str(10 * 10)), P).status == "quote"
+
+
+def test_currency_mark_between_digits_does_not_quote():
+    assert h._num("¥110") == Decimal("110")
+    assert h._num("$25") == Decimal("25")
+    assert h._num("80¥") == Decimal("80")
+    assert h._num("¥ 80") == Decimal("80")
+    assert h._num("+$25") == Decimal("25")
+    for bad in ("2$5", "2¥5", "$$25", "¥¥80", "¥$80", "2,5", "1,200"):
+        assert h._num(bad) is None, bad
+    plain = h.propose(_row("110", kg="0.3"), P)
+    marked = h.propose(_row("¥110", kg="0.3"), P)
+    assert marked.status == "quote"
+    assert marked.tiered_usd == plain.tiered_usd
+    assert marked.flat25_usd == plain.flat25_usd
+    cost = h.propose(_row("2$5", kg="0.3"), P)
+    assert cost.status == "needs-boss"
+    assert cost.tiered_usd is None
+    assert cost.flat25_usd is None
+    assert any("not usable" in flag for flag in cost.flags)
+    weight = h.propose(_row("110", kg="2$5"), P)
+    assert weight.status == "needs-boss"
+    assert weight.tiered_usd is None
+    assert weight.flat25_usd is None
+
+
+def test_junk_live_dollar_is_not_already_live(tmp_path):
+    catalog = tmp_path / "c.json"
+    catalog.write_text(
+        json.dumps(
+            {
+                "products": [
+                    {"ma": "A29", "priceUsd": "2$5", "status": "available"},
+                    {"ma": "A30", "priceUsd": "$31", "status": "available"},
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    loaded = h.load_live_catalog(catalog)
+    assert "A29" not in loaded
+    assert loaded["A30"] == Decimal("31")

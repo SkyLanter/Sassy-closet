@@ -108,10 +108,26 @@ def format_landed_cell(value: float | None, tier: int | None, flat: int | None) 
     return text.rstrip("0").rstrip(".") if "." in text else text
 
 
+_CURRENCY = frozenset("$¥")
+
+
 def _num(value: object) -> Decimal | None:
+    """Positive number, or None. One leading or trailing ¥ or $ stays. 2$5 is not 25."""
     if value is None:
         return None
-    text = str(value).strip().replace("¥", "").replace("$", "")
+    text = str(value).strip()
+    symbols = [char for char in text if char in _CURRENCY]
+    if len(symbols) > 1:
+        return None
+    if len(symbols) == 1:
+        if text[:1] in _CURRENCY:
+            text = text[1:].strip()
+        elif text[-1:] in _CURRENCY:
+            text = text[:-1].strip()
+        elif len(text) >= 2 and text[0] in "+-" and text[1] in _CURRENCY:
+            text = text[0] + text[2:]
+        else:
+            return None
     if not text:
         return None
     try:
