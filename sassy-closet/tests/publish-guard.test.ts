@@ -9,7 +9,7 @@ import {
 } from "../lib/intakeDatasetSyncWebhook";
 import { notifyNewMaWebhook } from "../lib/newMaWebhook";
 import { nextMa } from "../lib/mint";
-import { mintBlock, publishBlock } from "../lib/publish-guard";
+import { mintBlock, publishBlock, wholeDollars } from "../lib/publish-guard";
 import { hashBytes, listSubmissions, saveSubmission } from "../lib/store";
 import { resetStoreBackendForTests } from "../lib/store-backend";
 import type { Submission } from "../lib/types";
@@ -49,6 +49,25 @@ test("publish guard allows Q02 and still blocks held mãs, a reused mã, and S06
   assert.equal(publishBlock({ action: "sync", ma: "S06", sellUsd: "40" }), "s06-lock");
   assert.equal(publishBlock({ action: "sync", ma: "S06", sellUsd: "25", sellCurrency: "CNY" }), "s06-lock");
   assert.equal(publishBlock({ action: "sync", ma: "S06", sellUsd: "180", sellCurrency: "cny" }), "s06-lock");
+  assert.equal(publishBlock({ action: "sync", ma: "S06", sellUsd: "0,025" }), "s06-lock");
+  assert.equal(publishBlock({ action: "sync", ma: "S06", sellUsd: "$0,025" }), "s06-lock");
+  assert.equal(publishBlock({ action: "sync", ma: "S06", sellUsd: "2,5" }), "s06-lock");
+  assert.equal(publishBlock({ action: "sync", ma: "S06", sellUsd: "00,025" }), "s06-lock");
+  assert.equal(publishBlock({ action: "sync", ma: "S06", sellUsd: "$25" }), null);
+  assert.equal(publishBlock({ action: "sync", ma: "S06", sellUsd: "$1,200" }), "s06-lock");
+  assert.equal(publishBlock({ action: "create", ma: "K06", sellUsd: "0,025" }), "held");
+  assert.equal(wholeDollars("$25"), 25);
+  assert.equal(wholeDollars("25.00"), 25);
+  assert.equal(wholeDollars("$1,200.00"), 1200);
+  assert.equal(wholeDollars("1,025"), 1025);
+  assert.equal(wholeDollars(""), null);
+  assert.equal(wholeDollars("$"), null);
+  assert.equal(Number.isNaN(wholeDollars("0,025")), true);
+  assert.equal(Number.isNaN(wholeDollars("0,000,025")), true);
+  assert.equal(Number.isNaN(wholeDollars("01,200")), true);
+  assert.equal(Number.isNaN(wholeDollars("2$5")), true);
+  assert.equal(Number.isNaN(wholeDollars("12,50")), true);
+  assert.equal(Number.isNaN(wholeDollars("25$")), true);
   assert.equal(mintBlock("K", ["K01", "K02", "K03", "K04", "K05"]), "held");
   assert.equal(mintBlock("Q", ["Q01"]), null);
   assert.equal(mintBlock("A", []), null);
@@ -73,6 +92,14 @@ test("save persists Q02 and still refuses K06 or S06 at another dollar", async (
   assert.equal(locked.sell_usd, "25");
   await assert.rejects(
     () => saveSubmission(blankSave({ kind: "S", existingMa: "S06", sellUsd: "40" })),
+    /s06-lock/,
+  );
+  await assert.rejects(
+    () => saveSubmission(blankSave({ kind: "S", existingMa: "S06", sellUsd: "0,025" })),
+    /s06-lock/,
+  );
+  await assert.rejects(
+    () => saveSubmission(blankSave({ kind: "S", existingMa: "S06", sellUsd: "2,5" })),
     /s06-lock/,
   );
   const rows = await listSubmissions();
