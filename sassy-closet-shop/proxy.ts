@@ -9,39 +9,39 @@ import { isShopPrivateSurface, PRIVATE_ROBOTS_TAG } from "@/lib/private-robots";
 
 /**
  * A held folder under public/products is served before the image route can 404.
- * Next decodes the pathname once. Dev then joins that path onto public and
- * collapses duplicate slashes, `.`, and `..`. An encoded slash or dot can land
- * on the file. A `..` that leaves the URL root does not.
+ * Next decodes the pathname once. Dev joins that path onto the public directory
+ * and collapses `.` and `..`. A `..` that leaves the URL root pops `public` too,
+ * so a later `public` segment walks back onto the held file.
  */
-function pathAfterOneDecode(pathname: string): string | null {
+function heldPathAfterDevJoin(pathname: string): string | null {
   let decoded: string;
   try {
     decoded = decodeURIComponent(pathname);
   } catch {
     return null;
   }
-  const segments: string[] = [];
+  const segments = ["public"];
   for (const raw of decoded.split("/")) {
     if (raw === "" || raw === ".") {
       continue;
     }
     if (raw === "..") {
-      if (segments.length === 0) {
-        return null;
-      }
       segments.pop();
       continue;
     }
     segments.push(raw);
   }
-  return `/${segments.join("/")}`;
+  if (segments[0] !== "public") {
+    return null;
+  }
+  return `/${segments.slice(1).join("/")}`;
 }
 
 function heldPublicImage(pathname: string): boolean {
   if (catalogImageFolder(pathname) === "off-live") {
     return true;
   }
-  const normalized = pathAfterOneDecode(pathname);
+  const normalized = heldPathAfterDevJoin(pathname);
   if (normalized === null || !normalized.startsWith("/products/")) {
     return false;
   }

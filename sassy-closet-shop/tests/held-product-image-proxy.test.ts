@@ -114,6 +114,29 @@ test("canonical live images and held product pages are not the image 404", () =>
   }
 });
 
+test("a path that walks back through public still 404s the held file", async () => {
+  const pathnames = [
+    `/foo%2F..%2F..%2Fpublic%2Fproducts%2F${held}%2Fcover.jpg`,
+    `/foo%2F%2E%2E%2F%2E%2E%2Fpublic%2Fproducts%2F${held}%2Fcover.jpg`,
+    `/uploads/..%2F..%2Fpublic%2Fproducts%2F${held}%2Fcover.jpg`,
+    `/..%2Fpublic%2Fproducts%2F${held}%2Fcover.jpg`,
+    `/uploads/foo/..%2F..%2F..%2Fpublic%2Fproducts%2F${held}%2Fcover.jpg`,
+  ];
+  for (const pathname of pathnames) {
+    assert.equal(matchesProxy(pathname), true, pathname);
+    await assertOffLiveImage(pathname);
+  }
+  for (const pathname of [
+    `/foo%2F..%2F..%2Fpublic%2Fproducts%2FA01%2Fcover.jpg`,
+    `/foo%2F..%2F..%2Fpublic%2Fproducts%2FS06%2Fcover.jpg`,
+    `/uploads/..%2F..%2Fpublic%2Fproducts%2FS06%2Fcover.jpg`,
+    `/foo%2F..%2F..%2Fpublic%2Ffoo%2Fproducts%2F${held}%2Fcover.jpg`,
+  ]) {
+    const response = get(pathname);
+    assert.notEqual(response.status, 404, pathname);
+  }
+});
+
 test("a dot segment under a skipped static prefix still 404s the held file", async () => {
   const pathnames = [
     `/uploads/..%2Fproducts/${held}/cover.jpg`,
