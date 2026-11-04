@@ -26,7 +26,8 @@ from typing import NoReturn
 from held_policy import default_held_path, norm_ma, policy_from_mapping
 
 _FORBIDDEN_PAGE_NAMES = frozenset({"held.json", "submissions.json", "catalog.v1.json"})
-_THOUSANDS = re.compile(r"[0-9]{1,3}(?:,[0-9]{3})+(?:\.[0-9]+)?")
+# A comma is a thousands group. The first group starts at 1–999, so 0,025 is not 25.
+_THOUSANDS = re.compile(r"[1-9][0-9]{0,2}(?:,[0-9]{3})+(?:\.[0-9]+)?")
 
 
 @dataclass(frozen=True)

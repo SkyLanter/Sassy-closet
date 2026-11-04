@@ -1,8 +1,8 @@
-/** Thousands groups only, such as 1,200 or 1,200.50. */
-const THOUSANDS = /^\d{1,3}(?:,\d{3})+(?:\.\d+)?$/;
+/** Thousands groups only. The first group is 1–999, so 0,025 is not 25. */
+const THOUSANDS = /^[1-9]\d{0,2}(?:,\d{3})+(?:\.\d+)?$/;
 const PLAIN = /^\d+(?:\.\d+)?$/;
 const TRAILING_DOT_INTEGER = /^\d+\.$/;
-const TRAILING_DOT_THOUSANDS = /^\d{1,3}(?:,\d{3})+\.$/;
+const TRAILING_DOT_THOUSANDS = /^[1-9]\d{0,2}(?:,\d{3})+\.$/;
 
 /**
  * Plain non-negative amount.

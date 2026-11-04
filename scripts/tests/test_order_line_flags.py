@@ -147,6 +147,30 @@ def test_short_comma_is_not_a_price() -> None:
     assert payload["lines"][0]["priceUsd"] == "12,50"
 
 
+def test_zero_first_group_and_spliced_dollar_are_not_the_s06_lock() -> None:
+    for bad in (
+        "0,025",
+        "$0,025",
+        "0,025$",
+        "00,025",
+        "000,025",
+        "0,000,025",
+        "0,250",
+        "01,025",
+        "2$5",
+        "$$25",
+    ):
+        payload = {"lines": [{"ma": "S06", "title": "Satin skirt", "priceUsd": bad}]}
+        before = json.dumps(payload)
+        with pytest.raises(ValueError, match="price must be a number"):
+            flag_order(payload)
+        assert json.dumps(payload) == before
+    kept = flag_order({"lines": [{"ma": "S06", "title": "Satin skirt", "priceUsd": "$25"}]})
+    assert kept.lines[0].price_usd == "25"
+    grouped = flag_order({"lines": [{"ma": "A01", "title": "Coat", "priceUsd": "1,025"}]})
+    assert grouped.lines[0].price_usd == "1025"
+
+
 def test_held_and_never_list_stay_off_without_writing_held() -> None:
     before = HELD.read_bytes()
     policy = HeldPolicy(held=("K06",), never_list=("Z98",))

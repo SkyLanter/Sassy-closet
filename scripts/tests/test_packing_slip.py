@@ -95,6 +95,18 @@ def test_short_comma_is_not_a_price() -> None:
     assert payload["lines"][0]["priceUsd"] == "12,50"
 
 
+def test_zero_first_group_does_not_print_as_twenty_five() -> None:
+    for bad in ("0,025", "$0,025", "0,025$", "00,025", "0,000,025", "0,250", "01,025", "2$5"):
+        payload = {"lines": [{"ma": "S06", "title": "Satin skirt", "priceUsd": bad}]}
+        before = json.dumps(payload)
+        with pytest.raises(ValueError, match="price must be a number"):
+            preview_order(payload)
+        assert json.dumps(payload) == before
+    kept = preview_order({"lines": [{"ma": "S06", "title": "Satin skirt", "priceUsd": "25$"}]})
+    assert kept.lines[0].price_usd == "25"
+    assert "S06  Satin skirt  $25" in render_text(kept)
+
+
 def test_missing_s06_price_is_not_filled_in() -> None:
     payload = {"lines": [{"ma": "S06", "title": "Satin skirt"}]}
     slip = preview_order(payload)

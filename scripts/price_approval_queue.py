@@ -71,7 +71,8 @@ def _has_price(v) -> bool:
         if text.startswith("$"):
             text = text[1:].strip()
         if "," in text:
-            if re.fullmatch(r"\d{1,3}(?:,\d{3})+(?:\.\d+)?", text) is None:
+            # A thousands group starts at 1–999, so 0,025 is not 25.
+            if re.fullmatch(r"[1-9]\d{0,2}(?:,\d{3})+(?:\.\d+)?", text) is None:
                 return False
             text = text.replace(",", "")
         if text == "":

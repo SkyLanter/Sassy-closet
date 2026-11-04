@@ -374,6 +374,32 @@ def test_thousands_separator_matches_the_catalog() -> None:
     assert result.omitted == ()
 
 
+def test_zero_first_group_is_not_a_catalog_match() -> None:
+    for bad in ("0,025", "$0,025", "0,025$", "00,025", "0,000,025", "0,250", "01,025", "2$5"):
+        payload = {
+            "catalog": [{"ma": "A01", "priceUsd": "25"}],
+            "lines": [{"ma": "A01", "priceUsd": bad}],
+        }
+        before = json.dumps(payload)
+        with pytest.raises(ValueError, match="price must be a number"):
+            flag_fixture(payload)
+        assert json.dumps(payload) == before
+    catalog_bad = {
+        "catalog": [{"ma": "A01", "priceUsd": "0,025"}],
+        "lines": [{"ma": "A01", "priceUsd": "25"}],
+    }
+    with pytest.raises(ValueError, match="price must be a number"):
+        flag_fixture(catalog_bad)
+    assert catalog_bad["catalog"][0]["priceUsd"] == "0,025"
+    matched = flag_fixture(
+        {
+            "catalog": [{"ma": "A01", "priceUsd": "1025"}],
+            "lines": [{"ma": "A01", "priceUsd": "1,025"}],
+        }
+    )
+    assert matched.findings == ()
+
+
 def test_short_comma_is_not_twelve_hundred_fifty() -> None:
     payload = {
         "catalog": [{"ma": "A01", "priceUsd": 1250}],

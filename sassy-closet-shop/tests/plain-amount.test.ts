@@ -21,6 +21,12 @@ const ACCEPTED: ReadonlyArray<readonly [string, number | null]> = [
 const REJECTED = [
   "2,5",
   "12,00",
+  "0,025",
+  "00,025",
+  "0,000,025",
+  "0,250",
+  "01,025",
+  "01,200",
   "1e2",
   "1E2",
   "0x10",

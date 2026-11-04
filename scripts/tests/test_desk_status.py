@@ -288,6 +288,23 @@ def test_thousands_comma_still_reads() -> None:
     assert "S06: $1025" in render_text(status)
 
 
+def test_zero_first_group_is_not_the_s06_lock() -> None:
+    for bad in ("0,025", "$0,025", "00,025", "0,000,025", "0,250", "01,025"):
+        alone = status_from_json({"catalog": {"products": [{"ma": "S06", "priceUsd": bad}]}})
+        assert alone.s06_usd is None, bad
+        assert "S06:" not in render_text(alone)
+        assert "$0025" not in render_text(alone)
+        assert "$25" not in render_text(alone)
+    both = status_from_json(
+        {"catalog": {"products": [{"ma": "S06", "priceUsd": "25", "price_usd": "0,025"}]}}
+    )
+    assert both.s06_usd == "25, —"
+    assert "S06: $25, —" in render_text(both)
+    assert status_from_json(
+        {"catalog": {"products": [{"ma": "S06", "priceUsd": "$25"}]}}
+    ).s06_usd == "25"
+
+
 def test_empty_pr_list_is_none_and_not_unread() -> None:
     status = status_from_json(
         {

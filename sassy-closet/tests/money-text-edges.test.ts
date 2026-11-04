@@ -23,7 +23,20 @@ const STORE_ENV = [
   "NEW_MA_WEBHOOK_TOKEN",
 ] as const;
 
-const GARBLED = ["127;145", "1e2", "0x10", "2,5", "80 90", "-5", "80abc", "."] as const;
+const GARBLED = [
+  "127;145",
+  "1e2",
+  "0x10",
+  "2,5",
+  "0,025",
+  "00,025",
+  "0,250",
+  "01,025",
+  "80 90",
+  "-5",
+  "80abc",
+  ".",
+] as const;
 
 test("blank money stays blank and never becomes 0", () => {
   const blanks = ["", "   ", "\uFEFF"];
