@@ -32,6 +32,7 @@ import argparse
 import csv
 import json
 import math
+import re
 from dataclasses import asdict, dataclass, field
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
@@ -109,10 +110,16 @@ def format_landed_cell(value: float | None, tier: int | None, flat: int | None) 
 
 
 _CURRENCY = frozenset("$¥")
+# A comma is a thousands group. The first group starts at 1–999, so 0,025 is not 25.
+_GROUPED_THOUSANDS = re.compile(r"[+-]?[1-9]\d{0,2}(?:,\d{3})+(?:\.\d+)?")
 
 
 def _num(value: object) -> Decimal | None:
-    """Positive number, or None. One leading or trailing ¥ or $ stays. 2$5 is not 25."""
+    """Positive number, or None. One leading or trailing ¥ or $ stays.
+
+    A comma is a thousands group of three digits, so 1,200 is 1200.
+    2$5, 12,50, 0,025, and 2.5e1 are not 25.
+    """
     if value is None:
         return None
     text = str(value).strip()
@@ -128,8 +135,12 @@ def _num(value: object) -> Decimal | None:
             text = text[0] + text[2:]
         else:
             return None
-    if not text:
+    if not text or any(mark in text for mark in ("e", "E", "_")):
         return None
+    if "," in text:
+        if _GROUPED_THOUSANDS.fullmatch(text) is None:
+            return None
+        text = text.replace(",", "")
     try:
         n = Decimal(text)
     except InvalidOperation:
