@@ -10,6 +10,8 @@ import { isShopPrivateSurface, PRIVATE_ROBOTS_TAG } from "@/lib/private-robots";
 /**
  * A held folder under public/products is served before the image route can 404.
  * `%2F` stays one path segment here, so decode it once and check the folder again.
+ * The image optimizer then reads that same file without calling this proxy, so
+ * the outer `/_next/image?url=` request has to 404 before that read starts.
  */
 function heldPublicImage(pathname: string): boolean {
   if (catalogImageFolder(pathname) === "off-live") {
@@ -30,6 +32,13 @@ function heldPublicImage(pathname: string): boolean {
   return catalogImageFolder(decoded) === "off-live";
 }
 
+function optimizerImageUrl(request: NextRequest): string | null {
+  if (request.nextUrl.pathname !== "/_next/image") {
+    return null;
+  }
+  return request.nextUrl.searchParams.get("url");
+}
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   if (customerAdminProxyDecision(pathname) === "not-found") {
@@ -43,8 +52,13 @@ export function proxy(request: NextRequest) {
       },
     });
   }
-  if (heldPublicImage(pathname)) {
+  const optimizerUrl = optimizerImageUrl(request);
+  if (heldPublicImage(pathname) || (optimizerUrl !== null && heldPublicImage(optimizerUrl))) {
     return new NextResponse("Not found", { status: 404, headers: NO_STORE_HEADERS });
+  }
+  // A live optimizer request stays on the image route. Shop cache headers do not belong on it.
+  if (pathname === "/_next/image") {
+    return NextResponse.next();
   }
   const maCanon = canonicalMaPath(pathname);
   if (maCanon) {
@@ -80,5 +94,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|icon.svg|editorial/|uploads/).*)"],
+  matcher: ["/((?!_next/static|favicon.ico|icon.svg|editorial/|uploads/).*)"],
 };

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { NextRequest } from "next/server";
 import { HELD_INCOMPLETE_MAS } from "../lib/held-incomplete";
-import { proxy } from "../proxy";
+import { config, proxy } from "../proxy";
 
 const held = HELD_INCOMPLETE_MAS[0]!;
 
@@ -35,6 +35,32 @@ test("proxy 404s a held product image before any redirect", async () => {
   await assertOffLiveImage(`/products/${held}%2fcover.jpg`);
 });
 
+test("proxy 404s a held product image requested through the optimizer", async () => {
+  const encoded = (src: string) => `/_next/image?url=${encodeURIComponent(src)}&w=640&q=75`;
+  await assertOffLiveImage(encoded(`/products/${held}/cover.jpg`));
+  await assertOffLiveImage(encoded(`/products/${held.toLowerCase()}/cover.jpg`));
+  await assertOffLiveImage(encoded(`/products/${held[0] + "0" + held.slice(1)}/cover.jpg`));
+  await assertOffLiveImage(encoded(`/products/${percentFolder(held)}/cover.jpg`));
+  await assertOffLiveImage(encoded(`/products/A01/../${held}/cover.jpg`));
+  await assertOffLiveImage(encoded(`/products/${held}%2Fcover.jpg`));
+  await assertOffLiveImage(`/_next/image?url=/products/${held}/cover.jpg&w=640&q=75`);
+});
+
+test("a live optimizer url is not the held image 404", () => {
+  for (const src of ["/products/A01/cover.jpg", "/products/S06/cover.jpg", "/products/a1/cover.jpg"]) {
+    const response = get(`/_next/image?url=${encodeURIComponent(src)}&w=640&q=75`);
+    assert.notEqual(response.status, 404, src);
+    assert.notEqual(response.status, 308, src);
+    assert.equal(response.headers.get("cache-control"), null, src);
+  }
+});
+
+test("the image optimizer stays on the proxy matcher", () => {
+  assert.deepEqual(config.matcher, [
+    "/((?!_next/static|favicon.ico|icon.svg|editorial/|uploads/).*)",
+  ]);
+});
+
 test("proxy 308s a short live product image spelling to the canonical folder", () => {
   const response = get("/products/a1/cover.jpg");
   assert.equal(response.status, 308);
@@ -55,6 +81,11 @@ test("a malformed product image percent-escape does not throw and is not the off
   let response: Response | undefined;
   assert.doesNotThrow(() => {
     response = get("/products/%E0%A4%A/cover.jpg");
+  });
+  assert.ok(response);
+  assert.notEqual(response.status, 404);
+  assert.doesNotThrow(() => {
+    response = get(`/_next/image?url=${encodeURIComponent("/products/%E0%A4%A/cover.jpg")}&w=640&q=75`);
   });
   assert.ok(response);
   assert.notEqual(response.status, 404);
