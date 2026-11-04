@@ -153,7 +153,7 @@ Open drafts still run through #266. #260 is the knowledge-base docs PR (`docs/kn
 | #287 | `cdb6d0451758` | Reject junk dollar text in pickup whole-dollar checks. Seen 2026-11-03 20:19 UTC. Not started. |
 | #288 | `9dc8050db85b` | Flag photo color ids the shop reel will not attach. Seen 2026-11-03 22:19 UTC. Not started. |
 | #289 | `40699842ba18` | Reject a dollar sign between digits in intake gap numbers. Seen 2026-11-04 02:22 UTC. Not started. |
-| #290 | `03236ca0caf0` | Reject a currency mark between digits in held price proposals. Seen 2026-11-04 06:22 UTC. Not started. |
+| #290 | `03236ca0caf0` | Reject a currency mark between digits in held price proposals. Seen 2026-11-04 06:22 UTC. Not started. A cursor[bot] PASS at this SHA appeared at 06:25 UTC. This lane did not run that recheck and does not adopt it. |
 
 ## 2026-11-03 00:15 UTC — slower loop
 
@@ -468,6 +468,10 @@ Open drafts #217–#289 are still on the SHAs recorded above. #225 stays `4fc9fa
 ## 2026-11-04 06:22 UTC — two-hour poll, no moved head
 
 Open drafts #217–#289 are still on the SHAs recorded above. #225 stays the verified PASS at `4fc9fa61ee3e`. #290 is new and is recorded at `03236ca0caf0`. It has not moved since it was first seen, so it was not started. No recheck worker is running. The next poll is the 2-hour timer. #249 is this log and is not graded.
+
+## 2026-11-04 06:25 UTC — outside PASS on #290, not adopted
+
+#290 head is still `03236ca0caf0728ae2e6a99aa4b00cdd83ed4a73`. A cursor[bot] comment says INDEPENDENT RECHECK PASS at that SHA. This lane did not write that comment and does not adopt it. The SHA has not moved since it was first seen, so no recheck was started. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
