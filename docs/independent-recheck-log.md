@@ -14,7 +14,7 @@ Open drafts from #217 up, combined #225 first. No open pull request matched a kn
 
 | PR | Head at queue time | Title |
 | --- | --- | --- |
-| #225 | `4fc9fa61ee3e` | Draft: one branch for the safe shop fixes. Moved 2026-11-04 04:15 UTC. Verified PASS at `6d1744a149ef` with no second comment. Commented FAIL at `d3a8fc9162c3` and `1eb4b39f124d`. Also PASS at `75e1d6580ed8`, `2c58e8868f4a`, `8f4f7c062442`, `0f4fcc2c255f`, `ecb7b2015773` (not commented; not the head), `77fde6ab2f3b`, `5af406779a1e`, `953e460b8f46`, `4df538a9b6eb`, `44bde2ae5e90`, and `b29c6c7ee1ef`. FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. Recheck of `4fc9fa61ee3e` is running. |
+| #225 | `4fc9fa61ee3e` | Draft: one branch for the safe shop fixes. Moved 2026-11-04 04:15 UTC. Verified PASS at `4fc9fa61ee3e` with no second comment. Also PASS at `6d1744a149ef`, `75e1d6580ed8`, `2c58e8868f4a`, `8f4f7c062442`, `0f4fcc2c255f`, `ecb7b2015773` (not commented; not the head), `77fde6ab2f3b`, `5af406779a1e`, `953e460b8f46`, `4df538a9b6eb`, `44bde2ae5e90`, and `b29c6c7ee1ef`. Commented FAIL at `d3a8fc9162c3` and `1eb4b39f124d`. FAIL at `6136247cbe57`, `e6c41e1f7656`, `dd4a4fbe2a55`, `72d792580d71`, and `ba5f60fa767d`. `f9d33ed8d8b2` was not commented. |
 | #217 | `ee9e2a34bfb4` | Combined safe bundle #208-#216 |
 | #218 | `03c23afc58a7` | Fail closed when Blob is down, and drop held folders from other mãs |
 | #219 | `5b590c0f734e` | Keep a blank intake sell blank and parse pasted yen safely |
@@ -459,6 +459,10 @@ Open drafts #217–#288 are still on the SHAs recorded above. #225 stays the com
 ## 2026-11-04 04:22 UTC — two-hour poll, no moved head
 
 Open drafts #217–#289 are still on the SHAs recorded above. #225 stays `4fc9fa61ee3e`, and that recheck is still running. No new draft appeared. The next poll is the 2-hour timer. #249 is this log and is not graded.
+
+## 2026-11-04 04:32 UTC — #225 verified PASS at 4fc9fa6, no second comment
+
+`4fc9fa61ee3e` was still the head. This lane’s script passed: pytest 2457 passed, 7 skipped; privacy CLEAN; intake npm 364 / 361 / 0 / 3; shop npm 254 / 251 / 0 / 3; both tsc ok; `held.json` unchanged. Required skips: none. Log `out/recheck/20261104-042627-493567`. `parseAsiaSizes` keeps an exact `NN.0` when `NN` is already in `EU_SHOE_SIZES`, which was already 34–42. `40.0` becomes `40`. `34.0` and `42.0` become those chips because they were already on that list. `4.0`, `35.00`, and `40.00` stay empty. `40.` already became `40` before this commit, because the old strip removed the dot, and the new code still does that only when there is no digit on both sides of the dot. Findings: none. The outside PASS was already on this SHA and this review agrees, so no second comment was posted. That worker was not sent on. #260 and #267–#289 are unchanged and are not started. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
