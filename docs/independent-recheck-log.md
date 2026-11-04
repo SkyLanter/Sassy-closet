@@ -155,7 +155,7 @@ Open drafts still run through #266. #260 is the knowledge-base docs PR (`docs/kn
 | #289 | `40699842ba18` | Reject a dollar sign between digits in intake gap numbers. Seen 2026-11-04 02:22 UTC. Not started. |
 | #290 | `03236ca0caf0` | Reject a currency mark between digits in held price proposals. Seen 2026-11-04 06:22 UTC. Not started. A cursor[bot] PASS at this SHA appeared at 06:25 UTC. This lane did not run that recheck and does not adopt it. |
 | #291 | `633531e577e6` | Flag customer copy the shop treats as stock or ops voice. Seen 2026-11-04 08:23 UTC. Not started. |
-| #292 | `7b6830ae0473` | Reject spliced dollar text in blank-mã order prices. Seen 2026-11-04 12:24 UTC. One commit. Not started. A cursor[bot] PASS at this SHA appeared at 12:26 UTC. This lane did not run that recheck and does not adopt it. |
+| #292 | `7b6830ae0473` | Reject spliced dollar text in blank-mã order prices. Seen 2026-11-04 12:24 UTC. One commit. Not started. Outside cursor[bot] PASS `6630552776` and FAIL `6632172647` are both on this SHA. This lane did not run either recheck and does not adopt either comment. |
 
 ## 2026-11-03 00:15 UTC — slower loop
 
@@ -620,6 +620,10 @@ cursor[bot] comment `6631541732` also says INDEPENDENT RECHECK PASS at `52df79f5
 ## 2026-11-04 13:39 UTC — #225 moved to 7e1ef27
 
 #225 head is now `7e1ef27ef77321757e623b7a324afbde0163703e` (“404 a held product photo when the process started above the shop.”). `52df79f5ca65` stays the verified PASS. One recheck of `7e1ef27ef773` is running. No comment is on this SHA yet. The tip also contains `66d8892`, which rejects spliced dollar text in blank-mã order prices. The proxy now checks the shop directory beside `proxy.ts` as well as `process.cwd()`, so a process started in the parent directory still 404s a `..` walk through this shop name. #249 is this log and is not graded.
+
+## 2026-11-04 13:41 UTC — outside FAIL on unmoved #292
+
+#292 head is still `7b6830ae0473df2cbe7467d4d4af88cc4ece68d3`. cursor[bot] comment `6632172647` says INDEPENDENT RECHECK FAIL at that SHA and disagrees with the earlier outside PASS `6630552776`. This lane did not write it and does not adopt it. The draft has not moved since it was first seen, so no recheck was started and no comment was posted. The same price commit is in the #225 head `7e1ef27ef773` that is already being rechecked. The claimed hole is that `_THOUSANDS` accepts a leading zero group, so `0,025` returns `0025`, and `Decimal("0025")` is 25. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
