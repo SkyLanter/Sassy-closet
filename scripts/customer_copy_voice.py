@@ -8,10 +8,12 @@ the field, and the matched phrase. It does not print the rest of the
 sentence.
 
 Titles, descriptions, and color names and notes are scanned. The same
-four title and description fields are also read as one line, the way
-the shop decides to blank a description. A promise split across the two
-descriptions is read with a line break between them, the way a save
-rejects an invented lead. A source link is not read. The stored phrase
+four title and description fields are also read as one line, with no
+trim, the way the shop decides to blank a description. An invented ship
+price or a 2-4 week promise is read only on the two descriptions, with
+a line break between them and no trim, the way a save rejects that
+lead. A title or a color does not carry that promise. A source link is
+not read. The stored phrase
 is copied into the flag and is not rewritten. Nothing here writes a
 catalog row, a price, a photo, intake, Blob, or data/held.json. S06
 stays $25. Held mãs stay held. Pass a local fixture. A URL, held.json,
@@ -125,13 +127,16 @@ _PATTERNS: tuple[tuple[str, str, re.Pattern[str]], ...] = (
             + _folded("tuần", True)
             + ")|"
             + _folded("porch date", True)
-            + r"|\$6\.95|flat \$"
+            + r"|\$6\.95|"
+            + _folded("flat $", True)
             + _DIGIT
         ),
     ),
 )
 
 _JOINED_KINDS = frozenset({"stock_voice", "ops_voice", "filler_voice"})
+_LEAD_FIELDS = frozenset({"descriptionEn", "descriptionVn"})
+_COPY_PATTERNS = tuple(item for item in _PATTERNS if item[0] != "invented_lead")
 
 _COPY_FIELDS = ("titleEn", "titleVn", "descriptionEn", "descriptionVn")
 
@@ -180,7 +185,8 @@ def flag_customer_copy(rows: list[CatalogRow]) -> list[VoiceFlag]:
     for row in rows:
         code = norm_ma(row.ma)
         for field in row.fields:
-            flags.extend(_scan(code, field.field, field.index, field.text, _PATTERNS, None))
+            patterns = _PATTERNS if field.field in _LEAD_FIELDS else _COPY_PATTERNS
+            flags.extend(_scan(code, field.field, field.index, field.text, patterns, None))
         flags.extend(_joined_copy_flags(code, row))
         flags.extend(_joined_lead_flags(code, row))
     return flags
@@ -261,16 +267,16 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _joined_copy_flags(code: str, row: CatalogRow) -> list[VoiceFlag]:
-    """Phrases the shop sees on one line of the four customer copy fields."""
-    parts = [_trimmed(row, name) for name in _COPY_FIELDS]
+    """Phrases the shop sees on one untrimmed line of the four customer copy fields."""
+    parts = [_field_text(row, name) for name in _COPY_FIELDS]
     text, spans = _joined(parts, " ")
-    patterns = tuple(item for item in _PATTERNS if item[0] in _JOINED_KINDS)
+    patterns = tuple(item for item in _COPY_PATTERNS if item[0] in _JOINED_KINDS)
     return _scan(code, "joinedCopy", None, text, patterns, spans)
 
 
 def _joined_lead_flags(code: str, row: CatalogRow) -> list[VoiceFlag]:
-    """A lead promise split across the two descriptions, with the shop's line break."""
-    parts = [_trimmed(row, "descriptionEn"), _trimmed(row, "descriptionVn")]
+    """A lead promise on the two descriptions, joined by the shop's line break. No trim."""
+    parts = [_field_text(row, "descriptionEn"), _field_text(row, "descriptionVn")]
     text, spans = _joined(parts, "\n")
     patterns = tuple(item for item in _PATTERNS if item[0] == "invented_lead")
     return _scan(code, "joinedDescriptions", None, text, patterns, spans)
@@ -309,10 +315,11 @@ def _scan(
     return flags
 
 
-def _trimmed(row: CatalogRow, name: str) -> str:
+def _field_text(row: CatalogRow, name: str) -> str:
+    """The stored field. The shop join does not trim it."""
     for field in row.fields:
         if field.field == name and field.index is None:
-            return field.text.strip()
+            return field.text
     return ""
 
 

@@ -209,6 +209,94 @@ def test_listed_uses_the_space_the_shop_inserts() -> None:
     ]
 
 
+def test_invented_lead_matches_the_shop_dollar_and_stays_on_descriptions() -> None:
+    rows = rows_from_payload(
+        [
+            {"ma": "Z01", "descriptionEn": "Flat $8"},
+            {"ma": "Z02", "descriptionEn": "FLAT $1"},
+            {"ma": "Z03", "descriptionEn": "fLat $0"},
+            {"ma": "Z04", "descriptionEn": "Flat $6"},
+            {"ma": "Z05", "descriptionEn": "Flat $6.95"},
+            {"ma": "Z06", "titleEn": "2-4 weeks"},
+            {"ma": "Z07", "colors": [{"name": "flat $8", "note": "flat $8"}]},
+            {"ma": "Z08", "titleEn": "on", "titleVn": "hand"},
+        ]
+    )
+    assert _view(flag_customer_copy(rows)) == [
+        ("Z01", "descriptionEn", None, "invented_lead", "invented lead", "Flat $8"),
+        ("Z02", "descriptionEn", None, "invented_lead", "invented lead", "FLAT $1"),
+        ("Z03", "descriptionEn", None, "invented_lead", "invented lead", "fLat $0"),
+        ("Z04", "descriptionEn", None, "invented_lead", "invented lead", "Flat $6"),
+        ("Z05", "descriptionEn", None, "invented_lead", "invented lead", "Flat $6"),
+        ("Z08", "joinedCopy", None, "stock_voice", "on hand", "on hand"),
+    ]
+
+
+def test_a_split_phrase_keeps_the_spacing_the_shop_keeps() -> None:
+    rows = rows_from_payload(
+        [
+            {"ma": "Z10", "titleEn": "on", "titleVn": " hand"},
+            {"ma": "Z11", "titleEn": "on ", "titleVn": "hand"},
+            {"ma": "Z12", "titleEn": "In", "titleVn": " stock"},
+            {"ma": "Z13", "titleEn": "In ", "titleVn": "stock"},
+            {"ma": "Z14", "titleEn": "In\u00a0", "titleVn": "stock"},
+            {"ma": "Z15", "titleEn": "on\t", "titleVn": "hand"},
+            {"ma": "Z16", "titleEn": "we", "titleVn": " order"},
+            {"ma": "Z17", "titleEn": "we ", "titleVn": "order"},
+            {"ma": "Z18", "titleEn": "flat", "titleVn": " rate"},
+            {"ma": "Z19", "titleEn": "unique", "titleVn": " piece"},
+            {"ma": "Z20", "titleEn": "unique", "titleVn": " pieces"},
+            {"ma": "Z21", "titleEn": "not", "titleVn": " reserved"},
+            {"ma": "Z22", "titleEn": "size Á", "titleVn": " châu"},
+            {"ma": "Z23", "titleEn": "đang", "titleVn": " có"},
+            {"ma": "Z24", "titleEn": "A listed\t", "titleVn": "x"},
+            {"ma": "Z25", "titleEn": "A listed\u0085", "titleVn": "x"},
+            {"ma": "Z26", "titleEn": "A listed\u001c", "titleVn": "x"},
+            {"ma": "Z27", "titleEn": "A listed\u001d", "titleVn": "x"},
+            {"ma": "Z28", "titleEn": "A listed\u001e", "titleVn": "x"},
+            {"ma": "Z29", "titleEn": "A listed\u001f", "titleVn": "x"},
+            {"ma": "Z30", "titleEn": "Status:\u0085", "titleVn": "x"},
+            {"ma": "Z31", "titleEn": "Status:\u001c", "titleVn": "x"},
+            {"ma": "Z32", "titleEn": "Status:\u001d", "titleVn": "x"},
+            {"ma": "Z33", "titleEn": "Status:\u001e", "titleVn": "x"},
+            {"ma": "Z34", "titleEn": "Status:\u001f", "titleVn": "x"},
+            {"ma": "Z35", "titleEn": "on\u0085", "titleVn": "hand"},
+            {"ma": "Z36", "titleEn": "on", "titleVn": "\u0085hand"},
+            {"ma": "Z37", "titleEn": "on\u001c", "titleVn": "hand"},
+            {"ma": "Z38", "titleEn": "on\u001d", "titleVn": "hand"},
+            {"ma": "Z39", "titleEn": "on\u001e", "titleVn": "hand"},
+            {"ma": "Z40", "titleEn": "on\u001f", "titleVn": "hand"},
+            {"ma": "Z41", "titleEn": "on", "titleVn": "\u001chand"},
+            {"ma": "Z42", "descriptionEn": "2-4\u0085", "descriptionVn": "weeks"},
+            {"ma": "Z43", "descriptionEn": "2-4\u001c", "descriptionVn": "weeks"},
+            {"ma": "Z44", "descriptionEn": "2-4\u001d", "descriptionVn": "weeks"},
+            {"ma": "Z45", "descriptionEn": "2-4\u001e", "descriptionVn": "weeks"},
+            {"ma": "Z46", "descriptionEn": "2-4\u001f", "descriptionVn": "weeks"},
+            {"ma": "Z47", "descriptionEn": "2-4", "descriptionVn": "\u0085weeks"},
+            {"ma": "Z48", "descriptionEn": "2-4", "descriptionVn": "\u001cweeks"},
+            {"ma": "Z49", "descriptionEn": "2-4", "descriptionVn": "\u001dweeks"},
+            {"ma": "Z50", "descriptionEn": "2-4", "descriptionVn": "\u001eweeks"},
+            {"ma": "Z51", "descriptionEn": "2-4", "descriptionVn": "\u001fweeks"},
+        ]
+    )
+    assert flag_customer_copy(rows) == []
+
+
+def test_invented_lead_keeps_the_separator_the_shop_reads() -> None:
+    rows = rows_from_payload(
+        [
+            {"ma": "Z52", "descriptionEn": "2-4\t", "descriptionVn": "weeks"},
+            {"ma": "Z53", "descriptionEn": "2-4 ", "descriptionVn": "weeks"},
+            {"ma": "Z54", "descriptionEn": "2-4", "descriptionVn": " tuần"},
+        ]
+    )
+    assert [flag.stored for flag in flag_customer_copy(rows)] == [
+        "2-4\t\nweek",
+        "2-4 \nweek",
+        "2-4\n tuần",
+    ]
+
+
 def test_javascript_word_edges_match_the_shop() -> None:
     hit = rows_from_payload(
         [
