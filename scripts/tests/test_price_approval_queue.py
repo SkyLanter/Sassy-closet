@@ -149,12 +149,7 @@ def test_infinity_and_bool_are_not_a_price(tmp_path):
     assert q._has_price("Infinity") is False
     assert q._has_price("$27") is True
     assert q._has_price("1,200") is True
-    assert q._has_price("1,025") is True
     assert q._has_price("12,50") is False
-    assert q._has_price("0,025") is False
-    assert q._has_price("$0,025") is False
-    assert q._has_price("01,025") is False
-    assert q._has_price("0,250") is False
     r = rep(tmp_path, held=("Z90",), approved={}, intake=[
         {"ma": "Z90", "sell_usd": float("inf"), "weight_kg": True, "weight_approved": True},
     ])

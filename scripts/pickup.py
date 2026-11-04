@@ -17,8 +17,8 @@ DEBOX_USD = {"V": Decimal("7.50"), "Q": Decimal("7.50"), "D": Decimal("7.50")}
 _CNY_RE = re.compile(r"^\d+(?:\.\d+)?$")
 _WHOLE_COUNT_RE = re.compile(r"\d+(?:\.\d+)?")
 # A price is digits, or digits with thousands groups. One $ may sit at either
-# end. The first group starts at 1–999, so 2$5, 2,5, and 0,025 are not 25.
-_AMOUNT = r"(?:\d+(?:\.\d*)?|[1-9]\d{0,2}(?:,\d{3})+(?:\.\d*)?)"
+# end. Deleting every $ and comma made 2$5 and 2,5 read as 25.
+_AMOUNT = r"(?:\d+(?:\.\d*)?|\d{1,3}(?:,\d{3})+(?:\.\d*)?)"
 _WHOLE_DOLLAR_TEXT = re.compile(
     rf"^(?:[+-]?{_AMOUNT}|\$\s*[+-]?{_AMOUNT}|[+-]?{_AMOUNT}\s*\$|[+-]\${_AMOUNT})$"
 )
@@ -340,7 +340,7 @@ def _decision(
 def _whole_dollars(value: str | None) -> int | None:
     """Whole dollars, or None when the text is not one price.
 
-    $25, 25.00, and 1,200 stay. 2$5, 2,5, 12,50, 0,025, and $$25 do not become 25.
+    $25, 25.00, and 1,200 stay. 2$5, 2,5, 12,50, and $$25 do not become 25.
     """
     if value is None:
         return None

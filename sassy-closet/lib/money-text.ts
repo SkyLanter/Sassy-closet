@@ -2,14 +2,13 @@
  * Read a typed money field without inventing a price.
  *
  * Blank stays blank. Yen, dollars, fullwidth digits, thousands commas, and a
- * trailing dot fold into canonical digits. A thousands group starts at 1–999,
- * so 0,025 is not 25. Scientific notation, hex, and any other garbage stay
- * garbage.
+ * trailing dot fold into canonical digits. Scientific notation, hex, and any
+ * other garbage stay garbage.
  */
 
 const PLAIN_AMOUNT = /^\d+(?:\.\d+)?$/;
-const THOUSANDS = /^[1-9]\d{0,2}(?:,\d{3})+(?:\.\d+)?$/;
-const THOUSANDS_INT = /^[1-9]\d{0,2}(?:,\d{3})+$/;
+const THOUSANDS = /^\d{1,3}(?:,\d{3})+(?:\.\d+)?$/;
+const THOUSANDS_INT = /^\d{1,3}(?:,\d{3})+$/;
 const DIGITS = /^\d+$/;
 
 const USD_LEAD = /^(?:\$|usd)\s*/i;

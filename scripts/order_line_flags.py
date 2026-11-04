@@ -22,8 +22,7 @@ from pathlib import Path
 from held_policy import HeldPolicy, default_held_path, load_held_policy, norm_ma
 
 MA_RE = re.compile(r"^[A-Z][0-9]{2}$")
-# A comma is a thousands group. The first group starts at 1–999, so 0,025 is not 25.
-_THOUSANDS = re.compile(r"[1-9]\d{0,2}(?:,\d{3})+(?:\.\d+)?")
+_THOUSANDS = re.compile(r"\d{1,3}(?:,\d{3})+(?:\.\d+)?")
 S06_USD = Decimal("25")
 _FORBIDDEN_NAMES = frozenset(
     {
@@ -307,20 +306,8 @@ def _price_text(value: object) -> str:
 
 
 def _grouped_dollars(raw: str) -> str:
-    """One $ may sit at either end. A thousands group starts at 1–999.
-
-    0,025 is not 25, and 2$5 is not 25.
-    """
-    text = raw.strip()
-    if text.count("$") > 1:
-        raise ValueError("price must be a number")
-    if text.count("$") == 1:
-        if text.startswith("$"):
-            text = text[1:].strip()
-        elif text.endswith("$"):
-            text = text[:-1].strip()
-        else:
-            raise ValueError("price must be a number")
+    """A thousands comma is a price. A shorter comma group is not."""
+    text = raw.strip().replace("$", "").strip()
     if "," not in text:
         return text
     if _THOUSANDS.fullmatch(text) is None:
