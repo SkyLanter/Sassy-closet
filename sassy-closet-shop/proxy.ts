@@ -9,10 +9,25 @@ import { isShopPrivateSurface, PRIVATE_ROBOTS_TAG } from "@/lib/private-robots";
 
 /**
  * A held folder under public/products is served before the image route can 404.
- * Next decodes the pathname once. Dev joins that path onto the public directory
- * and collapses `.` and `..`. A `..` that leaves the URL root pops `public` too,
- * so a later `public` segment walks back onto the held file.
+ * Next decodes the pathname once. Dev joins that path onto the real public
+ * directory and collapses `.` and `..`. A `..` that leaves the URL root can
+ * walk back through the shop directory name and `public`.
  */
+function shopPublicRoot(): string[] {
+  let cwd = "";
+  if (typeof process !== "undefined" && typeof process.cwd === "function") {
+    cwd = process.cwd();
+  }
+  const normalized = cwd.replaceAll("\\", "/").replace(/\/+$/, "");
+  const root =
+    normalized.length === 0
+      ? "/public"
+      : normalized.endsWith("/public")
+        ? normalized
+        : `${normalized}/public`;
+  return root.split("/").filter((segment) => segment.length > 0);
+}
+
 function heldPathAfterDevJoin(pathname: string): string | null {
   let decoded: string;
   try {
@@ -20,7 +35,8 @@ function heldPathAfterDevJoin(pathname: string): string | null {
   } catch {
     return null;
   }
-  const segments = ["public"];
+  const root = shopPublicRoot();
+  const segments = [...root];
   for (const raw of decoded.split("/")) {
     if (raw === "" || raw === ".") {
       continue;
@@ -31,10 +47,15 @@ function heldPathAfterDevJoin(pathname: string): string | null {
     }
     segments.push(raw);
   }
-  if (segments[0] !== "public") {
+  if (segments.length < root.length) {
     return null;
   }
-  return `/${segments.slice(1).join("/")}`;
+  for (let index = 0; index < root.length; index += 1) {
+    if (segments[index] !== root[index]) {
+      return null;
+    }
+  }
+  return `/${segments.slice(root.length).join("/")}`;
 }
 
 function heldPublicImage(pathname: string): boolean {

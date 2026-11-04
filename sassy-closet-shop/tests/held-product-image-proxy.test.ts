@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
+import path from "node:path";
 import test from "node:test";
 import { NextRequest } from "next/server";
 import { HELD_INCOMPLETE_MAS } from "../lib/held-incomplete";
@@ -114,13 +115,30 @@ test("canonical live images and held product pages are not the image 404", () =>
   }
 });
 
+function publicDirParts(): string[] {
+  const publicDir = path.posix.join(process.cwd().replaceAll("\\", "/"), "public");
+  return publicDir.split("/").filter((segment) => segment.length > 0);
+}
+
+/** One decode plus the dev public-dir join. `ups` pops `foo` and the public root. */
+function walkBackToPublic(folder: string, parts = publicDirParts()): string {
+  const ups = Array.from({ length: parts.length + 1 }, () => "..").join("%2F");
+  const restored = parts.map((segment) => encodeURIComponent(segment)).join("%2F");
+  return `/foo%2F${ups}%2F${restored}%2Fproducts%2F${encodeURIComponent(folder)}%2Fcover.jpg`;
+}
+
 test("a path that walks back through public still 404s the held file", async () => {
+  assert.equal(path.basename(process.cwd()), "sassy-closet-shop");
   const pathnames = [
     `/foo%2F..%2F..%2Fpublic%2Fproducts%2F${held}%2Fcover.jpg`,
     `/foo%2F%2E%2E%2F%2E%2E%2Fpublic%2Fproducts%2F${held}%2Fcover.jpg`,
     `/uploads/..%2F..%2Fpublic%2Fproducts%2F${held}%2Fcover.jpg`,
     `/..%2Fpublic%2Fproducts%2F${held}%2Fcover.jpg`,
     `/uploads/foo/..%2F..%2F..%2Fpublic%2Fproducts%2F${held}%2Fcover.jpg`,
+    `/foo%2F..%2F..%2F..%2Fsassy-closet-shop%2Fpublic%2Fproducts%2F${held}%2Fcover.jpg`,
+    `/uploads/..%2F..%2F..%2Fsassy-closet-shop%2Fpublic%2Fproducts%2F${held}%2Fcover.jpg`,
+    `/foo%2F%2E%2E%2F%2E%2E%2F%2E%2E%2Fsassy-closet-shop%2Fpublic%2Fproducts%2F${held}%2Fcover.jpg`,
+    walkBackToPublic(held),
   ];
   for (const pathname of pathnames) {
     assert.equal(matchesProxy(pathname), true, pathname);
@@ -131,6 +149,13 @@ test("a path that walks back through public still 404s the held file", async () 
     `/foo%2F..%2F..%2Fpublic%2Fproducts%2FS06%2Fcover.jpg`,
     `/uploads/..%2F..%2Fpublic%2Fproducts%2FS06%2Fcover.jpg`,
     `/foo%2F..%2F..%2Fpublic%2Ffoo%2Fproducts%2F${held}%2Fcover.jpg`,
+    `/foo%2F..%2F..%2F..%2Fsassy-closet-shop%2Fpublic%2Fproducts%2FA01%2Fcover.jpg`,
+    `/foo%2F..%2F..%2F..%2Fsassy-closet-shop%2Fpublic%2Fproducts%2FS06%2Fcover.jpg`,
+    `/uploads/..%2F..%2F..%2Fsassy-closet-shop%2Fpublic%2Fproducts%2FS06%2Fcover.jpg`,
+    `/foo%2F..%2F..%2F..%2Fother-shop%2Fpublic%2Fproducts%2F${held}%2Fcover.jpg`,
+    walkBackToPublic(held, publicDirParts().map((segment, index, parts) => (index === parts.length - 3 ? "not-this-checkout" : segment))),
+    walkBackToPublic("A01"),
+    walkBackToPublic("S06"),
   ]) {
     const response = get(pathname);
     assert.notEqual(response.status, 404, pathname);
