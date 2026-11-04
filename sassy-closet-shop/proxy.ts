@@ -1,9 +1,34 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { catalogImageFolder } from "@/lib/catalog-image-src";
 import { customerAdminProxyDecision } from "@/lib/customer-admin-closed";
+import { NO_STORE_HEADERS } from "@/lib/http-no-store";
 import { encodeShopSearchHeader, SHOP_SEARCH_HEADER } from "@/lib/look-search";
 import { canonicalCategoryPath, canonicalMaPath } from "@/lib/ma-url";
 import { isShopPrivateSurface, PRIVATE_ROBOTS_TAG } from "@/lib/private-robots";
+
+/**
+ * A held folder under public/products is served before the image route can 404.
+ * `%2F` stays one path segment here, so decode it once and check the folder again.
+ */
+function heldPublicImage(pathname: string): boolean {
+  if (catalogImageFolder(pathname) === "off-live") {
+    return true;
+  }
+  if (!pathname.startsWith("/products/")) {
+    return false;
+  }
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(pathname);
+  } catch {
+    return false;
+  }
+  if (decoded === pathname) {
+    return false;
+  }
+  return catalogImageFolder(decoded) === "off-live";
+}
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -17,6 +42,9 @@ export function proxy(request: NextRequest) {
         "X-Robots-Tag": PRIVATE_ROBOTS_TAG,
       },
     });
+  }
+  if (heldPublicImage(pathname)) {
+    return new NextResponse("Not found", { status: 404, headers: NO_STORE_HEADERS });
   }
   const maCanon = canonicalMaPath(pathname);
   if (maCanon) {
