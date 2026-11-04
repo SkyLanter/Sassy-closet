@@ -280,7 +280,22 @@ def test_bad_price_is_rejected_without_rewriting(tmp_path: Path) -> None:
 
 
 def test_spliced_price_text_is_rejected_and_real_spellings_stay(tmp_path: Path) -> None:
-    for bad in ("2$5", "12,50", "$$25", "$2,5", "1,2000", "1,2,000"):
+    for bad in (
+        "2$5",
+        "12,50",
+        "$$25",
+        "$2,5",
+        "1,2000",
+        "1,2,000",
+        "0,025",
+        "$0,025",
+        "0,025$",
+        "00,025",
+        "000,025",
+        "0,000,025",
+        "0,250",
+        "01,200",
+    ):
         payload = {"lines": [{"ma": "", "priceUsd": bad}]}
         path = tmp_path / "spliced.json"
         path.write_text(json.dumps(payload), encoding="utf-8")
@@ -288,8 +303,9 @@ def test_spliced_price_text_is_rejected_and_real_spellings_stay(tmp_path: Path) 
         with pytest.raises(ValueError, match="price must be a number"):
             flag_fixture(json.loads(path.read_text(encoding="utf-8")))
         assert path.read_bytes() == before
-    with pytest.raises(ValueError, match="price must be a number"):
-        flag_fixture(_s06("2$5"), _open_policy())
+    for sell in ("2$5", "0,025"):
+        with pytest.raises(ValueError, match="price must be a number"):
+            flag_fixture(_s06(sell), _open_policy())
     kept = flag_fixture(_s06("$25"), _open_policy())
     assert kept.flags == ()
     assert kept.lines[0].price_usd == "25"
@@ -299,6 +315,11 @@ def test_spliced_price_text_is_rejected_and_real_spellings_stay(tmp_path: Path) 
     )
     assert thousands.flags[0].price_usd == "1200.00"
     assert "Price stays $1200.00." in render_report(thousands)
+    grouped = flag_fixture(
+        {"lines": [{"ma": "", "title": "Blank", "priceUsd": "1,025"}]},
+        _open_policy(),
+    )
+    assert grouped.flags[0].price_usd == "1025"
 
 
 def test_unknown_kind_and_reason_are_rejected() -> None:

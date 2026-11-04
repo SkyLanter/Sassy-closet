@@ -30,7 +30,7 @@ OMIT_REASONS = (NO_PRICE, HELD, NEVER_LIST)
 
 _MA_CODE = re.compile(r"^[A-Z][0-9]{2}$")
 _PLAIN_AMOUNT = re.compile(r"\d+(?:\.\d+)?")
-_THOUSANDS = re.compile(r"\d{1,3}(?:,\d{3})+(?:\.\d+)?")
+_THOUSANDS = re.compile(r"[1-9]\d{0,2}(?:,\d{3})+(?:\.\d+)?")
 _FORBIDDEN_NAMES = frozenset(
     {
         "held.json",
@@ -336,7 +336,7 @@ def _price_text(value: object) -> str:
 
 
 def _price_body(raw: str) -> str:
-    """Digits of one price. One $ may sit at either end. A comma is a thousands group."""
+    """Digits of one price. One $ may sit at either end. A thousands group starts at 1-999."""
     text = raw.strip()
     if text.count("$") > 1:
         raise ValueError("price must be a number")
