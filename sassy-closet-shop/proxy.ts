@@ -1,3 +1,5 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { catalogImageFolder } from "@/lib/catalog-image-src";
@@ -7,18 +9,18 @@ import { encodeShopSearchHeader, SHOP_SEARCH_HEADER } from "@/lib/look-search";
 import { canonicalCategoryPath, canonicalMaPath } from "@/lib/ma-url";
 import { isShopPrivateSurface, PRIVATE_ROBOTS_TAG } from "@/lib/private-robots";
 
+const sourceShopDir = path.posix.dirname(fileURLToPath(import.meta.url));
+
 /**
  * A held folder under public/products is served before the image route can 404.
  * Next decodes the pathname once. Dev joins that path onto the real public
  * directory and collapses `.` and `..`. A `..` that leaves the URL root can
- * walk back through the shop directory name and `public`.
+ * walk back through the shop directory name and `public`. The shop directory
+ * is the project cwd, and also the directory beside this file when the
+ * process was started one level up.
  */
-function shopPublicRoot(): string[] {
-  let cwd = "";
-  if (typeof process !== "undefined" && typeof process.cwd === "function") {
-    cwd = process.cwd();
-  }
-  const normalized = cwd.replaceAll("\\", "/").replace(/\/+$/, "");
+function publicRootFrom(dir: string): string[] {
+  const normalized = dir.replaceAll("\\", "/").replace(/\/+$/, "");
   const root =
     normalized.length === 0
       ? "/public"
@@ -28,14 +30,29 @@ function shopPublicRoot(): string[] {
   return root.split("/").filter((segment) => segment.length > 0);
 }
 
-function heldPathAfterDevJoin(pathname: string): string | null {
-  let decoded: string;
-  try {
-    decoded = decodeURIComponent(pathname);
-  } catch {
-    return null;
+function shopPublicRoots(): string[][] {
+  let cwd = "";
+  if (typeof process !== "undefined" && typeof process.cwd === "function") {
+    cwd = process.cwd();
   }
-  const root = shopPublicRoot();
+  const cwdPosix = cwd.replaceAll("\\", "/").replace(/\/+$/, "");
+  const shopName = path.posix.basename(sourceShopDir);
+  const dirs = [cwd, sourceShopDir, `${cwdPosix}/${shopName}`];
+  const seen = new Set<string>();
+  const roots: string[][] = [];
+  for (const dir of dirs) {
+    const root = publicRootFrom(dir);
+    const key = root.join("/");
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    roots.push(root);
+  }
+  return roots;
+}
+
+function joinedUnderRoot(decoded: string, root: readonly string[]): string | null {
   const segments = [...root];
   for (const raw of decoded.split("/")) {
     if (raw === "" || raw === ".") {
@@ -58,15 +75,31 @@ function heldPathAfterDevJoin(pathname: string): string | null {
   return `/${segments.slice(root.length).join("/")}`;
 }
 
+function heldPathAfterDevJoin(pathname: string): string | null {
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(pathname);
+  } catch {
+    return null;
+  }
+  for (const root of shopPublicRoots()) {
+    const normalized = joinedUnderRoot(decoded, root);
+    if (
+      normalized !== null &&
+      normalized.startsWith("/products/") &&
+      catalogImageFolder(normalized) === "off-live"
+    ) {
+      return normalized;
+    }
+  }
+  return null;
+}
+
 function heldPublicImage(pathname: string): boolean {
   if (catalogImageFolder(pathname) === "off-live") {
     return true;
   }
-  const normalized = heldPathAfterDevJoin(pathname);
-  if (normalized === null || !normalized.startsWith("/products/")) {
-    return false;
-  }
-  return catalogImageFolder(normalized) === "off-live";
+  return heldPathAfterDevJoin(pathname) !== null;
 }
 
 export function proxy(request: NextRequest) {

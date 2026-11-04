@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 import path from "node:path";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 import { NextRequest } from "next/server";
 import { HELD_INCOMPLETE_MAS } from "../lib/held-incomplete";
 import { config, proxy } from "../proxy";
@@ -159,6 +160,28 @@ test("a path that walks back through public still 404s the held file", async () 
   ]) {
     const response = get(pathname);
     assert.notEqual(response.status, 404, pathname);
+  }
+});
+
+test("a shop-directory walk still 404s when the process started above the shop", async () => {
+  const shopDir = path.posix.dirname(path.posix.dirname(fileURLToPath(import.meta.url)));
+  const previous = process.cwd();
+  process.chdir(path.posix.dirname(shopDir));
+  try {
+    assert.notEqual(path.basename(process.cwd()), "sassy-closet-shop");
+    const shopName = path.posix.basename(shopDir);
+    const heldPath = `/foo%2F..%2F..%2F..%2F${shopName}%2Fpublic%2Fproducts%2F${held}%2Fcover.jpg`;
+    const uploadsPath = `/uploads/..%2F..%2F..%2F${shopName}%2Fpublic%2Fproducts%2F${held}%2Fcover.jpg`;
+    assert.equal(matchesProxy(heldPath), true);
+    assert.equal(matchesProxy(uploadsPath), true);
+    await assertOffLiveImage(heldPath);
+    await assertOffLiveImage(uploadsPath);
+    const live = get(`/foo%2F..%2F..%2F..%2F${shopName}%2Fpublic%2Fproducts%2FS06%2Fcover.jpg`);
+    assert.notEqual(live.status, 404);
+    const canonical = get("/products/a1/cover.jpg");
+    assert.equal(canonical.status, 308);
+  } finally {
+    process.chdir(previous);
   }
 });
 
