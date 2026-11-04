@@ -155,7 +155,7 @@ Open drafts still run through #266. #260 is the knowledge-base docs PR (`docs/kn
 | #289 | `40699842ba18` | Reject a dollar sign between digits in intake gap numbers. Seen 2026-11-04 02:22 UTC. Not started. |
 | #290 | `03236ca0caf0` | Reject a currency mark between digits in held price proposals. Seen 2026-11-04 06:22 UTC. Not started. A cursor[bot] PASS at this SHA appeared at 06:25 UTC. This lane did not run that recheck and does not adopt it. |
 | #291 | `633531e577e6` | Flag customer copy the shop treats as stock or ops voice. Seen 2026-11-04 08:23 UTC. Not started. |
-| #292 | `7b6830ae0473` | Reject spliced dollar text in blank-mã order prices. Seen 2026-11-04 12:24 UTC. One commit. Not started. |
+| #292 | `7b6830ae0473` | Reject spliced dollar text in blank-mã order prices. Seen 2026-11-04 12:24 UTC. One commit. Not started. A cursor[bot] PASS at this SHA appeared at 12:26 UTC. This lane did not run that recheck and does not adopt it. |
 
 ## 2026-11-03 00:15 UTC — slower loop
 
@@ -556,6 +556,10 @@ cursor[bot] comment `6629574632` also says INDEPENDENT RECHECK PASS at `ec78e083
 ## 2026-11-04 12:24 UTC — poll, no head moved
 
 Open heads from #217 through #291 match the SHAs recorded above. #225 is still `ec78e0836cbb`. #292 is new: draft `7b6830ae0473df2cbe7467d4d4af88cc4ece68d3`, “Reject spliced dollar text in blank-mã order prices,” one commit, created 12:17 UTC, no comments. It has not moved since it was first seen, so no recheck was started. No worker is running. #249 is this log and is not graded.
+
+## 2026-11-04 12:26 UTC — outside PASS on #292
+
+#292 head is still `7b6830ae0473df2cbe7467d4d4af88cc4ece68d3`. cursor[bot] comment `6630552776` says INDEPENDENT RECHECK PASS at that SHA. This lane did not write it and does not adopt it. The draft has not moved since it was first seen, so no recheck was started and no comment was posted. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
