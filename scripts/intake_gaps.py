@@ -59,7 +59,7 @@ GROUPS = ("held", "not live", "live")
 
 
 def _num(value: object) -> Decimal | None:
-    """A number, or None. One leading or trailing $ stays. 2$5 is not 25."""
+    """A number, or None. One leading or trailing $ stays. 2$5 and 2.5e1 are not 25."""
     if value is None:
         return None
     text = str(value).strip()
@@ -75,7 +75,7 @@ def _num(value: object) -> Decimal | None:
             text = text[0] + text[2:]
         else:
             return None
-    if not text:
+    if not text or any(mark in text for mark in ("e", "E", "_")):
         return None
     try:
         n = Decimal(text)

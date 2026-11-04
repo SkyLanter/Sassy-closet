@@ -135,12 +135,18 @@ def test_junk_dollar_text_is_not_a_price(tmp_path):
     assert ig._num("-$25") == Decimal("-25")
     assert ig._num("+$25") == Decimal("25")
     assert ig._num("$-25") == Decimal("-25")
-    for bad in ("2$5", "$$25", "$25$", "12$50", "2,$5", "1,200", "12,50", "-$ 25"):
+    for bad in (
+        "2$5", "$$25", "$25$", "12$50", "2,$5", "1,200", "$1,200", "1,200$", "12,50", "-$ 25",
+        "2.5e1", "25e0", "250e-1", "+$2.5e1", "2.5e1$", "$2.5e1", "2.5E1",
+        "1e2", "$1e2", "1e2$", "2_5", "2__5", "25_0",
+    ):
         assert ig._num(bad) is None, bad
     weighed = run(r(weight_kg="2$5"))
     assert "kg" in types(weighed)
     junk_sell = run(r(sell_usd="2$5"), live={"A01": {"price": Decimal("30"), "images": ["a"]}})
     assert "sell_vs_live" not in types(junk_sell, "suspect")
+    exponent_sell = run(r(sell_usd="2.5e1"), live={"A01": {"price": Decimal("25"), "images": ["a"]}})
+    assert "sell_vs_live" not in types(exponent_sell, "suspect")
     real_sell = run(r(sell_usd="$25"), live={"A01": {"price": Decimal("30"), "images": ["a"]}})
     assert "sell_vs_live" in types(real_sell, "suspect")
     junk_cost = run(r(cost_usd="2$5"))
@@ -161,6 +167,20 @@ def test_junk_dollar_text_is_not_a_price(tmp_path):
     live = ig.load_live(catalog)
     assert live["S06"]["price"] is None
     assert live["A07"]["price"] == Decimal("25")
+    exponent = tmp_path / "exponent.json"
+    exponent.write_text(
+        json.dumps(
+            {
+                "products": [
+                    {"ma": "S006", "priceUsd": "2.5e1", "images": ["s.jpg"]},
+                    {"ma": "S6", "priceUsd": "1e2", "images": ["t.jpg"]},
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    folded = ig.load_live(exponent)
+    assert folded["S06"]["price"] is None
 
 
 def test_suspect_costs_reported_not_fixed():
