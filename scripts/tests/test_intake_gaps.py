@@ -135,10 +135,17 @@ def test_junk_dollar_text_is_not_a_price(tmp_path):
     assert ig._num("-$25") == Decimal("-25")
     assert ig._num("+$25") == Decimal("25")
     assert ig._num("$-25") == Decimal("-25")
+    assert ig._num("1,200") == Decimal("1200")
+    assert ig._num("$1,200") == Decimal("1200")
+    assert ig._num("1,200$") == Decimal("1200")
+    assert ig._num("1,200.00") == Decimal("1200.00")
+    assert ig._num("$1,200.50") == Decimal("1200.50")
+    assert ig._num("-$1,200") == Decimal("-1200")
+    assert ig._num("1,025") == Decimal("1025")
     for bad in (
-        "2$5", "$$25", "$25$", "12$50", "2,$5", "1,200", "$1,200", "1,200$", "12,50", "-$ 25",
+        "2$5", "$$25", "$25$", "12$50", "2,$5", "12,50", "2,5", "1,2000", "0,025", "1234,567", "-$ 25",
         "2.5e1", "25e0", "250e-1", "+$2.5e1", "2.5e1$", "$2.5e1", "2.5E1",
-        "1e2", "$1e2", "1e2$", "2_5", "2__5", "25_0",
+        "1e2", "$1e2", "1e2$", "2_5", "2__5", "25_0", "1,200e0",
     ):
         assert ig._num(bad) is None, bad
     weighed = run(r(weight_kg="2$5"))
@@ -147,6 +154,14 @@ def test_junk_dollar_text_is_not_a_price(tmp_path):
     assert "sell_vs_live" not in types(junk_sell, "suspect")
     exponent_sell = run(r(sell_usd="2.5e1"), live={"A01": {"price": Decimal("25"), "images": ["a"]}})
     assert "sell_vs_live" not in types(exponent_sell, "suspect")
+    grouped_sell = run(r(sell_usd="1,200"), live={"A01": {"price": Decimal("30"), "images": ["a"]}})
+    assert "sell_vs_live" in types(grouped_sell, "suspect")
+    same_grouped = run(r(sell_usd="$1,200"), live={"A01": {"price": Decimal("1200"), "images": ["a"]}})
+    assert "sell_vs_live" not in types(same_grouped, "suspect")
+    grouped_weight = run(r(weight_kg="1,200"))
+    assert "kg" not in types(grouped_weight)
+    short_group_weight = run(r(weight_kg="12,50"))
+    assert "kg" in types(short_group_weight)
     real_sell = run(r(sell_usd="$25"), live={"A01": {"price": Decimal("30"), "images": ["a"]}})
     assert "sell_vs_live" in types(real_sell, "suspect")
     junk_cost = run(r(cost_usd="2$5"))
@@ -181,6 +196,31 @@ def test_junk_dollar_text_is_not_a_price(tmp_path):
     )
     folded = ig.load_live(exponent)
     assert folded["S06"]["price"] is None
+    grouped = tmp_path / "grouped.json"
+    grouped.write_text(
+        json.dumps(
+            {
+                "products": [
+                    {"ma": "A08", "priceUsd": "$1,200", "images": ["a.jpg"]},
+                    {"ma": "A09", "priceUsd": "1,200.00", "images": ["b.jpg"]},
+                    {"ma": "S06", "priceUsd": "1,200", "images": ["s.jpg"]},
+                    {"ma": "A10", "priceUsd": "12,50", "images": ["c.jpg"]},
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    grouped_live = ig.load_live(grouped)
+    assert grouped_live["A08"]["price"] == Decimal("1200")
+    assert grouped_live["A09"]["price"] == Decimal("1200.00")
+    assert grouped_live["S06"]["price"] == Decimal("1200")
+    assert grouped_live["A10"]["price"] is None
+    collapsed = tmp_path / "collapsed.json"
+    collapsed.write_text(
+        json.dumps({"products": [{"ma": "S006", "priceUsd": "0,025", "images": ["t.jpg"]}]}),
+        encoding="utf-8",
+    )
+    assert ig.load_live(collapsed)["S06"]["price"] is None
 
 
 def test_suspect_costs_reported_not_fixed():

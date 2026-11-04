@@ -41,6 +41,8 @@ from intake_flags import IntakeRow, flag_intake
 
 FX_CNY_PER_USD = Decimal("6.723")
 MA_RE = re.compile(r"^([A-Z])[0-9]{2}$")
+# A comma is a thousands group. The first group starts at 1–999, so 0,025 is not 25.
+_GROUPED_THOUSANDS = re.compile(r"[+-]?[1-9]\d{0,2}(?:,\d{3})+(?:\.\d+)?")
 # Same shop statuses as the daily snapshot export. sold and hold are not a live price.
 LIVE_STATUSES = {"available", "live", "active", "in_stock", "instock"}
 # Approved category kg proxies (same as the held price sheet). G has none.
@@ -59,7 +61,11 @@ GROUPS = ("held", "not live", "live")
 
 
 def _num(value: object) -> Decimal | None:
-    """A number, or None. One leading or trailing $ stays. 2$5 and 2.5e1 are not 25."""
+    """A number, or None. One leading or trailing $ stays.
+
+    A comma is a thousands group of three digits, so 1,200 is 1200.
+    2$5, 12,50, 0,025, and 2.5e1 are not 25.
+    """
     if value is None:
         return None
     text = str(value).strip()
@@ -77,6 +83,10 @@ def _num(value: object) -> Decimal | None:
             return None
     if not text or any(mark in text for mark in ("e", "E", "_")):
         return None
+    if "," in text:
+        if _GROUPED_THOUSANDS.fullmatch(text) is None:
+            return None
+        text = text.replace(",", "")
     try:
         n = Decimal(text)
     except InvalidOperation:
