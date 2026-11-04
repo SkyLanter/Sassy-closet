@@ -155,6 +155,7 @@ Open drafts still run through #266. #260 is the knowledge-base docs PR (`docs/kn
 | #289 | `40699842ba18` | Reject a dollar sign between digits in intake gap numbers. Seen 2026-11-04 02:22 UTC. Not started. |
 | #290 | `03236ca0caf0` | Reject a currency mark between digits in held price proposals. Seen 2026-11-04 06:22 UTC. Not started. A cursor[bot] PASS at this SHA appeared at 06:25 UTC. This lane did not run that recheck and does not adopt it. |
 | #291 | `633531e577e6` | Flag customer copy the shop treats as stock or ops voice. Seen 2026-11-04 08:23 UTC. Not started. |
+| #292 | `7b6830ae0473` | Reject spliced dollar text in blank-mã order prices. Seen 2026-11-04 12:24 UTC. One commit. Not started. |
 
 ## 2026-11-03 00:15 UTC — slower loop
 
@@ -551,6 +552,10 @@ cursor[bot] comment `6629574632` also says INDEPENDENT RECHECK PASS at `ec78e083
 ## 2026-11-04 11:39 UTC — #225 PASS at ec78e08, outside comments agree
 
 #225 head is still `ec78e0836cbb31d956fb83c68a9d7f9c71d05891`. This lane’s recheck passed. pytest 2478 passed, 7 skipped; privacy CLEAN; intake npm 364 / 361 / 0 / 3; shop npm 258 / 255 / 0 / 3; both tsc ok; `held.json` unchanged. Required skips: none. Log `out/recheck/20261104-113105-536396`. `heldPublicImage` now decodes the whole pathname when the first folder check is not `off-live`. `/products%2FS14%2Fcover.jpg`, `/products%2FS14/cover.jpg`, and `/products%2fS14%2fcover.jpg` return 404 `Not found` with `no-store` and no `Location`. One decode of each is `/products/S14/cover.jpg`, which Next’s public lookup would serve when the file exists. `/products/A01/cover.jpg` and `/products/S06/cover.jpg` continue. `/products/a1/cover.jpg` still 308s to `/products/A01/cover.jpg`. `/products%2FA01%2Fcover.jpg`, `/products%2FS06%2Fcover.jpg`, and `/products%2Fa1%2Fcover.jpg` are not this 404. `/products%252FS14%252Fcover.jpg` continues, and one server decode is not the held file. No CSS, price, or `held.json` change. S06 stays off the held list. Outside comments `6629533799` and `6629574632` already say PASS on this SHA and agree, so no second comment was posted. #249 is this log and is not graded.
+
+## 2026-11-04 12:24 UTC — poll, no head moved
+
+Open heads from #217 through #291 match the SHAs recorded above. #225 is still `ec78e0836cbb`. #292 is new: draft `7b6830ae0473df2cbe7467d4d4af88cc4ece68d3`, “Reject spliced dollar text in blank-mã order prices,” one commit, created 12:17 UTC, no comments. It has not moved since it was first seen, so no recheck was started. No worker is running. #249 is this log and is not graded.
 
 ## 2026-11-02 23:55 UTC — #225 moved again
 
