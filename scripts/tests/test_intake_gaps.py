@@ -72,6 +72,43 @@ def test_category_blank_unknown_mismatch():
     assert "category" in types(run(r(kind="S")))
 
 
+def test_junk_dollar_text_is_not_a_price(tmp_path):
+    assert ig._num("$25") == Decimal("25")
+    assert ig._num("25$") == Decimal("25")
+    assert ig._num("$ 25") == Decimal("25")
+    assert ig._num("25.00") == Decimal("25.00")
+    assert ig._num(25) == Decimal("25")
+    assert ig._num("-$25") == Decimal("-25")
+    assert ig._num("+$25") == Decimal("25")
+    assert ig._num("$-25") == Decimal("-25")
+    for bad in ("2$5", "$$25", "$25$", "12$50", "2,$5", "1,200", "12,50", "-$ 25"):
+        assert ig._num(bad) is None, bad
+    weighed = run(r(weight_kg="2$5"))
+    assert "kg" in types(weighed)
+    junk_sell = run(r(sell_usd="2$5"), live={"A01": {"price": Decimal("30"), "images": ["a"]}})
+    assert "sell_vs_live" not in types(junk_sell, "suspect")
+    real_sell = run(r(sell_usd="$25"), live={"A01": {"price": Decimal("30"), "images": ["a"]}})
+    assert "sell_vs_live" in types(real_sell, "suspect")
+    junk_cost = run(r(cost_usd="2$5"))
+    assert "no_usd_cost" in types(junk_cost, "suspect")
+    assert "usd_vs_cny" not in types(junk_cost, "suspect")
+    catalog = tmp_path / "live.json"
+    catalog.write_text(
+        json.dumps(
+            {
+                "products": [
+                    {"ma": "S06", "priceUsd": "2$5", "images": ["s.jpg"]},
+                    {"ma": "A07", "priceUsd": "$25", "images": []},
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    live = ig.load_live(catalog)
+    assert live["S06"]["price"] is None
+    assert live["A07"]["price"] == Decimal("25")
+
+
 def test_suspect_costs_reported_not_fixed():
     row = r(ma="P03", kind="P", size="", sell_usd="18", cost_currency="CNY", cost_usd="")
     before = copy.deepcopy(row)

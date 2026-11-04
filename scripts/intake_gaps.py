@@ -50,9 +50,22 @@ GROUPS = ("held", "not live", "live")
 
 
 def _num(value: object) -> Decimal | None:
+    """A number, or None. One leading or trailing $ stays. 2$5 is not 25."""
     if value is None:
         return None
-    text = str(value).strip().replace("$", "")
+    text = str(value).strip()
+    dollars = text.count("$")
+    if dollars > 1:
+        return None
+    if dollars == 1:
+        if text.startswith("$"):
+            text = text[1:].strip()
+        elif text.endswith("$"):
+            text = text[:-1].strip()
+        elif len(text) >= 2 and text[0] in "+-" and text[1] == "$":
+            text = text[0] + text[2:]
+        else:
+            return None
     if not text:
         return None
     try:
