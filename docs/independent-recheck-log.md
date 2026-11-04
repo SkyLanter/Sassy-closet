@@ -456,6 +456,10 @@ Open drafts #217–#288 are still on the SHAs recorded above. #225 stays the com
 
 #225 head is still `4fc9fa61ee3e5ee328e7c3b44cac8d177cb87f58`. A cursor[bot] comment says INDEPENDENT RECHECK PASS at that SHA. This lane did not write that comment and does not adopt it. The recheck started at 04:15 UTC is still running. This lane will not post a second comment unless that review disagrees. #249 is this log and is not graded.
 
+## 2026-11-04 04:22 UTC — two-hour poll, no moved head
+
+Open drafts #217–#289 are still on the SHAs recorded above. #225 stays `4fc9fa61ee3e`, and that recheck is still running. No new draft appeared. The next poll is the 2-hour timer. #249 is this log and is not graded.
+
 ## 2026-11-02 23:55 UTC — #225 moved again
 
 #225 head is `d8170670ab411fe21c38630f4a38b8ecdae711e8`. The FAIL on `72d792580d71` stays the comment for that older SHA. The new head is in hard recheck and is not commented yet. #226, #243, and #253 are commented at the SHAs in the verdict table. Their log directories are `out/recheck/20261102-234222-157269`, `out/recheck/20261102-234641-168787`, and `out/recheck/20261102-234412-161336`. No knowledge-lane docs PR.
