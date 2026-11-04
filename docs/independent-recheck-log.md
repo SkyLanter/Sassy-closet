@@ -506,6 +506,10 @@ Open drafts #217–#291 are still on the SHAs recorded above. #225 stays the ver
 
 #225 head is still `dea7e325b3a8b68a03bb890e630aa918b2fbee6e`. A cursor[bot] comment says INDEPENDENT RECHECK FAIL at that SHA. The finding is that `/_next/image` is outside the proxy matcher and the optimizer still reads the public held file. This lane did not write that comment and does not adopt it. The recheck started at 10:45 UTC is still running. This lane will not post a comment unless that review disagrees with the comments already on the SHA. #249 is this log and is not graded.
 
+## 2026-11-04 10:56 UTC — outside FAIL on #225 withdrawn, not adopted
+
+#225 head is still `dea7e325b3a8b68a03bb890e630aa918b2fbee6e`. The same outside thread withdrew the FAIL. It now says the optimizer's internal read runs the proxy before the public file, and it repeats INDEPENDENT RECHECK PASS at this SHA. This lane did not write that correction and does not adopt it. The recheck started at 10:45 UTC is still running. #249 is this log and is not graded.
+
 ## 2026-11-02 23:55 UTC — #225 moved again
 
 #225 head is `d8170670ab411fe21c38630f4a38b8ecdae711e8`. The FAIL on `72d792580d71` stays the comment for that older SHA. The new head is in hard recheck and is not commented yet. #226, #243, and #253 are commented at the SHAs in the verdict table. Their log directories are `out/recheck/20261102-234222-157269`, `out/recheck/20261102-234641-168787`, and `out/recheck/20261102-234412-161336`. No knowledge-lane docs PR.
