@@ -714,3 +714,19 @@ On `0bcfd49`, `srcBelongsToMa` keeps those Blob srcs on live A03. At `932731a` t
 
 #249 is this log and is not graded.
 
+## 2026-11-05 08:08 UTC — #225 at 6408c04 PASS
+
+Requested recheck of this head against parent `932731a`. This lane did not build it.
+
+#225 head is still `6408c04b505d6a37a7780ea0e6ce790397be73f2`. `932731ac2524c9eb1e2f582335ce1f9da1eb0065` stays the prior PASS. Comment `6653013783` says PASS on this SHA. The tip commit is the only delta: 7 files, +392/−12 (`scripts/s06_offer_price.py`, `scripts/midnight_qc.py`, `sassy-closet-shop/lib/intake-import.ts`, and their tests). It does not change `data/held.json`, a price file, CSS, layout, or copy. `npm ci --no-audit --no-fund` in both apps (intake 143 packages, shop 407), then `scripts/hard_recheck.sh --base origin/main` with `HARD_RECHECK_PYTHON=/tmp/recheck-python` (`/usr/bin/python3`, pytest 9.2.0 on `PYTHONPATH`; `/tmp/venv08` was absent). Log `out/recheck/20261105-080343-3608`. pytest 2491 passed, 7 skipped; privacy CLEAN; intake npm 364 / 361 / 0 / 3; shop npm 268 / 265 / 0 / 3; both tsc ok; `held.json` unchanged vs `origin/main`. Required skips: none. Working tree clean. Head was still `6408c04` after the run.
+
+Parent reads offer strings `2$5`, `$$25`, `2.5e1`, and `2_5` as 25. This tree’s `s06_offer_dollars` is None for each, and also for `$2$5`, `2$5$`, `2$$5`, `$2.5e1`, `25e0`, `250e-1`, `2__5`, `25_0`, `0,025`, fullwidth `２５`, `2 5`, `true`, and `false`. `$25`, `25.00`, numeric 25, numeric 25.0, `$25.00`, `+$25`, and `$+25` stay 25. A neighbour `$25` does not repair `2$5`. One S06 offer of `25` beside `2$5` is not a single 25.
+
+Parent midnight QC is sell FAIL when catalog hold A03 sits on both homes at null (`home mã set ... does not match Blob`). This tree is sell PASS, data PASS, overall PASS, and `s06Usd` 25, with A03 present in the parsed home at null (plain JSON and RSC). Sell stays PASS for a null tile on the primary host only and for status ` HOLD `. Sell still FAIL: missing live A02, extra priced A99 at 12, extra null A99, priced hold 48 / 0 / 48.00, K06 null or 40, K06 as a catalog hold at null, Q02 null or 10, and Q02 as a catalog hold at null. A null hold does not hide a missing live mã, an extra priced mã, K06, or an A02 99-vs-23 mismatch. The HTML round trip matches.
+
+Parent kind G drops exact EU `34`–`42` and `35.0`–`41.0`. This tree keeps exact `34` through `42` and folds `35.0`–`41.0` onto those chips, including `40.0` and `41.0`. `34.0` and `42.0` drop. Also dropped: `33`, `43`, `35.00`, `35.5`, `40.`, `EU40`, `40码`, `35-36`, and `3.5e1`. Exact `34` and `42` stay when the `.0` forms are dropped beside them. Kind `g` and ` G ` keep `38`. Kind `A`, `O`, and `Giày` do not. The draft stays `hold` with `priceInput` empty for `sell_usd` `26`, `26.00`, `$26`, `0`, `2$6`, `2.5e1`, and empty, and `parseDraftPrice` is null.
+
+Notes, not a fail: unquoted JSON `2.5e1`, `2.5E1`, `25e0`, and `250e-1` are float 25 after `json.loads`, same as the parent. Two home hits for one mã, null and 48, still collapse to null in `parse_home_prices`; one priced hit stays 48 and fails sell. A null hold with no hub row is sell PASS and data FAIL. S06 stays $25. No Blob, KV, Meta, or price write. No push to the #225 branch.
+
+#249 is this log and is not graded.
+
