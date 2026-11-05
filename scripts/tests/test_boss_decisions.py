@@ -184,20 +184,20 @@ def test_streak_start_bom_block_is_skipped(tmp_path):
     assert bd.streak_start(tmp_path, "2000-01-05", "A01") == "2000-01-04"
 
 
-def test_streak_start_bad_json_breaks(tmp_path):
+def test_streak_start_bad_json_is_skipped(tmp_path):
     cr = tmp_path / "verify/cost-recheck"
     cr.mkdir(parents=True)
     (cr / "summary.2000-01-04.json").write_text(
         json.dumps({"unreachable_mas": ["A01"]}), encoding="utf-8")
     (cr / "summary.2000-01-05.json").write_text("{", encoding="utf-8")
-    assert bd.streak_start(tmp_path, "2000-01-05", "A01") is None
+    assert bd.streak_start(tmp_path, "2000-01-05", "A01") == "2000-01-04"
 
 
-def test_streak_start_non_dict_breaks(tmp_path):
+def test_streak_start_non_dict_is_skipped(tmp_path):
     _write_summary(tmp_path, "2000-01-04", {"unreachable_mas": ["A01"]})
     cr = tmp_path / "verify/cost-recheck"
     (cr / "summary.2000-01-05.json").write_text("[]", encoding="utf-8")
-    assert bd.streak_start(tmp_path, "2000-01-05", "A01") is None
+    assert bd.streak_start(tmp_path, "2000-01-05", "A01") == "2000-01-04"
 
 
 def test_streak_start_unreachable_pile_without_flag_counts(tmp_path):

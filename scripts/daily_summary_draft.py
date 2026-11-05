@@ -35,8 +35,11 @@ MISSING (file not there). Only the input label, file name and time are shown.
 Writes out/summaries/daily-summary-<date>.md (gitignored). Only mã codes,
 counts, statuses and sell $ are used: free-text fields from the inputs are
 never copied, so no ¥ cost, links or customer data can leak. The word CLEAR is
-only printed when both Meta checks pass. A cost summary with taobao_login_needed
-is a signed-out block: its unreachable rows and price deltas are not used.
+only printed when both Meta checks pass. An explicit taobao_login_needed block
+(JSON true, int 1, float 1.0, or true/yes/y/1) drops unreachable and price-delta
+fields and prints the sign-in line. Strings false and no, any case or surrounding
+whitespace, are not a block and do not print that line. JSON inputs are read as
+utf-8-sig.
 """
 from __future__ import annotations
 
@@ -50,11 +53,11 @@ import sys
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+import cost_recheck_block
+
 HERE = Path(__file__).resolve().parent
 if str(HERE) not in sys.path:
     sys.path.insert(0, str(HERE))
-
-import cost_recheck_block  # noqa: E402
 
 ROOT = Path("/workspace/sassy-closet")
 MA = re.compile(r"^[A-Z]\d{2}$")
@@ -151,7 +154,7 @@ def mas(xs):
 def load_json(p):
     if not p or not Path(p).exists():
         return None
-    return json.loads(Path(p).read_text(encoding="utf-8"))
+    return cost_recheck_block.read_json(p)
 
 
 def warn_codes(warns):
@@ -506,8 +509,7 @@ def build(qc, cost, digest, gaps, proposal, meta_ig, meta_fb, date, flips=None, 
     L += midnight_lines(qc)
     if cost:
         if cost_recheck_block.login_blocked(cost):
-            L.append("Taobao cost recheck: blocked on a signed-out read. "
-                     "Unreachable rows and price deltas in this file are not used.")
+            L.append("Taobao cost recheck: blocked on a signed-out read. Unreachable rows and price deltas in this file are not used.")
             L.append("Taobao still needs your sign-in.")
         else:
             cc = cost.get("counts") or {}

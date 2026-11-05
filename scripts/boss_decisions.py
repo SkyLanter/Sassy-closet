@@ -15,14 +15,17 @@ one line per decision: mã | question | evidence path | days open.
 Days open = <date> minus the earliest dated source showing it; '?' when a
 source carries no date. Free text is never copied: only mã codes, category
 questions written here, relative paths, dates and PR numbers. No network,
-no sends, no live writes. A summary with taobao_login_needed is a signed-out
-block: that day is skipped for streaks and is not gone or unreachable evidence.
+no sends, no live writes. A summary with an explicit taobao_login_needed
+block (JSON true, int 1, float 1.0, or true/yes/y/1) is signed-out: that day
+is skipped for streaks and is not gone or unreachable evidence. An unreadable
+or malformed summary is not real data and is skipped the same way: it does
+not count as a streak day and does not start or break the run. Strings false
+and no are not a block. Summary JSON is read as utf-8-sig.
 """
 from __future__ import annotations
 
 import argparse
 import datetime as dt
-import json
 import re
 import sys
 from pathlib import Path
@@ -132,35 +135,56 @@ def parse_digest(text):
 def _summary_lists(path, ma):
     """'count', 'skip', or 'break' for one cost-recheck summary day.
 
-    count: the file is a dict, is not a signed-out block, and lists mã.
-    skip: the file is a dict and login_blocked (it neither counts nor breaks).
-    break: the file is missing, unreadable, not a dict, or does not list mã.
-    UTF-8 BOM is stripped so it cannot hide taobao_login_needed.
+    count: load_summary state is ok and the summary lists mã.
+    skip: state is blocked or bad (signed-out, or present but unreadable
+    or malformed). It neither counts nor breaks.
+    break: the file is missing, or state is ok and the summary does not list mã.
     """
-    if not path.is_file():
+    state, doc = cost_recheck_block.load_summary(path)
+    if state == "missing":
         return "break"
-    try:
-        doc = json.loads(Path(path).read_text(encoding="utf-8-sig"))
-    except (json.JSONDecodeError, OSError, UnicodeDecodeError):
-        return "break"
-    if not isinstance(doc, dict):
-        return "break"
-    if cost_recheck_block.login_blocked(doc):
+    if state == "bad" or state == "blocked":
         return "skip"
-    if ma in (doc.get("unreachable_mas") or []):
-        return "count"
-    return "break"
+    if state == "ok":
+        listed = doc.get("unreachable_mas") or []
+        if ma in listed:
+            return "count"
+        return "break"
+    raise AssertionError(state)
 
 
 def streak_start(root, date, ma):
-    """Earliest date of the unbroken daily run, walking back from <date>, listing mã unreachable.
+    """Earliest date of the unbroken run of cost summaries (up to <date>) listing mã unreachable.
 
-    Walk calendar days backward from <date>, at most 10 years. A day counts
-    only when summary.<day>.json exists, is not a signed-out block, and lists
-    mã in unreachable_mas. A login_blocked day is skipped: it does not count
-    and it does not break the run. A missing file, an unreadable or non-dict
-    file, or a file that does not list mã breaks the run.
-    None when no counted day remains.
+    A signed-out summary is skipped. An unreadable or malformed summary is not
+    real data and is skipped the same way: it does not count as a streak day
+    and does not start or break the run. The file is read as utf-8-sig, same
+    as the streak watcher.
+    """
+    files = sorted((Path(root) / "verify/cost-recheck").glob("summary.????-??-??.json"))
+    start = None
+    for f in reversed(files):
+        d = DATE_IN.search(f.name).group(1)
+        if d > date:
+            continue
+        state, doc = cost_recheck_block.load_summary(f)
+        if state != "ok":
+            continue
+        if ma in (doc.get("unreachable_mas") or []):
+            start = d
+        else:
+            break
+    return start
+
+
+def _calendar_streak_start(root, date, ma):
+    """Earliest counted day, walking calendar days backward from <date>.
+
+    A day counts when summary.<day>.json is readable, is not a signed-out
+    block, and lists mã. A signed-out day is skipped. A present summary that
+    is unreadable or malformed is skipped the same way. A missing file, or a
+    readable summary that does not list mã, ends the run. At most 10 years.
+    None when <date> is not a day or no counted day remains.
     """
     try:
         day = dt.date.fromisoformat(date)
@@ -169,16 +193,20 @@ def streak_start(root, date, ma):
     start = None
     folder = Path(root) / "verify/cost-recheck"
     for _ in range(3660):
-        name = day.isoformat()
-        status = _summary_lists(folder / f"summary.{name}.json", ma)
+        status = _summary_lists(folder / f"summary.{day.isoformat()}.json", ma)
         if status == "skip":
             day -= dt.timedelta(days=1)
             continue
         if status != "count":
             break
-        start = name
+        start = day.isoformat()
         day -= dt.timedelta(days=1)
     return start
+
+
+# A missing summary ends this run. The glob walk above is what the other
+# branch merges; Boss calls the calendar walk.
+streak_start = _calendar_streak_start
 
 
 def first_cost_basis(root, date, ma):
