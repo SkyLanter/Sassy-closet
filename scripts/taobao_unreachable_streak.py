@@ -4,36 +4,71 @@
 Reads verify/cost-recheck/cost-recheck-YYYY-MM-DD-flags.csv files and counts,
 per mã, how many consecutive recheck runs (newest backwards) flagged it
 "unreachable". Output carries mã codes and day counts ONLY: never ¥, links,
-item ids, names or costs. No network, no writes.
+item ids, names or costs. No network, no writes. A sibling summary.<date>.json
+with an explicit taobao_login_needed block is signed-out: those flags are not
+used, and the day neither counts nor breaks a streak. A missing summary is
+unchanged: the flag CSV for that date still counts. An existing summary that
+is unreadable or malformed is not real data: flags are not used and the day
+neither counts nor breaks a streak. Strings false and no are not a block.
+Summary JSON and flag CSVs are read as utf-8-sig.
 """
 import argparse
 import csv
+import datetime as dt
+import zoneinfo
 import glob
+import io
 import os
 import re
 import sys
+
+import cost_recheck_block
 from held_policy import norm_ma
 
 DATE_RE = re.compile(r"cost-recheck-(\d{4}-\d{2}-\d{2})-flags\.csv$")
 MA_RE = re.compile(r"^[A-Z]\d{2}$")
 
 
-def load_runs(directory):
+def partition_runs(directory):
+    """Return (runs, blocked_dates, bad_dates).
+
+    blocked_dates are flag files ignored for a signed-out summary.
+    bad_dates are flag files whose summary exists but is unreadable or
+    malformed: not real data, so the day neither counts nor breaks a streak.
+    A missing summary still reads the flag CSV.
+    """
     runs = []
+    blocked_dates = []
+    bad_dates = []
     for path in glob.glob(os.path.join(directory, "cost-recheck-*-flags.csv")):
         m = DATE_RE.search(os.path.basename(path))
         if not m:
             continue
+        date = m.group(1)
+        summary = os.path.join(directory, f"summary.{date}.json")
+        state, _doc = cost_recheck_block.load_summary(summary)
+        if state == "blocked":
+            blocked_dates.append(date)
+            continue
+        if state == "bad":
+            bad_dates.append(date)
+            continue
         unreachable = set()
-        with open(path, newline="", encoding="utf-8-sig") as fh:
+        with open(path, newline="", encoding=cost_recheck_block.ENCODING) as fh:
             for row in csv.DictReader(fh):
                 ma = norm_ma((row.get("ma") or ""))
                 flags = (row.get("flag") or "").split("|")
                 if MA_RE.match(ma) and "unreachable" in [f.strip() for f in flags]:
                     unreachable.add(ma)
-        runs.append((m.group(1), unreachable))
+        runs.append((date, unreachable))
     runs.sort()
-    return runs
+    blocked_dates.sort()
+    bad_dates.sort()
+    return runs, blocked_dates, bad_dates
+
+
+def load_runs(directory):
+    return partition_runs(directory)[0]
 
 
 def streaks(runs):
@@ -62,12 +97,24 @@ def main(argv=None):
     p.add_argument("--dir", default="verify/cost-recheck")
     p.add_argument("--min-days", type=int, default=2)
     a = p.parse_args(argv)
-    runs = load_runs(a.dir)
-    if not runs:
+    runs, blocked_dates, bad_dates = partition_runs(a.dir)
+    if not runs and not blocked_dates and not bad_dates:
         print("OK no cost-recheck flag files found")
         return 0
+    if not runs and not bad_dates:
+        print(f"OK signed-out block on {len(blocked_dates)} cost-recheck run(s); unreachable flags not used")
+        return 0
+    if not runs and not blocked_dates:
+        print(f"OK unreadable cost-recheck summary on {len(bad_dates)} run(s); unreachable flags not used")
+        return 0
+    if not runs:
+        print(f"OK no usable cost-recheck run ({len(blocked_dates)} signed-out, {len(bad_dates)} unreadable); unreachable flags not used")
+        return 0
     lines = warn_lines(streaks(runs), a.min_days)
-    print(f"latest_run {runs[-1][0]} runs_read {len(runs)}")
+    header = f"latest_run {runs[-1][0]} runs_read {len(runs)} blocked_runs {len(blocked_dates)}"
+    if bad_dates:
+        header += f" unreadable_runs {len(bad_dates)}"
+    print(header)
     for line in lines:
         print(line)
     if not lines:
@@ -75,5 +122,274 @@ def main(argv=None):
     return 0
 
 
+PT = zoneinfo.ZoneInfo("America/Los_Angeles")
+GAP_LIST_MAX = 14
+
+
+def today_pt(now=None):
+    now = now or dt.datetime.now(dt.timezone.utc)
+    return now.astimezone(PT).date()
+
+
+def _real_day(text):
+    try:
+        return dt.date.fromisoformat(text)
+    except (TypeError, ValueError):
+        return None
+
+
+def _norm_row(row):
+    out = {}
+    for key, value in row.items():
+        if key is None:
+            continue
+        out[key.strip()] = value
+    return out
+
+
+def _row_broken(row):
+    """True when this data row cannot be trusted as a clean flag line."""
+    extra = row.get("_extra") or []
+    if any(str(part).strip() for part in extra):
+        return True
+    for key, value in row.items():
+        if key == "_extra" or isinstance(value, list):
+            continue
+        if value is not None and ("\n" in value or "\r" in value or "\x00" in value):
+            return True
+    flag = None
+    for key, value in row.items():
+        if key is not None and key.strip() == "flag":
+            flag = value
+            break
+    return flag is None
+
+
+def read_flags(path):
+    """Return ('ok', set of mã) or ('unusable', short reason). Never includes cell text."""
+    try:
+        with open(path, "rb") as fh:
+            raw = fh.read()
+    except OSError:
+        return "unusable", "unreadable"
+    if not raw:
+        return "unusable", "empty file"
+    if b"\x00" in raw:
+        return "unusable", "bad csv"
+    try:
+        text = raw.decode(cost_recheck_block.ENCODING)
+    except UnicodeDecodeError:
+        return "unusable", "unreadable"
+    try:
+        reader = csv.DictReader(io.StringIO(text), restkey="_extra")
+        if not reader.fieldnames:
+            return "unusable", "no header"
+        names = {(name or "").strip() for name in reader.fieldnames}
+        if "ma" not in names or "flag" not in names:
+            return "unusable", "missing ma or flag column"
+        unreachable = set()
+        for raw_row in reader:
+            if _row_broken(raw_row):
+                return "unusable", "bad csv"
+            row = _norm_row(raw_row)
+            ma = norm_ma(row.get("ma") or "")
+            flags = (row.get("flag") or "").split("|")
+            if MA_RE.match(ma) and "unreachable" in [part.strip() for part in flags]:
+                unreachable.add(ma)
+        return "ok", unreachable
+    except (OSError, UnicodeDecodeError):
+        return "unusable", "unreadable"
+    except csv.Error:
+        return "unusable", "bad csv"
+
+
+def scan(directory):
+    """Usable runs, problems, real dates, blocked dates, and bad-summary dates.
+
+    A missing directory yields five empty results. A filename that is not
+    cost-recheck-YYYY-MM-DD-flags.csv is ignored. An impossible date is a problem.
+    A sibling summary with taobao_login_needed is not a usable run. That date
+    stays in the real dates and the blocked dates. A missing summary leaves the
+    flag CSV to be read. An existing summary that is unreadable or not a dict
+    is not real data: those flags are not used, the day does not count, it does
+    not break a streak, and it is not a missing calendar day.
+    """
+    if not os.path.isdir(directory):
+        return [], [], [], [], []
+    runs = []
+    problems = []
+    real_dates = []
+    blocked = []
+    bad = []
+    pattern = os.path.join(directory, "cost-recheck-*-flags.csv")
+    for path in sorted(glob.glob(pattern)):
+        name = os.path.basename(path)
+        match = DATE_RE.search(name)
+        if not match:
+            continue
+        day = _real_day(match.group(1))
+        if day is None:
+            problems.append((name, "not a real date"))
+            continue
+        real_dates.append(day)
+        summary = os.path.join(directory, f"summary.{day.isoformat()}.json")
+        state, _doc = cost_recheck_block.load_summary(summary)
+        if state == "blocked":
+            blocked.append(day)
+            continue
+        if state == "bad":
+            bad.append(day)
+            continue
+        if state != "missing" and state != "ok":
+            raise AssertionError(state)
+        status, payload = read_flags(path)
+        if status != "ok":
+            problems.append((name, payload))
+            continue
+        runs.append((day.isoformat(), payload))
+    runs.sort()
+    problems.sort()
+    blocked.sort()
+    bad.sort()
+    return runs, problems, real_dates, blocked, bad
+
+
+def calendar_gaps(dates):
+    """Calendar days strictly between the earliest and latest date that have no file."""
+    if len(dates) < 2:
+        return []
+    have = set(dates)
+    start, end = min(dates), max(dates)
+    missing = []
+    cur = start + dt.timedelta(days=1)
+    while cur < end:
+        if cur not in have:
+            missing.append(cur)
+        cur += dt.timedelta(days=1)
+    return missing
+
+
+def _contiguous(missing):
+    groups = []
+    start = prev = missing[0]
+    for day in missing[1:]:
+        if day == prev + dt.timedelta(days=1):
+            prev = day
+            continue
+        groups.append((start, prev))
+        start = prev = day
+    groups.append((start, prev))
+    return groups
+
+
+def gap_line(missing):
+    if not missing:
+        return None
+    tail = ". Day counts are consecutive files, not calendar days."
+    if len(missing) <= GAP_LIST_MAX:
+        shown = ", ".join(day.isoformat() for day in missing)
+        return "NOTE missing cost-recheck days " + shown + tail
+    groups = _contiguous(missing)
+    if len(groups) == 1:
+        start, end = groups[0]
+        shown = f"{len(missing)} days from {start.isoformat()} through {end.isoformat()}"
+    else:
+        shown = (f"{len(missing)} days in separate gaps, "
+                 f"earliest {missing[0].isoformat()}, latest {missing[-1].isoformat()}")
+    return "NOTE missing cost-recheck days " + shown + tail
+
+def build_report(directory, min_days=2, as_of=None):
+    """Full stdout. as_of is a datetime.date or None (no stale check)."""
+    folder_missing = not os.path.isdir(directory)
+    if folder_missing:
+        runs, problems, real_dates, blocked, bad = [], [], [], [], []
+    else:
+        runs, problems, real_dates, blocked, bad = scan(directory)
+    lines = []
+    every_dated_blocked = (
+        bool(real_dates) and len(blocked) == len(real_dates) and not runs and not bad)
+    if folder_missing:
+        lines.append("MISSING cost-recheck folder (no cost-recheck flag files found)")
+    elif every_dated_blocked:
+        lines.append(
+            f"OK signed-out block on {len(blocked)} cost-recheck run(s); unreachable flags not used"
+        )
+    elif not runs and bad and not problems and not blocked:
+        lines.append(
+            f"OK unreadable cost-recheck summary on {len(bad)} run(s); unreachable flags not used"
+        )
+    elif not runs and bad and blocked and not problems:
+        lines.append(
+            "OK no usable cost-recheck run "
+            f"({len(blocked)} signed-out, {len(bad)} unreadable); unreachable flags not used"
+        )
+    elif not runs:
+        if problems:
+            lines.append("MISSING no usable cost-recheck flag files found")
+        else:
+            lines.append("MISSING no cost-recheck flag files found")
+    else:
+        lines.append(f"latest_run {runs[-1][0]} runs_read {len(runs)}")
+    for name, reason in problems:
+        lines.append(f"UNUSABLE {name}: {reason}")
+    note = gap_line(calendar_gaps(real_dates))
+    if note:
+        lines.append(note)
+    if runs:
+        for day in blocked:
+            lines.append(
+                "NOTE signed-out cost-recheck block "
+                f"{day.isoformat()} (unreachable flags not used)"
+            )
+        for day in bad:
+            lines.append(
+                "NOTE unreadable cost-recheck summary "
+                f"{day.isoformat()} (unreachable flags not used)"
+            )
+    evidence_days = []
+    for date_iso, _mas in runs:
+        parsed = _real_day(date_iso)
+        if parsed is not None:
+            evidence_days.append(parsed)
+    evidence_days.extend(blocked)
+    if as_of is not None and evidence_days:
+        latest = max(evidence_days)
+        if latest < as_of:
+            lines.append(
+                f"STALE latest cost-recheck flags {latest.isoformat()} are before {as_of.isoformat()}"
+            )
+        elif latest > as_of:
+            lines.append(
+                f"NOTE latest cost-recheck flags {latest.isoformat()} are after {as_of.isoformat()}"
+            )
+    if runs:
+        warns = warn_lines(streaks(runs), min_days)
+        if warns:
+            lines.extend(warns)
+        else:
+            lines.append("OK no unreachable streaks")
+    return "\n".join(lines) + "\n"
+
+
+
+def rich_main(argv=None):
+    """Print the richer report. Default --as-of is today in America/Los_Angeles."""
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--dir", default="verify/cost-recheck")
+    p.add_argument("--min-days", type=int, default=2)
+    p.add_argument("--as-of", default=None,
+                   help="YYYY-MM-DD to judge stale against (default: today in America/Los_Angeles)")
+    a = p.parse_args(argv)
+    if a.as_of is None:
+        as_of = today_pt()
+    else:
+        as_of = _real_day(a.as_of)
+        if as_of is None:
+            print("bad --as-of, want YYYY-MM-DD", file=sys.stderr)
+            return 2
+    sys.stdout.write(build_report(a.dir, a.min_days, as_of))
+    return 0
+
+
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(rich_main())

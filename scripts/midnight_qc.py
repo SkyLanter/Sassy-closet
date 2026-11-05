@@ -21,6 +21,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 _SCRIPTS = Path(__file__).resolve().parent
 if str(_SCRIPTS) not in sys.path:
@@ -124,9 +125,14 @@ SUMMARY_KEYS = (
     "freshnessGuards",
     "freshnessHub",
 )
+# Live home HTML is a Next.js RSC flight string: quotes are backslash-escaped
+# (`\"ma\":\"S06\"` ... `\"priceUsd\":25`). Fixtures still use plain JSON.
+# The body stops at the next ma key so an unpriced search row cannot take
+# the following product's priceUsd.
 _HOME_PRICE_RE = re.compile(
-    r'"ma"\s*:\s*"(?P<ma>[A-Za-z][0-9]{2})"(?P<body>.{0,2000}?)'
-    r'"priceUsd"\s*:\s*(?P<price>null|\d+(?:\.\d+)?)',
+    r'\\?"ma\\?"\s*:\s*\\?"(?P<ma>[A-Za-z][0-9]{2})\\?"'
+    r'(?P<body>(?:(?!\\?"ma\\?").){0,2000}?)'
+    r'\\?"priceUsd\\?"\s*:\s*(?P<price>null|\d+(?:\.\d+)?)',
     flags=re.DOTALL,
 )
 _SHA_RE = re.compile(r"[0-9a-f]{40}")
@@ -530,7 +536,7 @@ def _findings(night: Night, policy: HeldPolicy) -> tuple[list[Finding], list[Fin
             findings.append(Finding("data", "blob-hub-usd", item))
     for item in _host_price_problems(live_prices, night):
         findings.append(Finding("sell", "sell-price", item))
-    for item in _home_problems(live_prices, night):
+    for item in _home_problems(live_prices, night, policy):
         findings.append(Finding("sell", "home-price", item))
     ops = _ops_held(night.intake, blob_prices)
     omitted = [ma for ma in ops if ma not in policy.held and ma != Q02]
@@ -1017,17 +1023,44 @@ def _host_price_problems(live_prices: dict[str, Decimal | None], night: Night) -
     return problems
 
 
-def _home_problems(live_prices: dict[str, Decimal | None], night: Night) -> list[str]:
+def _home_problems(
+    live_prices: dict[str, Decimal | None],
+    night: Night,
+    policy: HeldPolicy,
+) -> list[str]:
+    """The sell home lists available looks and hold looks. Hold is `priceUsd: null`
+    and is not in the available live index, so set equality false-fails both hosts
+    when an inbox look is on the page. A catalog hold mã may show up with a null
+    price, and a hold row that is absent already matched the live set. A missing
+    live mã, an extra priced mã, a hold mã that shows a dollar, and a held /
+    never-list / Q02 mã still fail on each host.
+    """
     if not night.homes:
         return []
     problems: list[str] = []
+    live_codes = set(live_prices)
+    hold_codes = {
+        item.ma
+        for item in night.products
+        if item.status == "hold" and item.ma != Q02 and policy.skip_reason(item.ma) is None
+    }
     for origin in (PRIMARY_ORIGIN, ALIAS_ORIGIN):
         home = night.homes.get(origin)
         if home is None or home.prices is None:
             problems.append(f"home prices missing for {origin}")
             continue
-        if set(home.prices) != set(live_prices):
-            problems.append(f"home mã set on {origin} does not match Blob")
+        home_codes = set(home.prices)
+        missing = sorted(live_codes - home_codes)
+        if missing:
+            problems.append(f"home on {origin} missing {' '.join(missing)}")
+        for ma in sorted(home_codes - live_codes - hold_codes):
+            price = home.prices[ma]
+            shown = "null" if price is None else money_text(price)
+            problems.append(f"home on {origin} has {ma} {shown}")
+        for ma in sorted(hold_codes & home_codes):
+            price = home.prices[ma]
+            if price is not None:
+                problems.append(f"home on {origin} has {ma} {money_text(price)}")
         for ma, price in live_prices.items():
             if ma in home.prices and home.prices[ma] != price:
                 problems.append(f"{ma} home {origin} USD {money_text(home.prices[ma])} blob {money_text(price)}")
@@ -1478,9 +1511,13 @@ def _utc_now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def today_pt() -> str:
+    return datetime.now(timezone.utc).astimezone(ZoneInfo(TIMEZONE)).date().isoformat()
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Write a read-only midnight QC summary and data-ok report.")
-    parser.add_argument("--date", default=datetime.now(timezone.utc).date().isoformat())
+    parser.add_argument("--date", default=today_pt())
     parser.add_argument("--out", help="Directory for summary.json and data-ok.md.")
     parser.add_argument("--fixture", help="Night JSON. Skips the network.")
     parser.add_argument(

@@ -122,6 +122,172 @@ def test_missing_sources_are_unread_not_zero() -> None:
     assert "S06:" not in text
 
 
+def test_later_spelling_is_not_hidden_behind_the_lock() -> None:
+    payload = {
+        "catalog": {
+            "products": [
+                {"ma": "S06", "priceUsd": 25},
+                {"ma": "S006", "priceUsd": 30},
+            ]
+        }
+    }
+    status = status_from_json(payload)
+    assert status.s06_usd == "25, 30"
+    assert "S06: $25, $30" in render_text(status)
+    assert "$25, $30" in render_page(status)
+    assert payload["catalog"]["products"][1]["priceUsd"] == 30
+
+
+def test_earlier_spelling_is_not_hidden_behind_a_later_lock() -> None:
+    status = status_from_json(
+        {
+            "catalog": {
+                "products": [
+                    {"ma": "S006", "priceUsd": 30},
+                    {"ma": "s06", "priceUsd": 25},
+                ]
+            }
+        }
+    )
+    assert status.s06_usd == "30, 25"
+    assert "S06: $30, $25" in render_text(status)
+
+
+def test_same_dollar_on_every_spelling_stays_one_price() -> None:
+    status = status_from_json(
+        {
+            "catalog": {
+                "products": [
+                    {"ma": "S06", "priceUsd": 25.0},
+                    {"ma": "S006", "priceUsd": 25},
+                ]
+            }
+        }
+    )
+    assert status.s06_usd == "25"
+    assert "S06: $25" in render_text(status)
+
+
+def test_blank_spelling_does_not_hide_a_later_price() -> None:
+    status = status_from_json(
+        {
+            "catalog": {
+                "products": [
+                    {"ma": "S06"},
+                    {"ma": "S006", "priceUsd": 30},
+                ]
+            }
+        }
+    )
+    assert status.s06_usd == "—, 30"
+    assert "S06: —, $30" in render_text(status)
+
+
+def test_short_comma_is_not_the_lock() -> None:
+    payload = {"catalog": {"products": [{"ma": "S06", "priceUsd": "2,5"}]}}
+    status = status_from_json(payload)
+    assert status.s06_usd is None
+    assert "S06:" not in render_text(status)
+    assert payload["catalog"]["products"][0]["priceUsd"] == "2,5"
+
+
+def test_bad_price_does_not_hide_a_later_spelling_or_the_desk() -> None:
+    bad_prices: tuple[object, ...] = (None, "", "  ", True, False, "2,5", "²", "2²", float("inf"), float("nan"))
+    for bad in bad_prices:
+        payload = {
+            "intake": {"submissions": [{"ma": "A01"}]},
+            "catalog": {
+                "products": [
+                    {"ma": "S06", "priceUsd": bad},
+                    {"ma": "S006", "priceUsd": 30},
+                ]
+            },
+        }
+        status = status_from_json(payload)
+        assert status.intake.value == 1, bad
+        assert status.s06_usd == "—, 30", bad
+        assert "S06: —, $30" in render_text(status)
+        assert "$25" not in render_text(status)
+        assert "$1" not in render_text(status)
+        assert payload["catalog"]["products"][0]["priceUsd"] is bad
+        assert payload["catalog"]["products"][1]["priceUsd"] == 30
+
+
+def test_a_later_bad_price_does_not_hide_an_earlier_one() -> None:
+    payload = {
+        "catalog": {
+            "products": [
+                {"ma": "S06", "priceUsd": 25},
+                {"ma": "S006", "priceUsd": "2,5"},
+                {"ma": "S6", "priceUsd": 30},
+            ]
+        }
+    }
+    status = status_from_json(payload)
+    assert status.s06_usd == "25, —, 30"
+    assert "S06: $25, —, $30" in render_text(status)
+    assert payload["catalog"]["products"][1]["priceUsd"] == "2,5"
+
+
+def test_one_real_dollar_survives_a_blank_second_key() -> None:
+    blank_second = status_from_json(
+        {"catalog": {"products": [{"ma": "S06", "priceUsd": 25, "price_usd": None}]}}
+    )
+    assert blank_second.s06_usd == "25, —"
+    assert "S06: $25, —" in render_text(blank_second)
+    stored_on_the_other_key = status_from_json(
+        {"catalog": {"products": [{"ma": "S06", "priceUsd": "", "price_usd": 30}]}}
+    )
+    assert stored_on_the_other_key.s06_usd == "—, 30"
+    assert "S06: —, $30" in render_text(stored_on_the_other_key)
+
+
+def test_a_dollar_sign_between_digits_is_not_the_lock() -> None:
+    payload = {"catalog": {"products": [{"ma": "S06", "priceUsd": "2$5"}]}}
+    alone = status_from_json(payload)
+    assert alone.s06_usd is None
+    assert "S06:" not in render_text(alone)
+    assert payload["catalog"]["products"][0]["priceUsd"] == "2$5"
+    mixed = status_from_json(
+        {
+            "catalog": {
+                "products": [
+                    {"ma": "S06", "priceUsd": 25},
+                    {"ma": "S006", "priceUsd": "2$5"},
+                    {"ma": "S6", "priceUsd": 30},
+                ]
+            }
+        }
+    )
+    assert mixed.s06_usd == "25, —, 30"
+    assert "S06: $25, —, $30" in render_text(mixed)
+    for bad in ("$$25", "$25$", "25$$", "$1$", "1$2", "1$.00"):
+        status = status_from_json(
+            {
+                "catalog": {
+                    "products": [
+                        {"ma": "S06", "priceUsd": bad},
+                        {"ma": "S006", "priceUsd": 30},
+                    ]
+                }
+            }
+        )
+        assert status.s06_usd == "—, 30", bad
+        assert "$25" not in render_text(status)
+        assert "$1" not in render_text(status)
+    assert status_from_json({"catalog": {"products": [{"ma": "S06", "priceUsd": "$25"}]}}).s06_usd == "25"
+    assert status_from_json({"catalog": {"products": [{"ma": "S06", "priceUsd": "25$"}]}}).s06_usd == "25"
+    assert status_from_json({"catalog": {"products": [{"ma": "S06", "priceUsd": "$ 25"}]}}).s06_usd == "25"
+
+
+def test_thousands_comma_still_reads() -> None:
+    status = status_from_json(
+        {"catalog": {"products": [{"ma": "S06", "priceUsd": "$1,025"}]}}
+    )
+    assert status.s06_usd == "1025"
+    assert "S06: $1025" in render_text(status)
+
+
 def test_empty_pr_list_is_none_and_not_unread() -> None:
     status = status_from_json(
         {

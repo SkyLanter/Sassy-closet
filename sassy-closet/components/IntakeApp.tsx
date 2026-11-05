@@ -9,7 +9,7 @@ import { PhotoLightbox } from "@/components/PhotoLightbox";
 import { PhotoThumbs } from "@/components/PhotoThumbs";
 import { SavedCard } from "@/components/SavedCard";
 import { convertCnyToUsd, convertUsdToCny } from "@/lib/fx";
-import { COLORS, KINDS, assertNever, keepSizesForKind, sizeScaleForKind, sizesForKind } from "@/lib/kinds";
+import { COLORS, KINDS, assertNever, keepSizesForKind, restoreSizes, sizeScaleForKind, sizesForKind } from "@/lib/kinds";
 import { nextMa, parseHubMa } from "@/lib/mint";
 import {
   listingChip,
@@ -302,7 +302,7 @@ export function IntakeApp({
     setLoadedMa(item.ma);
     setLookupMa(item.ma);
     setKind(item.kind);
-    setSizes(item.size.split(/[\s,]+/).filter(Boolean));
+    setSizes(restoreSizes(item.size, item.kind));
     const snapshotColors = item.taobao_snapshot?.colors ?? [];
     const allColors = item.color
       .split(",")
@@ -341,23 +341,9 @@ export function IntakeApp({
       form.set("cost_usd", costUsd);
       form.set("cost_cny", costCny);
       form.set("cost_currency", costUsd ? "USD" : costCny ? "CNY" : "USD");
-      const priced = intakePriceView({
-        ma: (editingMa || (tab === "edit" ? loadedMa : "") || "").trim(),
-        kind,
-        costCny,
-        costUsd,
-        costCurrency: costUsd ? "USD" : costCny ? "CNY" : "USD",
-        sellUsd,
-        sellCny,
-        sellCurrency: sellUsd.trim() ? "USD" : sellCny.trim() ? "CNY" : "USD",
-        fxRate,
-      });
-      const fillCalculated = !sellUsd.trim() && !sellCny.trim() && priced.dollars != null;
-      const nextSellUsd = fillCalculated ? String(priced.dollars) : sellUsd;
-      const nextSellCny = fillCalculated ? (convertUsdToCny(nextSellUsd, fxRate) ?? "") : sellCny;
-      form.set("sell_usd", nextSellUsd);
-      form.set("sell_cny", nextSellCny);
-      form.set("sell_currency", nextSellUsd.trim() ? "USD" : nextSellCny.trim() ? "CNY" : "USD");
+      form.set("sell_usd", sellUsd);
+      form.set("sell_cny", sellCny);
+      form.set("sell_currency", sellUsd.trim() ? "USD" : sellCny.trim() ? "CNY" : "USD");
       form.set("color", colorLine);
       form.set("color_note", colorNote);
       form.set("pieces", JSON.stringify([]));

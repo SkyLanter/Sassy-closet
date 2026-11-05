@@ -35,7 +35,11 @@ MISSING (file not there). Only the input label, file name and time are shown.
 Writes out/summaries/daily-summary-<date>.md (gitignored). Only mã codes,
 counts, statuses and sell $ are used: free-text fields from the inputs are
 never copied, so no ¥ cost, links or customer data can leak. The word CLEAR is
-only printed when both Meta checks pass.
+only printed when both Meta checks pass. An explicit taobao_login_needed block
+(JSON true, int 1, float 1.0, or true/yes/y/1) drops unreachable and price-delta
+fields and prints the sign-in line. Strings false and no, any case or surrounding
+whitespace, are not a block and do not print that line. JSON inputs are read as
+utf-8-sig.
 """
 from __future__ import annotations
 
@@ -49,7 +53,12 @@ import sys
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+import cost_recheck_block
+
 HERE = Path(__file__).resolve().parent
+if str(HERE) not in sys.path:
+    sys.path.insert(0, str(HERE))
+
 ROOT = Path("/workspace/sassy-closet")
 MA = re.compile(r"^[A-Z]\d{2}$")
 SELL = re.compile(r"^\$\d+(\.\d{1,2})?$")
@@ -104,24 +113,42 @@ def _side(v):
 
 
 def read_meta_status(root, date):
-    """Return ({"ig": (status, reason), "fb": ...}, source_label)."""
-    cands = [(Path(root) / "out/muse" / f"meta-qc-{date}.json", "Muse QC record")]
+    """Return ({"ig": (status, reason), "fb": ...}, source_label).
+
+    A present meta-qc file that is not a JSON object is unreadable. It does
+    not hide a later snapshot, and it is not reported as a missing file.
+    """
+    muse = Path(root) / "out/muse" / f"meta-qc-{date}.json"
+    cands = [(muse, "Muse QC record", False)]
     snaps = sorted((Path(root) / "out/meta-snapshot").glob(
         f"meta-snapshot-{date.replace('-', '')}T*.json"))
     if snaps:
-        cands.append((snaps[-1], "Meta snapshot"))
-    for path, label in cands:
-        doc = load_json(path)
-        if not isinstance(doc, dict):
+        cands.append((snaps[-1], "Meta snapshot", True))
+    muse_bad = False
+    for path, label, snapshot in cands:
+        state, doc = _json_object(path)
+        if state == "missing":
             continue
-        blk = doc.get("qc", doc) if label == "Meta snapshot" else doc
+        if state != "ok":
+            if path == muse:
+                muse_bad = True
+            continue
+        blk = doc.get("qc", doc) if snapshot else doc
         if not isinstance(blk, dict):
+            if path == muse:
+                muse_bad = True
             continue
         res = {k: _side(blk.get(k)) for k in ("ig", "fb")}
         if any(res.values()):
             for k in res:
                 res[k] = res[k] or ("unchecked", "not in record")
             return res, f"{label} {path.name}"
+    if muse_bad:
+        why = "unreadable"
+        return (
+            {"ig": ("unchecked", why), "fb": ("unchecked", why)},
+            f"out/muse/meta-qc-{date}.json (unreadable)",
+        )
     why = f"no Meta QC record for {date}"
     return {"ig": ("unchecked", why), "fb": ("unchecked", why)}, None
 
@@ -139,13 +166,16 @@ def meta_lines(status, source):
 
 
 def mas(xs):
-    return sorted({x for x in (xs or []) if isinstance(x, str) and MA.match(x)})
+    """Mã codes from a list. A bool or other non-list is empty, not evidence."""
+    if not isinstance(xs, (list, tuple, set)):
+        return []
+    return sorted({x for x in xs if isinstance(x, str) and MA.match(x)})
 
 
 def load_json(p):
     if not p or not Path(p).exists():
         return None
-    return json.loads(Path(p).read_text(encoding="utf-8"))
+    return cost_recheck_block.read_json(p)
 
 
 def warn_codes(warns):
@@ -163,8 +193,17 @@ MA_TOKEN = re.compile(r"\b([A-Z]\d{2})\b")
 
 def under_price_mas(warns):
     """Midnight QC WARN lines about under-price at intake cost -> mã codes only."""
+    if isinstance(warns, str):
+        seq = [warns]
+    elif not warns:
+        seq = []
+    else:
+        try:
+            seq = list(warns)
+        except TypeError:
+            return []
     out = set()
-    for w in warns or []:
+    for w in seq:
         w = str(w)
         if UNDER_WARN.search(w):
             out.update(MA_TOKEN.findall(w))
@@ -173,8 +212,11 @@ def under_price_mas(warns):
 
 def gap_items(gaps, key):
     """Accept dict items or [platform, media, id] lists; return 'PLAT media id' labels."""
+    raw = gaps.get(key) if isinstance(gaps, dict) else None
+    if not isinstance(raw, (list, tuple)):
+        raw = []
     res = []
-    for g in (gaps or {}).get(key) or []:
+    for g in raw:
         if isinstance(g, dict):
             plat, media, pid = g.get("platform", "?"), g.get("media", "post"), g.get("id", "?")
         elif isinstance(g, (list, tuple)) and len(g) == 3:
@@ -273,6 +315,25 @@ def git_commit_time(path):
         return dt.datetime.fromisoformat(out)
     except ValueError:
         return None
+
+
+def _mask_bad_meta_freshness(lines, root, date):
+    """A present meta-qc file that is not a JSON object is unreadable, not OK."""
+    path = Path(root) / "out" / "muse" / f"meta-qc-{date}.json"
+    if _json_object(path)[0] != "bad":
+        return lines
+    replacement = f"- Meta QC json: unreadable ({path.name})"
+    out = []
+    seen = False
+    for line in lines:
+        if line.startswith("- Meta QC json:"):
+            out.append(replacement)
+            seen = True
+        else:
+            out.append(line)
+    if not seen:
+        out.append(replacement)
+    return out
 
 
 def freshness_lines(inputs, now=None):
@@ -427,43 +488,145 @@ def drafts_lines(tgz=None):
         return [bs.HEAD, f"- Bundle status unavailable ({type(e).__name__})."]
 
 
-def build(qc, cost, digest, gaps, proposal, meta_ig, meta_fb, date, flips=None, held_order=None,
-          meta_status=None, meta_source=None, freshness=None, decisions=None, decisions_rel=None, luxubu=None, drafts=None):
-    L = [f"Sassy Closet daily summary {date} (DRAFT, not sent)", ""]
-    if qc:
-        c = qc.get("counts", {})
-        fails, warns = qc.get("fails") or [], warn_codes(qc.get("warns"))
+def _finite_number(value):
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return False
+    return value == value and value not in (float("inf"), float("-inf"))
+
+
+def _shown_count(value):
+    """Digit text for a real number. A bool or other shape is unreadable."""
+    if not _finite_number(value):
+        return "unreadable"
+    if isinstance(value, float):
+        return f"{value:g}"
+    return str(value)
+
+
+def _readable_unreachable_phrase(cost, text):
+    """A bool or other non-number must not print as the unreachable count."""
+    if not isinstance(cost, dict) or cost_recheck_block.login_blocked(cost):
+        return text
+    counts = cost.get("counts")
+    if not isinstance(counts, dict) or "unreachable" not in counts:
+        return text
+    raw = counts.get("unreachable")
+    if _finite_number(raw):
+        return text
+    needle = f"Taobao cost recheck: {raw} listings unreachable"
+    return text.replace(needle, "Taobao cost recheck: unreadable listings unreachable", 1)
+
+
+def midnight_lines(qc):
+    """Midnight QC lines. Legacy keys keep the old wording; the flat summary does not."""
+    if not isinstance(qc, dict) or not qc:
+        return ["Midnight QC: not found for today."]
+    if any(key in qc for key in ("counts", "fails", "warns", "pass2", "s06")):
+        c = qc.get("counts")
+        if not isinstance(c, dict):
+            c = {}
+        fails_raw = qc.get("fails") or []
+        fails = fails_raw if isinstance(fails_raw, (list, tuple)) else []
+        warns_raw = qc.get("warns")
+        warns = warn_codes(warns_raw if isinstance(warns_raw, (list, tuple)) else [])
         overall = str(qc.get("overall", "?")).upper()
         if overall not in {"PASS", "WARN", "FAIL"}:
             overall = "UNKNOWN"
-        p2 = (qc.get("pass2") or {}).get("agrees")
-        s06 = (qc.get("s06") or {}).get("blob")
-        L.append(f"Midnight QC: {overall}, {len(fails)} fail(s), {len(warns)} warning(s)"
-                 + ("; second pass agreed." if p2 else "; second pass did not confirm."))
+        pass2 = qc.get("pass2")
+        p2 = pass2.get("agrees") if isinstance(pass2, dict) else None
+        s06_box = qc.get("s06")
+        lines = [f"Midnight QC: {overall}, {len(fails)} fail(s), {len(warns)} warning(s)"
+                 + ("; second pass agreed." if p2 else "; second pass did not confirm.")]
         bits = []
-        if isinstance(c.get("live"), int):
-            bits.append(f"{c['live']} items live")
-        if isinstance(c.get("held"), int):
-            bits.append(f"{c['held']} held")
-        if isinstance(c.get("intake"), int):
-            bits.append(f"intake {c['intake']} rows, {c.get('new_since_oct21', 0) if isinstance(c.get('new_since_oct21', 0), int) else '?'} new")
-        if isinstance(s06, (int, float)):
-            bits.append(f"S06 ${s06:g}")
+        if "live" in c:
+            bits.append(f"{_shown_count(c.get('live'))} items live")
+        if "held" in c:
+            bits.append(f"{_shown_count(c.get('held'))} held")
+        if "intake" in c:
+            if "new_since_oct21" in c:
+                new = _shown_count(c.get("new_since_oct21"))
+            else:
+                new = "0"
+            bits.append(f"intake {_shown_count(c.get('intake'))} rows, {new} new")
+        if isinstance(s06_box, dict) and "blob" in s06_box:
+            blob = s06_box.get("blob")
+            if _finite_number(blob):
+                bits.append(f"S06 ${blob:g}")
+            else:
+                bits.append("S06 unreadable")
         if bits:
-            L.append("Shop: " + ", ".join(bits) + ".")
-    else:
-        L.append("Midnight QC: not found for today.")
+            lines.append("Shop: " + ", ".join(bits) + ".")
+        return lines
+
+    def word(value):
+        # Status words only. Not a mã, so this does not use norm_ma.
+        if isinstance(value, str):
+            token = " ".join(value.split()).upper()
+            if token in {"PASS", "FAIL", "SKIP", "WARN", "OK", "NOTE", "UNKNOWN"}:
+                return token
+        return "UNKNOWN"
+
+    def whole(value):
+        return isinstance(value, int) and not isinstance(value, bool)
+
+    def number(value):
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            return False
+        return value == value and value not in (float("inf"), float("-inf"))
+
+    overall = str(qc.get("overall", "?")).upper()
+    if overall not in {"PASS", "WARN", "FAIL"}:
+        overall = "UNKNOWN"
+    data_ok = word(qc.get("dataOk"))
+    sell_site = word(qc.get("sellSite"))
+    guards = word(qc.get("freshnessGuards"))
+    hub = word(qc.get("freshnessHub"))
+    lines = [f"Midnight QC: {overall}. Data {data_ok}. Sell site {sell_site}. "
+             f"Freshness guards {guards}. Hub {hub}."]
+    bits = []
+    if whole(qc.get("blobCount")):
+        bits.append(f"{qc['blobCount']} items live")
+    if whole(qc.get("heldCount")):
+        bits.append(f"{qc['heldCount']} held")
+    if whole(qc.get("intakeCount")):
+        bits.append(f"intake {qc['intakeCount']} rows")
+    s06_usd = qc.get("s06Usd")
+    if number(s06_usd):
+        bits.append(f"S06 ${s06_usd:g}")
+    if bits:
+        lines.append("Shop: " + ", ".join(bits) + ".")
+    return lines
+
+
+def _with_readable_counts(cost):
+    """A non-object counts value is not a total. The brief prints that as unreadable."""
+    if not isinstance(cost, dict) or "counts" not in cost:
+        return cost
+    if isinstance(cost.get("counts"), dict):
+        return cost
+    copied = dict(cost)
+    copied["counts"] = {"unreachable": "unreadable"}
+    return copied
+
+
+def build(qc, cost, digest, gaps, proposal, meta_ig, meta_fb, date, flips=None, held_order=None,
+          meta_status=None, meta_source=None, freshness=None, decisions=None, decisions_rel=None, luxubu=None, drafts=None):
+    cost = _with_readable_counts(cost)
+    L = [f"Sassy Closet daily summary {date} (DRAFT, not sent)", ""]
+    L += midnight_lines(qc)
     if cost:
-        cc = cost.get("counts") or {}
-        L.append(f"Taobao cost recheck: {cc.get('unreachable', '?')} listings unreachable"
-                 f" ({', '.join(mas(cost.get('unreachable_mas')))}); "
-                 f"{len(mas(cost.get('live_price_changed')))} live price change(s); "
-                 f"{len(mas(cost.get('new_under_or_loss')))} new under-price/loss.")
-        new = mas(cost.get("persistent_new_unreachable"))
-        if new:
-            L.append(f"Newly gone on Taobao and still live: {', '.join(new)}.")
-        if cost.get("taobao_login_needed"):
+        if cost_recheck_block.login_blocked(cost):
+            L.append("Taobao cost recheck: blocked on a signed-out read. Unreachable rows and price deltas in this file are not used.")
             L.append("Taobao still needs your sign-in.")
+        else:
+            cc = cost.get("counts") or {}
+            L.append(f"Taobao cost recheck: {cc.get('unreachable', '?')} listings unreachable"
+                     f" ({', '.join(mas(cost.get('unreachable_mas')))}); "
+                     f"{len(mas(cost.get('live_price_changed')))} live price change(s); "
+                     f"{len(mas(cost.get('new_under_or_loss')))} new under-price/loss.")
+            new = mas(cost.get("persistent_new_unreachable"))
+            if new:
+                L.append(f"Newly gone on Taobao and still live: {', '.join(new)}.")
     else:
         L.append("Taobao cost recheck: not found for today.")
     L.append("")
@@ -493,9 +656,10 @@ def build(qc, cost, digest, gaps, proposal, meta_ig, meta_fb, date, flips=None, 
     # Decisions
     L.append("Waiting on you:")
     cats = {k: list(v) for k, v in (digest or {}).items()}
-    gone = mas((cost or {}).get("persistent_new_unreachable"))
+    cost_ev = cost_recheck_block.evidence(cost)
+    gone = mas(cost_ev.get("persistent_new_unreachable"))
     under = under_price_mas((qc or {}).get("warns"))
-    unreach = set(mas((cost or {}).get("unreachable_mas")))
+    unreach = set(mas(cost_ev.get("unreachable_mas")))
     pool = set(cats.pop("intake_mismatch", [])) | set(under)
     pool -= set(gone)  # already asked directly in the hold question
     flips = flips or {}
@@ -534,7 +698,9 @@ def build(qc, cost, digest, gaps, proposal, meta_ig, meta_fb, date, flips=None, 
     for key in sorted(set(cats) - {k for k, _ in labels}):
         L.append(f"- {key}: {', '.join(cats[key])}"); n += 1
     if proposal:
-        v = proposal.get("verdicts") or {}
+        v = proposal.get("verdicts")
+        if not isinstance(v, dict):
+            v = {}
         props = [f"{m} {s}" for m, s in sorted(v.items()) if MA.match(m) and SELL.match(str(s))]
         need = [m for m, s in sorted(v.items()) if MA.match(m) and s == "NEEDS_INPUT"]
         if props:
@@ -564,7 +730,7 @@ def build(qc, cost, digest, gaps, proposal, meta_ig, meta_fb, date, flips=None, 
     if freshness:
         L += [""] + list(freshness)
     L += ["", "Nothing was posted, edited or deleted on Facebook or Instagram.", "- Mini Boss"]
-    text = "\n".join(L) + "\n"
+    text = _readable_unreachable_phrase(cost, "\n".join(L) + "\n")
     if BANNED.search(text):
         raise SystemExit("refusing to write: banned content in draft")
     return text
@@ -622,6 +788,26 @@ def add_footer(text, cmd):
     return text.rstrip("\n") + "\n\n" + line + "\n"
 
 
+def _json_object(path):
+    """(state, object). state is missing, bad, or ok. A truncated file does not raise."""
+    if not path or not Path(path).exists():
+        return "missing", None
+    try:
+        doc = load_json(path)
+    except (OSError, UnicodeError, json.JSONDecodeError, RecursionError):
+        return "bad", None
+    if not isinstance(doc, dict):
+        return "bad", None
+    return "ok", doc
+
+
+def _cost_for_brief(doc):
+    """Pass the summary through. build() prints a non-object counts value as unreadable."""
+    if not isinstance(doc, dict):
+        return None
+    return doc
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--date", default=today_pt())
@@ -648,8 +834,15 @@ def main(argv=None):
     if a.out_dir is None:
         a.out_dir = shop_out() / "summaries"
     r, d = a.root, a.date
-    qc = load_json(a.qc or r / "out/midnight-qc" / d / "summary.json")
-    cost = load_json(a.cost or r / "verify/cost-recheck" / f"summary.{d}.json")
+    qc_state, qc = _json_object(a.qc or r / "out/midnight-qc" / d / "summary.json")
+    cost_path = a.cost or r / "verify/cost-recheck" / f"summary.{d}.json"
+    cost_state, cost_doc = cost_recheck_block.load_summary(cost_path)
+    if cost_state in ("ok", "blocked"):
+        cost = _cost_for_brief(cost_doc)
+        cost_bad = False
+    else:
+        cost = None
+        cost_bad = cost_state == "bad"
     dargs = ["--root", str(r)]
     if a.order:
         dargs += ["--order", str(a.order)]
@@ -663,10 +856,18 @@ def main(argv=None):
         "meta_caption_gap_report.py", ["--root", str(r), "--json"])
     try:
         gaps = json.loads(gtext) if gtext.strip() else None
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, RecursionError, ValueError):
         gaps = None
-    prop = load_json(a.proposal or shop_out() / "proposals" / f"held-price-proposal-{d}.json")
-    mst, msrc = read_meta_status(r, d)
+    if not isinstance(gaps, dict):
+        gaps = None
+    _prop_state, prop = _json_object(a.proposal or shop_out() / "proposals" / f"held-price-proposal-{d}.json")
+    try:
+        mst, msrc = read_meta_status(r, d)
+    except (OSError, UnicodeError, json.JSONDecodeError, RecursionError, ValueError):
+        mst, msrc = (
+            {"ig": ("unchecked", "unreadable"), "fb": ("unchecked", "unreadable")},
+            None,
+        )
     text = build(qc, cost, parse_digest(dtext), gaps, prop, None, None, d,
                  flips=flips, held_order=parse_held_order(dtext),
                  meta_status=mst, meta_source=msrc,
@@ -674,8 +875,20 @@ def main(argv=None):
                  drafts=drafts_lines(a.bundle),
                  decisions=r / "out/reports" / d / "BOSS-DECISIONS.md",
                  decisions_rel=f"out/reports/{d}/BOSS-DECISIONS.md",
-                 freshness=freshness_lines(freshness_inputs(
-                     r, d, a.catalog, a.intake, None, cbp, a.order)))
+                 freshness=_mask_bad_meta_freshness(freshness_lines(freshness_inputs(
+                     r, d, a.catalog, a.intake, None, cbp, a.order)), r, d))
+    if cost_bad:
+        text = text.replace(
+            "Taobao cost recheck: not found for today.",
+            "Taobao cost recheck: unreadable, so not used.",
+            1,
+        )
+    if qc_state == "bad":
+        text = text.replace(
+            "Midnight QC: not found for today.",
+            "Midnight QC: unreadable, so not used.",
+            1,
+        )
     text = add_footer(text, generated_with(a))
     a.out_dir.mkdir(parents=True, exist_ok=True)
     out = a.out_dir / f"daily-summary-{d}.md"

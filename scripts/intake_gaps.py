@@ -11,7 +11,10 @@ Gap types (one row per mã, any number of gaps):
   kg        no kg; shows a category proxy (A 0.3, H 0.08) or a CSV estimate
             when one exists. G shoes have no approved weight: "G needs Boss".
   size      clothing/shoe kind with no size, or a size token not allowed
-            for the kind
+            for the kind. Separators match listing: space, comma, semicolon,
+            slash, and pipe. A delimiter-only value is no size. Listing
+            aliases XXS, XXL, and 3XL count as 2XS or 2XL when that chip
+            is already allowed. The stored row is not rewritten.
   photos    no intake photo_paths (and, for live mãs, no catalog images)
   link      no Taobao link, or a link that is not Taobao/Tmall
   category  blank/unknown kind, or kind not matching the mã letter
@@ -32,17 +35,25 @@ import sys
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
+from autolist import _SIZE_ALIASES as _LISTING_SIZE_ALIASES
 from held_policy import load_held_policy, norm_ma
 from intake_flags import IntakeRow, flag_intake
 
 FX_CNY_PER_USD = Decimal("6.723")
 MA_RE = re.compile(r"^([A-Z])[0-9]{2}$")
+# A comma is a thousands group. The first group starts at 1–999, so 0,025 is not 25.
+_GROUPED_THOUSANDS = re.compile(r"[+-]?[1-9]\d{0,2}(?:,\d{3})+(?:\.\d+)?")
+# Same shop statuses as the daily snapshot export. sold and hold are not a live price.
+LIVE_STATUSES = {"available", "live", "active", "in_stock", "instock"}
 # Approved category kg proxies (same as the held price sheet). G has none.
 CATEGORY_KG_PROXY: dict[str, Decimal] = {"A": Decimal("0.3"), "H": Decimal("0.08")}
 NEEDS_BOSS_KG = frozenset({"G"})
 SIZED_KINDS = frozenset({"A", "Q", "V", "D", "K", "S", "G"})
 DEFAULT_SIZES = ("2XS", "XS", "S", "M", "L", "XL", "2XL")
 TAOBAO_RE = re.compile(r"^https?://([a-z0-9-]+\.)*(tb\.cn|taobao\.com|tmall\.com)(/|$)", re.I)
+_DECIMAL_CHIP = re.compile(r"^(\d{2})(?:\.0)?$")
+# Same separators as autolist.norm_sizes. The stored row is not rewritten.
+_SIZE_DELIMS = re.compile(r"[\s,;/|]+")
 USD_TOLERANCE = Decimal("0.05")
 GAP_TYPES = ("cny", "kg", "size", "photos", "link", "category")
 SUSPECT_TYPES = ("sell_vs_live", "cny_label", "no_usd_cost", "usd_vs_cny")
@@ -50,11 +61,32 @@ GROUPS = ("held", "not live", "live")
 
 
 def _num(value: object) -> Decimal | None:
+    """A number, or None. One leading or trailing $ stays.
+
+    A comma is a thousands group of three digits, so 1,200 is 1200.
+    2$5, 12,50, 0,025, and 2.5e1 are not 25.
+    """
     if value is None:
         return None
-    text = str(value).strip().replace("$", "")
-    if not text:
+    text = str(value).strip()
+    dollars = text.count("$")
+    if dollars > 1:
         return None
+    if dollars == 1:
+        if text.startswith("$"):
+            text = text[1:].strip()
+        elif text.endswith("$"):
+            text = text[:-1].strip()
+        elif len(text) >= 2 and text[0] in "+-" and text[1] == "$":
+            text = text[0] + text[2:]
+        else:
+            return None
+    if not text or any(mark in text for mark in ("e", "E", "_")):
+        return None
+    if "," in text:
+        if _GROUPED_THOUSANDS.fullmatch(text) is None:
+            return None
+        text = text.replace(",", "")
     try:
         n = Decimal(text)
     except InvalidOperation:
@@ -91,6 +123,40 @@ def kg_gap(code: str, kind: str, row: dict, weights: dict[str, tuple[Decimal, st
     return {"type": "kg", "detail": "no kg and no category proxy"}
 
 
+def chip_size(token: str) -> str:
+    """Allowed-list form of one stored size token.
+
+    A single trailing .0 counts as the two digits. Listing aliases
+    (XXS, XXL, 3XL) count as 2XS or 2XL. The stored token is not rewritten.
+    """
+    folded = token.strip()
+    folded = folded.upper()
+    match = _DECIMAL_CHIP.fullmatch(folded)
+    if match:
+        return match.group(1)
+    return _LISTING_SIZE_ALIASES.get(folded, folded)
+
+
+def size_tokens(raw: str) -> list[str]:
+    """Split a stored size the way autolist.norm_sizes does. Empty pieces are dropped."""
+    text = str(raw or "")
+    text = text.strip()
+    return [token for token in _SIZE_DELIMS.split(text) if token]
+
+
+def disallowed_size_tokens(raw: str, allowed) -> list[str]:
+    """Stored tokens that are not an allowed chip. The stored spelling is returned. Nothing is rewritten."""
+    allowed_set = {str(item).upper() for item in allowed}
+    bad: list[str] = []
+    for token in size_tokens(raw):
+        chip = chip_size(token)
+        stored = token.strip()
+        stored = stored.upper()
+        if chip not in allowed_set and stored not in allowed_set:
+            bad.append(token)
+    return bad
+
+
 def row_gaps(row: dict, live: dict[str, dict], weights, sizes_by_kind) -> tuple[list[dict], list[dict]]:
     code = norm_ma(str(row.get("ma", "")))
     kind = str(row.get("kind", "") or "").strip().upper()
@@ -114,12 +180,13 @@ def row_gaps(row: dict, live: dict[str, dict], weights, sizes_by_kind) -> tuple[
         gaps.append(kgg)
 
     if kind in SIZED_KINDS:
-        tokens = str(row.get("size") or "").replace(",", " ").split()
+        raw_size = str(row.get("size") or "")
+        tokens = size_tokens(raw_size)
         if not tokens:
             gaps.append({"type": "size", "detail": "no size"})
         else:
-            allowed = set(sizes_by_kind.get(kind) or DEFAULT_SIZES)
-            bad = [t for t in tokens if t.upper() not in allowed]
+            allowed = sizes_by_kind.get(kind) or DEFAULT_SIZES
+            bad = disallowed_size_tokens(raw_size, allowed)
             if bad:
                 gaps.append({"type": "size", "detail": f"size not allowed for {kind}: {' '.join(bad)}"})
 
@@ -223,21 +290,55 @@ def markdown(rep: dict) -> str:
     return "\n".join(out) + "\n"
 
 
+def _on_shop(row: dict) -> bool:
+    status = row.get("status", "available")
+    if status is None:
+        return True
+    if not isinstance(status, str):
+        return False
+    token = status.strip().lower()
+    if token == "":
+        return True
+    return token in LIVE_STATUSES
+
+
+def _live_row(row: dict) -> tuple[str, dict] | None:
+    if not _on_shop(row):
+        return None
+    code = norm_ma(str(row.get("ma", "")))
+    if not code:
+        return None
+    return code, {"price": _num(row.get("priceUsd")), "images": row.get("images") or []}
+
+
 def load_live(path: Path | None) -> dict[str, dict]:
+    """Public shop prices. A sold or hold row is not live. One bad row is skipped."""
     if path is None:
         return {}
-    d = json.loads(path.read_text(encoding="utf-8"))
+    data = json.loads(path.read_text(encoding="utf-8"))
     out: dict[str, dict] = {}
-    if isinstance(d.get("products"), list):
-        for p in d["products"]:
-            if str(p.get("status", "available")).lower() in {"hidden", "draft", "deleted"}:
-                continue
-            code = norm_ma(str(p.get("ma", "")))
+    if isinstance(data, dict) and isinstance(data.get("prices"), dict) and not isinstance(data.get("products"), list):
+        for key, value in data["prices"].items():
+            code = norm_ma(str(key))
             if code:
-                out[code] = {"price": _num(p.get("priceUsd")), "images": p.get("images") or []}
-    elif isinstance(d.get("prices"), dict):
-        for k, v in d["prices"].items():
-            out[norm_ma(k)] = {"price": _num(v), "images": None}
+                out[code] = {"price": _num(value), "images": None}
+        return out
+    if isinstance(data, dict) and isinstance(data.get("products"), list):
+        rows = data["products"]
+    elif isinstance(data, list):
+        rows = data
+    elif isinstance(data, dict):
+        return {}
+    else:
+        raise ValueError("catalog must be products[] or a prices map")
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        parsed = _live_row(row)
+        if parsed is None:
+            continue
+        code, body = parsed
+        out[code] = body
     return out
 
 

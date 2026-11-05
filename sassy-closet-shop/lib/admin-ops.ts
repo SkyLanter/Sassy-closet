@@ -247,7 +247,13 @@ export function renameProductInCatalog(
   if (isOffLiveSell(to)) {
     return { ok: false, error: `Cannot change mã to ${to}.` };
   }
+  if (isOffLiveSell(from)) {
+    return { ok: false, error: `Cannot change mã from ${canonicalMaSpelling(from)}.` };
+  }
   if (to === "S06" && input.priceUsd !== 25) {
+    return { ok: false, error: "S06 stays $25." };
+  }
+  if (canonicalMaSpelling(from) === "S06" && input.priceUsd !== 25) {
     return { ok: false, error: "S06 stays $25." };
   }
   if (isKnownSeedMa(canonicalMaSpelling(from))) {

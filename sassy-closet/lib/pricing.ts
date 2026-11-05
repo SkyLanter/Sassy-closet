@@ -11,10 +11,11 @@
  * Debox table: V/Q/D = $7.50 (LOCKED — can never be overridden).
  * Other letters default to $0 unless Boss sets a per-letter value.
  *
- * Caption guard: if the sell price is blank, or its margin lands under
+ * Caption guard: if the sell price is blank, garbled, or its margin lands under
  * the 35% floor, the price caption stays "Inbox giá".
  */
 import type { KindCode } from "./kinds";
+import { readMoney, type MoneySide } from "./money-text";
 import { normalizeMa } from "./mint";
 
 /** Target gross margin baked into the auto price (25%). */
@@ -163,10 +164,22 @@ export type IntakePriceView = {
   flag: SellPriceFlag;
 };
 
-function positiveAmount(raw: string): number | null {
-  const value = Number(String(raw).trim());
-  if (!Number.isFinite(value) || value <= 0) return null;
-  return value;
+function positiveAmount(raw: string, side: MoneySide): number | null {
+  const money = readMoney(raw, side);
+  if (money.kind !== "amount" || !(money.value > 0)) return null;
+  return money.value;
+}
+
+function pricedSellLabel(raw: string, side: MoneySide): string | null {
+  const money = readMoney(raw, side);
+  if (money.kind !== "amount" || money.value < 0) return null;
+  const symbol = side === "CNY" ? "¥" : "$";
+  return `${symbol}${money.text}`;
+}
+
+function isZeroAmount(raw: string, side: MoneySide): boolean {
+  const money = readMoney(raw, side);
+  return money.kind === "amount" && money.value === 0;
 }
 
 /** Goods cost in USD plus the letter debox. CNY is converted with the weekly FX. */
@@ -180,13 +193,21 @@ export function landedUsdFromCosts(input: {
 }): number | null {
   const fx = input.fxRate;
   if (!Number.isFinite(fx) || fx <= 0) return null;
-  const cny = positiveAmount(input.costCny);
-  const usd = positiveAmount(input.costUsd);
+  const cny = positiveAmount(input.costCny, "CNY");
+  const usd = positiveAmount(input.costUsd, "USD");
   const currency = input.costCurrency.trim().toUpperCase();
   let goodsUsd: number | null = null;
-  if (currency === "CNY" && cny) goodsUsd = cny / fx;
-  else if (usd) goodsUsd = usd;
-  else if (cny) goodsUsd = cny / fx;
+  if (currency === "CNY") {
+    if (isZeroAmount(input.costCny, "CNY")) goodsUsd = null;
+    else if (cny) goodsUsd = cny / fx;
+    else if (usd) goodsUsd = usd;
+  } else if (isZeroAmount(input.costUsd, "USD")) {
+    goodsUsd = null;
+  } else if (usd) {
+    goodsUsd = usd;
+  } else if (cny) {
+    goodsUsd = cny / fx;
+  }
   if (goodsUsd == null) return null;
   const landed = goodsUsd + deboxFor(input.kind, input.deboxOverrides);
   return landed > 0 ? landed : null;
@@ -195,11 +216,13 @@ export function landedUsdFromCosts(input: {
 function storedSellUsd(input: SellPriceInput): number | null {
   const currency = input.sellCurrency.trim().toUpperCase();
   if (currency === "CNY") {
-    const cny = positiveAmount(input.sellCny);
-    if (!cny || !Number.isFinite(input.fxRate) || input.fxRate <= 0) return null;
-    return cny / input.fxRate;
+    const money = readMoney(input.sellCny, "CNY");
+    if (money.kind !== "amount" || !Number.isFinite(input.fxRate) || input.fxRate <= 0) return null;
+    return money.value / input.fxRate;
   }
-  return positiveAmount(input.sellUsd);
+  const money = readMoney(input.sellUsd, "USD");
+  if (money.kind !== "amount") return null;
+  return money.value;
 }
 
 function underTieredMargin(sellUsd: number, landed: number | null, quote: number | null): boolean {
@@ -222,9 +245,10 @@ export function intakePriceView(input: SellPriceInput & { ma: string }): IntakeP
   const stored = storedSellUsd(input);
   if (stored != null) {
     const currency = input.sellCurrency.trim().toUpperCase();
-    const label = currency === "CNY" && input.sellCny.trim() ? `¥${input.sellCny.trim()}` : `$${input.sellUsd.trim()}`;
+    const label =
+      currency === "CNY" ? pricedSellLabel(input.sellCny, "CNY") : pricedSellLabel(input.sellUsd, "USD");
     return {
-      label,
+      label: label ?? "Tính giá sau",
       dollars: stored,
       flag: underTieredMargin(stored, landed, quote) ? "under-margin" : "ok",
     };
@@ -240,20 +264,16 @@ export function intakePriceView(input: SellPriceInput & { ma: string }): IntakeP
 }
 
 export function sellPriceFlag(input: SellPriceInput): SellPriceFlag {
-  const currency = input.sellCurrency.toUpperCase();
-  const sellBlank = currency === "CNY" ? !input.sellCny.trim() : !input.sellUsd.trim();
-  if (sellBlank) return "later";
+  const sellIsCny = input.sellCurrency.toUpperCase() === "CNY";
+  const sell = readMoney(sellIsCny ? input.sellCny : input.sellUsd, sellIsCny ? "CNY" : "USD");
+  if (sell.kind === "blank") return "later";
+  if (sell.kind !== "amount" || !(sell.value > 0)) return "ok";
 
-  const costCnyNum = Number(String(input.costCny).trim());
-  const costUsdNum = Number(String(input.costUsd).trim());
-  const costKnown =
-    input.costCurrency.toUpperCase() === "CNY"
-      ? Number.isFinite(costCnyNum) && costCnyNum > 0
-      : Number.isFinite(costUsdNum) && costUsdNum > 0;
-  if (!costKnown) return "ok";
+  const costIsCny = input.costCurrency.toUpperCase() === "CNY";
+  const cost = positiveAmount(costIsCny ? input.costCny : input.costUsd, costIsCny ? "CNY" : "USD");
+  if (cost == null) return "ok";
 
-  const costCnyValue =
-    input.costCurrency.toUpperCase() === "CNY" ? costCnyNum : costUsdNum * input.fxRate;
+  const costCnyValue = costIsCny ? cost : cost * input.fxRate;
   const breakdown = computeAutoPrice({
     costCny: costCnyValue,
     fxRate: input.fxRate,
@@ -261,25 +281,25 @@ export function sellPriceFlag(input: SellPriceInput): SellPriceFlag {
     deboxOverrides: input.deboxOverrides,
   });
   if (!breakdown) return "ok";
-  const sellNum = currency === "CNY" ? Number(input.sellCny) / input.fxRate : Number(input.sellUsd);
-  if (!Number.isFinite(sellNum) || sellNum <= 0) return "ok";
-  const marginPct = (sellNum - breakdown.landedUsd) / sellNum;
+  const sellUsd = sellIsCny ? sell.value / input.fxRate : sell.value;
+  if (!Number.isFinite(sellUsd) || !(sellUsd > 0)) return "ok";
+  const marginPct = (sellUsd - breakdown.landedUsd) / sellUsd;
   if (marginPct < MARGIN_FLOOR) return "under-margin";
   return "ok";
 }
 
 /**
  * Caption price line for a submission.
- * - sell blank            -> "Inbox giá"
+ * - sell blank or garbled -> "Inbox giá"
  * - margin < 35% (known)  -> "Inbox giá"
- * - otherwise             -> the sell price as before ("$X" / "¥Y")
+ * - otherwise             -> one currency symbol plus the canonical amount
  */
 export function captionPriceLine(input: SellPriceInput): string {
+  const sellIsCny = input.sellCurrency.toUpperCase() === "CNY";
+  const primary = readMoney(sellIsCny ? input.sellCny : input.sellUsd, sellIsCny ? "CNY" : "USD");
+  if (primary.kind === "garbled") return "Inbox giá";
   if (sellPriceFlag(input) !== "ok") return "Inbox giá";
-  const currency = input.sellCurrency.toUpperCase();
-  if (currency === "CNY" && input.sellCny) return `¥${input.sellCny}`;
-  if (input.sellUsd) return `$${input.sellUsd}`;
-  if (input.sellCny) return `¥${input.sellCny}`;
+  if (primary.kind === "amount") return `${sellIsCny ? "¥" : "$"}${primary.text}`;
   return "Inbox giá";
 }
 

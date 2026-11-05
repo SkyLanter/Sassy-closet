@@ -48,7 +48,7 @@ from schema import header_row_for_sheet, normalize_header, read_headers, resolve
 
 from held_policy import HeldPolicy, load_held_policy, norm_ma
 from intake_flags import IntakeFlag, IntakeRow, PublicCny, flag_intake
-from pickup import PickupDecision, PickupEvent, events_from_json, plan_pickups
+from pickup import PickupDecision, PickupEvent, events_from_json, photo_count_or_none, plan_pickups
 
 PRIMARY_ORIGIN = "https://sassycloset.vercel.app"
 ALIAS_ORIGIN = "https://sassy-closet-shop.vercel.app"
@@ -175,10 +175,24 @@ def parse_usd(value: object) -> Decimal | None:
         if isinstance(value, float) and not math.isfinite(value):
             return None
         return Decimal(str(value))
-    text = str(value).strip().replace("$", "").replace(",", "")
-    if text == "" or re.fullmatch(r"\d+(?:\.\d+)?", text) is None:
+    # One leading or trailing $ is a currency mark. A comma counts only as a
+    # thousands group of three digits, so 2$5, 12,50, and 1.200,50 are not prices.
+    text = str(value).strip()
+    dollars = text.count("$")
+    if dollars > 1:
         return None
-    return Decimal(text)
+    if dollars == 1:
+        if text.startswith("$"):
+            text = text[1:].strip()
+        elif text.endswith("$"):
+            text = text[:-1].strip()
+        else:
+            return None
+    plain = re.fullmatch(r"\d+(?:\.\d+)?", text)
+    grouped = re.fullmatch(r"\d{1,3}(?:,\d{3})+(?:\.\d+)?", text)
+    if plain is None and grouped is None:
+        return None
+    return Decimal(text.replace(",", ""))
 
 
 def parse_blob_catalog(payload: object) -> list[MoneyRow]:
@@ -995,13 +1009,25 @@ def _sizes_field(item: dict[str, object]) -> tuple[str, ...] | None:
     return None
 
 
+def _is_photo_url(part: object) -> bool:
+    """A photo is a string with a real URL. 0, false, objects, arrays, and blank text are not."""
+    if not isinstance(part, str):
+        return False
+    for char in part:
+        if char == "\u200b" or char == "\ufeff" or char.isspace():
+            continue
+        return True
+    return False
+
+
 def _photo_field(item: dict[str, object]) -> int | None:
     if "photo_count" in item and item.get("photo_count") is not None:
-        return int(str(item.get("photo_count")))
+        return photo_count_or_none(item.get("photo_count"))
     for key in ("gallery", "photos", "images", "gallery_urls"):
         raw = item.get(key)
         if isinstance(raw, list):
-            return sum(1 for part in raw if str(part).strip())
+            # str(None), str(0), and str({}) are not URLs. Blank and zero-width text are not either.
+            return sum(1 for part in raw if _is_photo_url(part))
     return None
 
 

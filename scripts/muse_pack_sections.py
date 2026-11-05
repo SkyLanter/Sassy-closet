@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import re
 import sys
+from datetime import date
 from pathlib import Path
 from held_policy import norm_ma
 
@@ -22,6 +23,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 MA_OK = re.compile(r"^[A-Z]{1,2}\d{2,3}$")
 ID_OK = re.compile(r"^[A-Za-z0-9_-]{1,40}$")
+DATE_DIR = re.compile(r"\d{4}-\d{2}-\d{2}")
 START = "<!-- muse-pack-sections:start -->"
 END = "<!-- muse-pack-sections:end -->"
 MSG_START = "[auto sections]"
@@ -45,7 +47,17 @@ def section_decisions(root: Path):
     by: dict[str, list[str]] = {}
     for cat, ma in seen:
         by.setdefault(str(cat), []).append(_ma(ma))
-    return {"total": len(seen), "by_cat": {k: sorted(set(v)) for k, v in sorted(by.items())}}
+    held_mas: list[str] = []
+    try:
+        order_path, held_path = bd.repo_order_held_paths()
+        held_mas = [_ma(m) for m in bd.held_in_popular_order(order_path, held_path)]
+        held_mas = [m for m in held_mas if m != "?"]
+    except (OSError, ValueError, AttributeError, TypeError):
+        held_mas = []
+    if held_mas:
+        by.setdefault("popular_order_held", []).extend(held_mas)
+    listed = {k: sorted(set(v)) for k, v in sorted(by.items())}
+    return {"total": sum(len(v) for v in listed.values()), "by_cat": listed}
 
 
 def section_captions(root: Path):
@@ -62,9 +74,39 @@ def section_captions(root: Path):
     return {"no_ma": rows("no_ma"), "no_gia": rows("no_gia"), "live_no_post": lnp}
 
 
-def default_intake(root: Path):
-    c = sorted(root.glob("out/midnight-qc/*/raw/intake-submissions.json"))
-    return [c[-1]] if c else []
+def _real_day(value: str) -> str | None:
+    if DATE_DIR.fullmatch(value) is None:
+        return None
+    try:
+        date.fromisoformat(value)
+    except ValueError:
+        return None
+    return value
+
+
+def _intake_day(path: Path) -> str | None:
+    path = Path(path)
+    raw = path.parent
+    if path.name != "intake-submissions.json" or raw.name != "raw":
+        return None
+    return _real_day(raw.parent.name)
+
+
+def default_intake(root: Path, day=None):
+    if day is not None:
+        chosen = _real_day(str(day))
+        if chosen is None:
+            return []
+        path = root / "out" / "midnight-qc" / chosen / "raw" / "intake-submissions.json"
+        return [path] if path.is_file() else []
+    newest: tuple[str, Path] | None = None
+    for path in root.glob("out/midnight-qc/*/raw/intake-submissions.json"):
+        day = _real_day(path.parent.parent.name)
+        if day is None or not path.is_file():
+            continue
+        if newest is None or day > newest[0]:
+            newest = (day, path)
+    return [newest[1]] if newest else []
 
 
 def section_reuse(files):
@@ -72,17 +114,23 @@ def section_reuse(files):
     if not files:
         raise FileNotFoundError("no intake file")
     rows = []
+    days = []
     for f in files:
-        rows.extend(ir.load_rows(Path(f)))
-    return {"rows_read": len(rows),
-            "reused": [(_ma(f["ma"]), int(f["rows"])) for f in ir.find_reuse(rows)]}
+        path = Path(f)
+        rows.extend(ir.load_rows(path))
+        days.append(_intake_day(path))
+    out = {"rows_read": len(rows),
+           "reused": [(_ma(f["ma"]), int(f["rows"])) for f in ir.find_reuse(rows)]}
+    if days and all(day is not None and day == days[0] for day in days):
+        out["intake_date"] = days[0]
+    return out
 
 
-def build(root: Path, intake=None):
+def build(root: Path, intake=None, date=None):
     out = {}
     for name, fn in (("decisions", lambda: section_decisions(root)),
                      ("captions", lambda: section_captions(root)),
-                     ("reuse", lambda: section_reuse(default_intake(root) if intake is None else intake))):
+                     ("reuse", lambda: section_reuse(default_intake(root, date) if intake is None else intake))):
         try:
             out[name] = fn()
         except Exception as e:  # noqa: BLE001 - any tool failure => section unavailable
@@ -114,7 +162,8 @@ def render_md(s) -> str:
     if "error" in r:
         L.append(f"- {UNAVAILABLE} ({r['error']})")
     else:
-        L.append(f"- {len(r['reused'])} reused of {r['rows_read']} rows"
+        when = f" ({r['intake_date']})" if r.get("intake_date") else ""
+        L.append(f"- {len(r['reused'])} reused of {r['rows_read']} rows{when}"
                  + (": " + " ".join(f"{m}×{n}" for m, n in r["reused"]) if r["reused"] else ""))
     L.append(END)
     return "\n".join(L)
@@ -128,7 +177,8 @@ def render_msg(s) -> str:
     L.append("Caption gaps: " + (UNAVAILABLE if "error" in c else
              f"no mã {len(c['no_ma'])}, no Giá {len(c['no_gia'])}"))
     L.append("Reused intake codes: " + (UNAVAILABLE if "error" in r else
-             (" ".join(m for m, _ in r["reused"]) or "none")))
+             ((" ".join(m for m, _ in r["reused"]) or "none")
+              + (f" ({r['intake_date']})" if r.get("intake_date") else ""))))
     L.append(MSG_END)
     return "\n".join(L)
 
@@ -153,15 +203,23 @@ def apply(today: Path, message: Path | None, s) -> None:
         path.write_text(_splice(old, block, a, b, sig), encoding="utf-8")
 
 
+def _yyyy_mm_dd(value: str) -> str:
+    day = _real_day(value)
+    if day is None:
+        raise argparse.ArgumentTypeError("date must be YYYY-MM-DD")
+    return day
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--root", type=Path, default=Path("/workspace/sassy-closet"))
     ap.add_argument("--intake", type=Path, nargs="*")
+    ap.add_argument("--date", type=_yyyy_mm_dd, help="intake day YYYY-MM-DD; omit for the newest dated file")
     ap.add_argument("--today", type=Path)
     ap.add_argument("--message", type=Path)
     ap.add_argument("--write", action="store_true", help="splice into --today/--message (local files only)")
     a = ap.parse_args(argv)
-    s = build(a.root, a.intake)
+    s = build(a.root, a.intake, a.date)
     if a.write:
         if not a.today:
             ap.error("--write needs --today")

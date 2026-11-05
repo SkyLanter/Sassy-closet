@@ -64,7 +64,7 @@ def heartbeat(state: Path) -> datetime | None:
     lc = state / "last_check.json"
     if lc.exists() and lc.stat().st_size:
         try:
-            seen.append(datetime.fromisoformat(json.loads(lc.read_text(encoding="utf-8"))["at"]))
+            seen.append(g.aware_utc(datetime.fromisoformat(json.loads(lc.read_text(encoding="utf-8"))["at"])))
         except Exception:  # noqa: BLE001
             pass
     for n in ("run.sh.lock", "autolist.lock"):

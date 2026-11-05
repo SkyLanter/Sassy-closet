@@ -1,3 +1,4 @@
+import json
 import sys
 from pathlib import Path
 
@@ -37,15 +38,20 @@ def test_closed_lines_skipped(tmp_path):
 def test_output_has_no_line_text(tmp_path, capsys):
     _w(tmp_path, "out/midnight-qc/QC-2026-01-06.md",
        "X06 needs a Boss price PLACEHOLDER_SECRET\n")
-    bdd.main(["--root", str(tmp_path)])
+    bdd.main(["--root", str(tmp_path), "--order", str(tmp_path / "missing-order.json"),
+              "--held", str(tmp_path / "missing-held.json")])
     out = capsys.readouterr().out
     assert "X06" in out and "PLACEHOLDER_SECRET" not in out
+    assert "[popular_order_held]" not in out
     assert "TOTAL 1" in out
 
 
 def test_empty_root(tmp_path, capsys):
-    bdd.main(["--root", str(tmp_path)])
-    assert "TOTAL 0 (none)" in capsys.readouterr().out
+    bdd.main(["--root", str(tmp_path), "--order", str(tmp_path / "missing-order.json"),
+              "--held", str(tmp_path / "missing-held.json")])
+    out = capsys.readouterr().out
+    assert "[popular_order_held]" not in out
+    assert "TOTAL 0 (none)" in out
 
 
 def test_date_from_parent_dir(tmp_path):
@@ -114,13 +120,159 @@ def test_explain_prints_rule_not_text(tmp_path, capsys):
 
 
 def test_held_popular_order_item_placeholder(tmp_path):
-    import json as _j
-    from boss_decisions_digest import held_in_popular_order, held_order_item
     o = tmp_path / "o.json"; h = tmp_path / "h.json"
-    o.write_text(_j.dumps({"order": ["X01", "X02", "X03"]}))
-    h.write_text(_j.dumps({"held": ["X02"], "neverList": ["X03"]}))
-    mas = held_in_popular_order(o, h)
+    o.write_text(json.dumps({"order": ["X01", "X02", "X03"]}))
+    h.write_text(json.dumps({"held": ["X02"], "neverList": ["X03"]}))
+    mas = bdd.held_in_popular_order(o, h)
     assert mas == ["X02", "X03"]
-    assert held_order_item(mas).startswith("Remove held mãs X02, X03 from popular order?")
-    assert held_order_item([]) is None
-    assert held_in_popular_order(tmp_path / "none.json", h) == []
+    assert bdd.held_order_item(mas).startswith("Remove held mãs X02, X03 from popular order?")
+    assert bdd.held_order_item([]) is None
+    assert bdd.held_in_popular_order(tmp_path / "none.json", h) == []
+
+
+def test_negated_closures_and_continuation_bullet(tmp_path):
+    assert bdd.is_closed("X05 hold call not decided yet — Boss") is False
+    assert bdd.is_closed("Boss: price not yet approved for X07") is False
+    assert bdd.is_closed("Boss price no longer approved for X06") is False
+    open_root = tmp_path / "open"
+    _w(open_root, "out/muse/extras-2026-03-01.md",
+       "X05 hold call not decided yet — Boss\n"
+       "Boss: price not yet approved for X07\n"
+       "Boss price no longer approved for X06\n"
+       "- Boss hold call needed\n"
+       "  for X99 keep or release? Boss\n")
+    seen = bdd.scan(open_root)
+    assert set(seen) == {
+        ("hold_call", "X05"),
+        ("price_approval", "X07"),
+        ("price_approval", "X06"),
+        ("hold_call", "X99"),
+    }
+    assert seen[("hold_call", "X99")][1] == "2026-03-01"
+    noboss = tmp_path / "noboss"
+    _w(noboss, "verify/cost-recheck/REPORT-2026-03-02.md",
+       "Price not yet approved for X07 (held)\n")
+    assert bdd.scan(noboss) == {}
+
+
+def test_open_continuation_survives_closed_bullet_line(tmp_path):
+    _w(tmp_path, "out/muse/extras-2026-03-01.md",
+       "- X01 Boss price approved\n"
+       "  X02 needs a Boss price\n")
+    assert bdd.scan(tmp_path) == {("price_approval", "X02"): (
+        "out/muse/extras-2026-03-01.md", "2026-03-01")}
+
+
+def test_closed_line_still_skipped(tmp_path):
+    assert bdd.is_closed("X05 Boss price approved") is True
+    assert bdd.is_closed("No other issue. Boss price approved for X04") is True
+    _w(tmp_path, "verify/cost-recheck/REPORT-2026-03-03.md",
+       "X05 Boss price approved\n"
+       "No other issue. Boss price approved for X04\n")
+    assert bdd.scan(tmp_path) == {}
+
+
+def test_repo_order_held_paths_exist():
+    order, held = bdd.repo_order_held_paths()
+    repo = Path(bdd.__file__).resolve().parents[1]
+    assert order == repo / "sassy-closet-shop" / "data" / "popular-order.json"
+    assert held == repo / "data" / "held.json"
+    assert order.is_file() and held.is_file()
+
+
+def test_main_explicit_order_prints_held_mas_only(tmp_path, capsys):
+    root = tmp_path / "scanroot"
+    root.mkdir()
+    order = tmp_path / "order.json"
+    held = tmp_path / "held.json"
+    order.write_text(json.dumps({
+        "updatedAt": "SECRET_UPDATED_AT",
+        "method": "SECRET_METHOD_TEXT",
+        "order": ["Z91", "Z92"],
+    }))
+    held.write_text(json.dumps({
+        "held": ["Z91"],
+        "neverList": [],
+        "reason": "SECRET_HELD_REASON",
+    }))
+    assert bdd.main(["--root", str(root), "--order", str(order), "--held", str(held)]) == 0
+    out = capsys.readouterr().out
+    lines = [ln for ln in out.splitlines() if "[popular_order_held]" in ln]
+    assert lines == [
+        "- [popular_order_held] Remove held mãs Z91 from popular order? "
+        "(no effect while they are 404; keeping lets them rank on return)"
+    ]
+    assert "Z92" not in out
+    for secret in ("SECRET_UPDATED_AT", "SECRET_METHOD_TEXT", "SECRET_HELD_REASON", "heldIncomplete"):
+        assert secret not in out
+    assert "TOTAL 1 (popular_order_held=1)" in out
+
+
+def test_earlier_not_does_not_reopen_an_approval(tmp_path):
+    assert bdd.is_closed("isn't approved") is False
+    assert bdd.is_closed("X09 Boss price not done but approved") is True
+    assert bdd.is_closed("not decided, Boss price approved for X03") is True
+    assert bdd.is_closed("  Boss price approved for X01") is True
+    _w(tmp_path, "out/muse/extras-2026-03-04.md",
+       "- not a hold\n"
+       "  Boss price approved for X01\n"
+       "- X02 hold call not decided yet — Boss\n"
+       "  X13 Boss price approved\n"
+       "- X11 Boss price approved\n"
+       "  needs a Boss price for\n"
+       "  X12\n")
+    seen = bdd.scan(tmp_path)
+    assert ("price_approval", "X01") not in seen
+    assert ("price_approval", "X13") not in seen
+    assert ("price_approval", "X11") not in seen
+    assert ("hold_call", "X02") in seen
+    assert ("price_approval", "X12") in seen
+
+
+def test_date_above_scan_root_is_not_first_seen(tmp_path):
+    root = tmp_path / "2020-01-01" / "shop"
+    _w(root, "out/muse/extras-notes.md", "X02 needs a Boss price\n")
+    _w(root, "out/muse/extras-2026-04-01.md", "X02 needs a Boss price\n")
+    assert bdd.file_date(root / "out/muse/extras-notes.md", root) is None
+    src, first_seen = bdd.scan(root)[("price_approval", "X02")]
+    assert first_seen == "2026-04-01"
+    assert src == "out/muse/extras-2026-04-01.md"
+
+
+def test_padded_and_short_ma_open_the_canonical_code(tmp_path):
+    _w(tmp_path, "out/muse/extras-2026-04-02.md",
+       "S006 needs a Boss price\n"
+       "S6 needs a Boss price\n"
+       "S 06 needs a Boss price\n"
+       "S06B needs a Boss price\n"
+       "S06Đ needs a Boss price\n"
+       "A100 needs a Boss price\n"
+       "S07 Boss price approved\n"
+       "not decided, Boss price approved for S08\n")
+    seen = bdd.scan(tmp_path)
+    assert ("price_approval", "S06") in seen
+    assert ("price_approval", "S00") not in seen
+    assert ("price_approval", "S06B") not in seen
+    assert ("price_approval", "A100") not in seen
+    assert ("price_approval", "S07") not in seen
+    assert ("price_approval", "S08") not in seen
+    assert [ma for cat, ma in seen if cat == "price_approval"] == ["S06"]
+
+
+def test_padded_public_held_blob_uses_canonical_code(tmp_path):
+    _w(tmp_path, "out/muse/extras-2026-04-03.md",
+       "S006 Blob photos public, Boss delete\n")
+    seen = bdd.scan(tmp_path, public_held={"S06"})
+    assert ("blob_photo_delete", "S06") in seen
+    assert ("blob_photo_delete", "S00") not in seen
+
+
+def test_nested_real_day_counts_and_impossible_day_does_not(tmp_path):
+    real = "out/midnight-qc/2026-03-04/raw/note.md"
+    _w(tmp_path, real, "X08 needs a Boss price\n")
+    assert bdd.file_date(tmp_path / real, tmp_path) == "2026-03-04"
+    assert bdd.scan(tmp_path)[("price_approval", "X08")][1] == "2026-03-04"
+    bad = "out/midnight-qc/2026-99-99/raw/note.md"
+    _w(tmp_path, bad, "X11 needs a Boss price\n")
+    assert bdd.file_date(tmp_path / bad, tmp_path) is None
+    assert bdd.scan(tmp_path)[("price_approval", "X11")][1] == "unknown"

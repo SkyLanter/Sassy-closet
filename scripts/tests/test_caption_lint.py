@@ -83,6 +83,63 @@ def test_s06_must_be_25():
     assert r.status == "FAIL" and has(r, "s06_not_25")
 
 
+def test_padded_and_short_s06_still_lock_at_25():
+    wide = lint("Mã S006\nGiá $30")
+    assert wide.ma == "S06" and wide.status == "FAIL" and has(wide, "s06_not_25")
+    short = lint("Mã S6\nGiá $25")
+    assert short.ma == "S06" and short.status == "WARN" and has(short, "malformed_ma")
+    assert not has(short, "s06_not_25") and not has(short, "missing_ma")
+
+
+def test_padded_held_ma_uses_the_approved_gia():
+    r = lint("Mã S015\nGiá $35")
+    assert r.ma == "S15" and r.status == "FAIL" and has(r, "held_gia_differs")
+
+
+def test_long_digit_run_is_not_a_ma():
+    r = lint("Mã K12345\nGiá $30")
+    assert r.ma is None and r.status == "FAIL" and has(r, "missing_ma")
+
+
+def test_trailing_letter_is_not_s06():
+    for caption in ("Mã S06B\nGiá $30", "Mã S006B\nGiá $30", "Mã S6B\nGiá $30"):
+        stuck = lint(caption)
+        assert stuck.ma is None and stuck.status == "FAIL" and has(stuck, "missing_ma")
+        assert not has(stuck, "s06_not_25")
+    later = lint("Mã S006B Mã S06\nGiá $30")
+    assert later.ma == "S06" and later.status == "FAIL" and has(later, "s06_not_25")
+
+
+def test_stuck_suffix_is_not_s06():
+    samples = (
+        "Mã S06Đ\nGiá $30",
+        "Mã S6Đ\nGiá $30",
+        "Mã S006Đ\nGiá $30",
+        "Mã S06\uFF22\nGiá $30",
+        "Mã S06\u200bB\nGiá $30",
+        "Mã S06\u00adB\nGiá $30",
+        "Mã S06\u200eB\nGiá $30",
+        "Mã S06\u200fB\nGiá $30",
+        "Mã S06\uFF11\nGiá $30",
+    )
+    for caption in samples:
+        stuck = lint(caption)
+        assert stuck.ma is None and stuck.status == "FAIL" and has(stuck, "missing_ma"), caption
+        assert not has(stuck, "s06_not_25")
+    later = lint("Mã S06Đ Mã S06\nGiá $30")
+    assert later.ma == "S06" and later.status == "FAIL" and has(later, "s06_not_25")
+    spaced = lint("Mã S06 Đỏ\nGiá $30")
+    assert spaced.ma == "S06" and has(spaced, "s06_not_25")
+    assert lint("Mã S06\nGiá $25").status == "PASS"
+
+
+def test_rejected_spelling_does_not_hide_the_next_ma():
+    later = lint("Mã A100 Mã A09\nGiá $30")
+    assert later.ma == "A09" and later.status == "WARN" and has(later, "malformed_ma")
+    locked = lint("Mã K1234 Mã S06\nGiá $30")
+    assert locked.ma == "S06" and locked.status == "FAIL" and has(locked, "s06_not_25")
+
+
 def test_s06_locked_even_if_snapshot_says_otherwise():
     r = cl.lint_post("u", "ig", "Mã S06\nGiá $30", {"S06": 30.0}, {"S06"}, set(), {})
     assert has(r, "s06_not_25")

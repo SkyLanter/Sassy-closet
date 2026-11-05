@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import re
 import sys
 from pathlib import Path
@@ -45,12 +46,48 @@ def load_held(path: Path | None) -> tuple[list[str], str]:
 def load_approved(path: Path | None) -> set[str]:
     if path is None:
         return set()
-    d = json.loads(Path(path).read_text(encoding="utf-8"))
-    return {c for c in (norm_ma(m) for m in (d.get("approvedGia") or {})) if MA_RE.match(c)}
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError("approved Giá must be an object")
+    gia = data.get("approvedGia", {})
+    if gia is None:
+        return set()
+    if not isinstance(gia, dict):
+        raise ValueError("approvedGia must be an object")
+    out: set[str] = set()
+    for key, value in gia.items():
+        code = norm_ma(key)
+        if MA_RE.match(code) and _has_price(value):
+            out.add(code)
+    return out
 
 
 def _has_price(v) -> bool:
-    return isinstance(v, (int, float)) and not isinstance(v, bool) and v > 0
+    """A real positive dollar or weight. A boolean is not a number. A numeric string counts."""
+    if isinstance(v, bool) or v is None:
+        return False
+    if isinstance(v, str):
+        text = v.strip()
+        if text.startswith("$"):
+            text = text[1:].strip()
+        if "," in text:
+            if re.fullmatch(r"\d{1,3}(?:,\d{3})+(?:\.\d+)?", text) is None:
+                return False
+            text = text.replace(",", "")
+        if text == "":
+            return False
+        try:
+            number = float(text)
+        except (TypeError, ValueError):
+            return False
+    elif isinstance(v, (int, float)):
+        try:
+            number = float(v)
+        except OverflowError:
+            return False
+    else:
+        return False
+    return math.isfinite(number) and number > 0
 
 
 def reasons_for(row: dict | None, approved: bool) -> list[str]:

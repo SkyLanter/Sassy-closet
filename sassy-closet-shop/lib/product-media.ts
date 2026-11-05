@@ -1,4 +1,7 @@
 import { isKnownSeedMa } from "@/lib/catalog-contract";
+import { catalogProductFolders } from "@/lib/catalog-image-src";
+import { isOffLiveSell } from "@/lib/held-incomplete";
+import { canonicalMaSpelling } from "@/lib/ma";
 import type { Product, ProductColor, ProductImageAsset } from "@/lib/types";
 
 /** Gallery helpers need mã + colors + images only — never status. */
@@ -9,24 +12,39 @@ export type MaMedia = {
 };
 
 /**
- * Hub ten never render another hub mã’s `/products/{MA}/` file.
- * Blob `/uploads/`, https URLs, and extra-mã folders (rename A04 → A03) stay.
+ * Own folder stays (including a held mã's own photos, any case or padding).
+ * Another mã never renders a held folder or a hub-ten folder.
+ * The folder is read after the same one-decode and dot-segment collapse the
+ * image route uses, so `%53%31%34` is S14 and `A04/../S14` is S14.
+ * Blob /uploads/, https URLs without /products/{folder}/, and extra folders
+ * (rename A04 → A03) stay.
  */
 export function srcBelongsToMa(src: string, ma: string): boolean {
   const trimmed = src.trim();
   if (!trimmed) {
     return false;
   }
-  const pathOnly = trimmed.split("?")[0] ?? trimmed;
-  const match = pathOnly.match(/\/products\/([^/]+)\//i);
-  if (!match) {
+  const folders = catalogProductFolders(trimmed);
+  if (folders === null) {
+    return false;
+  }
+  if (folders.length === 0) {
     return true;
   }
-  const folder = match[1];
-  if (folder === ma) {
-    return true;
+  const mine = canonicalMaSpelling(ma);
+  for (const folder of folders) {
+    const canon = canonicalMaSpelling(folder);
+    if (canon === mine) {
+      continue;
+    }
+    if (isOffLiveSell(folder)) {
+      return false;
+    }
+    if (isKnownSeedMa(canon)) {
+      return false;
+    }
   }
-  return !isKnownSeedMa(folder);
+  return true;
 }
 
 export function ownMaImages(product: MaMedia): ProductImageAsset[] {

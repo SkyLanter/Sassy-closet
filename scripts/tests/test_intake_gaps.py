@@ -49,6 +49,60 @@ def test_kg_missing_without_proxy_and_g_needs_boss():
     assert "estimate 0.5" in e["gaps"][0]["detail"]
 
 
+def test_trailing_zero_counts_as_the_allowed_chip_and_the_row_stays():
+    row = r(ma="G01", kind="G", size="35.0 36")
+    before = copy.deepcopy(row)
+    assert "size" not in types(run(row))
+    assert row == before
+    flagged = run(r(ma="G01", kind="G", size="35.0 44.0"))
+    size_gaps = [gap for gap in flagged["gaps"] if gap["type"] == "size"]
+    assert [gap["detail"] for gap in size_gaps] == ["size not allowed for G: 44.0"]
+    hundredths = run(r(ma="G01", kind="G", size="35.00"))
+    hundredth_gaps = [gap for gap in hundredths["gaps"] if gap["type"] == "size"]
+    assert [gap["detail"] for gap in hundredth_gaps] == ["size not allowed for G: 35.00"]
+    outside = run(r(ma="G01", kind="G", size="34.0 42.0"))
+    outside_gaps = [gap for gap in outside["gaps"] if gap["type"] == "size"]
+    assert [gap["detail"] for gap in outside_gaps] == ["size not allowed for G: 34.0 42.0"]
+    clothing = run(r(size="40.0"))
+    clothing_gaps = [gap for gap in clothing["gaps"] if gap["type"] == "size"]
+    assert [gap["detail"] for gap in clothing_gaps] == ["size not allowed for A: 40.0"]
+
+
+def test_delimiter_split_matches_listing_and_the_row_stays():
+    row = r(ma="G01", kind="G", size="35;36|37")
+    before = copy.deepcopy(row)
+    assert "size" not in types(run(row))
+    assert row == before
+    mixed = run(r(ma="G01", kind="G", size="35;44"))
+    mixed_gaps = [gap for gap in mixed["gaps"] if gap["type"] == "size"]
+    assert [gap["detail"] for gap in mixed_gaps] == ["size not allowed for G: 44"]
+    blank = run(r(ma="G01", kind="G", size=";;;"))
+    blank_gaps = [gap for gap in blank["gaps"] if gap["type"] == "size"]
+    assert [gap["detail"] for gap in blank_gaps] == ["no size"]
+    assert "size" not in types(run(r(size="S;M")))
+    odd = run(r(size="S;99"))
+    odd_gaps = [gap for gap in odd["gaps"] if gap["type"] == "size"]
+    assert [gap["detail"] for gap in odd_gaps] == ["size not allowed for A: 99"]
+
+
+def test_listing_alias_counts_as_the_allowed_chip_and_the_row_stays():
+    allowed = ("2XS", "XS", "S", "M", "L", "XL", "2XL")
+    assert ig.disallowed_size_tokens("XXS 3XL;XXL", allowed) == []
+    assert ig.disallowed_size_tokens("4XL", allowed) == ["4XL"]
+    assert ig.disallowed_size_tokens("XXS", ("S", "M", "L", "XL")) == ["XXS"]
+    row = r(size="S XXS")
+    before = copy.deepcopy(row)
+    flagged = run(row)
+    size_gaps = [gap for gap in flagged["gaps"] if gap["type"] == "size"]
+    assert [gap["detail"] for gap in size_gaps] == ["size not allowed for A: XXS"]
+    assert row == before
+    kept = r(size="XXS;XXL|3XL")
+    kept_before = copy.deepcopy(kept)
+    gaps, _suspect = ig.row_gaps(kept, {}, {}, {"A": allowed})
+    assert [gap for gap in gaps if gap["type"] == "size"] == []
+    assert kept == kept_before
+
+
 def test_size_missing_bad_and_not_needed():
     assert "size" in types(run(r(size="")))
     assert "size" in types(run(r(ma="G01", kind="G", size="35 44")))
@@ -70,6 +124,103 @@ def test_category_blank_unknown_mismatch():
     assert "category" in types(run(r(kind="")))
     assert "category" in types(run(r(kind="Z")))
     assert "category" in types(run(r(kind="S")))
+
+
+def test_junk_dollar_text_is_not_a_price(tmp_path):
+    assert ig._num("$25") == Decimal("25")
+    assert ig._num("25$") == Decimal("25")
+    assert ig._num("$ 25") == Decimal("25")
+    assert ig._num("25.00") == Decimal("25.00")
+    assert ig._num(25) == Decimal("25")
+    assert ig._num("-$25") == Decimal("-25")
+    assert ig._num("+$25") == Decimal("25")
+    assert ig._num("$-25") == Decimal("-25")
+    assert ig._num("1,200") == Decimal("1200")
+    assert ig._num("$1,200") == Decimal("1200")
+    assert ig._num("1,200$") == Decimal("1200")
+    assert ig._num("1,200.00") == Decimal("1200.00")
+    assert ig._num("$1,200.50") == Decimal("1200.50")
+    assert ig._num("-$1,200") == Decimal("-1200")
+    assert ig._num("1,025") == Decimal("1025")
+    for bad in (
+        "2$5", "$$25", "$25$", "12$50", "2,$5", "12,50", "2,5", "1,2000", "0,025", "1234,567", "-$ 25",
+        "2.5e1", "25e0", "250e-1", "+$2.5e1", "2.5e1$", "$2.5e1", "2.5E1",
+        "1e2", "$1e2", "1e2$", "2_5", "2__5", "25_0", "1,200e0",
+    ):
+        assert ig._num(bad) is None, bad
+    weighed = run(r(weight_kg="2$5"))
+    assert "kg" in types(weighed)
+    junk_sell = run(r(sell_usd="2$5"), live={"A01": {"price": Decimal("30"), "images": ["a"]}})
+    assert "sell_vs_live" not in types(junk_sell, "suspect")
+    exponent_sell = run(r(sell_usd="2.5e1"), live={"A01": {"price": Decimal("25"), "images": ["a"]}})
+    assert "sell_vs_live" not in types(exponent_sell, "suspect")
+    grouped_sell = run(r(sell_usd="1,200"), live={"A01": {"price": Decimal("30"), "images": ["a"]}})
+    assert "sell_vs_live" in types(grouped_sell, "suspect")
+    same_grouped = run(r(sell_usd="$1,200"), live={"A01": {"price": Decimal("1200"), "images": ["a"]}})
+    assert "sell_vs_live" not in types(same_grouped, "suspect")
+    grouped_weight = run(r(weight_kg="1,200"))
+    assert "kg" not in types(grouped_weight)
+    short_group_weight = run(r(weight_kg="12,50"))
+    assert "kg" in types(short_group_weight)
+    real_sell = run(r(sell_usd="$25"), live={"A01": {"price": Decimal("30"), "images": ["a"]}})
+    assert "sell_vs_live" in types(real_sell, "suspect")
+    junk_cost = run(r(cost_usd="2$5"))
+    assert "no_usd_cost" in types(junk_cost, "suspect")
+    assert "usd_vs_cny" not in types(junk_cost, "suspect")
+    catalog = tmp_path / "live.json"
+    catalog.write_text(
+        json.dumps(
+            {
+                "products": [
+                    {"ma": "S06", "priceUsd": "2$5", "images": ["s.jpg"]},
+                    {"ma": "A07", "priceUsd": "$25", "images": []},
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    live = ig.load_live(catalog)
+    assert live["S06"]["price"] is None
+    assert live["A07"]["price"] == Decimal("25")
+    exponent = tmp_path / "exponent.json"
+    exponent.write_text(
+        json.dumps(
+            {
+                "products": [
+                    {"ma": "S006", "priceUsd": "2.5e1", "images": ["s.jpg"]},
+                    {"ma": "S6", "priceUsd": "1e2", "images": ["t.jpg"]},
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    folded = ig.load_live(exponent)
+    assert folded["S06"]["price"] is None
+    grouped = tmp_path / "grouped.json"
+    grouped.write_text(
+        json.dumps(
+            {
+                "products": [
+                    {"ma": "A08", "priceUsd": "$1,200", "images": ["a.jpg"]},
+                    {"ma": "A09", "priceUsd": "1,200.00", "images": ["b.jpg"]},
+                    {"ma": "S06", "priceUsd": "1,200", "images": ["s.jpg"]},
+                    {"ma": "A10", "priceUsd": "12,50", "images": ["c.jpg"]},
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    grouped_live = ig.load_live(grouped)
+    assert grouped_live["A08"]["price"] == Decimal("1200")
+    assert grouped_live["A09"]["price"] == Decimal("1200.00")
+    assert grouped_live["S06"]["price"] == Decimal("1200")
+    assert grouped_live["A10"]["price"] is None
+    collapsed = tmp_path / "collapsed.json"
+    collapsed.write_text(
+        json.dumps({"products": [{"ma": "S006", "priceUsd": "0,025", "images": ["t.jpg"]}]}),
+        encoding="utf-8",
+    )
+    assert ig.load_live(collapsed)["S06"]["price"] is None
 
 
 def test_suspect_costs_reported_not_fixed():
@@ -136,3 +287,45 @@ def test_p249_main_cli_accepts_bare_list(tmp_path):
     out = tmp_path / "o.json"
     assert g.main(["--intake", str(p), "--out-json", str(out)]) == 0
     assert json.loads(out.read_text())["intake_mas"] == 1
+
+
+def test_sold_and_hold_are_not_the_live_shop_price(tmp_path):
+    catalog = tmp_path / "catalog.json"
+    catalog.write_text(json.dumps({"products": [
+        {"ma": " a01 ", "status": "available", "priceUsd": 20, "images": ["a"]},
+        {"ma": "Z03", "status": "sold", "priceUsd": 19},
+        {"ma": "S14", "status": "hold", "priceUsd": 30},
+        {"ma": "H02", "priceUsd": 12},
+        {"ma": "K02", "status": None, "priceUsd": 15},
+        {"ma": "A02", "status": "  ", "priceUsd": 22},
+        {"ma": "A03", "status": "\n", "priceUsd": 23},
+        "not-a-row",
+        {"priceUsd": 5},
+    ]}))
+    live = ig.load_live(catalog)
+    assert set(live) == {"A01", "A02", "A03", "H02", "K02"}
+    assert live["A01"]["price"] == Decimal(20)
+    assert live["A01"]["images"] == ["a"]
+    intake = {
+        "submissions": [
+            {"ma": "Z03", "kind": "Z", "sell_usd": "40", "cost_usd": "10", "cost_cny": "67.23"},
+            {"ma": "A01", "kind": "A", "sell_usd": "18", "cost_usd": "10", "cost_cny": "67.23", "size": "M"},
+        ]
+    }
+    rows = {row["ma"]: row for row in ig.build(intake, live, set())["rows"]}
+    assert rows["Z03"]["group"] == "not live"
+    assert "sell_vs_live" not in [item["type"] for item in rows["Z03"]["suspect"]]
+    assert rows["A01"]["group"] == "live"
+    assert "sell_vs_live" in [item["type"] for item in rows["A01"]["suspect"]]
+
+
+def test_prices_map_and_bare_catalog_list(tmp_path):
+    prices = tmp_path / "prices.json"
+    prices.write_text(json.dumps({"prices": {" k3 ": 40}}))
+    assert ig.load_live(prices)["K03"]["price"] == Decimal(40)
+    bare = tmp_path / "bare.json"
+    bare.write_text(json.dumps([
+        {"ma": "A01", "status": "Available", "priceUsd": 20},
+        {"ma": "Z03", "status": "SOLD", "priceUsd": 19},
+    ]))
+    assert set(ig.load_live(bare)) == {"A01"}

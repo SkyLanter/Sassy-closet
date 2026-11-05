@@ -114,3 +114,126 @@ def test_no_network_imports():
     src = Path(tc.__file__).read_text(encoding="utf-8")
     for bad in ("urllib", "requests", "http.client", "socket", "subprocess"):
         assert f"import {bad}" not in src and f"from {bad}" not in src
+
+
+def test_full_catalog_missing_s06_is_lock_drift():
+    c = {"A50": {"intake_cny": "100", "list_cny": "", "kg": "0.3"}}
+    rows = tc.evaluate({"A50": 999}, c, POLICY, require_s06=True)
+    drift = [r for r in rows if r.decision == "lock-drift"]
+    assert [r.ma for r in drift] == ["S06"] and "missing from live catalog" in drift[0].reason
+    s = tc.summarize(rows)
+    assert s["outcome"] == "LOCK_DRIFT" and s["counts"]["lock-drift"] == 1
+    json.dumps(s, allow_nan=False)  # strict-JSON safe
+
+
+def test_full_catalog_with_s06_spelled_s6_is_fine():
+    rows = tc.evaluate({"s6": 25}, {}, POLICY, require_s06=True)
+    assert [(r.ma, r.decision) for r in rows] == [("S06", "locked")]
+    assert tc.summarize(rows)["outcome"] == "QUIET_OK"
+
+
+def test_partial_input_does_not_require_s06():
+    assert tc.evaluate({}, {}, POLICY) == []
+
+
+def test_s06_off_25_outcome_is_lock_drift_not_quiet():
+    s = tc.summarize(tc.evaluate({"S06": 27}, {}, POLICY))
+    assert s["outcome"] == "LOCK_DRIFT"
+
+
+def test_under_outranks_lock_drift_outcome():
+    c = {"A50": {"intake_cny": "100", "list_cny": "", "kg": "0.3"}}
+    s = tc.summarize(tc.evaluate({"A50": 1, "S06": 27}, c, POLICY))
+    assert s["outcome"] == "UNDER_FOUND" and s["counts"]["lock-drift"] == 1
+
+
+def test_main_requires_s06_in_live_file(tmp_path):
+    live = tmp_path / "live.json"
+    live.write_text(json.dumps({"prices": {"A50": 999}}), encoding="utf-8")
+    costs = tmp_path / "c.csv"
+    costs.write_text("ma,intake_cny,kg\nA50,100,0.3\n", encoding="utf-8")
+    out = tmp_path / "o.json"
+    tc.main(["--live", str(live), "--costs", str(costs), "--out-json", str(out), "--out-md", str(tmp_path / "o.md")])
+    assert json.loads(out.read_text())["outcome"] == "LOCK_DRIFT"
+
+
+def _catalog(tmp_path, payload):
+    path = tmp_path / "live.json"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    return tc.load_live(path)
+
+
+def test_hold_null_does_not_abort_and_padded_s06_stays_visible(tmp_path):
+    loaded = _catalog(tmp_path, {"products": [
+        {"ma": "S006", "priceUsd": 40, "status": "available"},
+        {"ma": "K06", "priceUsd": None, "status": "hold"},
+        {"ma": "A01", "priceUsd": 30, "status": "available"},
+        {"ma": "S06", "priceUsd": 25, "status": "available"},
+        "not-a-row",
+    ]})
+    assert loaded["S06"] == 40
+    assert loaded["A01"] == 30
+    assert "K06" not in loaded
+    rows = tc.evaluate(loaded, {}, POLICY, require_s06=True)
+    assert [(r.ma, r.decision) for r in rows if r.ma == "S06"] == [("S06", "lock-drift")]
+
+
+def test_sold_hold_and_bad_dollars_are_not_live_prices(tmp_path):
+    loaded = _catalog(tmp_path, {"products": [
+        {"ma": "A02", "priceUsd": 1, "status": "sold"},
+        {"ma": "A03", "priceUsd": 1, "status": "hold"},
+        {"ma": "A04", "priceUsd": True, "status": "available"},
+        {"ma": "A05", "priceUsd": "2.5e1"},
+        {"ma": "A06", "priceUsd": "2$5"},
+        {"ma": "A07", "priceUsd": "0,025"},
+        {"ma": "A08", "priceUsd": "12,50"},
+        {"ma": "A09", "priceUsd": "$28"},
+        {"ma": "A10", "priceUsd": "1,200"},
+        {"ma": "A01", "priceUsd": 22},
+        {"ma": "A01", "priceUsd": None},
+        {"ma": "A01", "priceUsd": 33},
+        {"ma": "O01", "priceUsd": 19, "status": ""},
+        {"ma": "O01", "priceUsd": "oops", "status": "live"},
+    ]})
+    assert loaded["A09"] == 28
+    assert loaded["A10"] == 1200
+    assert loaded["A01"] == 33
+    assert loaded["O01"] == 19
+    assert set(loaded) == {"A09", "A10", "A01", "O01"}
+
+
+def test_prices_map_keeps_an_off_lock_s06_spelling(tmp_path):
+    loaded = _catalog(tmp_path, {"prices": {"S06": 25, "S006": 40, "A01": True, "K03": "$30"}})
+    assert loaded["S06"] == 40
+    assert loaded["K03"] == 30
+    assert "A01" not in loaded
+    first = _catalog(tmp_path, {"products": [
+        {"ma": "S006", "priceUsd": 40},
+        {"ma": "S06", "priceUsd": 25},
+    ]})
+    assert first == {"S06": 40.0}
+    locked = _catalog(tmp_path, {"products": [
+        {"ma": "S006", "priceUsd": "25.00"},
+        {"ma": "S06", "priceUsd": 25},
+    ]})
+    assert locked == {"S06": 25.0}
+
+
+def test_main_hold_null_and_sold_row_stay_quiet(tmp_path):
+    live = tmp_path / "live.json"
+    live.write_text(json.dumps({"products": [
+        {"ma": "K06", "priceUsd": None, "status": "hold"},
+        {"ma": "S06", "priceUsd": 25, "status": "available"},
+        {"ma": "A50", "priceUsd": 1, "status": "sold"},
+    ]}), encoding="utf-8")
+    costs = tmp_path / "c.csv"
+    costs.write_text("ma,intake_cny,kg\nA50,100,0.3\nS06,60,0.5\n", encoding="utf-8")
+    out = tmp_path / "o.json"
+    assert tc.main([
+        "--live", str(live), "--costs", str(costs),
+        "--out-json", str(out), "--out-md", str(tmp_path / "o.md"),
+    ]) == 0
+    summary = json.loads(out.read_text())
+    assert summary["outcome"] == "QUIET_OK"
+    assert summary["counts"]["under"] == 0
+    assert summary["counts"]["locked"] == 1

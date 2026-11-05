@@ -50,7 +50,9 @@ export function buildIntakeDatasetSyncPayload(
     source: "intake",
   };
 
-  const sizes = splitTokens(row.size, /[\s,]+/);
+  // Same separators as listing. A hyphen and a fullwidth semicolon stay one token.
+  // This does not rewrite the stored intake size.
+  const sizes = splitTokens(row.size, /[\s,;/|]+/);
   if (sizes.length) payload.sizes = sizes;
 
   const colors = collectColors(row);
@@ -143,7 +145,10 @@ function collectColors(row: Submission): string[] {
     out.push(trimmed);
   };
   for (const part of splitTokens(row.color, /,/)) add(part);
-  for (const piece of row.pieces ?? []) add(piece.color);
+  for (const piece of row.pieces ?? []) {
+    if (!piece || typeof piece !== "object" || Array.isArray(piece)) continue;
+    if (typeof piece.color === "string") add(piece.color);
+  }
   return out;
 }
 

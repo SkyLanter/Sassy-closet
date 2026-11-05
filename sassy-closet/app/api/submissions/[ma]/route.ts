@@ -4,7 +4,7 @@ import { intakeDirectJson, withIntakeDirectLinkHeaders } from "@/lib/intake-dire
 import { normalizeMa } from "@/lib/mint";
 import { scheduleNewMaWebhookFromRow } from "@/lib/newMaWebhook";
 import { getSubmission } from "@/lib/store";
-import { storeUnavailableResponse } from "@/lib/store-unavailable";
+import { intakeWriteErrorResponse, storeUnavailableResponse } from "@/lib/store-unavailable";
 
 export async function GET(
   _request: Request,
@@ -32,8 +32,15 @@ export async function PATCH(
   context: { params: Promise<{ ma: string }> },
 ) {
   const { ma } = await context.params;
+  let form: FormData;
   try {
-    const form = await request.formData();
+    form = await request.formData();
+  } catch {
+    return withIntakeDirectLinkHeaders(
+      NextResponse.json({ error: "Chưa lưu được, thử lại nha." }, { status: 400 }),
+    );
+  }
+  try {
     const submission = await saveFromForm(form, ma);
     const urlMa = normalizeMa(ma);
     const savedMa = normalizeMa(submission.ma);
@@ -44,12 +51,6 @@ export async function PATCH(
     );
     return withIntakeDirectLinkHeaders(NextResponse.json({ submission }));
   } catch (error) {
-    const status = (error as { status?: number }).status ?? 400;
-    return withIntakeDirectLinkHeaders(
-      NextResponse.json(
-        { error: error instanceof Error ? error.message : "Chưa lưu được, thử lại nha." },
-        { status },
-      ),
-    );
+    return withIntakeDirectLinkHeaders(intakeWriteErrorResponse(error));
   }
 }

@@ -75,6 +75,14 @@ test("save persists Q02 and still refuses K06 or S06 at another dollar", async (
     () => saveSubmission(blankSave({ kind: "S", existingMa: "S06", sellUsd: "40" })),
     /s06-lock/,
   );
+  await assert.rejects(
+    () => saveSubmission(blankSave({ kind: "S", existingMa: "S06", sellUsd: "0,025" })),
+    /s06-lock/,
+  );
+  await assert.rejects(
+    () => saveSubmission(blankSave({ kind: "S", existingMa: "S06", sellUsd: "2,5" })),
+    /s06-lock/,
+  );
   const rows = await listSubmissions();
   assert.deepEqual(rows.map((row) => row.ma), ["Q02", "S06"]);
   assert.equal(rows[0]?.status, "staged");

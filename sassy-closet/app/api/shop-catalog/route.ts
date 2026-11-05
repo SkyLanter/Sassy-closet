@@ -1,5 +1,5 @@
 import { shopAdminJson } from "@/lib/shop-admin-http";
-import { listShopCatalog } from "@/lib/shop-catalog";
+import { listShopCatalog, readShopCatalogDocument } from "@/lib/shop-catalog";
 import { shopCatalogPortFromEnv } from "@/lib/shop-catalog-store";
 
 export const dynamic = "force-dynamic";
@@ -9,11 +9,11 @@ export async function GET() {
   if (!selected.ok) {
     return shopAdminJson({ ok: false, error: selected.error }, 503);
   }
-  const document = await selected.port.read();
-  if (document === null) {
-    return shopAdminJson({ ok: false, error: "Shop catalog is missing." }, 404);
+  const read = await readShopCatalogDocument(selected.port);
+  if (!read.ok) {
+    return shopAdminJson({ ok: false, error: read.error }, read.status);
   }
-  const listed = listShopCatalog(document);
+  const listed = listShopCatalog(read.document);
   if (!listed.ok) {
     return shopAdminJson({ ok: false, error: listed.error }, 500);
   }

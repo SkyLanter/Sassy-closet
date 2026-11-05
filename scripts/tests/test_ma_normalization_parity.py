@@ -50,6 +50,10 @@ ALLOWED = {
     # letter of a mã, not the mã key itself
     ("next_free_ma.py", "kind = letter.strip().upper()"),
     ("next_ma_skip_intake.py", "kind = letter.strip().upper()"),
+    # GitHub mergeable / check enums, not mã keys
+    ("merge_readiness.py", "text = value.strip().upper()"),
+    ("merge_readiness.py", 'status_text = status.strip().upper() if isinstance(status, str) else ""'),
+    ("merge_readiness.py", "conclusion_text = conclusion.strip().upper()"),
 }
 
 

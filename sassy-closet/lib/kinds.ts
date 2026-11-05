@@ -116,9 +116,49 @@ export function sizeOptionsLine(kind: KindCode): string {
   return sizesForKind(kind).join(" ");
 }
 
+/** Same separators as the intake gap report. A hyphen stays one token. */
+const SIZE_TOKEN_DELIMITERS = /[\s,;/|]+/;
+/** Exactly two digits, a dot, and one zero. `35.00`, `5.0`, and `40.` do not match. */
+const TRAILING_DOT_ZERO_CHIP = /^([0-9]{2})\.0$/;
+
+export function sizeTokens(raw: string): string[] {
+  return raw
+    .trim()
+    .split(SIZE_TOKEN_DELIMITERS)
+    .map((token) => token.trim())
+    .filter((token) => token.length > 0);
+}
+
+function chipForTrailingDotZero(token: string, kind: KindCode): string | null {
+  const match = TRAILING_DOT_ZERO_CHIP.exec(token);
+  if (!match) return null;
+  const chip = match[1];
+  return sizesForKind(kind).includes(chip) ? chip : null;
+}
+
 export function keepSizesForKind(selected: string[], kind: KindCode): string[] {
   const allowed = new Set<string>(sizesForKind(kind));
-  return selected.filter((size) => allowed.has(size));
+  const kept: string[] = [];
+  const seen = new Set<string>();
+  for (const size of selected) {
+    const next = chipForTrailingDotZero(size, kind) ?? size;
+    if (!allowed.has(next) || seen.has(next)) continue;
+    seen.add(next);
+    kept.push(next);
+  }
+  return kept;
+}
+
+export function restoreSizes(raw: string, kind: KindCode): string[] {
+  const restored: string[] = [];
+  const seen = new Set<string>();
+  for (const token of sizeTokens(raw)) {
+    const next = chipForTrailingDotZero(token, kind) ?? token;
+    if (seen.has(next)) continue;
+    seen.add(next);
+    restored.push(next);
+  }
+  return restored;
 }
 
 export function intakeCatalog(): IntakeCatalog {

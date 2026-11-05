@@ -215,6 +215,26 @@
    "input": "k0",
    "expected": "K00",
    "case": "number zero short"
+  },
+  {
+   "input": "\ufeffA24",
+   "expected": "A24",
+   "case": "bom prefix (CSV first cell)"
+  },
+  {
+   "input": "\ufeff k3 ",
+   "expected": "K03",
+   "case": "bom prefix plus spaces"
+  },
+  {
+   "input": "S06\ufeff",
+   "expected": "S06",
+   "case": "bom suffix"
+  },
+  {
+   "input": "A\uff12\uff14",
+   "expected": "A\uff12\uff14",
+   "case": "fullwidth digits stay (ASCII only)"
   }
  ]
 }

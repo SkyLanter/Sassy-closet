@@ -6,17 +6,22 @@ import json
 import subprocess
 import sys
 import urllib.request
+from decimal import Decimal
 from pathlib import Path
 
 from openpyxl import Workbook
 
 import freshness_check
 from freshness_check import ALIAS_ORIGIN, PRIMARY_ORIGIN, SELL_ORIGINS, SourceState
-from held_policy import load_held_policy
+from held_policy import HeldPolicy, load_held_policy
 from midnight_qc import (
     PR105_URL,
     SUMMARY_KEYS,
+    CatalogProduct,
+    HomeView,
     HttpResult,
+    Night,
+    _home_problems,
     fetch_night,
     main,
     parse_home_prices,
@@ -400,6 +405,135 @@ def test_q02_404_is_not_a_fail_and_q02_on_blob_is() -> None:
     assert live["dataOk"] == "FAIL"
 
 
+def _with_hold_inbox(payload: dict, ma: str = "A03") -> dict:
+    payload["blob"]["products"].append(
+        {"ma": ma, "priceUsd": None, "titleEn": "Inbox heel", "status": "hold"}
+    )
+    payload["hub"]["rows"].append({"ma": ma, "price_usd": None})
+    return payload
+
+
+def test_home_hold_null_on_both_hosts_is_not_a_sell_mismatch() -> None:
+    payload = _with_hold_inbox(_passing_payload())
+    for origin in SELL_ORIGINS:
+        payload["homes"][origin]["prices"]["A03"] = None
+    summary, markdown = _summary(payload)
+    assert summary["sellSite"] == "PASS"
+    assert summary["dataOk"] == "PASS"
+    assert summary["overall"] == "PASS"
+    assert summary["s06Usd"] == 25
+    assert summary["blobCount"] == 2
+    assert summary["sellCount"] == 3
+    assert "home on " not in markdown
+    assert "\nNone.\n" in markdown
+
+
+def test_home_hold_absent_is_quiet_and_a_dollar_on_it_fails() -> None:
+    absent = _with_hold_inbox(_passing_payload())
+    absent_summary, absent_markdown = _summary(absent)
+    assert absent_summary["sellSite"] == "PASS"
+    assert absent_summary["dataOk"] == "PASS"
+    assert absent_summary["overall"] == "PASS"
+    assert absent_summary["sellCount"] == 2
+    assert "home on " not in absent_markdown
+
+    priced = _with_hold_inbox(_passing_payload())
+    for origin in SELL_ORIGINS:
+        priced["homes"][origin]["prices"]["A03"] = "48"
+    priced_summary, priced_markdown = _summary(priced)
+    assert priced_summary["sellSite"] == "FAIL"
+    assert f"home on {PRIMARY_ORIGIN} has A03 48" in priced_markdown
+    assert f"home on {ALIAS_ORIGIN} has A03 48" in priced_markdown
+
+    stray = _passing_payload()
+    for origin in SELL_ORIGINS:
+        stray["homes"][origin]["prices"]["A99"] = None
+    stray_summary, stray_markdown = _summary(stray)
+    assert stray_summary["sellSite"] == "FAIL"
+    assert f"home on {PRIMARY_ORIGIN} has A99 null" in stray_markdown
+
+    held = _passing_payload()
+    for origin in SELL_ORIGINS:
+        held["homes"][origin]["prices"]["K06"] = None
+    held_summary, held_markdown = _summary(held)
+    assert held_summary["sellSite"] == "FAIL"
+    assert held_summary["dataOk"] == "PASS"
+    assert f"home on {PRIMARY_ORIGIN} has K06 null" in held_markdown
+
+    q02 = _passing_payload()
+    q02["homes"][ALIAS_ORIGIN]["prices"]["Q02"] = None
+    q02_summary, q02_markdown = _summary(q02)
+    assert q02_summary["sellSite"] == "FAIL"
+    assert f"home on {ALIAS_ORIGIN} has Q02 null" in q02_markdown
+
+
+def test_home_hold_null_still_fails_a_live_price_mismatch() -> None:
+    payload = _with_hold_inbox(_passing_payload())
+    for origin in SELL_ORIGINS:
+        payload["homes"][origin]["prices"]["A03"] = None
+    payload["homes"][PRIMARY_ORIGIN]["prices"]["A02"] = "99"
+    summary, markdown = _summary(payload)
+    assert summary["sellSite"] == "FAIL"
+    assert summary["s06Usd"] == 25
+    assert f"A02 home {PRIMARY_ORIGIN} USD 99 blob 23" in markdown
+    assert "has A03" not in markdown
+
+
+def test_live_ma_missing_from_alias_home_fails_sell() -> None:
+    payload = _passing_payload()
+    del payload["homes"][ALIAS_ORIGIN]["prices"]["A02"]
+    summary, markdown = _summary(payload)
+    assert summary["sellSite"] == "FAIL"
+    assert summary["dataOk"] == "PASS"
+    assert summary["overall"] == "FAIL"
+    assert summary["s06Usd"] == 25
+    assert f"home on {ALIAS_ORIGIN} missing A02" in markdown
+    assert f"home on {PRIMARY_ORIGIN} missing" not in markdown
+    assert (ROOT / "data" / "held.json").read_bytes() == HELD_BYTES
+
+
+def test_never_list_hold_on_home_fails_without_editing_held_json() -> None:
+    policy = HeldPolicy(held=(), never_list=("B09",))
+    products = [
+        CatalogProduct("S06", Decimal("25"), "Overalls", "available", ""),
+        CatalogProduct("A03", None, "Inbox heel", "hold", ""),
+        CatalogProduct("B09", None, "Never list heel", "hold", ""),
+    ]
+    home_prices = {"S06": Decimal("25"), "A03": None, "B09": None}
+    night = Night(
+        day="2026-10-14",
+        checked_at="2026-10-14T08:17:39Z",
+        timezone="America/Los_Angeles",
+        origins=SELL_ORIGINS,
+        products=products,
+        blob_state=SourceState("ok"),
+        blob_updated_at=None,
+        blob_sha256=None,
+        blob_etag=None,
+        blob_last_modified=None,
+        blob_age_seconds=None,
+        hub_rows=None,
+        hub_state=SourceState("skip"),
+        hub_sha256=None,
+        hub_last_modified=None,
+        intake=[],
+        intake_state=SourceState("ok"),
+        pdp={},
+        homes={
+            origin: HomeView(None, None, dict(home_prices))
+            for origin in (PRIMARY_ORIGIN, ALIAS_ORIGIN)
+        },
+        images=[],
+        main_sha=None,
+    )
+    problems = _home_problems({"S06": Decimal("25")}, night, policy)
+    assert problems == [
+        f"home on {PRIMARY_ORIGIN} has B09 null",
+        f"home on {ALIAS_ORIGIN} has B09 null",
+    ]
+    assert (ROOT / "data" / "held.json").read_bytes() == HELD_BYTES
+
+
 def test_alias_and_home_price_mismatches_fail_sell() -> None:
     alias = _passing_payload()
     alias["pdp"]["A02"][ALIAS_ORIGIN] = {"status": 200, "price_usd": "99"}
@@ -425,6 +559,69 @@ def test_gail_in_catalog_text_sets_b01_referenced() -> None:
 def test_parse_home_prices_reads_embedded_price_usd() -> None:
     html = '{"ma":"S06","titleEn":"Washed distressed overalls","priceUsd":25}'
     assert parse_home_prices(html)["S06"] == 25
+
+
+def test_parse_home_prices_reads_rsc_escaped_price_usd() -> None:
+    html = r'{\"ma\":\"S06\",\"titleEn\":\"Overalls\",\"priceUsd\":25}'
+    assert parse_home_prices(html)["S06"] == 25
+
+
+def test_parse_home_prices_reads_two_rsc_escaped_products() -> None:
+    html = (
+        r'{\"ma\":\"S06\",\"titleEn\":\"Overalls\",\"priceUsd\":25}'
+        r'{\"ma\":\"A02\",\"titleEn\":\"Top\",\"priceUsd\":23}'
+    )
+    prices = parse_home_prices(html)
+    assert prices["S06"] == 25
+    assert prices["A02"] == 23
+
+
+def test_parse_home_prices_rsc_escaped_null_is_none() -> None:
+    html = r'{\"ma\":\"S06\",\"titleEn\":\"Overalls\",\"priceUsd\":null}'
+    assert parse_home_prices(html)["S06"] is None
+
+
+def test_parse_home_prices_conflicting_prices_collapse_to_none() -> None:
+    html = (
+        '{"ma":"S06","titleEn":"Overalls","priceUsd":25}'
+        '{"ma":"S06","titleEn":"Overalls","priceUsd":30}'
+    )
+    assert parse_home_prices(html)["S06"] is None
+
+
+def test_parse_home_prices_ignores_price_usd_beyond_2000_chars() -> None:
+    html = (
+        r'{\"ma\":\"S06\"'
+        + ("x" * 2001)
+        + r'\"priceUsd\":99'
+        + r'{\"ma\":\"A02\",\"titleEn\":\"Top\",\"priceUsd\":23}'
+    )
+    prices = parse_home_prices(html)
+    assert "S06" not in prices
+    assert prices["A02"] == 23
+
+
+def test_parse_home_prices_reads_escaped_product_inside_html() -> None:
+    html = (
+        "<html><script>"
+        r'{\"ma\":\"S06\",\"titleEn\":\"Overalls\",\"priceUsd\":25}'
+        "</script></html>"
+    )
+    assert parse_home_prices(html)["S06"] == 25
+
+
+def test_parse_home_prices_does_not_take_the_next_products_price() -> None:
+    escaped = (
+        r'{\"ma\":\"S14\",\"titleEn\":\"Held\",\"titleVn\":\"x\"}'
+        r'{\"ma\":\"S06\",\"titleEn\":\"Overalls\",\"priceUsd\":25}'
+    )
+    plain = (
+        '{"ma":"S13","titleEn":"Index"}'
+        '{"ma":"A05","titleEn":"Coat","priceUsd":25}'
+        '{"ma":"S13","titleEn":"Coat","priceUsd":26}'
+    )
+    assert parse_home_prices(escaped) == {"S06": 25}
+    assert parse_home_prices(plain) == {"A05": 25, "S13": 26}
 
 
 def test_cli_writes_reports_and_does_not_touch_held_or_network(tmp_path: Path, monkeypatch) -> None:

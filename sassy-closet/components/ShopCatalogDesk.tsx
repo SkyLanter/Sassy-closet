@@ -2,6 +2,7 @@
 
 import { useMemo, useState, type FormEvent } from "react";
 import type { ShopCatalogList, ShopCatalogRow, ShopCatalogStatus } from "@/lib/shop-catalog";
+import { parseShopDeskPrice } from "@/lib/shop-desk-price";
 
 type SaveReceipt = {
   ok?: boolean;
@@ -45,7 +46,19 @@ export function ShopCatalogDesk({ initial }: { initial: ShopCatalogList }) {
       patch.priceUsd = null;
     } else {
       const raw = String(form.get("priceUsd") ?? "").trim();
-      patch.priceUsd = raw === "" ? null : Number(raw);
+      const parsed = parseShopDeskPrice(raw, selected.ma);
+      switch (parsed.ok) {
+        case true:
+          patch.priceUsd = parsed.priceUsd;
+          break;
+        case false:
+          setNotice(parsed.error);
+          return;
+        default: {
+          const _exhaustive: never = parsed;
+          return _exhaustive;
+        }
+      }
     }
     setBusy(true);
     setNotice(null);

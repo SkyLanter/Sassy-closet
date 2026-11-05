@@ -12,9 +12,17 @@ from dataclasses import dataclass
 from pathlib import Path
 
 MA_RE = re.compile(r"^[A-Z][0-9]{2}$")
+# A space ends a mã token. A letter or digit stuck on the end does not, including
+# a Vietnamese letter, a fullwidth letter or digit, or one of those after an
+# invisible character (S06Đ, S06Ｂ, a zero-width space, a soft hyphen, or a
+# left-to-right mark).
+_TOKEN_GLUE = "\u00ad\u200b\u200c\u200d\u200e\u200f\ufeff\u2060"
+_TOKEN_CHAR = "0-9A-Za-zÀ-ỹ\uff10-\uff19\uff21-\uff3a\uff41-\uff5a"
+MA_TOKEN_TAIL = "(?![" + _TOKEN_GLUE + "]*[" + _TOKEN_CHAR + "])"
 
 
-_SPELLING = re.compile(r"^([A-Z])(\d+)$")
+# ASCII digits only, like JS \d in ma.ts. Python \d also takes fullwidth ２４.
+_SPELLING = re.compile(r"^([A-Z])(\d+)$", re.ASCII)
 
 
 def norm_ma(value: object) -> str:
@@ -24,6 +32,9 @@ def norm_ma(value: object) -> str:
     'A100' stays. Non-mã text is returned trimmed + upper-cased; None -> ''.
     """
     code = "" if value is None else str(value).strip().upper()
+    # JS trim() also drops a BOM (CSV first cell); Python strip() does not.
+    while code[:1] == "\ufeff" or code[-1:] == "\ufeff":
+        code = code.strip("\ufeff").strip()
     m = _SPELLING.match(code)
     return f"{m.group(1)}{int(m.group(2)):02d}" if m else code
 

@@ -47,15 +47,20 @@ import sys
 import unicodedata
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from held_policy import norm_ma
+from held_policy import MA_RE, MA_TOKEN_TAIL, norm_ma
 
 ROOT = Path(__file__).resolve().parents[1]
 S06_LOCK = 25.0
 
 CANON_MA_LINE = re.compile(r"^Mã ([A-Z][0-9]{2})$")
 # loose mã: Mã/Ma/ma/MÃ/Mả/Má/M, optional : # . -, optional space, code
-LOOSE_MA = re.compile(r"(?<![0-9A-Za-zÀ-ỹ])m(?:ã|a|ả|á|à|ạ)?\s*[:#.\-]?\s*([A-Za-z]\s?[0-9]{2})(?![0-9])",
-                      re.IGNORECASE)
+# One to four digits so K3 / K003 can be collapsed by norm_ma. A longer
+# digit run, or a letter stuck on the end (S006B, S06Đ, fullwidth B), is not this mã.
+LOOSE_MA = re.compile(
+    r"(?<![0-9A-Za-zÀ-ỹ])m(?:ã|a|ả|á|à|ạ)?\s*[:#.\-]?\s*([A-Za-z]\s?[0-9]{1,4})"
+    + MA_TOKEN_TAIL,
+    re.IGNORECASE,
+)
 CANON_GIA = re.compile(r"(?<![A-Za-zÀ-ỹ])Giá \$(\d+(?:\.\d{1,2})?)(?![\d.])")
 LOOSE_GIA = re.compile(
     r"(?<![A-Za-zÀ-ỹ])gi[áa]\s*[:\-–]?\s*(?:\$\s*(\d+(?:[.,]\d{1,2})?)"
@@ -92,16 +97,25 @@ def clean_caption(text: str) -> str:
     return "\n".join(part.strip() for part in re.split(r"\s\|\s|\n", t))
 
 
+def _caption_code(raw: str) -> str | None:
+    """Shop mã key. K3 and K003 become K03. Anything else is not a caption mã."""
+    code = norm_ma(raw.replace(" ", ""))
+    return code if MA_RE.fullmatch(code) else None
+
+
 def find_ma(text: str) -> tuple[str | None, list[str]]:
     lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
     first = lines[0] if lines else ""
     m = CANON_MA_LINE.match(first)
     if m:
-        return m.group(1), []
+        code = _caption_code(m.group(1))
+        if code:
+            return code, []
     for i, ln in enumerate(lines):
-        lm = LOOSE_MA.search(ln)
-        if lm:
-            code = lm.group(1).replace(" ", "").upper()
+        for lm in LOOSE_MA.finditer(ln):
+            code = _caption_code(lm.group(1))
+            if not code:
+                continue
             why = "malformed_ma" if i == 0 else "malformed_ma:not_line_1"
             return code, [f"{why} (saw {lm.group(0).strip()!r}, want 'Mã {code}' on line 1)"]
     return None, ["missing_ma"]
@@ -225,6 +239,21 @@ def _finite(pairs) -> dict[str, float]:
     return out
 
 
+def _approved_usd(value: object) -> float | None:
+    """A boolean is not a price. float(True) is 1.0. One bad value is skipped."""
+    if isinstance(value, bool) or value is None:
+        return None
+    if isinstance(value, str) and not value.strip():
+        return None
+    try:
+        usd = float(value)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    if not math.isfinite(usd):
+        return None
+    return usd
+
+
 def load_live(path: Path) -> dict[str, float]:
     """Legacy catalog snapshot: {products: [{ma, priceUsd}]} or {prices: {ma: usd}}."""
     data = json.loads(path.read_text(encoding="utf-8"))
@@ -274,8 +303,19 @@ def main(argv: list[str] | None = None) -> int:
         held = {norm_ma(m) for m in hj.get("heldIncomplete", [])}
         never = {norm_ma(m) for m in hj.get("neverList", [])}
         known |= held | never
-        approved = {norm_ma(k): float(v) for k, v in
-                    json.loads(a.approved.read_text(encoding="utf-8")).get("approvedGia", {}).items()}
+        raw_approved = json.loads(a.approved.read_text(encoding="utf-8"))
+        if not isinstance(raw_approved, dict):
+            raise ValueError(f"{a.approved.name}: approved Giá must be an object")
+        gia = raw_approved.get("approvedGia", {})
+        if not isinstance(gia, dict):
+            raise ValueError(f"{a.approved.name}: approvedGia must be an object")
+        approved: dict[str, float] = {}
+        for key, value in gia.items():
+            code = norm_ma(key)
+            usd = _approved_usd(value)
+            if not code or usd is None:
+                continue
+            approved[code] = usd
     except (OSError, ValueError, json.JSONDecodeError) as e:
         print(f"caption_lint: {e}", file=sys.stderr)
         return 2

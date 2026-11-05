@@ -69,6 +69,26 @@ Read-only list of catalog mãs whose status is sold. The command reads a local f
 python3 scripts/restock_note.py --fixture ./catalog.json --note ./out/restock-note.md
 ```
 
+## Color binds
+
+Read-only check that a photo `colorId` matches a color `id` on the same mã the way the shop reel does: exact text, no trimming. A null `colorId` stays an untagged photo. A color with no slide is named only when another color on that mã already has one. A photo filed under another hub mã's `/products/` folder does not count, including a lowercase or padded spelling of that folder. Another mã's held folder does not count. This mã's own folder still counts. The command prints JSON and does not change catalog rows, prices, photos, or `data/held.json`. Held mãs stay held. S06 stays $25.
+
+```bash
+python3 scripts/color_bind.py --fixture ./catalog.json
+```
+
+Pass a local fixture. A URL, `held.json`, and the shop `products.json` are refused.
+
+## Customer copy voice
+
+Read-only check for catalog titles, descriptions, and color names the shop treats as stock or ops wording. A phrase split across those fields is named too. The command names the mã and the matched phrase. It does not print the rest of the sentence, and it does not change catalog rows, prices, or `data/held.json`. Held mãs stay held. S06 stays $25.
+
+```bash
+python3 scripts/customer_copy_voice.py --fixture ./catalog.json
+```
+
+Pass a local fixture. A URL, `held.json`, and the shop `products.json` are refused.
+
 ## Sell shop
 
 Next.js sell shop in [`sassy-closet-shop/`](sassy-closet-shop/). Live URL stays [https://sassy-closet-shop.vercel.app](https://sassy-closet-shop.vercel.app).

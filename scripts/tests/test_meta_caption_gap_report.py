@@ -55,6 +55,49 @@ def test_notes_parsing(tmp_path):
     assert set(rep["no_gia"]) == {("fb", "reel", "1111111111"), ("ig", "post", "ma:X02"), ("fb", "post", "ma:X03")}
 
 
+def test_padded_note_ma_uses_the_shop_key(tmp_path):
+    notes = (
+        "IG Reel Mã S006 has no Giá.\n"
+        "FB post MãS006 has no Giá.\n"
+        "FB Reel Mã S6 has no Giá.\n"
+        'FB "Mã S015" hair-clip post has no Giá.\n'
+        "IG Reel Mã A100 Mã A09 has no Giá.\n"
+        "FB Reel Mã S06B has no Giá.\n"
+        "IG Reel Mã K12345 has no Giá.\n"
+        "The IG S006 caption has no Giá.\n"
+        "IG A100 caption has no Giá and the IG A09 caption has no Giá.\n"
+    )
+    rep = g.build([mk(tmp_path, notes=notes) / "out"])
+    gia = set(rep["no_gia"])
+    assert ("ig", "reel", "ma:S06") in gia
+    assert ("fb", "post", "ma:S06") in gia
+    assert ("fb", "reel", "ma:S06") in gia
+    assert ("fb", "post", "ma:S15") in gia
+    assert ("ig", "reel", "ma:A09") in gia
+    assert ("ig", "post", "ma:S06") in gia
+    assert ("ig", "post", "ma:A09") in gia
+    ids = [item[2] for item in gia]
+    assert "ma:S00" not in ids
+    assert "ma:A10" not in ids
+    assert "ma:A100" not in ids
+    assert "ma:K12" not in ids
+    assert not any("S06B" in item or item == "ma:K12345" for item in ids)
+
+
+def test_stuck_suffix_note_is_not_s06(tmp_path):
+    notes = (
+        "FB Reel Mã S06Đ has no Giá.\n"
+        "IG Reel Mã S06\uFF22 has no Giá.\n"
+        "FB post Mã S06\u200bB has no Giá.\n"
+        "IG Reel Mã S06\u00adB has no Giá.\n"
+        "FB post Mã S06\u200eB has no Giá.\n"
+        "IG S06Đ caption has no Giá.\n"
+    )
+    rep = g.build([mk(tmp_path, notes=notes) / "out"])
+    ids = [item[2] for item in rep["no_gia"]]
+    assert "ma:S06" not in ids
+
+
 def test_cli_never_prints_caption(tmp_path, capsys):
     root = mk(tmp_path, posts=[P("9", f"{SECRET} no code here")])
     rc = g.main(["--root", str(root), "--dirs", "out"])

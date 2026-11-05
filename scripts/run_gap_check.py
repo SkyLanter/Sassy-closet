@@ -141,6 +141,13 @@ def check_single(job: dict, root: Path, now: datetime, days: int) -> dict:
     return _result(job, last, [], stale, half, today, note="single file: only the latest day is visible")
 
 
+def aware_utc(value: datetime) -> datetime:
+    """Treat a timezone-naive instant as UTC. Aware values stay as given."""
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value
+
+
 def check_state(job: dict, root: Path, now: datetime, days: int) -> dict:
     today, _ = _today(job, now)
     p = root / job["pattern"]
@@ -152,7 +159,7 @@ def check_state(job: dict, root: Path, now: datetime, days: int) -> dict:
             probs.append(f"zero-byte {job['pattern']}")
         else:
             try:
-                at = datetime.fromisoformat(json.loads(p.read_text(encoding="utf-8"))["at"])
+                at = aware_utc(datetime.fromisoformat(json.loads(p.read_text(encoding="utf-8"))["at"]))
             except Exception:  # noqa: BLE001
                 probs.append(f"bad JSON or no 'at' in {job['pattern']}")
         # unreadable state: date from mtime, but it counts as stale (no trusted run time)

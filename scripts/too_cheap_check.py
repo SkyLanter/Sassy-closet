@@ -4,9 +4,16 @@ For each live mã, landed = intake ¥ / 6.723 + 10.52 * kg, and the target is
 the tiered sell from autolist.price (35% at <= $25, sliding to 25% at $45,
 flat 25% above). The cost is Nhung's intake ¥, never the public Taobao list ¥.
 
-- S06 is locked at $25 and is never reported as under target.
+- S06 is locked at $25 and is never reported as under target. If S06 is
+  off $25, or missing from the live catalog, it is "lock-drift" and the
+  outcome is LOCK_DRIFT (never QUIET_OK).
 - Held and never-list mãs are skipped. The list is resolved through
   sassy-closet-shop/lib/held-incomplete.ts, which imports data/held.json.
+- Sold, hold, and any other non-live status are not live prices. A blank
+  or missing status still counts as live.
+- A null, boolean, or unreadable price is left out. It is not $1, and it
+  does not drop the rest of the catalog. Every S06 spelling is checked:
+  a later $25 does not hide an earlier spelling at another dollar.
 - A mã with no kg or no intake ¥ is skipped. No weight is guessed.
 - "list-only" means the price passes at intake ¥ but would be under target
   at the public list ¥. It is reported separately and is never a raise.
@@ -39,6 +46,11 @@ SHIP_USD_PER_KG = Decimal("10.52")
 ROOT = Path(__file__).resolve().parents[1]
 HELD_TS = ROOT / "sassy-closet-shop" / "lib" / "held-incomplete.ts"
 IMPORT_RE = re.compile(r"""import\s+\w+\s+from\s+["']([^"']+\.json)["']""")
+# Same live words as the daily export. sold and hold are not on sale.
+_LIVE_STATUS = {"available", "live", "active", "in_stock", "instock"}
+_CURRENCY = "$"
+# A comma is a thousands group. The first group starts at 1–999, so 0,025 is not $25.
+_GROUPED_THOUSANDS = re.compile(r"^[1-9]\d{0,2}(?:,\d{3})+(?:\.\d+)?$")
 
 
 def held_json_from_ts(ts_path: Path = HELD_TS) -> Path:
@@ -93,7 +105,9 @@ def evaluate(
     costs: dict[str, dict[str, str]],
     policy: HeldPolicy,
     weights: dict[str, Decimal] | None = None,
+    require_s06: bool = False,
 ) -> list[Row]:
+    """require_s06: the live input is the full catalog, so S06 must be in it."""
     weights = weights or {}
     rows: list[Row] = []
     for ma in sorted(live):
@@ -138,6 +152,10 @@ def evaluate(
             decision, reason = "ok", ""
         rows.append(Row(**base, landed_usd=_f(landed), target_usd=target,
                         list_target_usd=list_target, decision=decision, reason=reason))
+    if require_s06 and "S06" not in {norm_ma(m) for m in live}:
+        rows.append(Row(ma="S06", live_usd=0.0, intake_cny=None, list_cny=None, kg=None,
+                        landed_usd=None, target_usd=S06_LOCK_USD, list_target_usd=None,
+                        decision="lock-drift", reason=f"S06 missing from live catalog; must be live at ${S06_LOCK_USD}"))
     return rows
 
 
@@ -171,7 +189,7 @@ def summarize(rows: list[Row], headroom_pct: float = 0.0) -> dict:
     zero, band = headroom(rows, headroom_pct)
     return {
         "live_count": len(rows),
-        "outcome": "UNDER_FOUND" if by("under") else "QUIET_OK",
+        "outcome": "UNDER_FOUND" if by("under") else "LOCK_DRIFT" if by("lock-drift") else "QUIET_OK",
         "under_target": [asdict(r) for r in rows if r.decision == "under"],
         "list_only": [asdict(r) for r in rows if r.decision == "list-only"],
         "skipped": [asdict(r) for r in rows if r.decision.startswith("skip")],
@@ -224,12 +242,97 @@ def markdown(summary: dict, title: str = "Too-cheap check") -> str:
     return "\n".join(out) + "\n"
 
 
+def _priced_live(row: dict) -> bool:
+    """Blank or missing status is live. sold, hold, and a non-string status are not."""
+    if "status" not in row or row.get("status") is None:
+        return True
+    status = row.get("status")
+    if not isinstance(status, str):
+        return False
+    token = status.strip().lower()
+    if token == "":
+        return True
+    return token in _LIVE_STATUS
+
+
+def _live_usd(value: object) -> float | None:
+    """A positive live dollar, or None.
+
+    One leading or trailing $ stays. A comma counts only as a thousands
+    group of three digits, so 1,200 is 1200. true is not $1. 2$5, 12,50,
+    0,025, and 2.5e1 are not prices. A bad value is absent, not a crash.
+    """
+    if isinstance(value, bool) or value is None:
+        return None
+    text = str(value).strip()
+    symbols = [char for char in text if char in _CURRENCY]
+    if len(symbols) > 1:
+        return None
+    if len(symbols) == 1:
+        if text[:1] in _CURRENCY:
+            text = text[1:].strip()
+        elif text[-1:] in _CURRENCY:
+            text = text[:-1].strip()
+        elif len(text) >= 2 and text[0] in "+-" and text[1] in _CURRENCY:
+            text = text[0] + text[2:]
+        else:
+            return None
+    if not text or any(mark in text for mark in ("e", "E", "_")):
+        return None
+    if "," in text:
+        if _GROUPED_THOUSANDS.fullmatch(text) is None:
+            return None
+        text = text.replace(",", "")
+    try:
+        number = Decimal(text)
+    except ArithmeticError:
+        return None
+    if not number.is_finite() or number <= 0:
+        return None
+    return float(number)
+
+
+def _remember(out: dict[str, float], code: str, usd: float) -> None:
+    """Last good price wins, except a bad S06 spelling is never replaced by $25."""
+    if code != "S06":
+        out[code] = usd
+        return
+    previous = out.get("S06")
+    if previous is not None and previous != S06_LOCK_USD:
+        return
+    out["S06"] = usd
+
+
 def load_live(path: Path) -> dict[str, float]:
+    """Live dollars from products[] or a prices map.
+
+    One bad row is left out. The other mãs are still read. A hold row with
+    a null price does not abort the check. A boolean is not a dollar.
+    """
     data = json.loads(path.read_text(encoding="utf-8"))
+    out: dict[str, float] = {}
     if isinstance(data, dict) and "products" in data:
-        return {norm_ma(p["ma"]): float(p["priceUsd"]) for p in data["products"]}
+        products = data["products"]
+        if not isinstance(products, list):
+            raise ValueError(f"{path}: products must be a list")
+        for row in products:
+            if not isinstance(row, dict) or not _priced_live(row):
+                continue
+            code = norm_ma(row.get("ma"))
+            usd = _live_usd(row.get("priceUsd"))
+            if code and usd is not None:
+                _remember(out, code, usd)
+        return out
     if isinstance(data, dict) and "prices" in data:
-        return {norm_ma(k): float(v) for k, v in data["prices"].items()}
+        prices = data["prices"]
+        if not isinstance(prices, dict):
+            raise ValueError(f"{path}: prices must be an object")
+        for key, value in prices.items():
+            code = norm_ma(key)
+            usd = _live_usd(value)
+            if code and usd is not None:
+                _remember(out, code, usd)
+        return out
     raise ValueError(f"{path}: expected a catalog with products[] or a prices map")
 
 
@@ -274,7 +377,7 @@ def main(argv: list[str] | None = None) -> int:
     if a.headroom_pct < 0:
         p.error("--headroom-pct must be >= 0")
     summary = summarize(evaluate(load_live(a.live), load_costs(a.costs), load_held_from_ts(a.held_ts),
-                                 load_weights(a.weights)), a.headroom_pct)
+                                 load_weights(a.weights), require_s06=True), a.headroom_pct)
     md = markdown(summary, a.title)
     if a.out_md:
         a.out_md.write_text(md, encoding="utf-8")

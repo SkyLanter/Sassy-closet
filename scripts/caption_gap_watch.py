@@ -24,6 +24,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import caption_lint as _cl  # noqa: E402
+from held_policy import norm_ma  # noqa: E402
 
 ISSUES = ("missing_caption", "missing_ma", "missing_gia", "gia_differs")
 ID_RE = re.compile(r"^[A-Za-z0-9_.:-]{1,80}$")
@@ -51,18 +52,61 @@ def load_posts(path: Path) -> list[dict]:
     return posts
 
 
+def _usd(value: object) -> float | None:
+    """A finite dollar amount. A boolean, a blank, or junk text is absent."""
+    if isinstance(value, bool) or value is None:
+        return None
+    if isinstance(value, str):
+        text = value.strip()
+        if not text:
+            return None
+        try:
+            value = float(text)
+        except ValueError:
+            return None
+    if isinstance(value, (int, float)) and math.isfinite(float(value)):
+        return float(value)
+    return None
+
+
+def _key(raw: object) -> str | None:
+    if not isinstance(raw, str):
+        return None
+    code = norm_ma(raw)
+    return code if code and MA_RE.fullmatch(code) else None
+
+
+def _price_items(data: object):
+    if not isinstance(data, dict):
+        raise ValueError("price file must be an object")
+    approved = data.get("approvedGia")
+    if isinstance(approved, dict):
+        return list(approved.items())
+    products = data.get("products")
+    if isinstance(products, list):
+        rows = []
+        for row in products:
+            if isinstance(row, dict):
+                rows.append((row.get("ma"), row.get("priceUsd")))
+        return rows
+    prices = data.get("prices")
+    if isinstance(prices, dict):
+        return list(prices.items())
+    return list(data.items())
+
+
 def load_prices(*paths: Path | None) -> dict[str, float]:
-    """Merge {"MA": usd} maps (or {"approvedGia": {...}}); later files win. S06 is locked at 25."""
+    """Merge price files. Later files win. A short or padded mã uses the shop key. S06 stays $25."""
     out: dict[str, float] = {}
     for p in paths:
         if not p:
             continue
-        d = json.loads(Path(p).read_text(encoding="utf-8"))
-        if isinstance(d, dict) and isinstance(d.get("approvedGia"), dict):
-            d = d["approvedGia"]
-        for k, v in (d or {}).items():
-            if MA_RE.match(k) and isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v):
-                out[k] = float(v)
+        data = json.loads(Path(p).read_text(encoding="utf-8"))
+        for raw_key, raw_usd in _price_items(data):
+            code = _key(raw_key)
+            usd = _usd(raw_usd)
+            if code and usd is not None:
+                out[code] = usd
     out["S06"] = S06_LOCK
     return out
 
@@ -72,8 +116,9 @@ def check_post(post: dict, prices: dict[str, float]) -> list[dict]:
     text = _cl.clean_caption(post.get("caption", ""))
     if not text.strip():
         return [{"post": pid, "ma": None, "issue": "missing_caption"}]
-    ma, _ = _cl.find_ma(text)
-    ma = ma if ma and MA_RE.match(ma) else None
+    found, _ = _cl.find_ma(text)
+    code = norm_ma(found) if found else ""
+    ma = code if MA_RE.fullmatch(code) else None
     gia, _, _ = _cl.find_gia(text)
     out = []
     if ma is None:

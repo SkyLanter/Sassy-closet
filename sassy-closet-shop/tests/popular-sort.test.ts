@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { sortShopLooks } from "../lib/fb-rank";
-import { sortByPopular } from "../lib/popular-rank";
+import { fbRankOf, sortShopLooks } from "../lib/fb-rank";
+import { popularScore, sortByPopular } from "../lib/popular-rank";
 
 const META_HEAD = ["A05", "S05", "A01", "O05", "A06", "O04", "S03", "S07"];
 
@@ -17,6 +17,20 @@ test("Looks Popular follows Meta popular-order, not the 90-day FB views table", 
     sortByPopular(shuffled).map((item) => item.ma),
     popular,
   );
+});
+
+test("a padded or short spelling keeps that mã's Meta rank", () => {
+  const ranked = sortByPopular([
+    { ma: "S05" },
+    { ma: "A005" },
+    { ma: "a5" },
+    { ma: "Z99" },
+  ]).map((item) => item.ma);
+  assert.deepEqual(ranked, ["A005", "a5", "S05", "Z99"]);
+  assert.equal(popularScore("A005"), popularScore("A05"));
+  assert.ok(popularScore("A05") > 0);
+  assert.equal(fbRankOf("A001"), fbRankOf("A01"));
+  assert.equal(fbRankOf("a1"), 1);
 });
 
 test("Mã sort stays letter order and does not apply Popular", () => {

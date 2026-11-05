@@ -15,19 +15,24 @@ one line per decision: mã | question | evidence path | days open.
 Days open = <date> minus the earliest dated source showing it; '?' when a
 source carries no date. Free text is never copied: only mã codes, category
 questions written here, relative paths, dates and PR numbers. No network,
-no sends, no live writes.
+no sends, no live writes. A summary with an explicit taobao_login_needed
+block (JSON true, int 1, float 1.0, or true/yes/y/1) is signed-out: that day
+is skipped for streaks and is not gone or unreachable evidence. An unreadable
+or malformed summary is not real data and is skipped the same way: it does
+not count as a streak day and does not start or break the run. Strings false
+and no are not a block. Summary JSON is read as utf-8-sig.
 """
 from __future__ import annotations
 
 import argparse
 import datetime as dt
-import json
 import re
 import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+import cost_recheck_block  # noqa: E402
 import daily_summary_draft as ds  # noqa: E402
 
 ROOT = Path("/workspace/sassy-closet")
@@ -127,20 +132,90 @@ def parse_digest(text):
     return out
 
 
+def _summary_lists(path, ma):
+    """'count', 'skip', or 'break' for one cost-recheck summary day.
+
+    count: load_summary state is ok and unreachable_mas is a list containing mã.
+    skip: state is blocked or bad (signed-out, or present but unreadable
+    or malformed), or state is ok but unreachable_mas is present and not a
+    list (bool, number, string, object). A string is not scanned for a mã.
+    It neither counts nor breaks.
+    break: the file is missing, the field is absent or null, or the list
+    does not contain mã.
+    """
+    state, doc = cost_recheck_block.load_summary(path)
+    if state == "missing":
+        return "break"
+    if state == "bad" or state == "blocked":
+        return "skip"
+    if state == "ok":
+        listed = doc.get("unreachable_mas")
+        if isinstance(listed, list):
+            if any(item == ma for item in listed):
+                return "count"
+            return "break"
+        if listed is None:
+            return "break"
+        return "skip"
+    raise AssertionError(state)
+
+
 def streak_start(root, date, ma):
-    """Earliest date of the unbroken run of cost summaries (up to <date>) listing mã unreachable."""
+    """Earliest date of the unbroken run of cost summaries (up to <date>) listing mã unreachable.
+
+    A signed-out summary is skipped. An unreadable or malformed summary is not
+    real data and is skipped the same way: it does not count as a streak day
+    and does not start or break the run. The file is read as utf-8-sig, same
+    as the streak watcher.
+    """
     files = sorted((Path(root) / "verify/cost-recheck").glob("summary.????-??-??.json"))
     start = None
     for f in reversed(files):
         d = DATE_IN.search(f.name).group(1)
         if d > date:
             continue
-        doc = ds.load_json(f) or {}
+        state, doc = cost_recheck_block.load_summary(f)
+        if state != "ok":
+            continue
         if ma in (doc.get("unreachable_mas") or []):
             start = d
         else:
             break
     return start
+
+
+def _calendar_streak_start(root, date, ma):
+    """Earliest counted day, walking calendar days backward from <date>.
+
+    A day counts when summary.<day>.json is readable, is not a signed-out
+    block, and lists mã in a JSON array. A signed-out day is skipped. A
+    present summary that is unreadable or malformed is skipped the same way.
+    A non-list unreachable_mas (bool, number, string, object) is unreadable
+    for that field and is skipped too; it is not mã evidence. A missing file,
+    or a readable summary that does not list mã, ends the run. At most 10 years.
+    None when <date> is not a day or no counted day remains.
+    """
+    try:
+        day = dt.date.fromisoformat(date)
+    except (TypeError, ValueError):
+        return None
+    start = None
+    folder = Path(root) / "verify/cost-recheck"
+    for _ in range(3660):
+        status = _summary_lists(folder / f"summary.{day.isoformat()}.json", ma)
+        if status == "skip":
+            day -= dt.timedelta(days=1)
+            continue
+        if status != "count":
+            break
+        start = day.isoformat()
+        day -= dt.timedelta(days=1)
+    return start
+
+
+# A missing summary ends this run. The glob walk above is what the other
+# branch merges; Boss calls the calendar walk.
+streak_start = _calendar_streak_start
 
 
 def first_cost_basis(root, date, ma):
@@ -268,7 +343,8 @@ def compile_decisions(root, date, digest_text, cost=None, cost_path=None, cb_pat
         D.append({"cat": cat, "ma": ma, "q": q or QUESTIONS[cat], "ev": ev,
                   "since": since, "days": days(date, since) if since else None})
 
-    gone = ds.mas((cost or {}).get("persistent_new_unreachable"))
+    cost_ev = cost_recheck_block.evidence(cost)
+    gone = ds.mas(cost_ev.get("persistent_new_unreachable"))
     for m in gone:
         add("gone_hold", m, rel(root, cost_path), streak_start(root, date, m))
     flips = {}
@@ -277,7 +353,7 @@ def compile_decisions(root, date, digest_text, cost=None, cost_path=None, cb_pat
     flip_under = sorted(m for m, (iv, _b) in flips.items() if iv == "UNDER")
     for m in flip_under:
         add("flip_under", m, rel(root, cb_path), first_cost_basis(root, date, m))
-    unreach = set(ds.mas((cost or {}).get("unreachable_mas")))
+    unreach = set(ds.mas(cost_ev.get("unreachable_mas")))
     skip_mismatch = set(gone) | set(flip_under)
     for cat, m, seen, src in parse_digest(digest_text):
         if cat == "intake_mismatch":
@@ -365,7 +441,7 @@ def existing_inputs(path):
     return m.group(1)
 
 
-def render(D, date, inputs=None):
+def render(D, date, inputs=None, notes=None):
     L = [f"# Boss decisions {date} (DRAFT, local only, not sent)", ""]
     if inputs is not None:
         L += [f"Inputs: {inputs} | total={len(D)}", ""]
@@ -377,6 +453,8 @@ def render(D, date, inputs=None):
         n = "?" if d["days"] is None else f"{d['days']}d (since {d['since']})"
         r = raised_text(d) if "raised" in d else None
         L.append(f"- {d['ma']} | {d['q']} | {d['ev']} | {n}" + (f" | {r}" if r else ""))
+    if notes:
+        L += ["", *notes]
     L += ["", f"TOTAL {len(D)}", "Read-only: nothing was sent, posted, priced or deleted.", ""]
     text = "\n".join(L)
     if BANNED.search(text):
@@ -413,12 +491,26 @@ def main(argv=None):
             dargs += ["--held", str(a.held)]
         dtext = ds.run_local("boss_decisions_digest.py", dargs)
     cp = r / "verify/cost-recheck" / f"summary.{d}.json"
-    ms, msrc = ds.read_meta_status(r, d)
-    D = compile_decisions(r, d, dtext, ds.load_json(cp), cp,
+    # load_summary skips a truncated file ("{") instead of raising. streak_start
+    # walks the same reader, so a bad day neither counts nor aborts the report.
+    cost_state, cost_doc = cost_recheck_block.load_summary(cp)
+    cost = cost_doc if cost_state in ("ok", "blocked") else None
+    muse = r / "out/muse" / f"meta-qc-{d}.json"
+    try:
+        ms, msrc = ds.read_meta_status(r, d)
+    except (OSError, UnicodeError, ValueError, RecursionError):
+        ms = {"ig": ("unchecked", "unreadable"), "fb": ("unchecked", "unreadable")}
+        msrc = f"out/muse/meta-qc-{d}.json (unreadable)" if muse.is_file() else None
+    D = compile_decisions(r, d, dtext, cost, cp,
                           r / "out/reports" / d / "COST-BASIS.md", ms, msrc,
                           r / "out/meta-popular" / f"cycle-{d}" / "SUMMARY.txt", a.order)
     inputs = inputs_desc(a)
-    text = render(D, d, inputs)
+    notes = []
+    if cost_state == "bad":
+        notes.append(f"Cost recheck: unreadable ({rel(r, cp)}).")
+    if ds._json_object(muse)[0] == "bad":
+        notes.append(f"Meta QC json: unreadable ({rel(r, muse)}).")
+    text = render(D, d, inputs, notes)
     out_dir = a.out_dir or r / "out/reports" / d
     out = out_dir / "BOSS-DECISIONS.md"
     prev = existing_inputs(out)

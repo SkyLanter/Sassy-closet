@@ -46,6 +46,7 @@ def _by(D, cat):
 def test_gone_hold_days_from_streak(tmp_path):
     g = _by(_run(tmp_path), "gone_hold")
     assert g["X08"]["since"] == "2000-01-04" and g["X08"]["days"] == 1
+    assert bd.streak_start(tmp_path, "2000-01-05", "X08") == "2000-01-04"
 
 
 def test_flip_under_and_dedupe(tmp_path):
@@ -88,6 +89,126 @@ def test_main_writes_report(tmp_path):
     assert "X07 |" in out and "TOTAL" in out
 
 
+@pytest.mark.parametrize("bad", [True, 1, 1.0, False, "X08", "ZX08Y", {"X08": True}])
+def test_non_list_unreachable_skips_the_day(tmp_path, bad):
+    _write_summary(tmp_path, "2000-01-03", {"unreachable_mas": ["X08"]})
+    _write_summary(tmp_path, "2000-01-04", {"unreachable_mas": bad})
+    _write_summary(tmp_path, "2000-01-05", {
+        "unreachable_mas": ["X08"],
+        "persistent_new_unreachable": ["X08"],
+    })
+    day = tmp_path / "verify/cost-recheck/summary.2000-01-04.json"
+    assert bd._summary_lists(day, "X08") == "skip"
+    assert bd.streak_start(tmp_path, "2000-01-05", "X08") == "2000-01-03"
+
+
+@pytest.mark.parametrize("bad", [None, "absent"])
+def test_missing_unreachable_field_breaks_the_run(tmp_path, bad):
+    _write_summary(tmp_path, "2000-01-03", {"unreachable_mas": ["X08"]})
+    if bad == "absent":
+        _write_summary(tmp_path, "2000-01-04", {"counts": {}})
+    else:
+        _write_summary(tmp_path, "2000-01-04", {"unreachable_mas": None})
+    _write_summary(tmp_path, "2000-01-05", {"unreachable_mas": ["X08"]})
+    assert bd.streak_start(tmp_path, "2000-01-05", "X08") == "2000-01-05"
+
+
+def test_string_unreachable_is_not_ma_evidence(tmp_path):
+    _write_summary(tmp_path, "2000-01-05", {"unreachable_mas": "ZX08Y"})
+    path = tmp_path / "verify/cost-recheck/summary.2000-01-05.json"
+    assert bd._summary_lists(path, "X08") == "skip"
+    assert bd.streak_start(tmp_path, "2000-01-05", "X08") is None
+
+
+def test_longer_token_in_a_list_breaks_the_run(tmp_path):
+    _write_summary(tmp_path, "2000-01-03", {"unreachable_mas": ["X08"]})
+    _write_summary(tmp_path, "2000-01-04", {"unreachable_mas": ["ZX08Y"]})
+    _write_summary(tmp_path, "2000-01-05", {"unreachable_mas": ["X08"]})
+    assert bd.streak_start(tmp_path, "2000-01-05", "X08") == "2000-01-05"
+
+
+@pytest.mark.parametrize("bad", [True, 1, 1.0, False])
+def test_main_non_list_unreachable_does_not_raise(tmp_path, bad):
+    r = _root(tmp_path)
+    (r / "verify/cost-recheck/summary.2000-01-05.json").write_text(
+        json.dumps({"persistent_new_unreachable": ["X08"], "unreachable_mas": bad}),
+        encoding="utf-8")
+    dg = tmp_path / "dg.txt"
+    dg.write_text(DIGEST)
+    assert bd.main(["--date", "2000-01-05", "--root", str(r), "--digest", str(dg)]) == 0
+    out = (r / "out/reports/2000-01-05/BOSS-DECISIONS.md").read_text(encoding="utf-8")
+    assert "X01 |" in out
+
+
+def test_present_bad_cost_and_meta_are_unreadable(tmp_path):
+    r = _root(tmp_path)
+    (r / "verify/cost-recheck/summary.2000-01-05.json").write_text("{", encoding="utf-8")
+    meta = r / "out/muse"
+    meta.mkdir(parents=True)
+    (meta / "meta-qc-2000-01-05.json").write_text("{", encoding="utf-8")
+    dg = tmp_path / "dg.txt"
+    dg.write_text(DIGEST)
+    assert bd.main(["--date", "2000-01-05", "--root", str(r), "--digest", str(dg), "--stdout"]) == 0
+    out = (r / "out/reports/2000-01-05/BOSS-DECISIONS.md").read_text(encoding="utf-8")
+    assert "Cost recheck: unreadable (verify/cost-recheck/summary.2000-01-05.json)." in out
+    assert "Meta QC json: unreadable (out/muse/meta-qc-2000-01-05.json)." in out
+    assert "meta-qc-2000-01-05.json (missing)" not in out
+    assert "meta-qc-2000-01-05.json (unreadable)" in out
+
+
+def test_bad_muse_file_does_not_hide_passing_snapshot(tmp_path):
+    r = _root(tmp_path)
+    meta = r / "out/muse"
+    meta.mkdir(parents=True)
+    (meta / "meta-qc-2000-01-05.json").write_text("{", encoding="utf-8")
+    snap = r / "out/meta-snapshot"
+    snap.mkdir(parents=True)
+    side = {"luxubu": {"status": "pass"}, "miniboss": {"status": "pass"}}
+    (snap / "meta-snapshot-20000105T010000.json").write_text(json.dumps(
+        {"qc": {"ig": side, "fb": side}}), encoding="utf-8")
+    dg = tmp_path / "dg.txt"
+    dg.write_text(DIGEST)
+    assert bd.main(["--date", "2000-01-05", "--root", str(r), "--digest", str(dg)]) == 0
+    out = (r / "out/reports/2000-01-05/BOSS-DECISIONS.md").read_text(encoding="utf-8")
+    assert "Meta QC not PASS" not in out
+    assert "meta-qc-2000-01-05.json (missing)" not in out
+    assert "Meta QC json: unreadable (out/muse/meta-qc-2000-01-05.json)." in out
+
+
+def test_main_lone_brace_summary_does_not_raise(tmp_path):
+    r = _root(tmp_path)
+    cr = r / "verify/cost-recheck"
+    (cr / "summary.2000-01-05.json").write_text("{", encoding="utf-8")
+    meta = r / "out/muse"
+    meta.mkdir(parents=True)
+    (meta / "meta-qc-2000-01-05.json").write_text("{", encoding="utf-8")
+    dg = tmp_path / "dg.txt"
+    dg.write_text(DIGEST)
+    assert bd.main(["--date", "2000-01-05", "--root", str(r), "--digest", str(dg), "--stdout"]) == 0
+    out = (r / "out/reports/2000-01-05/BOSS-DECISIONS.md").read_text(encoding="utf-8")
+    assert "X01 |" in out
+    assert "Hold it?" not in out
+    assert bd.streak_start(r, "2000-01-05", "X08") == "2000-01-04"
+
+
+def test_main_brace_between_days_keeps_the_streak(tmp_path):
+    r = _root(tmp_path)
+    cr = r / "verify/cost-recheck"
+    (cr / "summary.2000-01-03.json").write_text(
+        json.dumps({"unreachable_mas": ["X08"]}), encoding="utf-8")
+    (cr / "summary.2000-01-04.json").write_text("{", encoding="utf-8")
+    (cr / "summary.2000-01-05.json").write_text(json.dumps({
+        "persistent_new_unreachable": ["X08"],
+        "unreachable_mas": ["X08"],
+    }), encoding="utf-8")
+    dg = tmp_path / "dg.txt"
+    dg.write_text(DIGEST)
+    assert bd.main(["--date", "2000-01-05", "--root", str(r), "--digest", str(dg)]) == 0
+    out = (r / "out/reports/2000-01-05/BOSS-DECISIONS.md").read_text(encoding="utf-8")
+    assert "X08 |" in out
+    assert "2d (since 2000-01-03)" in out
+
+
 # --- piece 90: named sign-in blocker (placeholder text only) ---
 def _meta_root(tmp_path, files):
     r = _root(tmp_path)
@@ -120,3 +241,125 @@ def test_blocker_ignored_when_meta_pass_or_future(tmp_path):
     _meta_root(tmp_path, {"out/muse/n-2000-01-09.md": "Luxubu Facebook sign-in needed.\n"})
     assert _by(_run(tmp_path), "meta")["-"]["q"].startswith("Meta QC not PASS")
     assert not _by(_run(tmp_path, {"ig": ("pass", ""), "fb": ("pass", "")}), "meta")
+
+
+def _summaries(tmp_path, rows):
+    cr = tmp_path / "verify/cost-recheck"
+    cr.mkdir(parents=True, exist_ok=True)
+    for day, mas in rows:
+        (cr / f"summary.{day}.json").write_text(json.dumps({"unreachable_mas": mas}))
+    return tmp_path
+
+
+def test_streak_start_gap_breaks_run(tmp_path):
+    _summaries(tmp_path, (("2000-01-03", ["A01"]), ("2000-01-05", ["A01"])))
+    assert bd.streak_start(tmp_path, "2000-01-05", "A01") == "2000-01-05"
+
+
+def test_streak_start_none_when_date_omits_ma(tmp_path):
+    _summaries(tmp_path, (("2000-01-04", ["A01"]), ("2000-01-05", ["X02"])))
+    assert bd.streak_start(tmp_path, "2000-01-05", "A01") is None
+
+
+def test_streak_start_bad_date(tmp_path):
+    assert bd.streak_start(tmp_path, "not-a-date", "A01") is None
+
+
+def _write_summary(tmp_path, day, doc, bom=False):
+    cr = tmp_path / "verify/cost-recheck"
+    cr.mkdir(parents=True, exist_ok=True)
+    raw = json.dumps(doc).encode("utf-8")
+    if bom:
+        raw = b"\xef\xbb\xbf" + raw
+    (cr / f"summary.{day}.json").write_bytes(raw)
+    return tmp_path
+
+
+def test_streak_start_block_does_not_break_or_count(tmp_path):
+    _write_summary(tmp_path, "2000-01-03", {"unreachable_mas": ["A01"]})
+    _write_summary(tmp_path, "2000-01-04", {"taobao_login_needed": True, "unreachable_mas": []})
+    _write_summary(tmp_path, "2000-01-05", {"unreachable_mas": ["A01"]})
+    assert bd.streak_start(tmp_path, "2000-01-05", "A01") == "2000-01-03"
+
+
+def test_streak_start_block_alone_is_not_a_streak(tmp_path):
+    _write_summary(tmp_path, "2000-01-05", {
+        "taobao_login_needed": True, "unreachable_mas": ["A01"],
+    })
+    assert bd.streak_start(tmp_path, "2000-01-05", "A01") is None
+
+
+def test_streak_start_false_string_still_counts(tmp_path):
+    _write_summary(tmp_path, "2000-01-05", {
+        "taobao_login_needed": "false", "unreachable_mas": ["A01"],
+    })
+    assert bd.streak_start(tmp_path, "2000-01-05", "A01") == "2000-01-05"
+
+
+def test_streak_start_bom_block_is_skipped(tmp_path):
+    _write_summary(tmp_path, "2000-01-04", {"unreachable_mas": ["A01"]})
+    _write_summary(tmp_path, "2000-01-05", {
+        "taobao_login_needed": True, "unreachable_mas": ["A01"],
+    }, bom=True)
+    assert bd.streak_start(tmp_path, "2000-01-05", "A01") == "2000-01-04"
+
+
+def test_streak_start_bad_json_is_skipped(tmp_path):
+    cr = tmp_path / "verify/cost-recheck"
+    cr.mkdir(parents=True)
+    (cr / "summary.2000-01-04.json").write_text(
+        json.dumps({"unreachable_mas": ["A01"]}), encoding="utf-8")
+    (cr / "summary.2000-01-05.json").write_text("{", encoding="utf-8")
+    assert bd.streak_start(tmp_path, "2000-01-05", "A01") == "2000-01-04"
+
+
+def test_streak_start_non_dict_is_skipped(tmp_path):
+    _write_summary(tmp_path, "2000-01-04", {"unreachable_mas": ["A01"]})
+    cr = tmp_path / "verify/cost-recheck"
+    (cr / "summary.2000-01-05.json").write_text("[]", encoding="utf-8")
+    assert bd.streak_start(tmp_path, "2000-01-05", "A01") == "2000-01-04"
+
+
+def test_streak_start_unreachable_pile_without_flag_counts(tmp_path):
+    _write_summary(tmp_path, "2000-01-05", {"unreachable_mas": ["A01", "A02", "A03"]})
+    assert bd.streak_start(tmp_path, "2000-01-05", "A01") == "2000-01-05"
+
+
+@pytest.mark.parametrize("flag", [True, 1, 1.0, "true", "yes", "y", "1"])
+def test_login_blocked_cost_is_not_gone_or_unreachable(tmp_path, flag):
+    r = _root(tmp_path)
+    cost = {
+        "taobao_login_needed": flag,
+        "persistent_new_unreachable": ["X08", "X09"],
+        "unreachable_mas": ["X08", "X02"],
+    }
+    D = bd.compile_decisions(
+        r, "2000-01-05", DIGEST, cost,
+        r / "verify/cost-recheck/summary.2000-01-05.json",
+        r / "out/reports/2000-01-05/COST-BASIS.md",
+        {"ig": ("pass", ""), "fb": ("pass", "")}, None,
+        r / "out/meta-popular/cycle-2000-01-05/SUMMARY.txt")
+    assert _by(D, "gone_hold") == {}
+    assert _by(D, "intake_unreachable") == {}
+    assert set(_by(D, "intake_mismatch")) == {"X02", "X03", "X09"}
+    assert set(_by(D, "flip_under")) == {"X07"}
+    assert "X01" in _by(D, "price_approval")
+
+
+@pytest.mark.parametrize("flag", ["false", "no", False, 0, 0.0, "1.0"])
+def test_negative_login_flag_cost_is_still_evidence(tmp_path, flag):
+    r = _root(tmp_path)
+    cost = {
+        "taobao_login_needed": flag,
+        "persistent_new_unreachable": ["X08"],
+        "unreachable_mas": ["X02"],
+    }
+    D = bd.compile_decisions(
+        r, "2000-01-05", DIGEST, cost,
+        r / "verify/cost-recheck/summary.2000-01-05.json",
+        r / "out/reports/2000-01-05/COST-BASIS.md",
+        {"ig": ("pass", ""), "fb": ("pass", "")}, None,
+        r / "out/meta-popular/cycle-2000-01-05/SUMMARY.txt")
+    assert "X08" in _by(D, "gone_hold")
+    assert set(_by(D, "intake_unreachable")) == {"X02"}
+    assert "X09" in _by(D, "intake_mismatch")

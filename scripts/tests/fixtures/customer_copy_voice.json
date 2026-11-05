@@ -1,0 +1,55 @@
+{
+  "products": [
+    {
+      "ma": "S06",
+      "priceUsd": 25,
+      "status": "available",
+      "titleEn": "Puppy cardigan",
+      "titleVn": "Ao len",
+      "descriptionEn": "Soft knit.",
+      "descriptionVn": "Ao mem.",
+      "colors": [{"id": "cs0600", "name": "Ink", "note": ""}]
+    },
+    {
+      "ma": "Z81",
+      "priceUsd": null,
+      "status": "hold",
+      "titleEn": "Available now",
+      "descriptionEn": "Ready on hand today."
+    },
+    {
+      "ma": "Z82",
+      "priceUsd": 30,
+      "status": "available",
+      "descriptionEn": "Ask on Taobao. Pay Zelle."
+    },
+    {
+      "ma": "Z83",
+      "status": "available",
+      "descriptionEn": "A unique piece, curated."
+    },
+    {
+      "ma": "Z84",
+      "status": "available",
+      "descriptionVn": "Chiếc độc bản đang có."
+    },
+    {
+      "ma": "Z85",
+      "status": "available",
+      "descriptionEn": "Ships in 2-4 weeks. Then flat $8. Was $6.95. No porch date."
+    },
+    {
+      "ma": "K06",
+      "status": "hold",
+      "descriptionEn": "Received locally.",
+      "colors": [{"name": "Pink", "note": "studio"}]
+    },
+    {
+      "ma": "A01",
+      "priceUsd": 27,
+      "status": "available",
+      "titleVn": "Hold mau",
+      "colors": [{"name": "In stock", "note": "Status: live"}]
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 import fbMaRank from "@/data/fb-ma-rank.json";
-import { compareMa, normalizeMa } from "@/lib/ma";
+import { canonicalMaSpelling, compareMa } from "@/lib/ma";
 import { sortByPopular } from "@/lib/popular-rank";
 import type { Product } from "@/lib/types";
 
@@ -25,13 +25,15 @@ type FbMaRankFile = {
 
 const RANK_FILE = fbMaRank as FbMaRankFile;
 
-const RANK_BY_MA = new Map<string, FbMaRankRow>(
-  RANK_FILE.rows.map((row) => [normalizeMa(row.ma), row]),
-);
+const RANK_BY_MA = new Map<string, FbMaRankRow>();
+for (const row of RANK_FILE.rows) {
+  const code = canonicalMaSpelling(row.ma);
+  if (!RANK_BY_MA.has(code)) RANK_BY_MA.set(code, row);
+}
 
 /** Authoritative aggregated FB rank. Unranked mãs have no row. */
 export function fbRankRow(ma: string): FbMaRankRow | undefined {
-  return RANK_BY_MA.get(normalizeMa(ma));
+  return RANK_BY_MA.get(canonicalMaSpelling(ma));
 }
 
 export function fbRankOf(ma: string): number | undefined {

@@ -116,3 +116,18 @@ def test_report_is_local_only_and_holds_costs_by_design(tmp_path, capsys):
     out = _run_main(tmp_path / "pytest-300" / "t")
     body = out.read_text()
     assert "LOCAL ONLY" in body and "gitignored" in body and "300.00" in body
+
+
+def test_prices_map_still_writes_the_report(tmp_path, capsys):
+    live = tmp_path / "live.json"
+    live.write_text(json.dumps({"prices": {"Z01": 1, "Z02": "oops", "Z03": 999}}))
+    intake = tmp_path / "intake.csv"
+    intake.write_text("ma,cost_cny\nZ01,300\nZ03,100\n")
+    rc = tmp_path / "rc.csv"
+    rc.write_text("ma,baseline_cny,recheck_cny,kg\nZ01,100,,1\nZ03,101,,1\n")
+    out = tmp_path / "r" / "COST-BASIS.md"
+    assert cb.main(["--live", str(live), "--intake", str(intake), "--recheck", str(rc), "--out", str(out)]) == 0
+    text = capsys.readouterr().out
+    assert "Z01" in text and "Z02" not in text
+    assert stdout_cost_leaks(text, out, COSTS) == []
+    assert "LOCAL ONLY" in out.read_text()
