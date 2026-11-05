@@ -260,3 +260,113 @@ def test_streak_start_unblocked_run_begins_at_first_listed_day(tmp_path):
     write_cost_summary(tmp_path, day3, {"unreachable_mas": ["Z71", "Z72"]})
     assert bd.streak_start(tmp_path, day3, "Z71") == day1
     assert bd.streak_start(tmp_path, day3, "Z72") == day2
+
+
+def _summary_file(root, date):
+    folder = root / "verify" / "cost-recheck"
+    folder.mkdir(parents=True, exist_ok=True)
+    return folder / f"summary.{date}.json"
+
+
+def test_load_summary_missing_path(tmp_path):
+    path = tmp_path / "verify" / "cost-recheck" / "summary.2000-06-01.json"
+    assert cost_recheck_block.load_summary(path) == ("missing", None)
+    with pytest.raises(FileNotFoundError):
+        cost_recheck_block.read_json(path)
+
+
+def test_load_summary_lone_brace_is_bad(tmp_path):
+    path = _summary_file(tmp_path, "2000-06-02")
+    path.write_text("{", encoding="utf-8")
+    assert cost_recheck_block.load_summary(path) == ("bad", None)
+    with pytest.raises(json.JSONDecodeError):
+        cost_recheck_block.read_json(path)
+
+
+def test_load_summary_empty_file_is_bad(tmp_path):
+    path = _summary_file(tmp_path, "2000-06-03")
+    path.write_text("", encoding="utf-8")
+    assert cost_recheck_block.load_summary(path) == ("bad", None)
+
+
+def test_load_summary_truncated_object_is_bad(tmp_path):
+    path = _summary_file(tmp_path, "2000-06-04")
+    path.write_text('{"unreachable_mas":', encoding="utf-8")
+    assert cost_recheck_block.load_summary(path) == ("bad", None)
+
+
+def test_load_summary_invalid_utf8_is_bad(tmp_path):
+    path = _summary_file(tmp_path, "2000-06-05")
+    path.write_bytes(b"\xff\xfe{")
+    assert cost_recheck_block.load_summary(path) == ("bad", None)
+
+
+def test_load_summary_bom_plus_brace_is_bad(tmp_path):
+    path = _summary_file(tmp_path, "2000-06-06")
+    path.write_bytes(b"\xef\xbb\xbf{")
+    assert cost_recheck_block.load_summary(path) == ("bad", None)
+
+
+def test_load_summary_bom_login_needed_is_blocked(tmp_path):
+    doc = {"taobao_login_needed": True, "unreachable_mas": ["Z71"]}
+    path = _summary_file(tmp_path, "2000-06-07")
+    path.write_bytes(b"\xef\xbb\xbf" + json.dumps(doc).encode("utf-8"))
+    state, loaded = cost_recheck_block.load_summary(path)
+    assert state == "blocked"
+    assert loaded == doc
+    assert loaded["taobao_login_needed"] is True
+
+
+def test_load_summary_bom_without_flag_is_ok(tmp_path):
+    doc = {"unreachable_mas": ["Z71"]}
+    path = _summary_file(tmp_path, "2000-06-08")
+    path.write_bytes(b"\xef\xbb\xbf" + json.dumps(doc).encode("utf-8"))
+    assert cost_recheck_block.load_summary(path) == ("ok", doc)
+
+
+@pytest.mark.parametrize("body", ["null", "[]", "true"])
+def test_load_summary_non_dict_json_is_bad(tmp_path, body):
+    path = _summary_file(tmp_path, "2000-06-09")
+    path.write_text(body, encoding="utf-8")
+    assert cost_recheck_block.load_summary(path) == ("bad", None)
+
+
+def test_load_summary_whitespace_false_string_is_ok(tmp_path):
+    doc = {"taobao_login_needed": " false ", "unreachable_mas": ["Z71"]}
+    write_cost_summary(tmp_path, "2000-06-10", doc)
+    path = tmp_path / "verify" / "cost-recheck" / "summary.2000-06-10.json"
+    state, loaded = cost_recheck_block.load_summary(path)
+    assert state == "ok"
+    assert loaded == doc
+    assert cost_recheck_block.login_blocked(loaded) is False
+
+
+def test_streak_start_skips_brace_between_real_days(tmp_path):
+    day1, day2, day3 = "2000-07-01", "2000-07-02", "2000-07-03"
+    write_cost_summary(tmp_path, day1, {"unreachable_mas": ["Z71"]})
+    (tmp_path / "verify" / "cost-recheck" / f"summary.{day2}.json").write_text("{", encoding="utf-8")
+    write_cost_summary(tmp_path, day3, {"unreachable_mas": ["Z71"]})
+    assert bd.streak_start(tmp_path, day3, "Z71") == day1
+    assert bd.streak_start(tmp_path, day3, "Z72") is None
+
+
+def test_streak_start_only_brace_is_not_a_streak_day(tmp_path):
+    day = "2000-07-04"
+    path = _summary_file(tmp_path, day)
+    path.write_text("{", encoding="utf-8")
+    assert bd.streak_start(tmp_path, day, "Z71") is None
+
+
+def test_streak_start_newest_brace_is_not_the_start(tmp_path):
+    day1, day2 = "2000-07-05", "2000-07-06"
+    write_cost_summary(tmp_path, day1, {"unreachable_mas": ["Z71"]})
+    (tmp_path / "verify" / "cost-recheck" / f"summary.{day2}.json").write_text("{", encoding="utf-8")
+    assert bd.streak_start(tmp_path, day2, "Z71") == day1
+
+
+@pytest.mark.parametrize("body", ["null", "[]", "true"])
+def test_streak_start_non_dict_json_does_not_break(tmp_path, body):
+    day1, day2 = "2000-07-07", "2000-07-08"
+    write_cost_summary(tmp_path, day1, {"unreachable_mas": ["Z71"]})
+    (tmp_path / "verify" / "cost-recheck" / f"summary.{day2}.json").write_text(body, encoding="utf-8")
+    assert bd.streak_start(tmp_path, day2, "Z71") == day1

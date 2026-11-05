@@ -17,7 +17,9 @@ source carries no date. Free text is never copied: only mã codes, category
 questions written here, relative paths, dates and PR numbers. No network,
 no sends, no live writes. A summary with an explicit taobao_login_needed
 block (JSON true, int 1, float 1.0, or true/yes/y/1) is signed-out: that day
-is skipped for streaks and is not gone or unreachable evidence. Strings false
+is skipped for streaks and is not gone or unreachable evidence. An unreadable
+or malformed summary is not real data and is skipped the same way: it does
+not count as a streak day and does not start or break the run. Strings false
 and no are not a block. Summary JSON is read as utf-8-sig.
 """
 from __future__ import annotations
@@ -134,8 +136,10 @@ def parse_digest(text):
 def streak_start(root, date, ma):
     """Earliest date of the unbroken run of cost summaries (up to <date>) listing mã unreachable.
 
-    A signed-out summary is skipped. It neither starts nor breaks the run.
-    The file is read as utf-8-sig, same as the streak watcher.
+    A signed-out summary is skipped. An unreadable or malformed summary is not
+    real data and is skipped the same way: it does not count as a streak day
+    and does not start or break the run. The file is read as utf-8-sig, same
+    as the streak watcher.
     """
     files = sorted((Path(root) / "verify/cost-recheck").glob("summary.????-??-??.json"))
     start = None
@@ -143,8 +147,8 @@ def streak_start(root, date, ma):
         d = DATE_IN.search(f.name).group(1)
         if d > date:
             continue
-        doc = ds.load_json(f) or {}
-        if cost_recheck_block.login_blocked(doc):
+        state, doc = cost_recheck_block.load_summary(f)
+        if state != "ok":
             continue
         if ma in (doc.get("unreachable_mas") or []):
             start = d

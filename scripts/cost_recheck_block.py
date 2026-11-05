@@ -41,3 +41,25 @@ def evidence(doc):
 def read_json(path):
     """Load JSON text. A leading UTF-8 BOM is stripped. Missing path raises."""
     return json.loads(Path(path).read_text(encoding=ENCODING))
+
+
+def load_summary(path):
+    """Return (state, doc). Never raises. Text is read as utf-8-sig.
+
+    ("missing", None) if the path does not exist.
+    ("bad", None) if the path exists but is unreadable, not JSON, or not a dict.
+    ("blocked", doc) if doc is a dict and login_blocked(doc). Original dict.
+    ("ok", doc) if doc is a dict and not login-blocked. Original dict.
+    """
+    # FileNotFoundError is an OSError. A missing file is not unreadable data.
+    try:
+        doc = read_json(path)
+    except FileNotFoundError:
+        return ("missing", None)
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return ("bad", None)
+    if not isinstance(doc, dict):
+        return ("bad", None)
+    if login_blocked(doc):
+        return ("blocked", doc)
+    return ("ok", doc)
