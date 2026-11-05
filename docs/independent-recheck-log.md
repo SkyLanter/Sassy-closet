@@ -772,3 +772,34 @@ Notes, not a fail. Unquoted JSON `2.5e1` and `25e0` are the number 25 after `jso
 
 #249 is this log and is not graded.
 
+## 2026-11-05 10:11 UTC — #294 at 208bd81 PASS
+
+Requested recheck of this head against parent `e0c34ba`. This lane did not build it.
+
+#294 head is still `208bd81d9e16bbfc7c8d9cda900a3099d87be174`. `e0c34bad44c1fd9ae891461c416f5c3cf02022e1` stays the prior PASS. Comment `6655337006` says PASS on this SHA. The comment text is the evidence below.
+
+INDEPENDENT RECHECK PASS at `208bd81d9e16bbfc7c8d9cda900a3099d87be174`.
+
+This lane did not build this commit. The head is still `208bd81`. The parent is `e0c34ba`. The tip is 5 files, +283/−30. The full diff vs `origin/main` is 6 files, +737/−26 (`scripts/cost_recheck_block.py`, `scripts/daily_summary_draft.py`, `scripts/boss_decisions.py`, `scripts/taobao_unreachable_streak.py`, and their tests). It does not change `data/held.json`, a price file, CSS, layout, or copy.
+
+`npm ci --no-audit --no-fund` in both apps (intake 143 packages, shop 407), then `scripts/hard_recheck.sh --base origin/main` with `HARD_RECHECK_PYTHON=/tmp/py-recheck`. That wrapper execs `/usr/bin/python3` with pytest 9.2.0 and openpyxl 3.1.5 on `PYTHONPATH`. The system interpreter had no pytest module, and `python3-venv` is not installed. The worktree was detached at this SHA, so the summary branch field is blank. Log `out/recheck/20261105-100558-2866`. pytest 2247 passed, 7 skipped; privacy CLEAN; intake npm 277 / 274 / 0 / 3; shop npm 218 / 215 / 0 / 3; both tsc ok; `held.json` unchanged vs `origin/main` (sha256 `484dbec93976e07ce34a2acc693287b6909187834032241fe6dd95d88a83d9da`). Required skips: none. No hard-recheck step is SKIP. Working tree clean. The head was still `208bd81` after the run.
+
+`boss_decisions.streak_start` and `taobao_unreachable_streak.partition_runs` call the same `cost_recheck_block.load_summary` object. `ENCODING` is `utf-8-sig`. `read_json` uses it. One `login_blocked` definition lives in `scripts/cost_recheck_block.py`. A wrapper that returns `("bad", None)` and a `read_json` that raises were installed together: both readers called `load_summary` and neither called `read_json`. Restored, `load_summary` on a dict calls `login_blocked`.
+
+A summary whose text is `{` is `("bad", None)`. `streak_start` returns the earlier real day and does not raise. The watcher puts that date in `bad_dates`, leaves it out of `runs`, and leaves Z72 out of the streak. Exit is 0. The header is `latest_run 2000-08-03 runs_read 2 blocked_runs 0 unreadable_runs 1`. The same result holds for an empty file, whitespace, ` { `, a truncated object, NUL, the bytes `garbage`, every byte from 0 through 255, a UTF-16 object, a BOM-only file, a BOM plus whitespace, a BOM plus `{`, a JSON array that lists Z71 and Z72, `[]`, a BOM plus an array, `null`, whitespace around `null`, a BOM plus `null`, and whole-document `true`, `false`, `1`, and `"true"`. Extra data after a blocked object is bad, so the day is unreadable rather than signed-out. A lone `{` file makes `streak_start` return None. Two `{` days print `OK unreadable cost-recheck summary on 2 run(s); unreachable flags not used` and exit 0.
+
+Parent `e0c34ba` on day 1 Z71, day 2 `{` with CSV Z71 and Z72, day 3 Z71: `streak_start` raises `JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)`. The watcher runs include day 2 with `{Z71, Z72}`. This tree on that fixture returns `2000-01-01` from `streak_start`. The watcher runs are `[('2000-01-01', {'Z71'})]`, blocked is empty, and bad is `['2000-01-02']`.
+
+A missing summary stays `("missing", None)`. Three flag CSVs and no summary files, `2000-09-30`, `2000-10-01`, and `2000-10-02`, all stay in the runs, and Z71 is `(3, 2000-09-30)`. One missing day prints `latest_run 2026-11-04 runs_read 1 blocked_runs 0` and warns Z71 day 1. An empty file in the middle of that month-crossing run is bad. The runs drop that day. Z71 becomes `(2, 2000-09-30)`.
+
+Strings `false` and `no`, 1183 values of case and surrounding whitespace (space, tab, CR, LF, CRLF, VT, FF, NBSP, em space, U+2028, U+2029, ideographic space), stay open. For `false`, `no`, `" false "`, `"\nNo\t"`, JSON false, `0`, `0.0`, `"1.0"`, `"1e0"`, `1.5`, a missing value, and `""`, the daily summary prints the unreachable line and `- Should Z71 go on hold?`, and it does not print the blocked line or the sign-in line. Boss keeps `gone_hold` Z71 and reclassifies Z72 to `intake_unreachable`.
+
+JSON `1`, `1.0`, `1e0`, `1E0`, `1e+0`, and `1.00` are blocked. `1` is int 1. `1.0` and `1e0` are float 1.0. The summary prints the blocked line and the sign-in line once, and the hold question is absent. Boss returns only `[('intake_mismatch', 'Z72')]`. The same holds for JSON true, `" yes "`, `"Y"`, `"1"`, and `"\nYes\t"`. The string `"1.0"` stays open.
+
+Those tokens as file bytes on `2000-06-02`, listing Z99 and omitting Z71, between Z71 days: int `1`, float `1.0`, `1e0`, a UTF-8 BOM plus `1e0`, a BOM plus CRLF plus `1.0`, and a BOM plus `1` are blocked. Boss Z71 stays `2000-06-01`. Z99 as of `2000-06-03` is unset. The watcher blocks that day, and Z71 is `(2, 2000-06-01)`. `" false "`, `"\nNo\t"`, `"1.0"`, `0.0`, `1.5`, and a BOM plus a leading newline plus `" false "` stay open. Boss Z71 breaks to `2000-06-03`. `streak_start` as of `2000-06-02` for Z99 is `2000-06-02`. As of `2000-06-03`, Z99 is unset because that day does not list Z99. With the flag CSV listing Z99 and omitting Z71, the watcher keeps the day, Z71 is `(1, 2000-06-03)`, and that day's set is `{Z99}`. A UTF-8 BOM plus `{"unreachable_mas": ["Z71"]}` loads as ok, and the streak continues from `2000-06-01`.
+
+A readable middle summary that lists Z99 and omits Z71 still breaks Z71 at `2000-06-03`. A directory standing in for the summary file is bad, and `streak_start` does not raise. A symlink to `{` is bad, and the watcher leaves the day out.
+
+Notes, not a fail. `daily_summary_draft.load_json` on `{` still raises `JSONDecodeError`. `boss_decisions.main` still loads the current summary through that path, so a current `{` file still raises before `streak_start`. A dangling symlink is `FileNotFoundError`, so `load_summary` reports missing and the watcher still reads that day's CSV. A second UTF-8 BOM in front of a valid object is bad. A file whose whole text is JSON `1` is bad; the login flag `1` blocks only inside a summary object. Ten thousand nested arrays raise `RecursionError` from `load_summary`. S06 stays $25: `autolist.S06_LOCK_USD` is 25, the same as `origin/main`, and `shared/live-price-snapshot.json` `liveUsd` for S06 is 25, the same as `origin/main`. `data/held.json` matches `origin/main`. No Blob, KV, Meta, or price write. No push to the #294 branch.
+
+#249 is this log and is not graded.
