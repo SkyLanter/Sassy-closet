@@ -35,7 +35,11 @@ MISSING (file not there). Only the input label, file name and time are shown.
 Writes out/summaries/daily-summary-<date>.md (gitignored). Only mã codes,
 counts, statuses and sell $ are used: free-text fields from the inputs are
 never copied, so no ¥ cost, links or customer data can leak. The word CLEAR is
-only printed when both Meta checks pass.
+only printed when both Meta checks pass. An explicit taobao_login_needed block
+(JSON true, int 1, float 1.0, or true/yes/y/1) drops unreachable and price-delta
+fields and prints the sign-in line. Strings false and no, any case or surrounding
+whitespace, are not a block and do not print that line. JSON inputs are read as
+utf-8-sig.
 """
 from __future__ import annotations
 
@@ -48,6 +52,8 @@ import subprocess
 import sys
 from pathlib import Path
 from zoneinfo import ZoneInfo
+
+import cost_recheck_block
 
 HERE = Path(__file__).resolve().parent
 ROOT = Path("/workspace/sassy-closet")
@@ -145,7 +151,7 @@ def mas(xs):
 def load_json(p):
     if not p or not Path(p).exists():
         return None
-    return json.loads(Path(p).read_text(encoding="utf-8"))
+    return cost_recheck_block.read_json(p)
 
 
 def warn_codes(warns):
@@ -454,16 +460,18 @@ def build(qc, cost, digest, gaps, proposal, meta_ig, meta_fb, date, flips=None, 
     else:
         L.append("Midnight QC: not found for today.")
     if cost:
-        cc = cost.get("counts") or {}
-        L.append(f"Taobao cost recheck: {cc.get('unreachable', '?')} listings unreachable"
-                 f" ({', '.join(mas(cost.get('unreachable_mas')))}); "
-                 f"{len(mas(cost.get('live_price_changed')))} live price change(s); "
-                 f"{len(mas(cost.get('new_under_or_loss')))} new under-price/loss.")
-        new = mas(cost.get("persistent_new_unreachable"))
-        if new:
-            L.append(f"Newly gone on Taobao and still live: {', '.join(new)}.")
-        if cost.get("taobao_login_needed"):
+        if cost_recheck_block.login_blocked(cost):
+            L.append("Taobao cost recheck: blocked on a signed-out read. Unreachable rows and price deltas in this file are not used.")
             L.append("Taobao still needs your sign-in.")
+        else:
+            cc = cost.get("counts") or {}
+            L.append(f"Taobao cost recheck: {cc.get('unreachable', '?')} listings unreachable"
+                     f" ({', '.join(mas(cost.get('unreachable_mas')))}); "
+                     f"{len(mas(cost.get('live_price_changed')))} live price change(s); "
+                     f"{len(mas(cost.get('new_under_or_loss')))} new under-price/loss.")
+            new = mas(cost.get("persistent_new_unreachable"))
+            if new:
+                L.append(f"Newly gone on Taobao and still live: {', '.join(new)}.")
     else:
         L.append("Taobao cost recheck: not found for today.")
     L.append("")
@@ -493,9 +501,10 @@ def build(qc, cost, digest, gaps, proposal, meta_ig, meta_fb, date, flips=None, 
     # Decisions
     L.append("Waiting on you:")
     cats = {k: list(v) for k, v in (digest or {}).items()}
-    gone = mas((cost or {}).get("persistent_new_unreachable"))
+    cost_ev = cost_recheck_block.evidence(cost)
+    gone = mas(cost_ev.get("persistent_new_unreachable"))
     under = under_price_mas((qc or {}).get("warns"))
-    unreach = set(mas((cost or {}).get("unreachable_mas")))
+    unreach = set(mas(cost_ev.get("unreachable_mas")))
     pool = set(cats.pop("intake_mismatch", [])) | set(under)
     pool -= set(gone)  # already asked directly in the hold question
     flips = flips or {}

@@ -1,4 +1,5 @@
 """Piece 49 taobao_unreachable_streak: synthetic fixtures only, no network."""
+import json
 import socket
 
 import pytest
@@ -19,6 +20,18 @@ def no_net(monkeypatch):
 def write(tmp_path, date, rows):
     body = HDR + "".join(f"{ma},Secret name,LINK_REDACTED,99.5,{fl}\n" for ma, fl in rows)
     (tmp_path / f"cost-recheck-{date}-flags.csv").write_text(body, encoding="utf-8")
+
+
+def write_min(tmp_path, date, rows):
+    body = "ma,flag\n" + "".join(f"{ma},{fl}\n" for ma, fl in rows)
+    (tmp_path / f"cost-recheck-{date}-flags.csv").write_text(body, encoding="utf-8")
+
+
+def write_summary(tmp_path, date, doc, bom=False):
+    raw = json.dumps(doc).encode("utf-8")
+    if bom:
+        raw = b"\xef\xbb\xbf" + raw
+    (tmp_path / f"summary.{date}.json").write_bytes(raw)
 
 
 def fixture(tmp_path):
@@ -72,3 +85,196 @@ def test_read_only(tmp_path):
     before = sorted(p.name for p in tmp_path.iterdir())
     s.main(["--dir", str(tmp_path)])
     assert sorted(p.name for p in tmp_path.iterdir()) == before
+
+
+def test_load_runs_ignores_blocked_sibling_summary(tmp_path):
+    write_min(tmp_path, "2026-11-01", [("Z71", "unreachable"), ("Z72", "loss")])
+    write_min(tmp_path, "2026-11-02", [("Z72", "unreachable")])
+    write_summary(tmp_path, "2026-11-02", {"taobao_login_needed": True})
+    runs = s.load_runs(str(tmp_path))
+    assert runs == [("2026-11-01", {"Z71"})]
+    assert isinstance(runs, list)
+    assert isinstance(runs[0], tuple)
+    assert isinstance(runs[0][1], set)
+
+
+def test_blocked_day_between_usable_runs_does_not_count_or_break(tmp_path, capsys):
+    write_min(tmp_path, "2026-11-01", [("Z71", "unreachable")])
+    write_min(tmp_path, "2026-11-02", [("Z71", "unreachable"), ("Z72", "unreachable")])
+    write_min(tmp_path, "2026-11-03", [("Z71", "unreachable")])
+    write_summary(tmp_path, "2026-11-02", {"taobao_login_needed": " YES "})
+    write_summary(tmp_path, "2026-11-03", {"taobao_login_needed": "false"})
+    runs, blocked, _bad = s.partition_runs(str(tmp_path))
+    assert blocked == ["2026-11-02"]
+    assert runs == [("2026-11-01", {"Z71"}), ("2026-11-03", {"Z71"})]
+    assert s.load_runs(str(tmp_path)) == runs
+    assert s.streaks(runs) == {"Z71": (2, "2026-11-01")}
+    rc = s.main(["--dir", str(tmp_path)])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert out.splitlines() == [
+        "latest_run 2026-11-03 runs_read 2 blocked_runs 1",
+        "WARN unreachable_streak Z71 day 2 (since 2026-11-01)",
+    ]
+
+
+def test_newest_blocked_warns_from_older_usable_run(tmp_path, capsys):
+    write_min(tmp_path, "2026-11-01", [("Z71", "unreachable")])
+    write_min(tmp_path, "2026-11-02", [("Z71", "unreachable"), ("Z72", "unreachable")])
+    write_summary(tmp_path, "2026-11-02", {"taobao_login_needed": 1})
+    rc = s.main(["--dir", str(tmp_path), "--min-days", "1"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert out.splitlines() == [
+        "latest_run 2026-11-01 runs_read 1 blocked_runs 1",
+        "WARN unreachable_streak Z71 day 1 (since 2026-11-01)",
+    ]
+
+
+def test_all_dated_runs_blocked(tmp_path, capsys):
+    dates = ("2026-11-01", "2026-11-02")
+    write_min(tmp_path, dates[0], [("Z71", "unreachable")])
+    write_min(tmp_path, dates[1], [("Z72", "unreachable")])
+    write_summary(tmp_path, dates[0], {"taobao_login_needed": True})
+    write_summary(tmp_path, dates[1], {"taobao_login_needed": "y"})
+    rc = s.main(["--dir", str(tmp_path)])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert out.strip() == (
+        f"OK signed-out block on {len(dates)} cost-recheck run(s); unreachable flags not used"
+    )
+    assert "Z71" not in out
+    assert "Z72" not in out
+
+
+def test_missing_summary_still_counts(tmp_path):
+    write_min(tmp_path, "2026-11-01", [("Z71", "unreachable")])
+    write_min(tmp_path, "2026-11-02", [("Z72", "unreachable")])
+    runs, blocked, bad = s.partition_runs(str(tmp_path))
+    assert blocked == []
+    assert bad == []
+    assert runs == [
+        ("2026-11-01", {"Z71"}),
+        ("2026-11-02", {"Z72"}),
+    ]
+    assert s.load_runs(str(tmp_path)) == runs
+
+
+def test_bad_json_brace_is_only_in_bad_dates(tmp_path):
+    write_min(tmp_path, "2026-11-01", [("Z71", "unreachable")])
+    write_min(tmp_path, "2026-11-02", [("Z72", "unreachable")])
+    (tmp_path / "summary.2026-11-02.json").write_text("{", encoding="utf-8")
+    runs, blocked, bad = s.partition_runs(str(tmp_path))
+    assert blocked == []
+    assert bad == ["2026-11-02"]
+    assert runs == [("2026-11-01", {"Z71"})]
+    assert s.load_runs(str(tmp_path)) == runs
+    assert "Z72" not in s.streaks(runs)
+
+
+def test_float_one_blocks_and_false_words_do_not(tmp_path):
+    write_min(tmp_path, "2026-11-01", [("Z71", "unreachable")])
+    write_min(tmp_path, "2026-11-02", [("Z71", "unreachable"), ("Z72", "unreachable")])
+    write_min(tmp_path, "2026-11-03", [("Z71", "unreachable")])
+    write_summary(tmp_path, "2026-11-02", {"taobao_login_needed": 1.0})
+    write_summary(tmp_path, "2026-11-03", {"taobao_login_needed": " NO "})
+    runs, blocked, _bad = s.partition_runs(str(tmp_path))
+    assert blocked == ["2026-11-02"]
+    assert runs == [("2026-11-01", {"Z71"}), ("2026-11-03", {"Z71"})]
+    assert s.streaks(runs) == {"Z71": (2, "2026-11-01")}
+
+
+def test_utf8_bom_on_summary_still_blocks(tmp_path):
+    write_min(tmp_path, "2026-11-01", [("Z71", "unreachable")])
+    write_summary(tmp_path, "2026-11-01", {"taobao_login_needed": True}, bom=True)
+    runs, blocked, _bad = s.partition_runs(str(tmp_path))
+    assert runs == []
+    assert blocked == ["2026-11-01"]
+    assert s.load_runs(str(tmp_path)) == []
+
+
+def test_bad_day_between_usable_runs_does_not_count_or_break(tmp_path, capsys):
+    write_min(tmp_path, "2026-11-01", [("Z71", "unreachable")])
+    write_min(tmp_path, "2026-11-02", [("Z71", "unreachable"), ("Z72", "unreachable")])
+    write_min(tmp_path, "2026-11-03", [("Z71", "unreachable")])
+    (tmp_path / "summary.2026-11-02.json").write_text("{", encoding="utf-8")
+    runs, blocked, bad = s.partition_runs(str(tmp_path))
+    assert bad == ["2026-11-02"]
+    assert blocked == []
+    assert runs == [("2026-11-01", {"Z71"}), ("2026-11-03", {"Z71"})]
+    assert s.load_runs(str(tmp_path)) == runs
+    assert s.streaks(runs) == {"Z71": (2, "2026-11-01")}
+    rc = s.main(["--dir", str(tmp_path)])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert out.splitlines() == [
+        "latest_run 2026-11-03 runs_read 2 blocked_runs 0 unreadable_runs 1",
+        "WARN unreachable_streak Z71 day 2 (since 2026-11-01)",
+    ]
+    assert "Z72" not in out
+
+
+def test_bad_newest_day_keeps_older_usable_run(tmp_path, capsys):
+    write_min(tmp_path, "2026-11-01", [("Z71", "unreachable")])
+    write_min(tmp_path, "2026-11-02", [("Z71", "unreachable"), ("Z72", "unreachable")])
+    (tmp_path / "summary.2026-11-02.json").write_text("{", encoding="utf-8")
+    runs, _blocked, bad = s.partition_runs(str(tmp_path))
+    assert bad == ["2026-11-02"]
+    assert runs == [("2026-11-01", {"Z71"})]
+    assert "Z72" not in s.streaks(runs)
+    rc = s.main(["--dir", str(tmp_path), "--min-days", "1"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert out.splitlines() == [
+        "latest_run 2026-11-01 runs_read 1 blocked_runs 0 unreadable_runs 1",
+        "WARN unreachable_streak Z71 day 1 (since 2026-11-01)",
+    ]
+    assert "Z72" not in out
+
+
+def test_all_dated_runs_unreadable(tmp_path, capsys):
+    dates = ("2026-11-01", "2026-11-02")
+    write_min(tmp_path, dates[0], [("Z71", "unreachable")])
+    write_min(tmp_path, dates[1], [("Z72", "unreachable")])
+    for date in dates:
+        (tmp_path / f"summary.{date}.json").write_text("{", encoding="utf-8")
+    rc = s.main(["--dir", str(tmp_path)])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert out.strip() == (
+        f"OK unreadable cost-recheck summary on {len(dates)} run(s); unreachable flags not used"
+    )
+    assert "Z71" not in out
+    assert "Z72" not in out
+
+
+def test_signed_out_and_unreadable_with_no_usable_run(tmp_path, capsys):
+    write_min(tmp_path, "2026-11-01", [("Z71", "unreachable")])
+    write_min(tmp_path, "2026-11-02", [("Z72", "unreachable")])
+    write_summary(tmp_path, "2026-11-01", {"taobao_login_needed": True})
+    (tmp_path / "summary.2026-11-02.json").write_text("{", encoding="utf-8")
+    rc = s.main(["--dir", str(tmp_path)])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert out.strip() == (
+        "OK no usable cost-recheck run (1 signed-out, 1 unreadable); unreachable flags not used"
+    )
+    assert "Z71" not in out
+    assert "Z72" not in out
+
+
+def test_utf8_bom_plus_brace_is_bad_not_blocked(tmp_path, capsys):
+    write_min(tmp_path, "2026-11-01", [("Z71", "unreachable")])
+    (tmp_path / "summary.2026-11-01.json").write_bytes(b"\xef\xbb\xbf{")
+    runs, blocked, bad = s.partition_runs(str(tmp_path))
+    assert runs == []
+    assert blocked == []
+    assert bad == ["2026-11-01"]
+    assert s.load_runs(str(tmp_path)) == []
+    rc = s.main(["--dir", str(tmp_path)])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert out.strip() == (
+        "OK unreadable cost-recheck summary on 1 run(s); unreachable flags not used"
+    )
+    assert "Z71" not in out
