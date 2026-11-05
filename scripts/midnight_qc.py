@@ -536,7 +536,7 @@ def _findings(night: Night, policy: HeldPolicy) -> tuple[list[Finding], list[Fin
             findings.append(Finding("data", "blob-hub-usd", item))
     for item in _host_price_problems(live_prices, night):
         findings.append(Finding("sell", "sell-price", item))
-    for item in _home_problems(live_prices, night):
+    for item in _home_problems(live_prices, night, policy):
         findings.append(Finding("sell", "home-price", item))
     ops = _ops_held(night.intake, blob_prices)
     omitted = [ma for ma in ops if ma not in policy.held and ma != Q02]
@@ -1023,17 +1023,44 @@ def _host_price_problems(live_prices: dict[str, Decimal | None], night: Night) -
     return problems
 
 
-def _home_problems(live_prices: dict[str, Decimal | None], night: Night) -> list[str]:
+def _home_problems(
+    live_prices: dict[str, Decimal | None],
+    night: Night,
+    policy: HeldPolicy,
+) -> list[str]:
+    """The sell home lists available looks and hold looks. Hold is `priceUsd: null`
+    and is not in the available live index, so set equality false-fails both hosts
+    when an inbox look is on the page. A catalog hold mã may show up with a null
+    price, and a hold row that is absent already matched the live set. A missing
+    live mã, an extra priced mã, a hold mã that shows a dollar, and a held /
+    never-list / Q02 mã still fail on each host.
+    """
     if not night.homes:
         return []
     problems: list[str] = []
+    live_codes = set(live_prices)
+    hold_codes = {
+        item.ma
+        for item in night.products
+        if item.status == "hold" and item.ma != Q02 and policy.skip_reason(item.ma) is None
+    }
     for origin in (PRIMARY_ORIGIN, ALIAS_ORIGIN):
         home = night.homes.get(origin)
         if home is None or home.prices is None:
             problems.append(f"home prices missing for {origin}")
             continue
-        if set(home.prices) != set(live_prices):
-            problems.append(f"home mã set on {origin} does not match Blob")
+        home_codes = set(home.prices)
+        missing = sorted(live_codes - home_codes)
+        if missing:
+            problems.append(f"home on {origin} missing {' '.join(missing)}")
+        for ma in sorted(home_codes - live_codes - hold_codes):
+            price = home.prices[ma]
+            shown = "null" if price is None else money_text(price)
+            problems.append(f"home on {origin} has {ma} {shown}")
+        for ma in sorted(hold_codes & home_codes):
+            price = home.prices[ma]
+            if price is not None:
+                problems.append(f"home on {origin} has {ma} {money_text(price)}")
         for ma, price in live_prices.items():
             if ma in home.prices and home.prices[ma] != price:
                 problems.append(f"{ma} home {origin} USD {money_text(home.prices[ma])} blob {money_text(price)}")

@@ -8,11 +8,17 @@ price is not a whole dollar. Neighbour cards on the page are ignored.
 from __future__ import annotations
 
 import json
+import math
 import re
 import sys
 from decimal import Decimal, InvalidOperation
 
 from held_policy import norm_ma
+
+# A JSON-LD offer is a plain ASCII number, or that number with one $ at the edge
+# (also "+$25" / "$+25"). Deleting every $ would turn 2$5 into 25. Decimal()
+# would also turn 2.5e1, 2_5, and fullwidth ２５ into 25.
+_PLAIN_OFFER = re.compile(r"[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)")
 
 _LD = re.compile(r'<script[^>]*type="application/ld\+json"[^>]*>(.*?)</script>', re.S | re.I)
 
@@ -36,6 +42,38 @@ def _is_s06(node: dict) -> bool:
     return re.search(r"/m/S0*6(?:[/?#]|$)", url, re.I) is not None
 
 
+def _offer_amount(price: object) -> Decimal:
+    if isinstance(price, bool) or price is None:
+        return Decimal("NaN")
+    if isinstance(price, (int, float)):
+        if isinstance(price, float) and not math.isfinite(price):
+            return Decimal("NaN")
+        try:
+            return Decimal(str(price))
+        except InvalidOperation:
+            return Decimal("NaN")
+    if not isinstance(price, str):
+        return Decimal("NaN")
+    text = price.strip()
+    if text.count("$") > 1:
+        return Decimal("NaN")
+    if text.startswith("$"):
+        text = text[1:].strip()
+    elif text.endswith("$"):
+        text = text[:-1].strip()
+    elif len(text) >= 2 and text[0] in "+-" and text[1] == "$":
+        text = text[0] + text[2:]
+    elif "$" in text:
+        return Decimal("NaN")
+    if _PLAIN_OFFER.fullmatch(text) is None:
+        return Decimal("NaN")
+    try:
+        number = Decimal(text)
+    except InvalidOperation:
+        return Decimal("NaN")
+    return number if number.is_finite() else Decimal("NaN")
+
+
 def s06_prices(html: str) -> list[Decimal]:
     prices: list[Decimal] = []
     for block in _LD.findall(html):
@@ -51,10 +89,7 @@ def s06_prices(html: str) -> list[Decimal]:
             offers = node.get("offers")
             for offer in offers if isinstance(offers, list) else [offers]:
                 if isinstance(offer, dict) and offer.get("price") is not None:
-                    try:
-                        prices.append(Decimal(str(offer["price"]).replace("$", "").strip()))
-                    except InvalidOperation:
-                        prices.append(Decimal("NaN"))
+                    prices.append(_offer_amount(offer["price"]))
     return prices
 
 

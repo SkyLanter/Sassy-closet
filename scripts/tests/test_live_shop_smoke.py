@@ -71,6 +71,36 @@ def test_s06_drift_hidden_by_neighbour_25_fails():
     assert p.returncode == 1 and "offer=26" in p.stdout and "S06 MUST BE $25" in p.stdout
 
 
+def test_s06_spliced_dollar_fails():
+    r = dict(GOOD, **{"/m/S06": (200, _pdp("2$5", "$25"))})
+    p, _ = _run(r)
+    assert p.returncode == 1 and "offer=?" in p.stdout and "S06 MUST BE $25" in p.stdout
+
+
+def test_s06_blank_lone_dollar_and_split_do_not_borrow_neighbour_25():
+    for price in ("", "$", "2 5"):
+        r = dict(GOOD, **{"/m/S06": (200, _pdp(price, "$25"))})
+        p, _ = _run(r)
+        assert p.returncode == 1, (price, p.stdout, p.stderr)
+        line = next(row for row in p.stdout.splitlines() if "S06 MUST BE $25" in row)
+        assert "offer=?" in line, (price, line)
+
+
+def test_s06_bool_price_does_not_borrow_neighbour_25():
+    for raw in ("true", "false"):
+        body = (
+            '<script type="application/ld+json">'
+            '{"@context":"https://schema.org","@type":"Product","sku":"S06",'
+            f'"offers":{{"@type":"Offer","price":{raw}}}}}'
+            "</script><p>$25</p>"
+        )
+        r = dict(GOOD, **{"/m/S06": (200, body)})
+        p, _ = _run(r)
+        assert p.returncode == 1, (raw, p.stdout, p.stderr)
+        line = next(row for row in p.stdout.splitlines() if "S06 MUST BE $25" in row)
+        assert "offer=?" in line, (raw, line)
+
+
 def test_s06_without_offer_fails():
     r = dict(GOOD, **{"/m/S06": (200, "<p>$25</p>")})
     p, _ = _run(r)

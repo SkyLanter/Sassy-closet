@@ -1,4 +1,4 @@
-import { emptyFitCm, isAsiaSizeLetter } from "@/lib/asia-size";
+import { emptyFitCm, isAsiaSizeLetter, isEuShoeSize } from "@/lib/asia-size";
 import { plainAmount } from "@/lib/plain-amount";
 import type { ItemDraft } from "@/lib/item-draft";
 import type { ShopSize } from "@/lib/asia-size";
@@ -56,6 +56,21 @@ export type IntakeSubmission = {
 
 function asString(value: unknown): string {
   return typeof value === "string" ? value : "";
+}
+
+/** Intake giày folds one trailing `.0` onto 35–41 only. 34.0 and 42.0 stay unparsed. */
+const INTAKE_SHOE_DOT_ZERO = new Set(["35", "36", "37", "38", "39", "40", "41"]);
+
+function shoeChip(token: string): ShopSize | null {
+  if (isEuShoeSize(token)) {
+    return token;
+  }
+  const match = /^(\d{2})\.0$/.exec(token);
+  const chip = match?.[1];
+  if (chip && INTAKE_SHOE_DOT_ZERO.has(chip) && isEuShoeSize(chip)) {
+    return chip;
+  }
+  return null;
 }
 
 function asStringArray(value: unknown): string[] {
@@ -260,6 +275,7 @@ export function intakeToPrefill(submission: IntakeSubmission): IntakePrefill {
 
   const sizes: ShopSize[] = [];
   const droppedSizes: string[] = [];
+  const shoeKind = submission.kind.trim().toUpperCase() === "G";
   for (const token of submission.size.split(/[\s,;|/]+/)) {
     const clean = token.trim().toUpperCase();
     if (!clean) {
@@ -269,7 +285,16 @@ export function intakeToPrefill(submission: IntakeSubmission): IntakePrefill {
       if (!sizes.includes(clean)) {
         sizes.push(clean);
       }
-    } else if (!droppedSizes.includes(token.trim())) {
+      continue;
+    }
+    const shoe = shoeKind ? shoeChip(token.trim()) : null;
+    if (shoe) {
+      if (!sizes.includes(shoe)) {
+        sizes.push(shoe);
+      }
+      continue;
+    }
+    if (!droppedSizes.includes(token.trim())) {
       droppedSizes.push(token.trim());
     }
   }
