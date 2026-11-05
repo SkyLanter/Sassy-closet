@@ -200,6 +200,35 @@ test("srcBelongsToMa keeps a held mã's own folder and rejects it on other mãs"
   assert.equal(srcBelongsToMa("/uploads/a03.jpg", "A03"), true);
   assert.equal(srcBelongsToMa("https://cdn.example.com/looks/a03.jpg", "A03"), true);
   assert.equal(srcBelongsToMa("", "A03"), false);
+
+  const encodedFolder = [...held]
+    .map((char) => `%${char.charCodeAt(0).toString(16).padStart(2, "0").toUpperCase()}`)
+    .join("");
+  const encodedBlob = `https://example.public.blob.vercel-storage.com/sassy-closet-shop/products/${encodedFolder}/cover.jpg`;
+  assert.equal(srcBelongsToMa(encodedBlob, "A03"), false);
+  assert.equal(srcBelongsToMa(encodedBlob, held), true);
+  const tabInProducts = `HTTPS://example.public.blob.vercel-storage.com/sassy-closet-shop/pro\tducts/${held}/cover.jpg`;
+  const tabInFolder =
+    `HTTPS://example.public.blob.vercel-storage.com/sassy-closet-shop/products/${held.slice(0, 1)}\t${held.slice(1)}/cover.jpg`;
+  assert.equal(srcBelongsToMa(tabInProducts, "A03"), false);
+  assert.equal(srcBelongsToMa(tabInProducts, held), true);
+  assert.equal(srcBelongsToMa(tabInFolder, "A03"), false);
+  assert.equal(srcBelongsToMa(tabInFolder, held), true);
+  assert.equal(
+    srcBelongsToMa("HTTPS://cdn.example.com/products/A04/cover.jpg", "A03"),
+    true,
+  );
+  assert.equal(srcBelongsToMa(`/products/A04/../${held}/cover.jpg`, "A03"), false);
+  assert.equal(srcBelongsToMa(`/products/A04/../${held}/cover.jpg`, held), true);
+  const encodedLook = ownMaImages({
+    ma: "A03",
+    colors: [],
+    images: [image(encodedBlob, 0), image("/uploads/a03.jpg", 1)],
+  });
+  assert.deepEqual(
+    encodedLook.map((item) => item.src),
+    ["/uploads/a03.jpg"],
+  );
 });
 
 test("public A03 images drop the held folder and S06 JSON-LD keeps 25.00", () => {

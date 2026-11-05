@@ -2,16 +2,17 @@ import { isOffLiveSell } from "@/lib/held-incomplete";
 
 /**
  * How a catalog image src relates to a `/products/{folder}/` path.
- * Absolute Blob URLs count. Dots and percent-encoding are resolved first.
+ * Absolute Blob URLs count. Tabs and newlines are removed first, the same
+ * way a browser parses an img src, then dots and percent-encoding.
  */
 type CatalogImageFolder = "clear" | "off-live" | "unsafe";
 
 function pathnameOf(src: string): string | null {
-  const trimmed = src.trim();
+  const trimmed = src.trim().replace(/[\t\r\n]/g, "");
   if (!trimmed) {
     return "";
   }
-  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+  if (/^https?:\/\//i.test(trimmed)) {
     try {
       return new URL(trimmed).pathname;
     } catch {
@@ -53,24 +54,40 @@ function normalizedSegments(pathname: string): string[] | null {
   return segments;
 }
 
-export function catalogImageFolder(src: string): CatalogImageFolder {
+/**
+ * Folders that sit under a `products` segment after one decode and dot-segment collapse.
+ * Null when the path is unsafe. Empty when the src has no product folder.
+ */
+export function catalogProductFolders(src: string): string[] | null {
   const pathname = pathnameOf(src);
   if (pathname === null) {
-    return "unsafe";
+    return null;
   }
   if (pathname === "") {
-    return "clear";
+    return [];
   }
   const segments = normalizedSegments(pathname);
   if (segments === null) {
-    return "unsafe";
+    return null;
   }
+  const folders: string[] = [];
   for (let index = 0; index < segments.length - 1; index += 1) {
     const marker = segments[index];
     const folder = segments[index + 1];
     if (!marker || !folder || marker.toLowerCase() !== "products") {
       continue;
     }
+    folders.push(folder);
+  }
+  return folders;
+}
+
+export function catalogImageFolder(src: string): CatalogImageFolder {
+  const folders = catalogProductFolders(src);
+  if (folders === null) {
+    return "unsafe";
+  }
+  for (const folder of folders) {
     if (isOffLiveSell(folder)) {
       return "off-live";
     }

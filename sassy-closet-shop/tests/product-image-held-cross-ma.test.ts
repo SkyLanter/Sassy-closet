@@ -61,6 +61,12 @@ test("catalog image src blocks held folders, including Blob URLs and padded spel
   assert.equal(catalogImageSrcBlocked(paddedUrl), true, paddedUrl);
   assert.equal(catalogImageSrcBlocked(lowerUrl), true, lowerUrl);
   assert.equal(catalogImageSrcBlocked(encoded), true, encoded);
+  assert.equal(
+    catalogImageSrcBlocked(
+      `HTTPS://blob.example/sassy-closet-shop/pro\tducts/${HELD}/cover.jpg`,
+    ),
+    true,
+  );
   assert.equal(catalogImageSrcBlocked(`/products/${HELD}/cover.jpg`), true);
   assert.equal(catalogImageSrcBlocked("https://blob.example/products/A03/cover.jpg"), false);
   assert.equal(catalogImageSrcBlocked("https://blob.example/products/A99/cover.jpg"), false);
