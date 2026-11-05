@@ -730,3 +730,19 @@ Notes, not a fail: unquoted JSON `2.5e1`, `2.5E1`, `25e0`, and `250e-1` are floa
 
 #249 is this log and is not graded.
 
+## 2026-11-05 08:36 UTC — #294 at e0c34ba PASS
+
+Requested recheck of this head against parent `21ef1cb`. This lane did not build it.
+
+#294 head is still `e0c34bad44c1fd9ae891461c416f5c3cf02022e1`. `21ef1cbaee64a6553fb68e401f3a9733c7c04b4f` stays the prior PASS. Comment `6653508698` says PASS on this SHA. The tip commit is the delta under test: 6 files, +123/−17 on top of the parent, and the full diff vs `origin/main` is 6 files, +483/−25 (`scripts/cost_recheck_block.py`, `scripts/daily_summary_draft.py`, `scripts/boss_decisions.py`, `scripts/taobao_unreachable_streak.py`, and their tests). It does not change `data/held.json`, a price file, CSS, layout, or copy. `npm ci --no-audit --no-fund` in both apps (intake 143 packages, shop 407), then `scripts/hard_recheck.sh --base origin/main` with `HARD_RECHECK_PYTHON=/usr/bin/python3` (pytest 9.2.0). The worktree was detached at this SHA, so the summary's branch field is blank. Log `out/recheck/20261105-082524-3033`. pytest 2223 passed, 7 skipped; privacy CLEAN; intake npm 277 / 274 / 0 / 3; shop npm 218 / 215 / 0 / 3; both tsc ok; `held.json` unchanged vs `origin/main`. Required skips: none. Working tree clean. Head was still `e0c34ba` after the run.
+
+One `login_blocked` is `scripts/cost_recheck_block.py` line 13. An AST walk finds that definition and no other. The daily summary, Boss decisions, and the streak watcher hold the same function object. A wrapper counted calls: daily summary 2 (blocked header and `evidence`), Boss `compile_decisions` 1, Boss `streak_start` 1, streak watcher 1. A helper forced true skips every Boss day and blocks all three watcher dates. A helper forced false keeps the middle day in both readers.
+
+Parent `" false "` and `"\nNo\t"` are not blocked by the helper, and the summary still prints the sign-in line because the else branch treats the string as truthy. Parent JSON `1e0` and `1.0` are float 1.0, the helper returns false, and the summary prints the sign-in line and the hold question. Parent float `1.5` and the string `"1.0"` do the same. Parent float `0.0` does not print the sign-in line. Parent Boss `streak_start` and `load_json` on a UTF-8 BOM summary raise `JSONDecodeError: Unexpected UTF-8 BOM (decode using utf-8-sig)`.
+
+This tree's strings `false` and `no`, 130 distinct values of case and surrounding whitespace (space, tab, CR, LF, CRLF, VT, FF, NBSP, em space, U+2028, U+2029, ideographic space), stay open: no sign-in line, no blocked line, the hold question stays, and Boss keeps `gone_hold` Z71 and reclassifies Z72. JSON `1`, `1.0`, and `1e0` are blocked. `1` is int 1. `1.0` and `1e0` are float 1.0. The summary prints the blocked line and the sign-in line once, drops Z71, and Boss returns only `[('intake_mismatch', 'Z72')]`. Those tokens as file bytes on a middle day that lists Z99 and omits Z71: Boss Z71 stays `2000-06-01`, Z99 does not start, the watcher blocks that day, and Z71 is `(2, 2000-06-01)`. JSON `0.0`, `1.5`, and the string `"1.0"` stay open. Z71 breaks to `2000-06-03`, the watcher keeps the middle day, and Z99 starts at `2000-06-02`. A UTF-8 BOM summary loads in Boss `streak_start`. BOM plus `1e0`, BOM plus CRLF plus `1.0`, and BOM plus `1` skip the middle day. BOM plus a leading newline plus `" false "` loads that string and breaks the streak at `2000-09-03`.
+
+Notes, not a fail: JSON `1E0`, `1e+0`, and `1.00` parse to float 1.0 and are blocked. `0e0` and `-0.0` are not. The string `"1e0"` is not blocked. A summary whose text is `{` still counts in the watcher and still raises `JSONDecodeError` from Boss `streak_start`. S06 stays $25. Held stays held. No Blob, KV, Meta, or price write. No push to the #294 branch.
+
+#249 is this log and is not graded.
+
