@@ -1,5 +1,6 @@
 """Piece 49 taobao_unreachable_streak: synthetic fixtures only, no network."""
 import datetime as dt
+import json
 import socket
 from pathlib import Path
 
@@ -218,6 +219,136 @@ def test_missing_folder_and_future_file(tmp_path, capsys):
     assert s.main(["--dir", str(tmp_path), "--as-of", "2026-99-99"]) == 2
     err = capsys.readouterr().err
     assert "YYYY-MM-DD" in err
+
+
+def _summary(tmp_path, date, doc, bom=False):
+    raw = json.dumps(doc).encode("utf-8")
+    if bom:
+        raw = b"\xef\xbb\xbf" + raw
+    (tmp_path / f"summary.{date}.json").write_bytes(raw)
+
+
+def test_signed_out_block_does_not_count_or_break(tmp_path):
+    _flags(tmp_path / "cost-recheck-2026-10-20-flags.csv", [("A07", "unreachable")])
+    _flags(tmp_path / "cost-recheck-2026-10-21-flags.csv", [("A07", "loss")])
+    _summary(tmp_path, "2026-10-21", {"taobao_login_needed": True, "unreachable_mas": []})
+    _flags(tmp_path / "cost-recheck-2026-10-22-flags.csv", [("A07", "unreachable")])
+    runs = s.load_runs(str(tmp_path))
+    assert runs == [("2026-10-20", {"A07"}), ("2026-10-22", {"A07"})]
+    assert s.streaks(runs)["A07"] == (2, "2026-10-20")
+    text = s.build_report(str(tmp_path), min_days=2, as_of=dt.date(2026, 10, 22))
+    assert "latest_run 2026-10-22 runs_read 2" in text
+    assert "NOTE signed-out cost-recheck block 2026-10-21 (unreachable flags not used)" in text
+    assert "missing cost-recheck days" not in text
+    assert "STALE" not in text
+    assert "WARN unreachable_streak A07 day 2 (since 2026-10-20)" in text
+    for hidden in (SECRET, "99.5", "example.invalid", "¥"):
+        assert hidden not in text
+
+
+def test_blocked_day_is_not_a_missing_calendar_day(tmp_path):
+    _flags(tmp_path / "cost-recheck-2026-10-16-flags.csv", [("A07", "unreachable")])
+    _flags(tmp_path / "cost-recheck-2026-10-20-flags.csv", [("A07", "unreachable")])
+    _summary(tmp_path, "2026-10-20", {"taobao_login_needed": True})
+    _flags(tmp_path / "cost-recheck-2026-10-22-flags.csv", [("A07", "unreachable")])
+    text = s.build_report(str(tmp_path), min_days=1, as_of=dt.date(2026, 10, 22))
+    note = next(line for line in text.splitlines() if line.startswith("NOTE missing"))
+    assert "2026-10-20" not in note
+    assert "2026-10-17" in note and "2026-10-21" in note
+    assert "NOTE signed-out cost-recheck block 2026-10-20 (unreachable flags not used)" in text
+    assert "WARN unreachable_streak A07 day 2 (since 2026-10-16)" in text
+
+
+def test_blocked_newest_equal_as_of_is_not_stale(tmp_path):
+    _flags(tmp_path / "cost-recheck-2026-10-20-flags.csv", [("A07", "unreachable")])
+    _flags(tmp_path / "cost-recheck-2026-10-22-flags.csv", [("A07", "unreachable")])
+    _summary(tmp_path, "2026-10-22", {"taobao_login_needed": True})
+    text = s.build_report(str(tmp_path), min_days=1, as_of=dt.date(2026, 10, 22))
+    assert "latest_run 2026-10-20 runs_read 1" in text
+    assert "NOTE signed-out cost-recheck block 2026-10-22 (unreachable flags not used)" in text
+    assert "STALE" not in text
+    assert "WARN unreachable_streak A07 day 1 (since 2026-10-20)" in text
+
+
+def test_stale_uses_newer_blocked_day(tmp_path):
+    _flags(tmp_path / "cost-recheck-2026-10-20-flags.csv", [("A07", "unreachable")])
+    _flags(tmp_path / "cost-recheck-2026-10-21-flags.csv", [("A07", "unreachable")])
+    _summary(tmp_path, "2026-10-21", {"taobao_login_needed": True})
+    text = s.build_report(str(tmp_path), min_days=1, as_of=dt.date(2026, 10, 22))
+    assert "STALE latest cost-recheck flags 2026-10-21 are before 2026-10-22" in text
+    assert "latest_run 2026-10-20 runs_read 1" in text
+
+
+def test_all_blocked_is_ok_not_missing(tmp_path):
+    _flags(tmp_path / "cost-recheck-2026-10-20-flags.csv", [("A07", "unreachable")])
+    _flags(tmp_path / "cost-recheck-2026-10-22-flags.csv", [("A07", "unreachable")])
+    for day in ("2026-10-20", "2026-10-22"):
+        _summary(tmp_path, day, {"taobao_login_needed": True})
+    text = s.build_report(str(tmp_path), as_of=dt.date(2026, 10, 22))
+    assert text.splitlines()[0] == (
+        "OK signed-out block on 2 cost-recheck run(s); unreachable flags not used")
+    assert "MISSING" not in text and "A07" not in text
+    assert "NOTE missing cost-recheck days 2026-10-21" in text
+    assert "STALE" not in text
+    assert "signed-out cost-recheck block 2026-10-20" not in text
+    for hidden in (SECRET, "99.5", "example.invalid", "¥"):
+        assert hidden not in text
+
+
+def test_all_blocked_before_as_of_is_stale_without_mas(tmp_path):
+    _flags(tmp_path / "cost-recheck-2026-10-20-flags.csv", [("A07", "unreachable")])
+    _summary(tmp_path, "2026-10-20", {"taobao_login_needed": 1})
+    text = s.build_report(str(tmp_path), as_of=dt.date(2026, 10, 22))
+    assert text.splitlines()[0] == (
+        "OK signed-out block on 1 cost-recheck run(s); unreachable flags not used")
+    assert "STALE latest cost-recheck flags 2026-10-20 are before 2026-10-22" in text
+    assert "A07" not in text and "MISSING" not in text
+
+
+def test_unusable_name_still_prints_when_dated_files_are_blocked(tmp_path):
+    _flags(tmp_path / "cost-recheck-2026-10-22-flags.csv", [("A07", "unreachable")])
+    _summary(tmp_path, "2026-10-22", {"taobao_login_needed": True})
+    _flags(tmp_path / "cost-recheck-2026-99-99-flags.csv", [("A09", "unreachable")])
+    text = s.build_report(str(tmp_path), as_of=dt.date(2026, 10, 22))
+    assert "OK signed-out block on 1 cost-recheck run(s); unreachable flags not used" in text
+    assert "UNUSABLE cost-recheck-2026-99-99-flags.csv: not a real date" in text
+    assert "MISSING" not in text and "A07" not in text and "A09" not in text
+
+
+def test_blocked_plus_unusable_dated_file_is_not_the_all_blocked_line(tmp_path):
+    _flags(tmp_path / "cost-recheck-2026-10-20-flags.csv", [("A07", "unreachable")])
+    _summary(tmp_path, "2026-10-20", {"taobao_login_needed": True})
+    (tmp_path / "cost-recheck-2026-10-21-flags.csv").write_bytes(b"")
+    text = s.build_report(str(tmp_path), as_of=dt.date(2026, 10, 21))
+    assert "OK signed-out block" not in text
+    assert "MISSING no usable cost-recheck flag files found" in text
+    assert "UNUSABLE cost-recheck-2026-10-21-flags.csv: empty file" in text
+    assert "signed-out cost-recheck block" not in text
+    assert "NOTE missing" not in text
+    assert "A07" not in text and SECRET not in text
+
+
+def test_bad_json_summary_still_counts_flags(tmp_path):
+    _flags(tmp_path / "cost-recheck-2026-10-22-flags.csv", [("A07", "unreachable")])
+    (tmp_path / "summary.2026-10-22.json").write_text("{", encoding="utf-8")
+    assert s.load_runs(str(tmp_path)) == [("2026-10-22", {"A07"})]
+    text = s.build_report(str(tmp_path), min_days=1, as_of=dt.date(2026, 10, 22))
+    assert "signed-out" not in text
+    assert "WARN unreachable_streak A07 day 1 (since 2026-10-22)" in text
+
+
+def test_bom_summary_blocks_and_false_string_does_not(tmp_path):
+    _flags(tmp_path / "cost-recheck-2026-10-21-flags.csv", [("A07", "unreachable")])
+    _flags(tmp_path / "cost-recheck-2026-10-22-flags.csv", [("A07", "loss")])
+    _summary(tmp_path, "2026-10-22", {"taobao_login_needed": True}, bom=True)
+    assert s.load_runs(str(tmp_path)) == [("2026-10-21", {"A07"})]
+    kept = tmp_path / "kept"
+    kept.mkdir()
+    _flags(kept / "cost-recheck-2026-10-22-flags.csv", [("A07", "unreachable")])
+    _summary(kept, "2026-10-22", {"taobao_login_needed": "false", "unreachable_mas": ["A01", "A02"]})
+    assert s.load_runs(str(kept)) == [("2026-10-22", {"A07"})]
+    text = s.build_report(str(kept), min_days=1, as_of=dt.date(2026, 10, 22))
+    assert "signed-out" not in text
 
 
 def test_cli_matches_golden(tmp_path, capsys):

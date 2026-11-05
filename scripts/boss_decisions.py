@@ -15,7 +15,8 @@ one line per decision: mã | question | evidence path | days open.
 Days open = <date> minus the earliest dated source showing it; '?' when a
 source carries no date. Free text is never copied: only mã codes, category
 questions written here, relative paths, dates and PR numbers. No network,
-no sends, no live writes.
+no sends, no live writes. A summary with taobao_login_needed is a signed-out
+block: that day is skipped for streaks and is not gone or unreachable evidence.
 """
 from __future__ import annotations
 
@@ -28,6 +29,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+import cost_recheck_block  # noqa: E402
 import daily_summary_draft as ds  # noqa: E402
 
 ROOT = Path("/workspace/sassy-closet")
@@ -128,28 +130,37 @@ def parse_digest(text):
 
 
 def _summary_lists(path, ma):
-    """True when this summary file exists and lists mã unreachable.
+    """'count', 'skip', or 'break' for one cost-recheck summary day.
 
-    A missing summary, unreadable file, or file that does not list mã is False.
+    count: the file is a dict, is not a signed-out block, and lists mã.
+    skip: the file is a dict and login_blocked (it neither counts nor breaks).
+    break: the file is missing, unreadable, not a dict, or does not list mã.
+    UTF-8 BOM is stripped so it cannot hide taobao_login_needed.
     """
     if not path.is_file():
-        return None  # missing: the caller treats this as a break
+        return "break"
     try:
-        doc = ds.load_json(path) or {}
+        doc = json.loads(Path(path).read_text(encoding="utf-8-sig"))
     except (json.JSONDecodeError, OSError, UnicodeDecodeError):
-        return False
+        return "break"
     if not isinstance(doc, dict):
-        return False
-    return ma in (doc.get("unreachable_mas") or [])
+        return "break"
+    if cost_recheck_block.login_blocked(doc):
+        return "skip"
+    if ma in (doc.get("unreachable_mas") or []):
+        return "count"
+    return "break"
 
 
 def streak_start(root, date, ma):
-    """Earliest date of the unbroken daily run, ending on <date>, listing mã unreachable.
+    """Earliest date of the unbroken daily run, walking back from <date>, listing mã unreachable.
 
     Walk calendar days backward from <date>, at most 10 years. A day counts
-    only when summary.<day>.json exists and lists mã in unreachable_mas.
-    A missing file or a file that does not list mã breaks the run.
-    None when <date> itself does not qualify.
+    only when summary.<day>.json exists, is not a signed-out block, and lists
+    mã in unreachable_mas. A login_blocked day is skipped: it does not count
+    and it does not break the run. A missing file, an unreadable or non-dict
+    file, or a file that does not list mã breaks the run.
+    None when no counted day remains.
     """
     try:
         day = dt.date.fromisoformat(date)
@@ -159,7 +170,11 @@ def streak_start(root, date, ma):
     folder = Path(root) / "verify/cost-recheck"
     for _ in range(3660):
         name = day.isoformat()
-        if _summary_lists(folder / f"summary.{name}.json", ma) is not True:
+        status = _summary_lists(folder / f"summary.{name}.json", ma)
+        if status == "skip":
+            day -= dt.timedelta(days=1)
+            continue
+        if status != "count":
             break
         start = name
         day -= dt.timedelta(days=1)
@@ -291,7 +306,8 @@ def compile_decisions(root, date, digest_text, cost=None, cost_path=None, cb_pat
         D.append({"cat": cat, "ma": ma, "q": q or QUESTIONS[cat], "ev": ev,
                   "since": since, "days": days(date, since) if since else None})
 
-    gone = ds.mas((cost or {}).get("persistent_new_unreachable"))
+    cost_ev = cost_recheck_block.evidence(cost)
+    gone = ds.mas(cost_ev.get("persistent_new_unreachable"))
     for m in gone:
         add("gone_hold", m, rel(root, cost_path), streak_start(root, date, m))
     flips = {}
@@ -300,7 +316,7 @@ def compile_decisions(root, date, digest_text, cost=None, cost_path=None, cb_pat
     flip_under = sorted(m for m, (iv, _b) in flips.items() if iv == "UNDER")
     for m in flip_under:
         add("flip_under", m, rel(root, cb_path), first_cost_basis(root, date, m))
-    unreach = set(ds.mas((cost or {}).get("unreachable_mas")))
+    unreach = set(ds.mas(cost_ev.get("unreachable_mas")))
     skip_mismatch = set(gone) | set(flip_under)
     for cat, m, seen, src in parse_digest(digest_text):
         if cat == "intake_mismatch":

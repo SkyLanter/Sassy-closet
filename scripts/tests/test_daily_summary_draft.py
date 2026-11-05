@@ -118,3 +118,71 @@ def test_qc_none_not_found():
     assert d.midnight_lines(None) == ["Midnight QC: not found for today."]
     assert "Midnight QC: not found for today." in d.build(
         None, None, {}, None, None, "pass", "pass", "2000-01-01")
+
+
+BLOCKED_LINE = ("Taobao cost recheck: blocked on a signed-out read. "
+                "Unreachable rows and price deltas in this file are not used.")
+SIGNIN_LINE = "Taobao still needs your sign-in."
+
+
+def _blocked_cost(flag=True):
+    return {
+        "taobao_login_needed": flag,
+        "counts": {"unreachable": 4},
+        "unreachable_mas": ["Z01", "Z10"],
+        "persistent_new_unreachable": ["Z01"],
+        "live_price_changed": ["Z10"],
+        "new_under_or_loss": ["Z11"],
+        "wake_reason": "SECRET_WAKE",
+    }
+
+
+def test_signed_out_cost_block_is_not_price_or_gone_evidence():
+    dig = "- [intake_mismatch] Z10  first_seen=2000-01-01  source=x\nTOTAL 1"
+    text = d.build(QC, _blocked_cost(True), d.parse_digest(dig), GAPS, None,
+                   "pass", "pass", "2000-01-01")
+    lines = text.splitlines()
+    start = lines.index(BLOCKED_LINE)
+    assert lines[start + 1] == SIGNIN_LINE
+    assert lines[start + 2] == ""
+    assert "listings unreachable" not in text
+    assert "live price change" not in text
+    assert "under-price/loss" not in text
+    assert "Newly gone" not in text
+    assert "Should Z01 go on hold?" not in text
+    assert "Taobao listing unreachable" not in text
+    assert "Intake cost doesn't match public Taobao price: Z10" in text
+    assert "SECRET_WAKE" not in text
+    assert "Midnight QC: WARN, 0 fail(s), 1 warning(s); second pass agreed." in text
+
+
+def test_flat_midnight_lines_stay_when_cost_is_blocked():
+    qc = {"overall": "PASS", "dataOk": "PASS", "sellSite": "PASS",
+          "freshnessGuards": "PASS", "freshnessHub": "skip",
+          "blobCount": 62, "heldCount": 22, "intakeCount": 40, "s06Usd": 25}
+    text = d.build(qc, _blocked_cost(), {}, None, None, "pass", "pass", "2000-01-01")
+    assert "Midnight QC: PASS. Data PASS. Sell site PASS. Freshness guards PASS. Hub SKIP." in text
+    assert "62 items live, 22 held, intake 40 rows, S06 $25." in text
+    assert BLOCKED_LINE in text
+    assert "listings unreachable" not in text
+
+
+def test_negative_login_flag_keeps_evidence_and_hold_question():
+    for flag in ("false", "no", False, 0, "1.0"):
+        text = d.build(QC, _blocked_cost(flag), d.parse_digest(DIG), GAPS, None,
+                       "pass", "pass", "2000-01-01")
+        assert "listings unreachable" in text
+        assert "1 live price change(s)" in text
+        assert "1 new under-price/loss." in text
+        assert "Newly gone on Taobao and still live: Z01." in text
+        assert "Should Z01 go on hold?" in text
+        assert SIGNIN_LINE not in text
+        assert "blocked on a signed-out read" not in text
+        assert "SECRET_WAKE" not in text
+
+
+def test_login_block_accepts_one_and_yes():
+    for flag in (1, 1.0, "yes", " y ", "1"):
+        text = d.build(QC, _blocked_cost(flag), {}, GAPS, None, "pass", "pass", "2000-01-01")
+        assert BLOCKED_LINE in text and SIGNIN_LINE in text
+        assert "Should Z01 go on hold?" not in text

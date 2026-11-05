@@ -143,3 +143,103 @@ def test_streak_start_none_when_date_omits_ma(tmp_path):
 
 def test_streak_start_bad_date(tmp_path):
     assert bd.streak_start(tmp_path, "not-a-date", "A01") is None
+
+
+def _write_summary(tmp_path, day, doc, bom=False):
+    cr = tmp_path / "verify/cost-recheck"
+    cr.mkdir(parents=True, exist_ok=True)
+    raw = json.dumps(doc).encode("utf-8")
+    if bom:
+        raw = b"\xef\xbb\xbf" + raw
+    (cr / f"summary.{day}.json").write_bytes(raw)
+    return tmp_path
+
+
+def test_streak_start_block_does_not_break_or_count(tmp_path):
+    _write_summary(tmp_path, "2000-01-03", {"unreachable_mas": ["A01"]})
+    _write_summary(tmp_path, "2000-01-04", {"taobao_login_needed": True, "unreachable_mas": []})
+    _write_summary(tmp_path, "2000-01-05", {"unreachable_mas": ["A01"]})
+    assert bd.streak_start(tmp_path, "2000-01-05", "A01") == "2000-01-03"
+
+
+def test_streak_start_block_alone_is_not_a_streak(tmp_path):
+    _write_summary(tmp_path, "2000-01-05", {
+        "taobao_login_needed": True, "unreachable_mas": ["A01"],
+    })
+    assert bd.streak_start(tmp_path, "2000-01-05", "A01") is None
+
+
+def test_streak_start_false_string_still_counts(tmp_path):
+    _write_summary(tmp_path, "2000-01-05", {
+        "taobao_login_needed": "false", "unreachable_mas": ["A01"],
+    })
+    assert bd.streak_start(tmp_path, "2000-01-05", "A01") == "2000-01-05"
+
+
+def test_streak_start_bom_block_is_skipped(tmp_path):
+    _write_summary(tmp_path, "2000-01-04", {"unreachable_mas": ["A01"]})
+    _write_summary(tmp_path, "2000-01-05", {
+        "taobao_login_needed": True, "unreachable_mas": ["A01"],
+    }, bom=True)
+    assert bd.streak_start(tmp_path, "2000-01-05", "A01") == "2000-01-04"
+
+
+def test_streak_start_bad_json_breaks(tmp_path):
+    cr = tmp_path / "verify/cost-recheck"
+    cr.mkdir(parents=True)
+    (cr / "summary.2000-01-04.json").write_text(
+        json.dumps({"unreachable_mas": ["A01"]}), encoding="utf-8")
+    (cr / "summary.2000-01-05.json").write_text("{", encoding="utf-8")
+    assert bd.streak_start(tmp_path, "2000-01-05", "A01") is None
+
+
+def test_streak_start_non_dict_breaks(tmp_path):
+    _write_summary(tmp_path, "2000-01-04", {"unreachable_mas": ["A01"]})
+    cr = tmp_path / "verify/cost-recheck"
+    (cr / "summary.2000-01-05.json").write_text("[]", encoding="utf-8")
+    assert bd.streak_start(tmp_path, "2000-01-05", "A01") is None
+
+
+def test_streak_start_unreachable_pile_without_flag_counts(tmp_path):
+    _write_summary(tmp_path, "2000-01-05", {"unreachable_mas": ["A01", "A02", "A03"]})
+    assert bd.streak_start(tmp_path, "2000-01-05", "A01") == "2000-01-05"
+
+
+@pytest.mark.parametrize("flag", [True, 1, 1.0, "true", "yes", "y", "1"])
+def test_login_blocked_cost_is_not_gone_or_unreachable(tmp_path, flag):
+    r = _root(tmp_path)
+    cost = {
+        "taobao_login_needed": flag,
+        "persistent_new_unreachable": ["X08", "X09"],
+        "unreachable_mas": ["X08", "X02"],
+    }
+    D = bd.compile_decisions(
+        r, "2000-01-05", DIGEST, cost,
+        r / "verify/cost-recheck/summary.2000-01-05.json",
+        r / "out/reports/2000-01-05/COST-BASIS.md",
+        {"ig": ("pass", ""), "fb": ("pass", "")}, None,
+        r / "out/meta-popular/cycle-2000-01-05/SUMMARY.txt")
+    assert _by(D, "gone_hold") == {}
+    assert _by(D, "intake_unreachable") == {}
+    assert set(_by(D, "intake_mismatch")) == {"X02", "X03", "X09"}
+    assert set(_by(D, "flip_under")) == {"X07"}
+    assert "X01" in _by(D, "price_approval")
+
+
+@pytest.mark.parametrize("flag", ["false", "no", False, 0, 0.0, "1.0"])
+def test_negative_login_flag_cost_is_still_evidence(tmp_path, flag):
+    r = _root(tmp_path)
+    cost = {
+        "taobao_login_needed": flag,
+        "persistent_new_unreachable": ["X08"],
+        "unreachable_mas": ["X02"],
+    }
+    D = bd.compile_decisions(
+        r, "2000-01-05", DIGEST, cost,
+        r / "verify/cost-recheck/summary.2000-01-05.json",
+        r / "out/reports/2000-01-05/COST-BASIS.md",
+        {"ig": ("pass", ""), "fb": ("pass", "")}, None,
+        r / "out/meta-popular/cycle-2000-01-05/SUMMARY.txt")
+    assert "X08" in _by(D, "gone_hold")
+    assert set(_by(D, "intake_unreachable")) == {"X02"}
+    assert "X09" in _by(D, "intake_mismatch")

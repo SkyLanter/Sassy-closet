@@ -8,9 +8,13 @@ names those days so a "day N" line is not read as N calendar days.
 
 An empty file, a file with no ma/flag columns, a non-date name, or a file
 that cannot be read is UNUSABLE. It is not a clean day and does not clear
-a streak. No usable file is MISSING, not "OK". When --as-of (default: today
-in America/Los_Angeles) is after the newest usable file, the report says
-STALE.
+a streak. No usable file is MISSING, not "OK", unless every dated flag file
+is a signed-out block (sibling summary.YYYY-MM-DD.json with
+taobao_login_needed). A blocked day is not a usable run: it does not count
+and does not break a streak, and it is not a missing calendar day. When
+--as-of (default: today in America/Los_Angeles) is after the newest usable
+or blocked file, the report says STALE. An unusable file alone does not
+set that date.
 
 Output carries mã codes, dates, filenames and those status words only:
 never ¥, links, item ids, names or costs. No network, no writes.
@@ -20,11 +24,13 @@ import csv
 import datetime as dt
 import glob
 import io
+import json
 import os
 import re
 import sys
 from zoneinfo import ZoneInfo
 
+import cost_recheck_block
 from held_policy import norm_ma
 
 DATE_RE = re.compile(r"cost-recheck-(\d{4}-\d{2}-\d{2})-flags\.csv$")
@@ -110,17 +116,36 @@ def read_flags(path):
         return "unusable", "bad csv"
 
 
-def scan(directory):
-    """Usable (date, mãs) runs, (filename, reason) problems, and real dates seen.
+def _summary_blocked(directory, date_iso):
+    """True only when sibling summary.<date>.json is an explicit signed-out block.
 
-    A missing directory yields three empty results. A filename that is not
+    A missing file, or a file that is not valid JSON, is not a block, so the
+    flag CSV stays evidence. UTF-8 BOM is accepted so it cannot hide the flag.
+    """
+    path = os.path.join(directory, f"summary.{date_iso}.json")
+    try:
+        with open(path, encoding="utf-8-sig") as fh:
+            doc = json.load(fh)
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return False
+    return cost_recheck_block.login_blocked(doc)
+
+
+def scan(directory):
+    """Usable runs, problems, real dates, and signed-out blocked dates.
+
+    A missing directory yields four empty results. A filename that is not
     cost-recheck-YYYY-MM-DD-flags.csv is ignored. An impossible date is a problem.
+    A sibling summary with taobao_login_needed is not a usable run. That date
+    stays in the real dates and the blocked dates. A missing summary, or a
+    summary that is not valid JSON, leaves the flag file to be read as usual.
     """
     if not os.path.isdir(directory):
-        return [], [], []
+        return [], [], [], []
     runs = []
     problems = []
     real_dates = []
+    blocked = []
     pattern = os.path.join(directory, "cost-recheck-*-flags.csv")
     for path in sorted(glob.glob(pattern)):
         name = os.path.basename(path)
@@ -132,6 +157,9 @@ def scan(directory):
             problems.append((name, "not a real date"))
             continue
         real_dates.append(day)
+        if _summary_blocked(directory, day.isoformat()):
+            blocked.append(day)
+            continue
         status, payload = read_flags(path)
         if status != "ok":
             problems.append((name, payload))
@@ -139,11 +167,12 @@ def scan(directory):
         runs.append((day.isoformat(), payload))
     runs.sort()
     problems.sort()
-    return runs, problems, real_dates
+    blocked.sort()
+    return runs, problems, real_dates, blocked
 
 
 def load_runs(directory):
-    runs, _problems, _dates = scan(directory)
+    runs, _problems, _dates, _blocked = scan(directory)
     return runs
 
 
@@ -221,12 +250,17 @@ def build_report(directory, min_days=2, as_of=None):
     """Full stdout. as_of is a datetime.date or None (no stale check)."""
     folder_missing = not os.path.isdir(directory)
     if folder_missing:
-        runs, problems, real_dates = [], [], []
+        runs, problems, real_dates, blocked = [], [], [], []
     else:
-        runs, problems, real_dates = scan(directory)
+        runs, problems, real_dates, blocked = scan(directory)
     lines = []
+    every_dated_blocked = bool(real_dates) and len(blocked) == len(real_dates) and not runs
     if folder_missing:
         lines.append("MISSING cost-recheck folder (no cost-recheck flag files found)")
+    elif every_dated_blocked:
+        lines.append(
+            f"OK signed-out block on {len(blocked)} cost-recheck run(s); unreachable flags not used"
+        )
     elif not runs:
         if problems:
             lines.append("MISSING no usable cost-recheck flag files found")
@@ -239,12 +273,28 @@ def build_report(directory, min_days=2, as_of=None):
     note = gap_line(calendar_gaps(real_dates))
     if note:
         lines.append(note)
-    if as_of is not None and runs:
-        latest = _real_day(runs[-1][0])
-        if latest is not None and latest < as_of:
-            lines.append(f"STALE latest cost-recheck flags {runs[-1][0]} are before {as_of.isoformat()}")
-        elif latest is not None and latest > as_of:
-            lines.append(f"NOTE latest cost-recheck flags {runs[-1][0]} are after {as_of.isoformat()}")
+    if runs:
+        for day in blocked:
+            lines.append(
+                "NOTE signed-out cost-recheck block "
+                f"{day.isoformat()} (unreachable flags not used)"
+            )
+    evidence_days = []
+    for date_iso, _mas in runs:
+        parsed = _real_day(date_iso)
+        if parsed is not None:
+            evidence_days.append(parsed)
+    evidence_days.extend(blocked)
+    if as_of is not None and evidence_days:
+        latest = max(evidence_days)
+        if latest < as_of:
+            lines.append(
+                f"STALE latest cost-recheck flags {latest.isoformat()} are before {as_of.isoformat()}"
+            )
+        elif latest > as_of:
+            lines.append(
+                f"NOTE latest cost-recheck flags {latest.isoformat()} are after {as_of.isoformat()}"
+            )
     if runs:
         warns = warn_lines(streaks(runs), min_days)
         if warns:
