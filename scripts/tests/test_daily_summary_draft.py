@@ -236,9 +236,79 @@ def test_main_true_counts_do_not_abort(tmp_path):
     code, text = _brief(tmp_path, cost=cost)
     assert code == 0
     assert UNREADABLE not in text
-    assert "listings unreachable" in text
+    assert "unreadable listings unreachable (Z01)" in text
+    assert "? listings unreachable" not in text
     assert "1 listings unreachable" not in text
+    assert "True listings" not in text
     assert "Should Z01 go on hold?" in text
+
+
+def test_non_dict_counts_are_unreadable_and_do_not_raise():
+    shapes = (True, 1, 1.0, ["Z01"], "many", " ", "\u200b", False, 0, [], "", None)
+    for counts in shapes:
+        text = d.build(
+            None,
+            {
+                "counts": counts,
+                "unreachable_mas": ["Z01"],
+                "persistent_new_unreachable": ["Z01"],
+            },
+            {},
+            {},
+            None,
+            "pass",
+            "pass",
+            "2000-01-01",
+        )
+        assert "unreadable listings unreachable (Z01)" in text
+        assert "True listings" not in text
+        assert "many listings" not in text
+        assert "Should Z01 go on hold?" in text
+    missing = d.build(
+        None,
+        {"unreachable_mas": ["Z01"]},
+        {},
+        {},
+        None,
+        "pass",
+        "pass",
+        "2000-01-01",
+    )
+    assert "? listings unreachable (Z01)" in missing
+    assert "unreadable listings unreachable" not in missing
+    blocked = d.build(
+        None,
+        {
+            "taobao_login_needed": True,
+            "counts": True,
+            "unreachable_mas": ["Z01"],
+            "persistent_new_unreachable": ["Z01"],
+        },
+        {},
+        {},
+        None,
+        "pass",
+        "pass",
+        "2000-01-01",
+    )
+    assert BLOCKED_LINE in blocked
+    assert "listings unreachable" not in blocked
+    assert "Should Z01 go on hold?" not in blocked
+
+
+def test_main_non_dict_counts_are_unreadable(tmp_path):
+    shapes = (True, 1, ["Z01"], "many", False, 0, [], "")
+    for index, counts in enumerate(shapes):
+        code, text = _brief(tmp_path / str(index), cost=json.dumps({
+            "counts": counts,
+            "unreachable_mas": ["Z01"],
+            "persistent_new_unreachable": ["Z01"],
+        }))
+        assert code == 0
+        assert "unreadable listings unreachable (Z01)" in text
+        assert "? listings unreachable" not in text
+        assert "True listings" not in text
+        assert "Should Z01 go on hold?" in text
 
 
 def test_main_signed_out_cost_stays_blocked(tmp_path):

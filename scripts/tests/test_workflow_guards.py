@@ -353,6 +353,36 @@ def test_null_gallery_slots_are_not_photos_and_do_not_quote() -> None:
     assert decision.detail == "incomplete Taobao; not quoted live"
 
 
+def test_blank_and_non_string_gallery_slots_are_not_photos() -> None:
+    junk = [0, False, {}, [], " ", "\t", "\n", "\u200b", "\ufeff", " \u200b\ufeff\t"]
+    for key in ("gallery", "photos", "images", "gallery_urls"):
+        assert freshness_check._photo_field({key: junk}) == 0
+        assert freshness_check._photo_field({key: ["https://example.invalid/a.jpg", *junk]}) == 1
+    assert freshness_check._photo_field({"gallery": ["a.jpg\u200b", "\ufeffb.jpg "]}) == 2
+    assert freshness_check._photo_field({"gallery": ["", "   ", "\u200b\ufeff"]}) == 0
+    policy = HeldPolicy(held=(), never_list=())
+    blank = _pickup("Z91", ["S"], boss_approved=True)
+    blank["photo_count"] = freshness_check._photo_field({"gallery": junk})
+    held = plan_pickups(events_from_json([blank]), policy)[0]
+    assert held.flags == ("missing_photos",)
+    assert held.held is True
+    assert held.blocks_live is True
+    assert held.quoted_usd is None
+    assert held.live is False
+    assert held.publish is False
+    assert held.detail == "incomplete Taobao; not quoted live"
+    ready = _pickup("Z91", ["S"], boss_approved=True)
+    ready["photo_count"] = freshness_check._photo_field(
+        {"gallery": ["https://example.invalid/a.jpg", 0, False, {}, [], "\u200b", "\ufeff"]}
+    )
+    quoted = plan_pickups(events_from_json([ready]), policy)[0]
+    assert quoted.flags == ()
+    assert quoted.held is False
+    assert quoted.quoted_usd == QUOTED
+    assert quoted.live is False
+    assert quoted.publish is False
+
+
 def test_missing_photo_count_falls_back_to_list_length() -> None:
     assert freshness_check._photo_field({"gallery": ["a.jpg", "b.jpg"]}) == 2
     assert freshness_check._photo_field({"photos": ["a.jpg", "b.jpg"]}) == 2

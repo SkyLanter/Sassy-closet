@@ -598,8 +598,20 @@ def midnight_lines(qc):
     return lines
 
 
+def _with_readable_counts(cost):
+    """A non-object counts value is not a total. The brief prints that as unreadable."""
+    if not isinstance(cost, dict) or "counts" not in cost:
+        return cost
+    if isinstance(cost.get("counts"), dict):
+        return cost
+    copied = dict(cost)
+    copied["counts"] = {"unreachable": "unreadable"}
+    return copied
+
+
 def build(qc, cost, digest, gaps, proposal, meta_ig, meta_fb, date, flips=None, held_order=None,
           meta_status=None, meta_source=None, freshness=None, decisions=None, decisions_rel=None, luxubu=None, drafts=None):
+    cost = _with_readable_counts(cost)
     L = [f"Sassy Closet daily summary {date} (DRAFT, not sent)", ""]
     L += midnight_lines(qc)
     if cost:
@@ -790,15 +802,10 @@ def _json_object(path):
 
 
 def _cost_for_brief(doc):
-    """Drop a counts value that is not an object so the brief does not call .get on it."""
+    """Pass the summary through. build() prints a non-object counts value as unreadable."""
     if not isinstance(doc, dict):
         return None
-    counts = doc.get("counts")
-    if isinstance(counts, dict) or not counts:
-        return doc
-    copied = dict(doc)
-    copied["counts"] = {}
-    return copied
+    return doc
 
 
 def main(argv=None):

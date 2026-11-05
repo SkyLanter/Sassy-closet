@@ -1009,14 +1009,25 @@ def _sizes_field(item: dict[str, object]) -> tuple[str, ...] | None:
     return None
 
 
+def _is_photo_url(part: object) -> bool:
+    """A photo is a string with a real URL. 0, false, objects, arrays, and blank text are not."""
+    if not isinstance(part, str):
+        return False
+    for char in part:
+        if char == "\u200b" or char == "\ufeff" or char.isspace():
+            continue
+        return True
+    return False
+
+
 def _photo_field(item: dict[str, object]) -> int | None:
     if "photo_count" in item and item.get("photo_count") is not None:
         return photo_count_or_none(item.get("photo_count"))
     for key in ("gallery", "photos", "images", "gallery_urls"):
         raw = item.get(key)
         if isinstance(raw, list):
-            # JSON null must not count. str(None) is "None", which would look like a photo.
-            return sum(1 for part in raw if part is not None and str(part).strip())
+            # str(None), str(0), and str({}) are not URLs. Blank and zero-width text are not either.
+            return sum(1 for part in raw if _is_photo_url(part))
     return None
 
 
