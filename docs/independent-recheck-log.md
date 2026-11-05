@@ -1015,3 +1015,35 @@ Merge. `git merge-tree --write-tree` of `b142e7f` with #225 at `68f2df5d5933b488
 Notes, not a fail. An 8-digit cost still returns, after about 68 seconds inside `autolist.price`. A 6-digit cost returns in under a second. Live sells are blank or plain integers. This tree's amount parser also accepts a leading `$` and Unicode digits, and it rejects `2.5e1`. Main's `Number()` accepts `2.5e1` and rejects `$25`. #225's `pricing.ts` `readMoney` is a different parser. `underTieredMargin` and `tieredSellUsd` are unchanged there, and `autolist.price` is unchanged, so the quote does not move on merge. Fullwidth `S０６` becomes S06 here because `norm_ma` uses Unicode `\d`. #225's `norm_ma` is ASCII-only, so that spelling would no longer be S06 after merging #225. Live mãs are ASCII. S06 stays $25. No push to the #295 branch.
 
 #249 is this log and is not graded.
+
+## 2026-11-05 19:54 UTC — #225 at 68f2df5 PASS
+
+Requested recheck of this head against parent `4e446f9`. This lane did not build it. #294 at `208bd81` and #295 at `b142e7f` were compared and not modified. No merge commit. Nothing was pushed to those branches.
+
+#225 head is still `68f2df5d5933b4884f081ccc314924a5b58c460b`. `4e446f9c5ef19210c21ec231b69d8058f16ebfcc` stays the prior PASS and is the parent. Comment `6667792988` says PASS on this SHA. The comment text is the evidence below.
+
+INDEPENDENT RECHECK PASS at `68f2df5d5933b4884f081ccc314924a5b58c460b`.
+
+This lane did not build this commit. The head is still `68f2df5`. The parent is `4e446f9`. The tip is 3 files, +56/−3 (`scripts/pickup.py`, `scripts/freshness_check.py`, `scripts/tests/test_workflow_guards.py`). It does not change `data/held.json`, a price file, CSS, layout, or copy. `4e446f9c5ef19210c21ec231b69d8058f16ebfcc` is the parent and is still an ancestor.
+
+`npm ci --no-audit --no-fund` in both apps (intake added 143 packages, shop added 407), then `scripts/hard_recheck.sh --base origin/main` with `HARD_RECHECK_PYTHON=/tmp/py-recheck` (that wrapper execs `/usr/bin/python3` with pytest 9.2.0 and openpyxl 3.1.5 on `PYTHONPATH`). The worktree was detached at this SHA, so the summary branch field is blank. Log `out/recheck/20261105-192642-2951`. pytest 2684 passed, 7 skipped; privacy CLEAN; intake npm 365 / 362 / 0 / 3; shop npm 269 / 266 / 0 / 3; both tsc ok; `held.json` unchanged vs `origin/main` (sha256 `484dbec93976e07ce34a2acc693287b6909187834032241fe6dd95d88a83d9da`). Required skips: none. No hard-recheck step is SKIP. The tip line is INFO. Working tree clean. The head was still `68f2df5` after the run. The seven pytest skips are the six empty `neverList` gate cases and `scripts.tests.test_run_daily_shop_check::test_workflow_is_read_only_and_scheduled`.
+
+Claim checked against parent `4e446f9`. Parent `plan_pickups` on boss-approved Z91 with sizes `[","]` and with `[" / | ; "]` returns `held=False`, `quoted_usd=25`, `flags=()`, `live=False`, `publish=False`. Parent `_photo_field({"gallery": [None, None]})` is 2, and `[None, "", "a.jpg"]` is 2, because `str(None)` is `"None"`. This commit holds those delimiter sizes with `flags=('missing_size',)`, `quoted_usd=None`, `held=True`, `blocks_live=True`, `live=False`, `publish=False`, and counts the null gallery as 0 and the mixed gallery as 1.
+
+Delimiter-only sizes. Checked on Z91, G01, and O01: `,` `/` `|` `;`, repeats (`///`, `;;;`), lists of those marks, and whitespace around them (` , `, ` / | ; `, tab and newline around a comma). All are `missing_size`, held, unquoted, live false, publish false. Whitespace-only sizes (space, tab, newline, CRLF, NBSP, em space, ideographic space) take the same decision through the blank-size check.
+
+Unicode dashes and other marks as the only size stay held and unquoted, `flags=('invalid_size',)`: ASCII hyphen, U+2010, figure dash, en dash, em dash, horizontal bar, minus, fullwidth hyphen, two-em dash, an em dash with spaces, fullwidth comma, fullwidth slash, fullwidth bar, fullwidth semicolon, ideographic comma, and U+200B. `S–M`, `S—M`, and shoe `35–36` are the same: `norm_sizes` is empty, so the dash is not read as a size and the row is not quoted.
+
+Real sizes still quote 25 with `held=False`, `live=False`, `publish=False`: `M/L`, `S,M`, `S` plus a comma, `S|M`, `S;M`, spaced `S / M`, shoe `35/36`, `35.0`, `35///`, `/35/`, and O01 `38`. Those calls used an empty held set. G01 loaded from `data/held.json` stays held.
+
+Null gallery. `_photo_field` skips `None` before `str`. `[None, None]` is 0. Null plus empty, space, tab, newline, NBSP, and ideographic space is 0. `[None, "a.jpg", ""]` is 1. JSON `[null, null, "", "  ", "a.jpg"]` is 1. A list under `gallery` wins over a later `photos` key, so nulls in `gallery` with a jpg in `photos` count 0. `gallery: null` falls through and a jpg in `photos` counts 1. Wiring that 0 into a boss-approved Z91 pickup is `missing_photos`, held, unquoted. `events_from_json` does not read `gallery`; a boss-approved pickup row whose only photo field is `gallery: [null, null]` has `photo_count=None` and is held unquoted. `evaluate` on an intake/Taobao fixture with sizes `S` and galleries `[null, null]` and `[null, "", "  "]` is `missing_photos`, `quoted_usd=None`, `live=False`, `publish=False`. The same fixture with one `a.jpg` among nulls is quoted 19 and held for `boss_approval` (`boss_approved` is forced false on that path). A delimiter-only size on that path is `missing_size` and unquoted.
+
+S06 stays $25. Delimiter-only sizes with sell `25` or `$25` quote 25, flags empty, live false, publish false. Sell `30` is `s06_lock` and unquoted. `autolist.S06_LOCK_USD` is 25. Held K06 with sizes `[","]` and held G01 with `35/36` stay `flags=('held',)`, unquoted, live false, publish false. `data/held.json` bytes did not change.
+
+Merge. `git merge-tree --write-tree` of `68f2df5` with #294 at `208bd81d9e16bbfc7c8d9cda900a3099d87be174` exits 0. Tree `5d8f72c23496c915d8b836bdde49910bbb70e117`, the same tree as this commit. No conflicted names. The same command with #295 at `b142e7f1e9e14c26cfcbb768442b8d82d10f014e` exits 0. Tree `3ca3c5c927296070e85bb98cff5fe972c3921ad4`. `data/privacy-allowlist.json` auto-merges. No merge commit was made. Each tip still has one parent. Nothing was pushed to those branches.
+
+Notes, not a fail. A gallery slot that is `0`, `false`, `true`, `{}`, `[]`, U+200B, or U+FEFF still counts, because the check is `part is not None and str(part).strip()`. The parent counted those the same way. They are not JSON null. Copying that count onto a boss-approved pickup quotes 25 and does not hold; the pickup loader itself does not read `gallery`. Live and publish stay false. This lane does not adopt that as a fail of the null-slot fix. Dry-run galleries in this tree are URL strings.
+
+No Blob, KV, Meta, or price write. No push to the #225 branch.
+
+#249 is this log and is not graded.
