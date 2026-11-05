@@ -900,3 +900,118 @@ Notes, not a fail. `daily_summary_draft.load_json` on `{` raises `JSONDecodeErro
 
 #249 is this log and is not graded.
 
+## 2026-11-05 16:17 UTC — #295 at b142e7f PASS
+
+Requested recheck of this head against parent `04bfc35`. This lane did not build it. #225 at `68f2df5` and #294 at `208bd81` were compared and not modified. No merge commit. Nothing was pushed to those branches.
+
+#295 head is still `b142e7f1e9e14c26cfcbb768442b8d82d10f014e`. Parent is `04bfc350be2fcf47274ecf3e33f8f4eed1c0813e`. Comment `6663058055` says PASS on this SHA. The comment text is the evidence below.
+
+INDEPENDENT RECHECK PASS at `b142e7f1e9e14c26cfcbb768442b8d82d10f014e`.
+
+This lane did not build this commit. The head is still `b142e7f`. The parent is `04bfc35` (`origin/main`). The diff is 3 files, +1194/−1 (`scripts/boss_approval_queue.py`, `scripts/tests/test_boss_approval_queue.py`, `data/privacy-allowlist.json`). It does not change `data/held.json`, a price file, CSS, layout, or copy.
+
+`npm ci --no-audit --no-fund` in both apps (intake added 143 packages, shop added 407), then `scripts/hard_recheck.sh --base origin/main` with `HARD_RECHECK_PYTHON=/tmp/py-recheck` (that wrapper execs `/usr/bin/python3` with pytest 9.2.0 and openpyxl 3.1.5 on `PYTHONPATH`). The worktree was detached at this SHA, so the summary branch field is blank. Log `out/recheck/20261105-142553-3435`. pytest 2142 passed, 7 skipped; privacy CLEAN; intake npm 277 / 274 / 0 / 3; shop npm 218 / 215 / 0 / 3; both tsc ok; `held.json` unchanged vs `origin/main` (sha256 `484dbec93976e07ce34a2acc693287b6909187834032241fe6dd95d88a83d9da`). Required skips: none. No hard-recheck step is SKIP. The tip line is INFO. Working tree clean. The head was still `b142e7f` after the run. The seven pytest skips are the six empty `neverList` gate cases and `scripts.tests.test_run_daily_shop_check::test_workflow_is_read_only_and_scheduled`. The new file's 28 tests passed.
+
+Read-only. The source has one `urllib.request.Request` and it sets `method="GET"`. `GH_ARGS` is `gh pr list --state open --draft --limit 1000 --json number,title,isDraft,state,author,comments,reviews`. There is no `write_text`, `write_bytes`, `shell=True`, `git push`, `gh pr merge`, `gh pr create`, or `requests.post`. A live run's audit hook recorded one subprocess, `gh`, and no file open for write. The call was `GET https://sassy-closet.vercel.app/api/submissions` (HTTP 200, 76052 bytes) and that `gh pr list` (exit 0). `data/held.json`, `shared/live-price-snapshot.json`, `sassy-closet-shop/data/products.json`, and the script were the same sha256 after the run. Exit 0. No Blob, KV, Meta, price write, or message.
+
+Failures print `could not read` and exit 0. Checked: `{`, empty, whitespace, `null`, a bare number, `true`, a non-row object, a UTF-8 BOM plus `{`, UTF-16, NUL, every byte 0–255, extra data after JSON, a directory in place of each fixture, a missing path, `--fx` of `0`, `-1`, `nan`, `inf`, `abc`, and empty, `file:///etc/passwd` (no socket), URLError, timeout, HTTP 500, HTML, an empty body, and bad JSON. `gh` timeout, non-zero exit, and `{` stdout do the same, and stderr is not printed. Nested arrays of depth 50, 200, 500, 1000, 2000, and 5000 on the cost summary print `Taobao cost recheck: could not read.` A broken `cost_recheck_block` that raises still prints the intake line and does not drop it. `--not-a-flag` exits 2 with no traceback.
+
+Blocked values. This tree has no `cost_recheck_block.py`, so `defensive_login_blocked` is the reader. It matches #294 at `208bd81` `login_blocked` on 3198 values: JSON true, int 1, float 1.0, and strings `true`/`yes`/`y`/`1` after strip and case fold, including space, tab, CR, LF, CRLF, VT, FF, NBSP, em space, U+2028, U+2029, and ideographic space. JSON false, int 0, float 0.0, strings `false`/`no`/`0`/`1.0`/`1e0`, empty, a missing key, and a non-dict stay open. With #294's module installed, `summary_state` follows `load_summary` on 30 files (`{`, empty, `null`, `[]`, whole-file `true` and `1`, extra data, BOM plus `true`, BOM plus `1e0`, UTF-16, NUL, garbage, and the truth-table objects) plus a missing path and a directory. A symlink to `{` is `bad`. No disagreement.
+
+Under-floor. `classify` calls `autolist.price`. That quote matches `shared/tiered-pricing.ts` `tieredSellUsd` and `sassy-closet/lib/pricing.ts` `tieredSellUsd` on 20011 landed values (every cent from 0.01 through 200.00, plus 16.26, 19.50, 19.51, 19.58, 3.9, 33.75, and CNY/6.723 landeds). Zero disagreements. Fixed points: 16.26→26, 19.50→30, 12→19, 5→10, 13→20, 3.9→8, 33→45. `_under` matches `pricing.ts` `underTieredMargin` (sell plus 1e-6 below the quote, or margin under 0.35) on that grid. Sell 20 on landed 13 is exactly 35% and is not under. Sell 19 is under. Sell 9 against the bumped quote 10 is under. Sell 45 on landed 33 is under the caption floor while sitting on the tier quote. V/Q/D debox is $7.50. Other letters are $0. Q02 at the $12 goods shape lands at $19.50 and quotes $30. A30 at $12 quotes $19. S06 $25 is not flagged for int 25, float 25.0, `25`, `25.00`, `25.000`, `$25`, `  $25  `, `025`, or fullwidth `２５`, including a cost of $80. Aliases `s6`, `S6`, `S006`, `s006`, and fullwidth-digit `S０６` at $25 are not flagged. `24.995` and `25.001` print `S06 stays $25.` and do not print the other amount. `S06B`, `S06Đ`, `A100`, and fullwidth `S06Ｂ` do not become S06.
+
+Live read-only run, exit 0. Recomputing `render` from the saved GET and `gh` JSON matches stdout. 86 intake rows, no duplicate mã. 66 blank, 18 hand-edited, 1 under and hand-edited (J02), and S06 is the one row that is not waiting. Every flagged row has `auto_price` null. No under-floor row is left off the list. S20 is in the blank list; its quote is not printed. Q02 is `$30` and the tier quote is 30, so the line is hand-edited, not under. A30 is `$19` and the tier quote is 19, same. J02 is `$35` against quote 34, and the caption margin is under 35%. Live S06 `sell_usd` is blank, so it is not listed and `S06 stays $25.` is not printed. `shared/live-price-snapshot.json` `liveUsd` for S06 is 25. `sassy-closet-shop/data/products.json` has no S06 row. `autolist.S06_LOCK_USD` is 25. Held order matches `data/held.json` (21 mãs). `neverList` is empty and is not printed. `verify/cost-recheck` is absent, so the line is `No Taobao cost recheck summary was found.` 164 open drafts. 62 have a latest independent PASS and are listed. 99 whose latest independent verdict is FAIL are not, including #220, #226, #227, #229, #230, #242, #245, #259, #262, and #265. #294 and #225 are listed. #295 has no verdict comment and is not listed. A PASS whose author is the PR author does not count. Output has no email, URL, yen mark, or phone. The word Taobao appears only in the no-summary line.
+
+```
+Waiting on Boss
+- No sell price on intake: A07, A08, A09, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, B03, D01, D02, D03, D04, D05, G01, H02, K02, K03, K04, K05, K06, O01, O02, O03, O04, O05, P02, Q01, S02, S03, S04, S05, S07, S08, S09, S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, S20, V01, V02, V03, V04, V05.
+- A01 is $25 on intake, hand-edited.
+- A02 is $22 on intake, hand-edited.
+- A03 is $19 on intake, hand-edited.
+- A04 is $20 on intake, hand-edited.
+- A05 is $25 on intake, hand-edited.
+- A06 is $23 on intake, hand-edited.
+- A30 is $19 on intake, hand-edited.
+- B01 is $41 on intake, hand-edited.
+- B02 is $30 on intake, hand-edited.
+- H01 is $8 on intake, hand-edited.
+- J01 is $30 on intake, hand-edited.
+- J02 is $35 on intake, under the price floor and hand-edited.
+- K01 is $37 on intake, hand-edited.
+- P01 is $5 on intake, hand-edited.
+- P03 is $18 on intake, hand-edited.
+- P04 is $13 on intake, hand-edited.
+- P05 is $23 on intake, hand-edited.
+- Q02 is $30 on intake, hand-edited.
+- S01 is $28 on intake, hand-edited.
+- Held mãs still waiting: S14, A24, A25, S15, A26, K02, K03, K04, K05, V04, K06, V05, S16, S17, S18, S19, A27, A28, A29, H02, G01.
+- Draft PR #21, Learn 07: dropship boutique law + sell-site APPLY, has an independent PASS and is still open.
+- Draft PR #28, Learn 11: sell-test Origin gate + admin/Blob fix list (Kelly Ying look stays), has an independent PASS and is still open.
+- Draft PR #195, Give auto-list a public mã index with no costs, has an independent PASS and is still open.
+- Draft PR #208, Harden intake FX and shop health noindex after POST-207, has an independent PASS and is still open.
+- Draft PR #209, Harden intake open-by-link/noindex regressions (post-#208), has an independent PASS and is still open.
+- Draft PR #210, Hold a pickup with no usable landed cost even when Boss approved, has an independent PASS and is still open.
+- Draft PR #211, Match the JS mã key in Python: drop a BOM, ASCII digits only, has an independent PASS and is still open.
+- Draft PR #212, Live smoke: check S06's own JSON-LD offer is $25, not any $25 on the page, has an independent PASS and is still open.
+- Draft PR #213, Host health: held PDP must also 404 under alternate spellings, has an independent PASS and is still open.
+- Draft PR #214, Too-cheap: S06 missing from live catalog or off $25 is LOCK_DRIFT, has an independent PASS and is still open.
+- Draft PR #215, hard_recheck: default base = merge-base with main (fix false FAIL on fresh clones), has an independent PASS and is still open.
+- Draft PR #216, hard_recheck: parse Node spec-reporter test counts (ℹ tests N), has an independent PASS and is still open.
+- Draft PR #217, Combined safe bundle #208-#216 (do not merge without Boss), has an independent PASS and is still open.
+- Draft PR #218, Fail closed when Blob is down, and drop held folders from other mãs, has an independent PASS and is still open.
+- Draft PR #219, Keep a blank intake sell blank and parse pasted yen safely, has an independent PASS and is still open.
+- Draft PR #221, Guard shop workflows against wrong days, stale intake, and silent holds, has an independent PASS and is still open.
+- Draft PR #222, Keep held-sheet landed digits aligned with the printed quote, has an independent PASS and is still open.
+- Draft PR #223, Add a read-only workflow status report, has an independent PASS and is still open.
+- Draft PR #224, Keep open Boss decisions the digest and streak were dropping, has an independent PASS and is still open.
+- Draft PR #225, Draft: one branch for the safe shop fixes, has an independent PASS and is still open.
+- Draft PR #231, Do not serve a held folder from another mã's image URL, has an independent PASS and is still open.
+- Draft PR #232, Run the hard recheck on pull requests, has an independent PASS and is still open.
+- Draft PR #233, Draft: read-only parity check for pricing, mã, and sizes, has an independent PASS and is still open.
+- Draft PR #236, Draft: keep a trailing .0 on in-window EU shoe sizes, has an independent PASS and is still open.
+- Draft PR #239, Add an on-demand read-only browser smoke, has an independent PASS and is still open.
+- Draft PR #240, Draft: note that shop pricing prefers the yen cost, has an independent PASS and is still open.
+- Draft PR #243, Draft: keep EU sizes when importing a G submission, has an independent PASS and is still open.
+- Draft PR #246, Add a read-only draft merge-readiness report, has an independent PASS and is still open.
+- Draft PR #247, Draft: keep an in-window trailing .0 on intake shoe chips, has an independent PASS and is still open.
+- Draft PR #248, Keep a blank catalog status in the daily snapshot, has an independent PASS and is still open.
+- Draft PR #251, Lock pull-request workflows to a read-only token, has an independent PASS and is still open.
+- Draft PR #253, Draft: treat a trailing .0 as the allowed shoe chip in the gap report, has an independent PASS and is still open.
+- Draft PR #254, Pin third-party actions to commit SHAs, has an independent PASS and is still open.
+- Draft PR #255, Draft: name missing, stale, and unusable cost-recheck files, has an independent PASS and is still open.
+- Draft PR #257, Test catalog fallback, the S06 lock, held photo spellings, and intake export, has an independent PASS and is still open.
+- Draft PR #258, Split gap-report sizes on the same separators as listing, has an independent PASS and is still open.
+- Draft PR #260, Add the repo knowledge base, has an independent PASS and is still open.
+- Draft PR #261, Treat listing size aliases as the allowed gap-report chip, has an independent PASS and is still open.
+- Draft PR #263, Reject workflows that install without the lockfile, has an independent PASS and is still open.
+- Draft PR #264, Test the tiered under-$10 bump and the locked dress debox, has an independent PASS and is still open.
+- Draft PR #266, Record the shop and listing split on loose shoe tokens, has an independent PASS and is still open.
+- Draft PR #268, Record the quote gate rejecting A100 and K003, has an independent PASS and is still open.
+- Draft PR #269, Draft: name a missing or stale Meta snapshot, has an independent PASS and is still open.
+- Draft PR #271, Test canonical padded new mãs and the flat $10 quote, has an independent PASS and is still open.
+- Draft PR #273, Record the glued clothing-letter size split, has an independent PASS and is still open.
+- Draft PR #275, Record the shorter shop kind names, has an independent PASS and is still open.
+- Draft PR #277, Reject install lifecycle scripts in both package.json files, has an independent PASS and is still open.
+- Draft PR #278, Test empty catalog fallback and the sold public gate, has an independent PASS and is still open.
+- Draft PR #279, Record the Official Excel mã spelling split, has an independent PASS and is still open.
+- Draft PR #281, Return 503 when the shop catalog cannot be read, has an independent PASS and is still open.
+- Draft PR #282, Reject invalid shop-desk USD text before save, has an independent PASS and is still open.
+- Draft PR #283, Reject non-literal USD text in shop draft prices, has an independent PASS and is still open.
+- Draft PR #284, Parse calculator and intake amounts as plain dollars, has an independent PASS and is still open.
+- Draft PR #285, Read S06's own JSON-LD offer in host health, has an independent PASS and is still open.
+- Draft PR #286, Reject junk dollar and comma text in parse_usd, has an independent PASS and is still open.
+- Draft PR #287, Reject junk dollar text in pickup whole-dollar checks, has an independent PASS and is still open.
+- Draft PR #288, Flag photo color ids the shop reel will not attach, has an independent PASS and is still open.
+- Draft PR #289, Reject a dollar sign between digits in intake gap numbers, has an independent PASS and is still open.
+- Draft PR #290, Reject a currency mark between digits in held price proposals, has an independent PASS and is still open.
+- Draft PR #291, Flag customer copy the shop treats as stock or ops voice, has an independent PASS and is still open.
+- Draft PR #292, Reject spliced dollar text in blank-mã order prices, has an independent PASS and is still open.
+- Draft PR #294, Ignore signed-out cost rechecks as gone or price evidence, has an independent PASS and is still open.
+- No Taobao cost recheck summary was found.
+```
+
+Merge. `git merge-tree --write-tree` of `b142e7f` with #225 at `68f2df5d5933b4884f081ccc314924a5b58c460b` exits 0. Tree `3ca3c5c927296070e85bb98cff5fe972c3921ad4`. The only overlapping path is `data/privacy-allowlist.json`, and it auto-merges. The merged JSON parses and contains both new rows. The same command with #294 at `208bd81d9e16bbfc7c8d9cda900a3099d87be174` exits 0. Tree `d57dd089b92f38a2709ebb1a99f8f0e26b0f8a6d`. No overlapping paths. That tree contains both `scripts/boss_approval_queue.py` and `scripts/cost_recheck_block.py`. #225 and #294 have the same `cost_recheck_block.py` blob `d34b3d445df4c626aa78799dfaf8b571f8122259`. `scripts/autolist.py` and `shared/tiered-pricing.ts` match `origin/main` on all three tips. No merge commit was made. Nothing was pushed to those branches.
+
+Notes, not a fail. An 8-digit cost still returns, after about 68 seconds inside `autolist.price`. A 6-digit cost returns in under a second. Live sells are blank or plain integers. This tree's amount parser also accepts a leading `$` and Unicode digits, and it rejects `2.5e1`. Main's `Number()` accepts `2.5e1` and rejects `$25`. #225's `pricing.ts` `readMoney` is a different parser. `underTieredMargin` and `tieredSellUsd` are unchanged there, and `autolist.price` is unchanged, so the quote does not move on merge. Fullwidth `S０６` becomes S06 here because `norm_ma` uses Unicode `\d`. #225's `norm_ma` is ASCII-only, so that spelling would no longer be S06 after merging #225. Live mãs are ASCII. S06 stays $25. No push to the #295 branch.
+
+#249 is this log and is not graded.
