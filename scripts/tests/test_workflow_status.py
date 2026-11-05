@@ -1036,6 +1036,34 @@ def test_digest_file_preferred_over_same_day_index(tmp_path):
     assert not digest.path.endswith("INDEX.md")
 
 
+def test_cost_login_flag_matches_shared_block():
+    base = login_cost()
+    for flag in (True, 1, 1.0, "true", " yes ", "y", "1"):
+        line = workflow_status._cost_parsed("2000-01-01", "summary.json", {**base, "taobao_login_needed": flag})
+        assert line.verdict == "LOGIN", flag
+        assert line.taobao_login_needed is True
+        assert line.unreachable == 4
+    for flag in ("false", " no ", False, 0, 0.0, "1.0"):
+        line = workflow_status._cost_parsed("2000-01-01", "summary.json", {**base, "taobao_login_needed": flag})
+        assert line.verdict == "PARSED", flag
+        assert line.taobao_login_needed is False
+    missing = {key: value for key, value in base.items() if key != "taobao_login_needed"}
+    assert workflow_status._cost_parsed("2000-01-01", "summary.json", missing).verdict == "PARSED"
+
+
+def test_bom_cost_summary_stays_a_login_block(tmp_path):
+    root = tmp_path / "root"
+    root.mkdir()
+    write_reports(root, cost=login_cost())
+    path = root / "verify" / "cost-recheck" / f"summary.{DAY}.json"
+    path.write_bytes(b"\xef\xbb\xbf" + path.read_bytes())
+    report, _calls, _root, _held = build(tmp_path, standard_routes(), reports="none")
+    cost = by_kind(report)["cost-recheck"]
+    assert cost.verdict == "LOGIN"
+    assert cost.taobao_login_needed is True
+    assert cost.unreachable == 4
+
+
 @pytest.mark.parametrize("which", ["midnight", "cost", "meta"])
 def test_bad_json_report_is_unreadable_and_warns(which, tmp_path):
     root = tmp_path / "root"

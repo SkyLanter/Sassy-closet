@@ -148,7 +148,10 @@ def meta_lines(status, source):
 
 
 def mas(xs):
-    return sorted({x for x in (xs or []) if isinstance(x, str) and MA.match(x)})
+    """Mã codes from a list. A bool or other non-list is empty, not evidence."""
+    if not isinstance(xs, (list, tuple, set)):
+        return []
+    return sorted({x for x in xs if isinstance(x, str) and MA.match(x)})
 
 
 def load_json(p):
@@ -172,8 +175,17 @@ MA_TOKEN = re.compile(r"\b([A-Z]\d{2})\b")
 
 def under_price_mas(warns):
     """Midnight QC WARN lines about under-price at intake cost -> mã codes only."""
+    if isinstance(warns, str):
+        seq = [warns]
+    elif not warns:
+        seq = []
+    else:
+        try:
+            seq = list(warns)
+        except TypeError:
+            return []
     out = set()
-    for w in warns or []:
+    for w in seq:
         w = str(w)
         if UNDER_WARN.search(w):
             out.update(MA_TOKEN.findall(w))
@@ -182,8 +194,11 @@ def under_price_mas(warns):
 
 def gap_items(gaps, key):
     """Accept dict items or [platform, media, id] lists; return 'PLAT media id' labels."""
+    raw = gaps.get(key) if isinstance(gaps, dict) else None
+    if not isinstance(raw, (list, tuple)):
+        raw = []
     res = []
-    for g in (gaps or {}).get(key) or []:
+    for g in raw:
         if isinstance(g, dict):
             plat, media, pid = g.get("platform", "?"), g.get("media", "post"), g.get("id", "?")
         elif isinstance(g, (list, tuple)) and len(g) == 3:
@@ -438,16 +453,23 @@ def drafts_lines(tgz=None):
 
 def midnight_lines(qc):
     """Midnight QC lines. Legacy keys keep the old wording; the flat summary does not."""
-    if not qc:
+    if not isinstance(qc, dict) or not qc:
         return ["Midnight QC: not found for today."]
     if any(key in qc for key in ("counts", "fails", "warns", "pass2", "s06")):
-        c = qc.get("counts", {})
-        fails, warns = qc.get("fails") or [], warn_codes(qc.get("warns"))
+        c = qc.get("counts")
+        if not isinstance(c, dict):
+            c = {}
+        fails_raw = qc.get("fails") or []
+        fails = fails_raw if isinstance(fails_raw, (list, tuple)) else []
+        warns_raw = qc.get("warns")
+        warns = warn_codes(warns_raw if isinstance(warns_raw, (list, tuple)) else [])
         overall = str(qc.get("overall", "?")).upper()
         if overall not in {"PASS", "WARN", "FAIL"}:
             overall = "UNKNOWN"
-        p2 = (qc.get("pass2") or {}).get("agrees")
-        s06 = (qc.get("s06") or {}).get("blob")
+        pass2 = qc.get("pass2")
+        p2 = pass2.get("agrees") if isinstance(pass2, dict) else None
+        s06_box = qc.get("s06")
+        s06 = s06_box.get("blob") if isinstance(s06_box, dict) else None
         lines = [f"Midnight QC: {overall}, {len(fails)} fail(s), {len(warns)} warning(s)"
                  + ("; second pass agreed." if p2 else "; second pass did not confirm.")]
         bits = []
@@ -591,7 +613,9 @@ def build(qc, cost, digest, gaps, proposal, meta_ig, meta_fb, date, flips=None, 
     for key in sorted(set(cats) - {k for k, _ in labels}):
         L.append(f"- {key}: {', '.join(cats[key])}"); n += 1
     if proposal:
-        v = proposal.get("verdicts") or {}
+        v = proposal.get("verdicts")
+        if not isinstance(v, dict):
+            v = {}
         props = [f"{m} {s}" for m, s in sorted(v.items()) if MA.match(m) and SELL.match(str(s))]
         need = [m for m, s in sorted(v.items()) if MA.match(m) and s == "NEEDS_INPUT"]
         if props:
@@ -679,6 +703,31 @@ def add_footer(text, cmd):
     return text.rstrip("\n") + "\n\n" + line + "\n"
 
 
+def _json_object(path):
+    """(state, object). state is missing, bad, or ok. A truncated file does not raise."""
+    if not path or not Path(path).exists():
+        return "missing", None
+    try:
+        doc = load_json(path)
+    except (OSError, UnicodeError, json.JSONDecodeError, RecursionError):
+        return "bad", None
+    if not isinstance(doc, dict):
+        return "bad", None
+    return "ok", doc
+
+
+def _cost_for_brief(doc):
+    """Drop a counts value that is not an object so the brief does not call .get on it."""
+    if not isinstance(doc, dict):
+        return None
+    counts = doc.get("counts")
+    if isinstance(counts, dict) or not counts:
+        return doc
+    copied = dict(doc)
+    copied["counts"] = {}
+    return copied
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--date", default=today_pt())
@@ -705,8 +754,15 @@ def main(argv=None):
     if a.out_dir is None:
         a.out_dir = shop_out() / "summaries"
     r, d = a.root, a.date
-    qc = load_json(a.qc or r / "out/midnight-qc" / d / "summary.json")
-    cost = load_json(a.cost or r / "verify/cost-recheck" / f"summary.{d}.json")
+    qc_state, qc = _json_object(a.qc or r / "out/midnight-qc" / d / "summary.json")
+    cost_path = a.cost or r / "verify/cost-recheck" / f"summary.{d}.json"
+    cost_state, cost_doc = cost_recheck_block.load_summary(cost_path)
+    if cost_state in ("ok", "blocked"):
+        cost = _cost_for_brief(cost_doc)
+        cost_bad = False
+    else:
+        cost = None
+        cost_bad = cost_state == "bad"
     dargs = ["--root", str(r)]
     if a.order:
         dargs += ["--order", str(a.order)]
@@ -720,10 +776,18 @@ def main(argv=None):
         "meta_caption_gap_report.py", ["--root", str(r), "--json"])
     try:
         gaps = json.loads(gtext) if gtext.strip() else None
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, RecursionError, ValueError):
         gaps = None
-    prop = load_json(a.proposal or shop_out() / "proposals" / f"held-price-proposal-{d}.json")
-    mst, msrc = read_meta_status(r, d)
+    if not isinstance(gaps, dict):
+        gaps = None
+    _prop_state, prop = _json_object(a.proposal or shop_out() / "proposals" / f"held-price-proposal-{d}.json")
+    try:
+        mst, msrc = read_meta_status(r, d)
+    except (OSError, UnicodeError, json.JSONDecodeError, RecursionError, ValueError):
+        mst, msrc = (
+            {"ig": ("unchecked", "unreadable"), "fb": ("unchecked", "unreadable")},
+            None,
+        )
     text = build(qc, cost, parse_digest(dtext), gaps, prop, None, None, d,
                  flips=flips, held_order=parse_held_order(dtext),
                  meta_status=mst, meta_source=msrc,
@@ -733,6 +797,18 @@ def main(argv=None):
                  decisions_rel=f"out/reports/{d}/BOSS-DECISIONS.md",
                  freshness=freshness_lines(freshness_inputs(
                      r, d, a.catalog, a.intake, None, cbp, a.order)))
+    if cost_bad:
+        text = text.replace(
+            "Taobao cost recheck: not found for today.",
+            "Taobao cost recheck: unreadable, so not used.",
+            1,
+        )
+    if qc_state == "bad":
+        text = text.replace(
+            "Midnight QC: not found for today.",
+            "Midnight QC: unreadable, so not used.",
+            1,
+        )
     text = add_footer(text, generated_with(a))
     a.out_dir.mkdir(parents=True, exist_ok=True)
     out = a.out_dir / f"daily-summary-{d}.md"

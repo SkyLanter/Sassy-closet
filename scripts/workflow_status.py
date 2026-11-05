@@ -32,6 +32,7 @@ _SCRIPTS = Path(__file__).resolve().parent
 if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
 
+import cost_recheck_block  # noqa: E402
 from daily_summary_draft import read_meta_status  # noqa: E402
 from held_policy import MA_RE, load_held_policy, norm_ma  # noqa: E402
 
@@ -1220,8 +1221,7 @@ def _cost_parsed(stamp: str, rel: str, payload: Mapping[str, object]) -> ReportL
     counts = payload.get("counts")
     if isinstance(counts, dict) and "unreachable" in counts:
         unreachable = _plain_int(counts.get("unreachable"))
-    login_value = payload.get("taobao_login_needed")
-    login = login_value if isinstance(login_value, bool) else False
+    login = cost_recheck_block.login_blocked(payload)
     verdict = "LOGIN" if login else "PARSED"
     return ReportLine(
         "cost-recheck",
@@ -1516,7 +1516,7 @@ def _load_object(path: Path) -> dict[str, object] | None:
     if len(raw) > MAX_BYTES:
         return None
     try:
-        payload = json.loads(raw.decode("utf-8"))
+        payload = json.loads(raw.decode("utf-8-sig"))
     except (UnicodeError, json.JSONDecodeError, ValueError, RecursionError):
         return None
     if not isinstance(payload, dict):

@@ -480,8 +480,18 @@ def main(argv=None):
             dargs += ["--held", str(a.held)]
         dtext = ds.run_local("boss_decisions_digest.py", dargs)
     cp = r / "verify/cost-recheck" / f"summary.{d}.json"
-    ms, msrc = ds.read_meta_status(r, d)
-    D = compile_decisions(r, d, dtext, ds.load_json(cp), cp,
+    # load_summary skips a truncated file ("{") instead of raising. streak_start
+    # walks the same reader, so a bad day neither counts nor aborts the report.
+    cost_state, cost_doc = cost_recheck_block.load_summary(cp)
+    cost = cost_doc if cost_state in ("ok", "blocked") else None
+    try:
+        ms, msrc = ds.read_meta_status(r, d)
+    except (OSError, UnicodeError, ValueError, RecursionError):
+        ms, msrc = (
+            {"ig": ("unchecked", "unreadable"), "fb": ("unchecked", "unreadable")},
+            None,
+        )
+    D = compile_decisions(r, d, dtext, cost, cp,
                           r / "out/reports" / d / "COST-BASIS.md", ms, msrc,
                           r / "out/meta-popular" / f"cycle-{d}" / "SUMMARY.txt", a.order)
     inputs = inputs_desc(a)

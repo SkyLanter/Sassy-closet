@@ -186,3 +186,139 @@ def test_login_block_accepts_one_and_yes():
         text = d.build(QC, _blocked_cost(flag), {}, GAPS, None, "pass", "pass", "2000-01-01")
         assert BLOCKED_LINE in text and SIGNIN_LINE in text
         assert "Should Z01 go on hold?" not in text
+
+
+UNREADABLE = "Taobao cost recheck: unreadable, so not used."
+
+
+def _brief(tmp_path, *, cost, qc="null", gaps="{}", proposal="null"):
+    day = "2000-01-05"
+    root = tmp_path / "root"
+    (root / "verify" / "cost-recheck").mkdir(parents=True)
+    (root / "verify" / "cost-recheck" / f"summary.{day}.json").write_text(cost, encoding="utf-8")
+    paths = {}
+    for name, body in (("qc.json", qc), ("gaps.json", gaps), ("proposal.json", proposal), ("digest.txt", DIG)):
+        path = tmp_path / name
+        path.write_text(body, encoding="utf-8")
+        paths[name] = path
+    out = tmp_path / "out"
+    code = d.main([
+        "--date", day,
+        "--root", str(root),
+        "--qc", str(paths["qc.json"]),
+        "--cost", str(root / "verify" / "cost-recheck" / f"summary.{day}.json"),
+        "--digest", str(paths["digest.txt"]),
+        "--gaps", str(paths["gaps.json"]),
+        "--proposal", str(paths["proposal.json"]),
+        "--out-dir", str(out),
+    ])
+    text = (out / f"daily-summary-{day}.md").read_text(encoding="utf-8")
+    return code, text
+
+
+def test_main_bad_shapes_do_not_raise(tmp_path):
+    code, text = _brief(tmp_path, cost="true", qc="true", gaps="[]", proposal="[1]")
+    assert code == 0
+    assert UNREADABLE in text
+    assert "Midnight QC: unreadable, so not used." in text
+    assert "listings unreachable" not in text
+    assert "Should " not in text
+    assert "Caption gaps: gap report unavailable" in text
+    assert "Hold call: Z01" in text
+
+
+def test_main_true_counts_do_not_abort(tmp_path):
+    cost = json.dumps({
+        "counts": True,
+        "unreachable_mas": ["Z01"],
+        "persistent_new_unreachable": ["Z01"],
+    })
+    code, text = _brief(tmp_path, cost=cost)
+    assert code == 0
+    assert UNREADABLE not in text
+    assert "listings unreachable" in text
+    assert "1 listings unreachable" not in text
+    assert "Should Z01 go on hold?" in text
+
+
+def test_main_signed_out_cost_stays_blocked(tmp_path):
+    code, text = _brief(tmp_path, cost=json.dumps(_blocked_cost(1)))
+    assert code == 0
+    assert BLOCKED_LINE in text and SIGNIN_LINE in text
+    assert UNREADABLE not in text
+    assert "listings unreachable" not in text
+    assert "Should Z01 go on hold?" not in text
+
+
+def test_legacy_bool_pass_and_bare_s06_do_not_raise():
+    lines = d.midnight_lines({"pass2": True, "fails": True, "s06": 25, "counts": []})
+    assert lines[0].startswith("Midnight QC:")
+    assert "S06" not in "\n".join(lines)
+    text = d.build(
+        {"pass2": True, "fails": True, "warns": True, "s06": 25, "counts": []},
+        None,
+        {},
+        {},
+        {"verdicts": True},
+        "pass",
+        "pass",
+        "2000-01-01",
+    )
+    assert "Midnight QC:" in text
+    assert "S06" not in text
+    assert "Suggested sell prices" not in text
+    assert d.under_price_mas("Z01 under-priced vs live $") == ["Z01"]
+
+
+def test_bool_lists_are_not_ma_evidence():
+    assert d.mas(True) == []
+    assert d.mas("Z01") == []
+    assert d.mas(["Z01", True, "nope"]) == ["Z01"]
+    text = d.build(
+        None,
+        {"unreachable_mas": True, "persistent_new_unreachable": True, "counts": {}},
+        {},
+        {"no_ma": True, "no_gia": True},
+        None,
+        "pass",
+        "pass",
+        "2000-01-01",
+    )
+    assert "Should " not in text
+    assert "No mã:" not in text
+
+
+def test_main_lone_brace_cost_is_unreadable(tmp_path):
+    day = "2000-01-05"
+    root = tmp_path / "root"
+    cost_dir = root / "verify" / "cost-recheck"
+    cost_dir.mkdir(parents=True)
+    (cost_dir / f"summary.{day}.json").write_text("{", encoding="utf-8")
+    (cost_dir / "summary.2000-01-04.json").write_text(
+        json.dumps({"unreachable_mas": ["Z71"], "persistent_new_unreachable": ["Z71"]}),
+        encoding="utf-8",
+    )
+    qc = tmp_path / "qc.json"
+    qc.write_text("{", encoding="utf-8")
+    digest = tmp_path / "digest.txt"
+    digest.write_text(DIG, encoding="utf-8")
+    gaps = tmp_path / "gaps.json"
+    gaps.write_text("{}", encoding="utf-8")
+    out = tmp_path / "out"
+    code = d.main([
+        "--date", day,
+        "--root", str(root),
+        "--qc", str(qc),
+        "--cost", str(cost_dir / f"summary.{day}.json"),
+        "--digest", str(digest),
+        "--gaps", str(gaps),
+        "--out-dir", str(out),
+        "--stdout",
+    ])
+    assert code == 0
+    text = (out / f"daily-summary-{day}.md").read_text(encoding="utf-8")
+    assert UNREADABLE in text
+    assert "Midnight QC: unreadable, so not used." in text
+    assert "listings unreachable" not in text
+    assert "Should Z71 go on hold?" not in text
+    assert "Hold call: Z01" in text

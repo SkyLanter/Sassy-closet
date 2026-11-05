@@ -89,6 +89,40 @@ def test_main_writes_report(tmp_path):
     assert "X07 |" in out and "TOTAL" in out
 
 
+def test_main_lone_brace_summary_does_not_raise(tmp_path):
+    r = _root(tmp_path)
+    cr = r / "verify/cost-recheck"
+    (cr / "summary.2000-01-05.json").write_text("{", encoding="utf-8")
+    meta = r / "out/muse"
+    meta.mkdir(parents=True)
+    (meta / "meta-qc-2000-01-05.json").write_text("{", encoding="utf-8")
+    dg = tmp_path / "dg.txt"
+    dg.write_text(DIGEST)
+    assert bd.main(["--date", "2000-01-05", "--root", str(r), "--digest", str(dg), "--stdout"]) == 0
+    out = (r / "out/reports/2000-01-05/BOSS-DECISIONS.md").read_text(encoding="utf-8")
+    assert "X01 |" in out
+    assert "Hold it?" not in out
+    assert bd.streak_start(r, "2000-01-05", "X08") == "2000-01-04"
+
+
+def test_main_brace_between_days_keeps_the_streak(tmp_path):
+    r = _root(tmp_path)
+    cr = r / "verify/cost-recheck"
+    (cr / "summary.2000-01-03.json").write_text(
+        json.dumps({"unreachable_mas": ["X08"]}), encoding="utf-8")
+    (cr / "summary.2000-01-04.json").write_text("{", encoding="utf-8")
+    (cr / "summary.2000-01-05.json").write_text(json.dumps({
+        "persistent_new_unreachable": ["X08"],
+        "unreachable_mas": ["X08"],
+    }), encoding="utf-8")
+    dg = tmp_path / "dg.txt"
+    dg.write_text(DIGEST)
+    assert bd.main(["--date", "2000-01-05", "--root", str(r), "--digest", str(dg)]) == 0
+    out = (r / "out/reports/2000-01-05/BOSS-DECISIONS.md").read_text(encoding="utf-8")
+    assert "X08 |" in out
+    assert "2d (since 2000-01-03)" in out
+
+
 # --- piece 90: named sign-in blocker (placeholder text only) ---
 def _meta_root(tmp_path, files):
     r = _root(tmp_path)
