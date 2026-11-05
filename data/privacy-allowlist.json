@@ -16,5 +16,6 @@
  {"path": "sassy-closet/lib/pricing.ts", "rules": ["cny"], "reason": "FX rate doc comment (1 USD = x CNY), not a cost."},
  {"path": "sassy-closet/tests/store.test.ts", "rules": ["cost", "tb_cn"], "reason": "Synthetic store row; link e.tb.cn/example."},
  {"path": "sassy-closet/tests/intake-sell-backfill.test.ts", "rules": ["cost", "taobao"], "reason": "Piece 32 replaced the real D05 link with placeholder id=1; costs synthetic."},
- {"path": "07-pricing-parity/PR.md", "rules": ["yen", "cost_table"], "reason": "Illustrative FX/tier table (round ¥ steps), not intake rows."}
+ {"path": "07-pricing-parity/PR.md", "rules": ["yen", "cost_table"], "reason": "Illustrative FX/tier table (round ¥ steps), not intake rows."},
+ {"path": "scripts/tests/test_boss_approval_queue.py", "rules": ["cost", "email"], "reason": "Synthetic Boss-queue rows and a planted email the report must not copy."}
 ]
