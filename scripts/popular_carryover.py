@@ -24,14 +24,18 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from held_policy import MA_RE, norm_ma  # noqa: E402
+from held_policy import MA_RE, MA_TOKEN_TAIL, norm_ma  # noqa: E402
 
 DEFAULT_CATALOG_URL = (
     "https://efsi0jejsfy7j058.public.blob.vercel-storage.com/sassy-closet-shop/catalog.v1.json"
 )
 LIVE_STATUSES = {"available"}
 LIVE_LINE_RE = re.compile(r"^Live on sell site among ranked:\s*(.*)$", re.M)
-HOME_MA_RE = re.compile(r"/m/([A-Z][0-9]{2})\b")
+# One to four digits so /m/a001 and a summary S006 collapse to A01 / S06.
+# A letter glued on the end (S06B) is not that mã. S006 is not read as S00.
+_SPELL = r"[A-Za-z]\s?\d{1,4}"
+_TOKEN = re.compile(r"\b(" + _SPELL + r")" + MA_TOKEN_TAIL)
+HOME_MA_RE = re.compile(r"/m/(" + _SPELL + r")" + MA_TOKEN_TAIL, re.IGNORECASE)
 
 
 def _codes(seq):
@@ -56,7 +60,7 @@ def home_order(html):
 
 def summary_live(text):
     m = LIVE_LINE_RE.search(text or "")
-    return _codes(re.findall(r"[A-Z][0-9]{2}", m.group(1))) if m else []
+    return _codes(_TOKEN.findall(m.group(1))) if m else []
 
 
 def catalog_live(data):

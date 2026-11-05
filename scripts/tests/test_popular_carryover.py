@@ -33,6 +33,15 @@ def test_summary_and_home_parsers():
     assert pc.home_order('<a href="/m/X02">x</a><a href="/m/X01"></a><a href="/m/X02">') == ["X02", "X01"]
 
 
+def test_padded_home_and_summary_codes_collapse():
+    line = "Live on sell site among ranked: S006 S6 X01 only\n"
+    assert pc.summary_live(line) == ["S06", "X01"]
+    assert "S00" not in pc.summary_live("Live on sell site among ranked: S006 only\n")
+    assert pc.home_order(
+        '<a href="/m/a001"></a><a href="/m/S006"></a><a href="/m/S06B">'
+    ) == ["A01", "S06"]
+
+
 def test_main_writes_markdown(tmp_path):
     c = tmp_path / "cyc"; c.mkdir()
     (c / "blended.json").write_text(json.dumps({"order": ["X02", "Y01"]}))

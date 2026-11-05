@@ -14,7 +14,7 @@ import sys
 from datetime import date
 from pathlib import Path
 
-from held_policy import norm_ma
+from held_policy import MA_RE, MA_TOKEN_TAIL, norm_ma
 
 GLOBS = [
     "out/muse/extras-*.md",
@@ -22,7 +22,10 @@ GLOBS = [
     "out/midnight-qc/*.md",
     "out/midnight-qc/**/*.md",
 ]
-MA_RE = re.compile(r"\b([A-Z]\d{2})\b")
+# One to four digits, optional space, then the same tail caption lint uses.
+# S006 and S6 become S06. S06B, S06Đ, and A100 do not. Lowercase stays out
+# so a word like v1 is not a mã.
+_NOTE_TOKEN = re.compile(r"\b([A-Z]\s?\d{1,4})" + MA_TOKEN_TAIL)
 DATE_RE = re.compile(r"(\d{4}-\d{2}-\d{2})")
 CLOSED_RE = re.compile(r"\b(approved|resolved|done|closed|decided)\b", re.I)
 # Negation has to sit on the closure word: "not", "not yet", "never",
@@ -123,17 +126,35 @@ def units(text):
         yield ("bullet", "\n".join(cur))
 
 
+def _canon_token(raw: str) -> str | None:
+    """Shop mã key. A short or zero-padded token collapses. Anything else is skipped."""
+    code = norm_ma(raw.replace(" ", ""))
+    return code if MA_RE.fullmatch(code) else None
+
+
+def _open_codes(text: str) -> list[str]:
+    codes: list[str] = []
+    for raw in _NOTE_TOKEN.findall(text):
+        code = _canon_token(raw)
+        if code and code not in codes:
+            codes.append(code)
+    return sorted(codes)
+
+
 def blob_hits(kind, unit):
     """Mas whose nearby window (same line/bullet) has blob-word AND delete/public-word."""
     out = []
     if is_closed(unit) or not BOSS_RE.search(unit):
         return out
-    for m in MA_RE.finditer(unit):
-        win = unit[max(0, m.start() - NEAR): m.end() + NEAR]
+    for match in _NOTE_TOKEN.finditer(unit):
+        code = _canon_token(match.group(1))
+        if not code:
+            continue
+        win = unit[max(0, match.start() - NEAR): match.end() + NEAR]
         if BLOB_KW.search(win) and ACT_KW.search(win):
             # Label from the unit shape. Keep the backslash out of the f-string so Python 3.11 can parse it.
             where = "line" if "\n" not in unit else "bullet"
-            out.append((m.group(1), f"blob_near_ma_{where}"))
+            out.append((code, f"blob_near_ma_{where}"))
     return out
 
 
@@ -157,7 +178,7 @@ def _note_open(seen, rules, text, src, d, skip_mas=()):
         return
     if cat != "intake_mismatch" and not BOSS_RE.search(flat):
         return
-    for ma in sorted(set(MA_RE.findall(flat))):
+    for ma in _open_codes(flat):
         if ma in skip_mas:
             continue
         key = (cat, ma)

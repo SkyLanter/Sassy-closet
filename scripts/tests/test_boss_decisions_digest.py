@@ -239,6 +239,34 @@ def test_date_above_scan_root_is_not_first_seen(tmp_path):
     assert src == "out/muse/extras-2026-04-01.md"
 
 
+def test_padded_and_short_ma_open_the_canonical_code(tmp_path):
+    _w(tmp_path, "out/muse/extras-2026-04-02.md",
+       "S006 needs a Boss price\n"
+       "S6 needs a Boss price\n"
+       "S 06 needs a Boss price\n"
+       "S06B needs a Boss price\n"
+       "S06Đ needs a Boss price\n"
+       "A100 needs a Boss price\n"
+       "S07 Boss price approved\n"
+       "not decided, Boss price approved for S08\n")
+    seen = bdd.scan(tmp_path)
+    assert ("price_approval", "S06") in seen
+    assert ("price_approval", "S00") not in seen
+    assert ("price_approval", "S06B") not in seen
+    assert ("price_approval", "A100") not in seen
+    assert ("price_approval", "S07") not in seen
+    assert ("price_approval", "S08") not in seen
+    assert [ma for cat, ma in seen if cat == "price_approval"] == ["S06"]
+
+
+def test_padded_public_held_blob_uses_canonical_code(tmp_path):
+    _w(tmp_path, "out/muse/extras-2026-04-03.md",
+       "S006 Blob photos public, Boss delete\n")
+    seen = bdd.scan(tmp_path, public_held={"S06"})
+    assert ("blob_photo_delete", "S06") in seen
+    assert ("blob_photo_delete", "S00") not in seen
+
+
 def test_nested_real_day_counts_and_impossible_day_does_not(tmp_path):
     real = "out/midnight-qc/2026-03-04/raw/note.md"
     _w(tmp_path, real, "X08 needs a Boss price\n")

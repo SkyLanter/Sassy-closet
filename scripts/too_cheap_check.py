@@ -9,6 +9,11 @@ flat 25% above). The cost is Nhung's intake ¥, never the public Taobao list ¥.
   outcome is LOCK_DRIFT (never QUIET_OK).
 - Held and never-list mãs are skipped. The list is resolved through
   sassy-closet-shop/lib/held-incomplete.ts, which imports data/held.json.
+- Sold, hold, and any other non-live status are not live prices. A blank
+  or missing status still counts as live.
+- A null, boolean, or unreadable price is left out. It is not $1, and it
+  does not drop the rest of the catalog. Every S06 spelling is checked:
+  a later $25 does not hide an earlier spelling at another dollar.
 - A mã with no kg or no intake ¥ is skipped. No weight is guessed.
 - "list-only" means the price passes at intake ¥ but would be under target
   at the public list ¥. It is reported separately and is never a raise.
@@ -41,6 +46,11 @@ SHIP_USD_PER_KG = Decimal("10.52")
 ROOT = Path(__file__).resolve().parents[1]
 HELD_TS = ROOT / "sassy-closet-shop" / "lib" / "held-incomplete.ts"
 IMPORT_RE = re.compile(r"""import\s+\w+\s+from\s+["']([^"']+\.json)["']""")
+# Same live words as the daily export. sold and hold are not on sale.
+_LIVE_STATUS = {"available", "live", "active", "in_stock", "instock"}
+_CURRENCY = "$"
+# A comma is a thousands group. The first group starts at 1–999, so 0,025 is not $25.
+_GROUPED_THOUSANDS = re.compile(r"^[1-9]\d{0,2}(?:,\d{3})+(?:\.\d+)?$")
 
 
 def held_json_from_ts(ts_path: Path = HELD_TS) -> Path:
@@ -232,12 +242,97 @@ def markdown(summary: dict, title: str = "Too-cheap check") -> str:
     return "\n".join(out) + "\n"
 
 
+def _priced_live(row: dict) -> bool:
+    """Blank or missing status is live. sold, hold, and a non-string status are not."""
+    if "status" not in row or row.get("status") is None:
+        return True
+    status = row.get("status")
+    if not isinstance(status, str):
+        return False
+    token = status.strip().lower()
+    if token == "":
+        return True
+    return token in _LIVE_STATUS
+
+
+def _live_usd(value: object) -> float | None:
+    """A positive live dollar, or None.
+
+    One leading or trailing $ stays. A comma counts only as a thousands
+    group of three digits, so 1,200 is 1200. true is not $1. 2$5, 12,50,
+    0,025, and 2.5e1 are not prices. A bad value is absent, not a crash.
+    """
+    if isinstance(value, bool) or value is None:
+        return None
+    text = str(value).strip()
+    symbols = [char for char in text if char in _CURRENCY]
+    if len(symbols) > 1:
+        return None
+    if len(symbols) == 1:
+        if text[:1] in _CURRENCY:
+            text = text[1:].strip()
+        elif text[-1:] in _CURRENCY:
+            text = text[:-1].strip()
+        elif len(text) >= 2 and text[0] in "+-" and text[1] in _CURRENCY:
+            text = text[0] + text[2:]
+        else:
+            return None
+    if not text or any(mark in text for mark in ("e", "E", "_")):
+        return None
+    if "," in text:
+        if _GROUPED_THOUSANDS.fullmatch(text) is None:
+            return None
+        text = text.replace(",", "")
+    try:
+        number = Decimal(text)
+    except ArithmeticError:
+        return None
+    if not number.is_finite() or number <= 0:
+        return None
+    return float(number)
+
+
+def _remember(out: dict[str, float], code: str, usd: float) -> None:
+    """Last good price wins, except a bad S06 spelling is never replaced by $25."""
+    if code != "S06":
+        out[code] = usd
+        return
+    previous = out.get("S06")
+    if previous is not None and previous != S06_LOCK_USD:
+        return
+    out["S06"] = usd
+
+
 def load_live(path: Path) -> dict[str, float]:
+    """Live dollars from products[] or a prices map.
+
+    One bad row is left out. The other mãs are still read. A hold row with
+    a null price does not abort the check. A boolean is not a dollar.
+    """
     data = json.loads(path.read_text(encoding="utf-8"))
+    out: dict[str, float] = {}
     if isinstance(data, dict) and "products" in data:
-        return {norm_ma(p["ma"]): float(p["priceUsd"]) for p in data["products"]}
+        products = data["products"]
+        if not isinstance(products, list):
+            raise ValueError(f"{path}: products must be a list")
+        for row in products:
+            if not isinstance(row, dict) or not _priced_live(row):
+                continue
+            code = norm_ma(row.get("ma"))
+            usd = _live_usd(row.get("priceUsd"))
+            if code and usd is not None:
+                _remember(out, code, usd)
+        return out
     if isinstance(data, dict) and "prices" in data:
-        return {norm_ma(k): float(v) for k, v in data["prices"].items()}
+        prices = data["prices"]
+        if not isinstance(prices, dict):
+            raise ValueError(f"{path}: prices must be an object")
+        for key, value in prices.items():
+            code = norm_ma(key)
+            usd = _live_usd(value)
+            if code and usd is not None:
+                _remember(out, code, usd)
+        return out
     raise ValueError(f"{path}: expected a catalog with products[] or a prices map")
 
 

@@ -99,6 +99,18 @@ def test_section_decisions_includes_popular_order_held(tmp_path, monkeypatch):
     assert "Z92" not in dumped
 
 
+def test_padded_boss_note_reaches_the_morning_pack(tmp_path, monkeypatch):
+    root = _root(tmp_path)
+    extras = root / "out/muse/extras-2026-04-02.md"
+    extras.parent.mkdir(parents=True)
+    extras.write_text("S006 needs a Boss price\nS06B needs a Boss price\n")
+    monkeypatch.setattr(bdd, "held_in_popular_order", lambda *_a, **_k: [])
+    sec = m.section_decisions(root)
+    assert sec["by_cat"]["price_approval"] == ["S06"]
+    assert "S06B" not in json.dumps(sec)
+    assert "S00" not in json.dumps(sec)
+
+
 def test_section_decisions_held_error_keeps_scanned_ma(tmp_path, monkeypatch):
     root = _price_root(tmp_path)
 

@@ -102,6 +102,20 @@ describe("intake dataset sync webhook helper", () => {
     assert.ok(!JSON.stringify(blank).includes("ignore-me"));
   });
 
+  test("sizes split on listing separators and leave a hyphen as one token", () => {
+    const split = buildIntakeDatasetSyncPayload(
+      "update",
+      stagedItem({ size: "35;36 M/L S|M" }),
+    );
+    assert.deepEqual(split.sizes, ["35", "36", "M", "L", "S", "M"]);
+    const hyphen = buildIntakeDatasetSyncPayload("update", stagedItem({ size: "35-36" }));
+    assert.deepEqual(hyphen.sizes, ["35-36"]);
+    const empty = buildIntakeDatasetSyncPayload("update", stagedItem({ size: ";;;" }));
+    assert.equal("sizes" in empty, false);
+    const wide = buildIntakeDatasetSyncPayload("update", stagedItem({ size: "35；36" }));
+    assert.deepEqual(wide.sizes, ["35；36"]);
+  });
+
   test("CNY cost/sell use the stored CNY amount when that currency is set", () => {
     const payload = buildIntakeDatasetSyncPayload(
       "create",
