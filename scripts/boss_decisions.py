@@ -15,7 +15,8 @@ one line per decision: mã | question | evidence path | days open.
 Days open = <date> minus the earliest dated source showing it; '?' when a
 source carries no date. Free text is never copied: only mã codes, category
 questions written here, relative paths, dates and PR numbers. No network,
-no sends, no live writes.
+no sends, no live writes. A summary with taobao_login_needed is a signed-out
+block; that day is skipped for streaks and is not gone or unreachable evidence.
 """
 from __future__ import annotations
 
@@ -28,6 +29,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+import cost_recheck_block  # noqa: E402
 import daily_summary_draft as ds  # noqa: E402
 
 ROOT = Path("/workspace/sassy-closet")
@@ -136,6 +138,8 @@ def streak_start(root, date, ma):
         if d > date:
             continue
         doc = ds.load_json(f) or {}
+        if cost_recheck_block.login_blocked(doc):
+            continue
         if ma in (doc.get("unreachable_mas") or []):
             start = d
         else:
@@ -268,7 +272,8 @@ def compile_decisions(root, date, digest_text, cost=None, cost_path=None, cb_pat
         D.append({"cat": cat, "ma": ma, "q": q or QUESTIONS[cat], "ev": ev,
                   "since": since, "days": days(date, since) if since else None})
 
-    gone = ds.mas((cost or {}).get("persistent_new_unreachable"))
+    cost_ev = cost_recheck_block.evidence(cost)
+    gone = ds.mas(cost_ev.get("persistent_new_unreachable"))
     for m in gone:
         add("gone_hold", m, rel(root, cost_path), streak_start(root, date, m))
     flips = {}
@@ -277,7 +282,7 @@ def compile_decisions(root, date, digest_text, cost=None, cost_path=None, cb_pat
     flip_under = sorted(m for m, (iv, _b) in flips.items() if iv == "UNDER")
     for m in flip_under:
         add("flip_under", m, rel(root, cb_path), first_cost_basis(root, date, m))
-    unreach = set(ds.mas((cost or {}).get("unreachable_mas")))
+    unreach = set(ds.mas(cost_ev.get("unreachable_mas")))
     skip_mismatch = set(gone) | set(flip_under)
     for cat, m, seen, src in parse_digest(digest_text):
         if cat == "intake_mismatch":
