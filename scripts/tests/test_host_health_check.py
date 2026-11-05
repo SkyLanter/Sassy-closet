@@ -8,6 +8,9 @@ import pytest
 
 import daily_shop_check as dsc
 import host_health_check as hh
+import too_cheap_check
+from held_policy import default_held_path, load_held_policy, norm_ma
+from s06_offer_price import s06_offer_dollars
 
 
 def script_json(body: str) -> dict:
@@ -132,9 +135,9 @@ def test_lowercase_s06_sku_at_25_passes(monkeypatch):
 
 
 def test_price_25_000_equals_25_and_shows_25():
-    assert hh.whole_dollar_usd("25.000") == 25
     page = product_html("S06", "25.000")
     assert script_json(page)["offers"]["price"] == "25.000"
+    assert s06_offer_dollars(page) == 25
     assert hh.s06_shows_25(page) is True
     assert hh.s06_offer_usd(page) == "25.00"
 
@@ -215,61 +218,100 @@ def test_vercel_home_500_is_fail(monkeypatch):
     assert hh.run()["overall"] == "FAIL"
 
 
+def _expect_offer(body: str, dollars: int | None) -> None:
+    assert s06_offer_dollars(body) == dollars
+    assert hh.s06_shows_25(body) is (dollars == 25)
+    if dollars is None:
+        assert hh.s06_offer_usd(body) is None
+    else:
+        assert hh.s06_offer_usd(body) == f"{dollars:.2f}"
+
+
 def test_s06_jsonld_offer_units():
-    assert hh.s06_shows_25(product_html("S006", "25.00")) is True
-    assert hh.s06_shows_25(product_html("S6", "25.00")) is True
-    assert hh.s06_offer_usd(product_html("S006", "25.00")) == "25.00"
-    assert hh.s06_shows_25(product_html("S06B", "25.00")) is False
+    s006 = product_html("S006", "25.00")
+    s6 = product_html("S6", "25.00")
+    assert hh.s06_shows_25(s006) is True
+    assert hh.s06_shows_25(s6) is True
+    assert hh.s06_offer_usd(s006) == "25.00"
+    assert s06_offer_dollars(s006) == 25
+    assert s06_offer_dollars(s6) == 25
+    s06b = product_html("S06B", "25.00")
+    assert hh.s06_shows_25(s06b) is False
+    assert hh.s06_offer_usd(s06b) is None
+    assert s06_offer_dollars(s06b) is None
     assert hh.s06_shows_25(product_html("S06", True)) is False
-    assert hh.whole_dollar_usd(True) is None
-    assert hh.whole_dollar_usd(False) is None
-    assert hh.s06_shows_25(product_html("S06", "25.50")) is False
-    assert hh.whole_dollar_usd("25.50") is None
-    assert hh.s06_shows_25(product_html("S06", 25)) is True
-    assert hh.whole_dollar_usd(25) == 25
-    assert hh.whole_dollar_usd(25.0) == 25
-    assert hh.whole_dollar_usd("25") == 25
-    assert hh.whole_dollar_usd("25.0") == 25
-    assert hh.whole_dollar_usd("25.00") == 25
-    assert hh.whole_dollar_usd("$25") is None
-    assert hh.whole_dollar_usd("1e2") is None
-    assert hh.whole_dollar_usd("0x19") is None
-    assert hh.whole_dollar_usd("250") == 250
+    _expect_offer(product_html("S06", True), None)
+    _expect_offer(product_html("S06", False), None)
+    _expect_offer(product_html("S06", "25.50"), None)
+    _expect_offer(product_html("S06", 25), 25)
+    _expect_offer(product_html("S06", 25.0), 25)
+    _expect_offer(product_html("S06", "25"), 25)
+    _expect_offer(product_html("S06", "25.0"), 25)
+    _expect_offer(product_html("S06", "25.00"), 25)
+    _expect_offer(product_html("S06", "$25"), 25)
+    _expect_offer(product_html("S06", "1e2"), None)
+    _expect_offer(product_html("S06", "0x19"), None)
+    _expect_offer(product_html("S06", "250"), 250)
     assert hh.s06_shows_25(product_html("S06", "250")) is False
-    assert hh.whole_dollar_usd("1,025") is None
-    assert hh.whole_dollar_usd("25,00") is None
-    assert hh.whole_dollar_usd("") is None
-    assert hh.whole_dollar_usd("   ") is None
-    assert hh.whole_dollar_usd(None) is None
-    assert hh.whole_dollar_usd(float("nan")) is None
-    assert hh.whole_dollar_usd(float("inf")) is None
-    assert hh.whole_dollar_usd(float("-inf")) is None
+    _expect_offer(product_html("S06", "1,025"), None)
+    _expect_offer(product_html("S06", "25,00"), None)
+    _expect_offer(product_html("S06", ""), None)
+    _expect_offer(product_html("S06", "   "), None)
+    _expect_offer(product_html("S06", None), None)
+    _expect_offer(product_html("S06", float("nan")), None)
+    _expect_offer(product_html("S06", float("inf")), None)
+    _expect_offer(product_html("S06", float("-inf")), None)
+    spliced = product_html("S06", "2$5", extra="<span>$25</span>")
+    assert "2$5" in spliced and "$25" in spliced
+    assert hh.s06_shows_25(spliced) is False
+    assert hh.s06_offer_usd(spliced) is None
+    assert s06_offer_dollars(spliced) is None
     kept = [
         {"@type": "Product", "sku": "S06", "offers": {"price": "25.00"}},
         {"@type": "Product", "sku": "S06B", "offers": {"price": "40.00"}},
     ]
-    assert hh.s06_shows_25(product_html(node=kept, extra="<span>$40</span>")) is True
+    kept_page = product_html(node=kept, extra="<span>$40</span>")
+    assert hh.s06_shows_25(kept_page) is True
+    assert hh.s06_offer_usd(kept_page) == "25.00"
+    assert s06_offer_dollars(kept_page) == 25
     split = [
         {"@type": "Product", "sku": "S06", "offers": {"price": "25.00"}},
         {"@type": "Product", "sku": "S006", "offers": {"price": "26"}},
     ]
-    assert hh.s06_shows_25(product_html(node=split, extra="<span>$25</span>")) is False
+    split_page = product_html(node=split, extra="<span>$25</span>")
+    assert "$25" in split_page
+    assert hh.s06_shows_25(split_page) is False
     assert hh.s06_offer_usd(product_html(node=split)) is None
+    assert s06_offer_dollars(split_page) is None
 
 
 def test_s06_jsonld_html_escaped_quotes_parse():
     raw = json.dumps({"@type": "Product", "sku": "S06", "offers": {"price": "25.00"}})
     escaped = raw.replace('"', "&quot;")
-    page = f"<script type='application/ld+json'>{escaped}</script><span>$30</span>"
-    assert "&quot;" in page
-    assert hh.s06_shows_25(page) is True
-    assert hh.s06_offer_usd(page) == "25.00"
+    page = f'<script type="application/ld+json">{escaped}</script><span>$30</span><span>$25</span>'
+    assert "&quot;" in page and "&quot;price&quot;" in page
+    assert "$30" in page and "$25" in page
+    assert '"sku"' not in page
+    assert hh.s06_shows_25(page) is False
+    assert hh.s06_offer_usd(page) is None
+    assert s06_offer_dollars(page) is None
 
 
 def test_s06_jsonld_attribute_order_graph_and_offer_list():
     raw = json.dumps({"@type": "Product", "sku": "S06", "offers": {"price": "25.00"}})
-    assert hh.s06_shows_25(f"<script id='pdp' type='application/ld+json'>{raw}</script>") is True
-    assert hh.s06_shows_25(f'<script type="application/ld+json" id="pdp">{raw}</script>') is True
+    single = f"<script id='pdp' type='application/ld+json'>{raw}</script><span>$25</span>"
+    assert "type='application/ld+json'" in single and "$25" in single
+    assert hh.s06_shows_25(single) is False
+    assert hh.s06_offer_usd(single) is None
+    assert s06_offer_dollars(single) is None
+    id_before = f'<script id="pdp" type="application/ld+json">{raw}</script>'
+    id_after = f'<script type="application/ld+json" id="pdp">{raw}</script>'
+    assert hh.s06_shows_25(id_before) is True
+    assert hh.s06_shows_25(id_after) is True
+    assert hh.s06_offer_usd(id_before) == "25.00"
+    assert hh.s06_offer_usd(id_after) == "25.00"
+    assert s06_offer_dollars(id_before) == 25
+    assert s06_offer_dollars(id_after) == 25
     payload = {
         "@context": "https://schema.org",
         "@graph": [
@@ -284,9 +326,48 @@ def test_s06_jsonld_attribute_order_graph_and_offer_list():
             },
         ],
     }
-    page = f"<span>$19</span><script id='ld' type='application/ld+json'>{json.dumps(payload)}</script>"
+    page = f'<span>$19</span><script id="ld" type="application/ld+json">{json.dumps(payload)}</script>'
+    assert "$19" in page and 'type="application/ld+json"' in page
+    assert "type='application/ld+json'" not in page
     assert hh.s06_shows_25(page) is True
     assert hh.s06_offer_usd(page) == "25.00"
+    assert s06_offer_dollars(page) == 25
+
+
+def test_s06_spliced_price_does_not_pass(monkeypatch):
+    s06 = {
+        "@type": "Product",
+        "sku": "S06",
+        "offers": {"@type": "Offer", "price": "2$5", "priceCurrency": "USD"},
+    }
+    neighbour = {
+        "@type": "Product",
+        "sku": "A02",
+        "offers": {"@type": "Offer", "price": "$25", "priceCurrency": "USD"},
+    }
+    body = (
+        f'<script type="application/ld+json">{json.dumps(s06)}</script>'
+        f'<script type="application/ld+json">{json.dumps(neighbour)}</script>'
+        "<span>$25</span>"
+    )
+    assert "2$5" in body and "$25" in body
+    assert s06_offer_dollars(body) is None
+    assert hh.s06_shows_25(body) is False
+    assert hh.s06_offer_usd(body) is None
+    fake(monkeypatch, pages=s06_pages(body))
+    summary = hh.run()
+    assert hh.S06_LOCK == 25
+    assert summary["overall"] == "FAIL"
+    assert summary["fail"] and all("S06" in item for item in summary["fail"])
+    assert {host for host in hh.VERCEL_HOSTS if any(host in item for item in summary["fail"])} == set(hh.VERCEL_HOSTS)
+    assert all(row["s06_pdp"]["shows_25"] is False for row in summary["hosts"])
+    assert all(row["s06_pdp"]["offer_usd"] is None for row in summary["hosts"])
+
+
+def test_s06_lock_matches_too_cheap_and_daily():
+    assert hh.S06_LOCK == 25
+    assert hh.S06_LOCK == too_cheap_check.S06_LOCK_USD
+    assert hh.S06_LOCK == dsc.S06_LOCK
 
 
 def test_loose_dollar_regex_is_not_the_gate():
@@ -358,7 +439,6 @@ def test_daily_without_hosts_has_no_hosts_section(tmp_path, capsys):
 
 @pytest.mark.parametrize("ma,alias", [("S19", "s019"), ("G01", "g001"), ("a024", "a024"), ("K3", "k003"), (" S19 ", "s019")])
 def test_held_alias_spelling(ma, alias):
-    from held_policy import norm_ma
     assert hh.held_alias(ma) == alias and norm_ma(alias) == norm_ma(ma)
 
 
@@ -382,3 +462,71 @@ def test_held_alias_network_error_is_fail(monkeypatch):
     fake(monkeypatch, pages={"https://sassy-closet-shop.vercel.app/m/s019": (None, "", "URLError: timed out")})
     s = hh.run()
     assert s["overall"] == "FAIL" and "alias /m/s019 -> URLError" in s["fail"][0]
+
+
+def test_every_held_ma_from_held_json_is_404_on_both_hosts(monkeypatch):
+    held_path = default_held_path()
+    before = held_path.read_bytes()
+    seen: list[str] = []
+    fake(monkeypatch)
+    inner = hh.fetch
+
+    def record(url, timeout=0):
+        seen.append(url)
+        return inner(url, timeout)
+
+    monkeypatch.setattr(hh, "fetch", record)
+    summary = hh.run()
+    assert summary["overall"] == "PASS"
+    assert hh.VERCEL_HOSTS == ("sassycloset.vercel.app", "sassy-closet-shop.vercel.app")
+    policy = load_held_policy()
+    assert policy.held
+    for host_name in hh.VERCEL_HOSTS:
+        host_row = next(row for row in summary["hosts"] if row["host"] == host_name)
+        by_ma = {row["ma"]: row for row in host_row["held_pdps"]}
+        for ma in policy.held:
+            alias = hh.held_alias(ma)
+            assert by_ma[ma]["status"] == 404
+            assert by_ma[ma]["alias"] == alias
+            assert by_ma[ma]["alias_status"] == 404
+            assert f"https://{host_name}/m/{ma}" in seen
+            assert f"https://{host_name}/m/{alias}" in seen
+    assert held_path.read_bytes() == before
+
+
+def test_fixture_held_codes_one_live_fails(monkeypatch):
+    bad_host, good_host = hh.VERCEL_HOSTS
+
+    def scenario(pages, fail_line, k03_status, alias_status):
+        fake(monkeypatch, pages=pages)
+        summary = hh.run(codes=("K03", "S19"))
+        assert summary["overall"] == "FAIL"
+        assert fail_line in summary["fail"]
+        assert all(good_host not in item for item in summary["fail"])
+        assert all("K03" not in item for item in summary["fail"] if good_host in item)
+        for host_row in summary["hosts"]:
+            rows = host_row["held_pdps"]
+            assert [row["ma"] for row in rows] == ["K03", "S19"]
+            k03, s19 = rows
+            assert k03["alias"] == "k003" and s19["alias"] == "s019"
+            assert s19["status"] == 404 and s19["alias_status"] == 404
+            if host_row["host"] == bad_host:
+                assert k03["status"] == k03_status
+                assert k03["alias_status"] == alias_status
+            else:
+                assert k03["status"] == 404 and k03["alias_status"] == 404
+            assert host_row["s06_pdp"]["shows_25"] is True
+            assert host_row["s06_pdp"]["offer_usd"] == "25.00"
+
+    scenario(
+        {f"https://{bad_host}/m/K03": (200, "live K03", "")},
+        f"{bad_host}: held K03 PDP -> 200 (want 404)",
+        200,
+        404,
+    )
+    scenario(
+        {f"https://{bad_host}/m/k003": (200, "live alias", "")},
+        f"{bad_host}: held K03 alias /m/k003 -> 200 (want 404)",
+        404,
+        200,
+    )
