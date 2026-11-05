@@ -7,7 +7,7 @@ import re
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 
-from autolist import invalid_size_tokens, listing_quote
+from autolist import invalid_size_tokens, listing_quote, norm_sizes
 from held_policy import HeldPolicy, norm_ma
 
 S06_LOCK = 25
@@ -110,8 +110,12 @@ def plan_pickups(events: list[PickupEvent], policy: HeldPolicy) -> list[PickupDe
             decisions.append(_listed_edit(event, code))
             continue
         missing = _missing_taobao(event)
-        if invalid_size_tokens(" ".join(event.sizes), code):
+        size_text = " ".join(event.sizes)
+        if invalid_size_tokens(size_text, code):
             missing.append("invalid_size")
+        elif "missing_size" not in missing and not norm_sizes(size_text, code):
+            # "," "/" "|" and ";" split away to nothing. That is no size, same as blank.
+            missing.append("missing_size")
         if missing:
             decisions.append(
                 _decision(

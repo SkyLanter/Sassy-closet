@@ -202,6 +202,36 @@ def test_cli_date_rejects_impossible_day(tmp_path, capsys, day: str) -> None:
     assert "YYYY-MM-DD" in capsys.readouterr().err
 
 
+@pytest.mark.parametrize(
+    "sizes",
+    ([","], ["/"], ["|"], [";"], ["///"], [" , "], [",", "|"]),
+)
+def test_delimiter_only_size_is_held_and_not_quoted(sizes: list[str]) -> None:
+    policy = HeldPolicy(held=(), never_list=())
+    decision = plan_pickups(events_from_json([_pickup("Z91", sizes, boss_approved=True)]), policy)[0]
+    assert decision.held is True
+    assert decision.publish is False
+    assert decision.live is False
+    assert decision.blocks_live is True
+    assert decision.quoted_usd is None
+    assert decision.flags == ("missing_size",)
+    assert decision.detail == "incomplete Taobao; not quoted live"
+
+
+@pytest.mark.parametrize(
+    ("ma", "sizes"),
+    [("Z91", ["M/L"]), ("Z91", ["S,M"]), ("Z91", ["S", ","]), ("G01", ["35/36"]), ("G01", ["35.0"])],
+)
+def test_real_sizes_around_delimiters_still_quote(ma: str, sizes: list[str]) -> None:
+    policy = HeldPolicy(held=(), never_list=())
+    decision = plan_pickups(events_from_json([_pickup(ma, sizes, boss_approved=True)]), policy)[0]
+    assert decision.flags == ()
+    assert decision.held is False
+    assert decision.quoted_usd == QUOTED
+    assert decision.publish is False
+    assert decision.live is False
+
+
 @pytest.mark.parametrize("sizes", (["FREE"], ["S", "38"]))
 def test_non_shoe_invalid_size_is_held_and_not_quoted(sizes: list[str]) -> None:
     policy = HeldPolicy(held=(), never_list=())
@@ -303,6 +333,24 @@ def test_photo_count_or_none_and_events(raw: object, expected: int | None) -> No
     assert freshness_check._photo_field({"photo_count": raw}) == expected
     event = events_from_json([{"ma": "Z91", "sizes": ["S"], "photo_count": raw}])[0]
     assert event.photo_count == expected
+
+
+def test_null_gallery_slots_are_not_photos_and_do_not_quote() -> None:
+    assert freshness_check._photo_field({"gallery": [None, None]}) == 0
+    assert freshness_check._photo_field({"photos": [None, "a.jpg", ""]}) == 1
+    assert freshness_check._photo_field({"images": [None]}) == 0
+    assert freshness_check._photo_field({"gallery": ["a.jpg", None, "b.jpg"]}) == 2
+    policy = HeldPolicy(held=(), never_list=())
+    row = _pickup("Z91", ["S"], boss_approved=True)
+    row["photo_count"] = freshness_check._photo_field({"gallery": [None, None]})
+    decision = plan_pickups(events_from_json([row]), policy)[0]
+    assert decision.flags == ("missing_photos",)
+    assert decision.held is True
+    assert decision.blocks_live is True
+    assert decision.quoted_usd is None
+    assert decision.live is False
+    assert decision.publish is False
+    assert decision.detail == "incomplete Taobao; not quoted live"
 
 
 def test_missing_photo_count_falls_back_to_list_length() -> None:

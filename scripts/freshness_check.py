@@ -1015,7 +1015,8 @@ def _photo_field(item: dict[str, object]) -> int | None:
     for key in ("gallery", "photos", "images", "gallery_urls"):
         raw = item.get(key)
         if isinstance(raw, list):
-            return sum(1 for part in raw if str(part).strip())
+            # JSON null must not count. str(None) is "None", which would look like a photo.
+            return sum(1 for part in raw if part is not None and str(part).strip())
     return None
 
 
