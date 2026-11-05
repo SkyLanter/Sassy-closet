@@ -1047,3 +1047,54 @@ Notes, not a fail. A gallery slot that is `0`, `false`, `true`, `{}`, `[]`, U+20
 No Blob, KV, Meta, or price write. No push to the #225 branch.
 
 #249 is this log and is not graded.
+
+## 2026-11-05 20:29 UTC — #225 at 3c17e3c FAIL
+
+Requested recheck of this head against parent `68f2df5`. This lane did not build it. #294 at `208bd81` and #295 at `b142e7f` were compared and not modified. No merge commit. Nothing was pushed to those branches. No code on #225 was changed.
+
+#225 head is still `3c17e3c216fe7bdd58ed4994ea3287384414d7aa`. `68f2df5d5933b4884f081ccc314924a5b58c460b` stays the prior PASS and is the parent. Comment `6668512887` says FAIL on this SHA. The comment text is the evidence below.
+
+INDEPENDENT RECHECK FAIL at `3c17e3c216fe7bdd58ed4994ea3287384414d7aa`.
+
+This lane did not build this commit. The head is still `3c17e3c`. The parent is `68f2df5`. The tip is 6 files, +303/−19 (`scripts/boss_decisions.py`, `scripts/daily_summary_draft.py`, `scripts/workflow_status.py`, and the three test files). It does not change `data/held.json`, a price file, CSS, layout, or copy. `scripts/cost_recheck_block.py` is unchanged. Blob `d34b3d445df4c626aa78799dfaf8b571f8122259` matches parent `68f2df5` and #294 at `208bd81`. sha256 `f305eeceb38bd349a4781545bc7169fcd5b5bb56264e93f59e6842c1a448947b`.
+
+`npm ci --no-audit --no-fund` in both apps, then `scripts/hard_recheck.sh --base origin/main` with `HARD_RECHECK_PYTHON=/tmp/py-recheck` (pytest 9.2.0, openpyxl 3.1.5). The worktree was detached at this SHA, so the summary branch field is blank. Log `out/recheck/20261105-200637-3736`. pytest 2694 passed, 7 skipped; privacy CLEAN; intake npm 365 / 362 / 0 / 3; shop npm 269 / 266 / 0 / 3; both tsc ok; `held.json` unchanged vs `origin/main` (sha256 `484dbec93976e07ce34a2acc693287b6909187834032241fe6dd95d88a83d9da`). Required skips: none. No hard-recheck step is SKIP. The tip line is INFO. Working tree clean. The head was still `3c17e3c` after the run. The script result is PASS. The behavior below is the fail.
+
+Signed-out summaries still block. `load_summary` returns `blocked` for int 1, float 1.0, JSON true, `yes`, and ` YES `. String `1.0`, JSON false, and 0 stay `ok`. A UTF-8 BOM plus `{"taobao_login_needed": 1.0, "unreachable_mas": ["Z01"]}` is `("blocked", doc)`. Workflow `_cost_parsed` is LOGIN for 1, 1.0, and ` yes `, and PARSED for string `1.0` and false. A BOM login summary is verdict LOGIN. Daily `main` on a cost file whose bytes are `{` exits 0 and prints `Taobao cost recheck: unreadable, so not used.` A midnight file `{` prints `Midnight QC: unreadable, so not used.` Workflow `_cost`, `_midnight`, and `_meta` on `{` return verdict UNREADABLE. A flat midnight summary with `s06Usd: true` prints no S06 dollar. Control `s06.blob` 25 prints `Shop: 3 items live, S06 $25.`
+
+Fail 1. A boolean mã list aborts Boss. `summary.2000-01-05.json` is `{"persistent_new_unreachable": ["X08"], "unreachable_mas": true}`. `boss_decisions.main` raises `TypeError: argument of type 'bool' is not iterable` at `_summary_lists` (`listed = doc.get("unreachable_mas") or []`, then `ma in listed`). `streak_start` calls that helper, and `compile_decisions` calls `streak_start`. No brief is written. Int `1` raises `argument of type 'int' is not iterable`. Float `1.0` raises `argument of type 'float' is not iterable`. `daily_summary_draft.mas` returns `[]` for those values, so the daily brief stays up and the two readers disagree.
+
+JSON `false` takes the other wrong branch. `_summary_lists` turns `false` into `[]` and returns `break`. Files: `2000-01-03` lists X08, `2000-01-04` is `{"unreachable_mas": false}`, `2000-01-05` lists X08 and `persistent_new_unreachable` X08. `streak_start(root, "2000-01-05", "X08")` is `2000-01-05`. The same middle file containing `{` returns `2000-01-03`. A string `"ZX08Y"` and an object `{"X08": true}` both return `count` for mã X08.
+
+Fail 2. A boolean midnight field becomes a shop figure. `midnight_lines({"s06": {"blob": true}, "counts": {"live": true, "held": true, "intake": true}, "fails": [], "warns": []})` prints:
+
+```
+Midnight QC: UNKNOWN, 0 fail(s), 0 warning(s); second pass did not confirm.
+Shop: True items live, True held, intake True rows, 0 new, S06 $1.
+```
+
+`s06.blob` false prints `Shop: S06 $0.` `build` on `{"counts": {"unreachable": true}, "unreachable_mas": ["Z01"]}` prints `Taobao cost recheck: True listings unreachable (Z01); 0 live price change(s); 0 new under-price/loss.` `bool` is a subclass of `int`, and the legacy printer still uses `isinstance(..., int)` and `isinstance(s06, (int, float))`. The flat path already rejects bools, which is why `s06Usd: true` stays quiet.
+
+Fail 3. Boss reports a present `{` file as missing. Cost file `{` and `out/muse/meta-qc-2000-01-05.json` `{`: `boss_decisions.main` exits 0. The rendered report has no word `unreadable`. The meta line is:
+
+```
+- - | Meta QC not PASS on both sides (IG UNCHECKED, FB UNCHECKED). Sign-in/recheck needed? | out/muse/meta-qc-2000-01-05.json (missing) | ? | new today
+```
+
+`read_meta_status` raises `JSONDecodeError` on that Muse file before it reads a later snapshot. `out/meta-snapshot/meta-snapshot-20000105T010000.json` with both sides `luxubu` and `miniboss` status `pass` is `('pass', 'Luxubu + Mini Boss agree')` when it is the only file. With the `{` Muse file in front, that snapshot is unused. The daily brief then says:
+
+```
+Meta status (no record found):
+- Instagram: UNCHECKED (unreadable)
+- Facebook: UNCHECKED (unreadable)
+```
+
+The same brief's freshness line is `Meta QC json: OK, meta-qc-2000-01-05.json` because the file exists.
+
+Merge. `git merge-tree --write-tree` of `3c17e3c` with #294 at `208bd81d9e16bbfc7c8d9cda900a3099d87be174` exits 0. Tree `c2549963f2890419ac7cdc45c738a9eae414bb4e`, the same tree as this commit. No conflicted paths. The same command with #295 at `b142e7f1e9e14c26cfcbb768442b8d82d10f014e` exits 0. Tree `10c786667a9c8588ab0481e4403f0afdc08ecf40`. `data/privacy-allowlist.json` auto-merges. No merge commit was made. Nothing was pushed to those branches.
+
+S06 lock stays 25 in `scripts/autolist.py`, `sassy-closet/lib/pricing.ts`, and `shared/tiered-pricing.ts`. `shared/live-price-snapshot.json` `liveUsd` for S06 is 25 and matches `origin/main`. `data/held.json` matches `origin/main`. No Blob, KV, Meta, or price write. No push to the #225 branch.
+
+Note. `load_summary` does not catch `RecursionError`. On this Python, a 10000-deep cost object still raises from `boss_decisions.main` and `daily_summary_draft.main`. The helper is unchanged, so that path stays as it was. Workflow `_load_object` catches `RecursionError` and returns UNREADABLE.
+
+#249 is this log and is not graded.
