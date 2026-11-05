@@ -1098,3 +1098,48 @@ S06 lock stays 25 in `scripts/autolist.py`, `sassy-closet/lib/pricing.ts`, and `
 Note. `load_summary` does not catch `RecursionError`. On this Python, a 10000-deep cost object still raises from `boss_decisions.main` and `daily_summary_draft.main`. The helper is unchanged, so that path stays as it was. Workflow `_load_object` catches `RecursionError` and returns UNREADABLE.
 
 #249 is this log and is not graded.
+
+## 2026-11-05 22:11 UTC — #225 at 13ca3e2 PASS
+
+Requested recheck of this head against parent `3c17e3c`. This lane did not build it. #294 at `208bd81` and #295 at `b142e7f` were compared and not modified. No merge commit. Nothing was pushed to those branches. No code on #225 was changed.
+
+#225 head is still `13ca3e250bf96a00fa1e935814245bbb366080d4`. `3c17e3c216fe7bdd58ed4994ea3287384414d7aa` stays the prior FAIL and is the parent. Comment `6670873402` says PASS on this SHA. The comment text is the evidence below.
+
+INDEPENDENT RECHECK PASS at `13ca3e250bf96a00fa1e935814245bbb366080d4`.
+
+This lane did not build this commit. The head is still `13ca3e2`. The parent is `3c17e3c216fe7bdd58ed4994ea3287384414d7aa`, the prior FAIL. The tip is 6 files, +319/−36 (`scripts/boss_decisions.py`, `scripts/daily_summary_draft.py`, `scripts/workflow_status.py`, and the three test files). It does not change `data/held.json`, a price file, CSS, layout, or copy. `scripts/cost_recheck_block.py` is unchanged. Blob `d34b3d445df4c626aa78799dfaf8b571f8122259` matches parent `3c17e3c`, `68f2df5`, and #294 at `208bd81`. sha256 `f305eeceb38bd349a4781545bc7169fcd5b5bb56264e93f59e6842c1a448947b`.
+
+`npm ci --no-audit --no-fund` in both apps (intake added 143 packages, shop added 407), then `scripts/hard_recheck.sh --base origin/main` with `HARD_RECHECK_PYTHON=/tmp/py-recheck` (pytest 9.2.0, openpyxl 3.1.5). The worktree was detached at this SHA, so the summary branch field is blank. Log `out/recheck/20261105-220451-3312`. pytest 2717 passed, 7 skipped; privacy CLEAN; intake npm 365 / 362 / 0 / 3; shop npm 269 / 266 / 0 / 3; both tsc ok; `held.json` unchanged vs `origin/main` (sha256 `484dbec93976e07ce34a2acc693287b6909187834032241fe6dd95d88a83d9da`, blob `cac6f53006196a978551c61e45f507bb72ab6667`). Required skips: none. No hard-recheck step is SKIP. The tip line is INFO. Working tree clean. The head was still `13ca3e2` after the run. The script result is PASS.
+
+Prior fail 1 is fixed. A non-list `unreachable_mas` is `skip` and does not break the streak. Middle day `2000-01-04` between two `["X08"]` days: bool `true`, int `1`, float `1.0`, JSON `false`, `"ZX08Y"`, exact `"X08"`, `"X08 ZX08Y"`, `{"X08": true}`, `{"ZX08Y": true}`, `""`, and a file whose bytes are `{` all return `skip`, and `streak_start(..., "2000-01-05", "X08")` is `2000-01-03`. A file that only has `"ZX08Y"`, and a file that only has `{"X08": true}`, return `skip` and `streak_start` is `None`. A real list `["X08"]` still returns `count` and `2000-01-05`. `boss_decisions.main` on `persistent_new_unreachable: ["X08"]` plus `unreachable_mas` true, 1, 1.0, false, or `"ZX08Y"` exits 0 and writes the X01 line. No TypeError.
+
+`"ZX08Y"` is not X08. `mas("ZX08Y")` and `mas(["ZX08Y"])` are empty. `mas(["ZX08Y", "X08"])` is `["X08"]`. A middle list `["ZX08Y"]`, `["X08Y"]`, `["X08 "]`, or `[{"X08": true}]` is `break`, so the streak stays `2000-01-05`. A middle list `["ZX08Y", "X08", true]` is `count`, so the streak is `2000-01-03`. Null and a missing field still break to `2000-01-05`.
+
+Prior fail 2 is fixed. Legacy midnight with bool `live`, `held`, `intake`, and `s06.blob` prints:
+
+```
+Shop: unreadable items live, unreadable held, intake unreadable rows, 0 new, S06 unreadable.
+```
+
+`s06.blob` false prints `Shop: S06 unreadable.` Control `live` 3 and `blob` 25 prints `Shop: 3 items live, S06 $25.` Integer 1 still prints `S06 $1.` A flat summary with `s06Usd: true` and `blobCount: true` prints no S06 dollar. NaN and infinity shop fields print `unreadable`. A mix of `live: true` and `blob: 25` prints `unreadable items live` and `S06 $25.` `build` on `counts.unreachable` true, false, `"many"`, null, a list, an object, NaN, or infinity prints `Taobao cost recheck: unreadable listings unreachable (Z01)`. Int 4 and int 1 stay numeric. Daily `main` on `unreachable: true` prints that same unreadable line.
+
+Prior fail 3 is fixed. Cost file `{` and `out/muse/meta-qc-2000-01-05.json` `{`: `boss_decisions.main` exits 0. The report is:
+
+```
+- - | Meta QC not PASS on both sides (IG UNCHECKED, FB UNCHECKED). Sign-in/recheck needed? | out/muse/meta-qc-2000-01-05.json (unreadable) | ? | new today
+
+Cost recheck: unreadable (verify/cost-recheck/summary.2000-01-05.json).
+Meta QC json: unreadable (out/muse/meta-qc-2000-01-05.json).
+```
+
+That report has no `(missing)`. `read_meta_status` returns both sides `("unchecked", "unreadable")` and `out/muse/meta-qc-2000-01-05.json (unreadable)`. The same shapes `[]`, `null`, `true`, a UTF-8 BOM plus `{`, a leading space plus `{`, and a truncated object do the same. The daily brief prints `Taobao cost recheck: unreadable, so not used.` and `- Meta QC json: unreadable (meta-qc-2000-01-05.json)`. It has no `Meta QC json: OK`. The Meta status line is `from out/muse/meta-qc-2000-01-05.json (unreadable)`. A midnight file `{` prints `Midnight QC: unreadable, so not used.` Workflow `_midnight`, `_meta`, and `_cost` on `{` are `UNREADABLE`. A later snapshot with both sides `luxubu` and `miniboss` `pass` is still `('pass', 'Luxubu + Mini Boss agree')` from `Meta snapshot meta-snapshot-20000105T010000.json`. Boss keeps the unreadable Muse note and does not add `Meta QC not PASS`. A real Meta object can still freshness-check as `Meta QC json: OK`.
+
+Signed-out summaries still block. `load_summary` is `blocked` for int 1, float 1.0, JSON true, `yes`, and ` YES `. String `1.0`, JSON false, 0, and `"false"` stay `ok`. A UTF-8 BOM plus `{"taobao_login_needed": 1.0}` is `blocked`. Workflow cost is LOGIN for 1, 1.0, and ` yes `, and PARSED for string `1.0` and false. A bool `unreachable` on a parsed summary is `PARSED` with `unreachable` None.
+
+Merge. `git merge-tree --write-tree` of `13ca3e2` with #294 at `208bd81d9e16bbfc7c8d9cda900a3099d87be174` exits 0. Tree `bc1127fbf8b2d378f875bebe7bc97d071c02ec06`, the same tree as this commit. The same command with #295 at `b142e7f1e9e14c26cfcbb768442b8d82d10f014e` exits 0. Tree `775351a934748227ddfe6c644f3a5e5f5e6cc42f`. `data/privacy-allowlist.json` auto-merges to 22 rows and keeps every row from both sides. No merge commit was made. Nothing was pushed to those branches.
+
+S06 lock stays 25 in `scripts/autolist.py`, `sassy-closet/lib/pricing.ts`, and `shared/tiered-pricing.ts`. `shared/live-price-snapshot.json` `liveUsd` for S06 is 25 and matches `origin/main`. `data/held.json` matches `origin/main`. No Blob, KV, Meta, or price write. No push to the #225 branch.
+
+Note. Direct `build` when `counts` itself is true still raises `AttributeError: 'bool' object has no attribute 'get'`. Daily `main` drops that non-object and prints `Taobao cost recheck: ? listings unreachable (Z01)`. It does not print `True`. The prior field, `counts.unreachable: true`, prints `unreadable`. `load_summary` still does not catch `RecursionError`. The helper is unchanged, so that path stays as it was.
+
+#249 is this log and is not graded.
