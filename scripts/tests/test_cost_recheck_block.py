@@ -8,8 +8,13 @@ import cost_recheck_block
 import daily_summary_draft as d
 
 _NO_FLAG = object()
-TRUE_FLAGS = [True, 1, "true", "TRUE", " true ", " yes ", "Y", "y", "1", " 1 ", "\nYes\t"]
-FALSE_FLAGS = [False, 0, "false", "no", "", None]
+# Blocked: JSON true, int 1, float 1.0, and true/yes/y/1 with any case or whitespace.
+TRUE_FLAGS = [True, 1, 1.0, "true", "TRUE", " true ", " yes ", "Y", "y", "1", " 1 ", "\nYes\t"]
+# Not a block, and must not print the sign-in line. false/no ignore case and whitespace.
+# Float 0.0 is not 1.0. The string "1.0" is not the float 1.0.
+FALSE_FLAGS = [
+    False, 0, 0.0, "false", "FALSE", " False ", "no", "NO", " no ", "\nNo\t", "", None, "1.0",
+]
 BLOCKED_LINE = (
     "Taobao cost recheck: blocked on a signed-out read. "
     "Unreachable rows and price deltas in this file are not used."
@@ -135,6 +140,32 @@ def test_negative_flag_still_asks_hold(flag):
     assert "- Should Z71 go on hold?" in text
     assert "listings unreachable" in text
     assert BLOCKED_LINE not in text
+    assert SIGNIN_LINE not in text
+
+
+@pytest.mark.parametrize("raw", ["1.0", "1e0", "1E0"])
+def test_json_float_one_is_blocked_everywhere(tmp_path, raw):
+    flag = json.loads(raw)
+    assert type(flag) is float and flag == 1.0
+    doc = recheck_doc(flag)
+    assert cost_recheck_block.login_blocked(doc) is True
+    assert cost_recheck_block.evidence(doc) == {}
+    text = summary_text(doc)
+    assert f"{BLOCKED_LINE}\n{SIGNIN_LINE}" in text
+    assert text.count(SIGNIN_LINE) == 1
+    assert "go on hold?" not in text
+    decided = _compile(tmp_path, doc)
+    assert [(item["cat"], item["ma"]) for item in decided] == [("intake_mismatch", "Z72")]
+
+
+@pytest.mark.parametrize("flag", [1.5, 2.0, "1e0", "yes.", "on"])
+def test_near_miss_flags_are_not_blocked(flag):
+    doc = recheck_doc(flag)
+    assert cost_recheck_block.login_blocked(doc) is False
+    text = summary_text(doc)
+    assert SIGNIN_LINE not in text
+    assert BLOCKED_LINE not in text
+    assert "- Should Z71 go on hold?" in text
 
 
 def _compile(tmp_path, cost):
@@ -178,6 +209,46 @@ def test_streak_start_skips_signed_out_day(tmp_path):
     assert bd.streak_start(tmp_path, day3, "Z71") == day1
     assert bd.streak_start(tmp_path, day3, "Z72") is None
     assert bd.streak_start(tmp_path, day3, "Z73") == day3
+    assert bd.streak_start(tmp_path, day2, "Z71") == day1
+    assert bd.streak_start(tmp_path, day2, "Z72") is None
+
+
+@pytest.mark.parametrize("flag", [" false ", "\nNO\t", "No"])
+def test_streak_start_false_and_no_strings_still_count(tmp_path, flag):
+    day = "2000-05-01"
+    write_cost_summary(tmp_path, day, {
+        "taobao_login_needed": flag,
+        "unreachable_mas": ["Z71"],
+    })
+    assert bd.streak_start(tmp_path, day, "Z71") == day
+
+
+def test_streak_start_float_one_skips_the_day(tmp_path):
+    day1, day2 = "2000-05-02", "2000-05-03"
+    write_cost_summary(tmp_path, day1, {"unreachable_mas": ["Z71"]})
+    write_cost_summary(tmp_path, day2, {
+        "taobao_login_needed": 1.0,
+        "unreachable_mas": ["Z71", "Z72"],
+    })
+    assert bd.streak_start(tmp_path, day2, "Z71") == day1
+    assert bd.streak_start(tmp_path, day2, "Z72") is None
+
+
+def test_streak_start_reads_utf8_bom_summary(tmp_path):
+    day1, day2 = "2000-04-01", "2000-04-02"
+    folder = tmp_path / "verify" / "cost-recheck"
+    folder.mkdir(parents=True)
+
+    def write(date, doc):
+        raw = b"\xef\xbb\xbf" + json.dumps(doc).encode("utf-8")
+        (folder / f"summary.{date}.json").write_bytes(raw)
+
+    write(day1, {"unreachable_mas": ["Z71"]})
+    write(day2, {
+        "taobao_login_needed": True,
+        "unreachable_mas": ["Z71", "Z72"],
+    })
+    assert d.load_json(folder / f"summary.{day2}.json")["taobao_login_needed"] is True
     assert bd.streak_start(tmp_path, day2, "Z71") == day1
     assert bd.streak_start(tmp_path, day2, "Z72") is None
 

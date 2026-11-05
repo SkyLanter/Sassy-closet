@@ -5,8 +5,9 @@ Reads verify/cost-recheck/cost-recheck-YYYY-MM-DD-flags.csv files and counts,
 per mã, how many consecutive recheck runs (newest backwards) flagged it
 "unreachable". Output carries mã codes and day counts ONLY: never ¥, links,
 item ids, names or costs. No network, no writes. A sibling summary.<date>.json
-with taobao_login_needed is a signed-out block: those flags are not used, and
-the day neither counts nor breaks a streak.
+with an explicit taobao_login_needed block is signed-out: those flags are not
+used, and the day neither counts nor breaks a streak. Strings false and no are
+not a block. Summary JSON and flag CSVs are read as utf-8-sig.
 """
 import argparse
 import csv
@@ -26,8 +27,7 @@ MA_RE = re.compile(r"^[A-Z]\d{2}$")
 def _summary_blocked(directory, date):
     path = os.path.join(directory, f"summary.{date}.json")
     try:
-        with open(path, encoding="utf-8-sig") as fh:
-            doc = json.load(fh)
+        doc = cost_recheck_block.read_json(path)
     except (OSError, UnicodeError, json.JSONDecodeError):
         return False
     return cost_recheck_block.login_blocked(doc)
@@ -46,7 +46,7 @@ def partition_runs(directory):
             blocked_dates.append(date)
             continue
         unreachable = set()
-        with open(path, newline="", encoding="utf-8-sig") as fh:
+        with open(path, newline="", encoding=cost_recheck_block.ENCODING) as fh:
             for row in csv.DictReader(fh):
                 ma = norm_ma((row.get("ma") or ""))
                 flags = (row.get("flag") or "").split("|")

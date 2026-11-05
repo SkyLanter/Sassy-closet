@@ -157,6 +157,18 @@ def test_missing_summary_and_bad_json_still_count(tmp_path):
     ]
 
 
+def test_float_one_blocks_and_false_words_do_not(tmp_path):
+    write_min(tmp_path, "2026-11-01", [("Z71", "unreachable")])
+    write_min(tmp_path, "2026-11-02", [("Z71", "unreachable"), ("Z72", "unreachable")])
+    write_min(tmp_path, "2026-11-03", [("Z71", "unreachable")])
+    write_summary(tmp_path, "2026-11-02", {"taobao_login_needed": 1.0})
+    write_summary(tmp_path, "2026-11-03", {"taobao_login_needed": " NO "})
+    runs, blocked = s.partition_runs(str(tmp_path))
+    assert blocked == ["2026-11-02"]
+    assert runs == [("2026-11-01", {"Z71"}), ("2026-11-03", {"Z71"})]
+    assert s.streaks(runs) == {"Z71": (2, "2026-11-01")}
+
+
 def test_utf8_bom_on_summary_still_blocks(tmp_path):
     write_min(tmp_path, "2026-11-01", [("Z71", "unreachable")])
     write_summary(tmp_path, "2026-11-01", {"taobao_login_needed": True}, bom=True)

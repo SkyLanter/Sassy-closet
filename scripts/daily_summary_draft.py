@@ -35,8 +35,11 @@ MISSING (file not there). Only the input label, file name and time are shown.
 Writes out/summaries/daily-summary-<date>.md (gitignored). Only mã codes,
 counts, statuses and sell $ are used: free-text fields from the inputs are
 never copied, so no ¥ cost, links or customer data can leak. The word CLEAR is
-only printed when both Meta checks pass. A summary with taobao_login_needed is
-a signed-out block; its unreachable and price-delta fields are not used.
+only printed when both Meta checks pass. An explicit taobao_login_needed block
+(JSON true, int 1, float 1.0, or true/yes/y/1) drops unreachable and price-delta
+fields and prints the sign-in line. Strings false and no, any case or surrounding
+whitespace, are not a block and do not print that line. JSON inputs are read as
+utf-8-sig.
 """
 from __future__ import annotations
 
@@ -148,7 +151,7 @@ def mas(xs):
 def load_json(p):
     if not p or not Path(p).exists():
         return None
-    return json.loads(Path(p).read_text(encoding="utf-8"))
+    return cost_recheck_block.read_json(p)
 
 
 def warn_codes(warns):
@@ -469,8 +472,6 @@ def build(qc, cost, digest, gaps, proposal, meta_ig, meta_fb, date, flips=None, 
             new = mas(cost.get("persistent_new_unreachable"))
             if new:
                 L.append(f"Newly gone on Taobao and still live: {', '.join(new)}.")
-            if cost.get("taobao_login_needed"):
-                L.append("Taobao still needs your sign-in.")
     else:
         L.append("Taobao cost recheck: not found for today.")
     L.append("")

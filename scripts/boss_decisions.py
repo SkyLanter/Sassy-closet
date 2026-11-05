@@ -15,8 +15,10 @@ one line per decision: mã | question | evidence path | days open.
 Days open = <date> minus the earliest dated source showing it; '?' when a
 source carries no date. Free text is never copied: only mã codes, category
 questions written here, relative paths, dates and PR numbers. No network,
-no sends, no live writes. A summary with taobao_login_needed is a signed-out
-block; that day is skipped for streaks and is not gone or unreachable evidence.
+no sends, no live writes. A summary with an explicit taobao_login_needed
+block (JSON true, int 1, float 1.0, or true/yes/y/1) is signed-out: that day
+is skipped for streaks and is not gone or unreachable evidence. Strings false
+and no are not a block. Summary JSON is read as utf-8-sig.
 """
 from __future__ import annotations
 
@@ -130,7 +132,11 @@ def parse_digest(text):
 
 
 def streak_start(root, date, ma):
-    """Earliest date of the unbroken run of cost summaries (up to <date>) listing mã unreachable."""
+    """Earliest date of the unbroken run of cost summaries (up to <date>) listing mã unreachable.
+
+    A signed-out summary is skipped. It neither starts nor breaks the run.
+    The file is read as utf-8-sig, same as the streak watcher.
+    """
     files = sorted((Path(root) / "verify/cost-recheck").glob("summary.????-??-??.json"))
     start = None
     for f in reversed(files):
