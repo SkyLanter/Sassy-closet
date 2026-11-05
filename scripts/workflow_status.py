@@ -1077,8 +1077,10 @@ def _meta(root: Path) -> ReportLine:
     stamp, path = picked
     rel = _rel(root, path)
     try:
-        status, _source = read_meta_status(root, stamp)
+        status, source = read_meta_status(root, stamp)
     except (OSError, UnicodeError, json.JSONDecodeError, ValueError, RecursionError):
+        return _bad("meta-qc", stamp, rel)
+    if isinstance(source, str) and source.endswith("(unreadable)"):
         return _bad("meta-qc", stamp, rel)
     ig = _meta_word(status.get("ig") if isinstance(status, dict) else None)
     fb = _meta_word(status.get("fb") if isinstance(status, dict) else None)

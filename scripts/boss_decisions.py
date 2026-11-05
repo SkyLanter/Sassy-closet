@@ -135,10 +135,13 @@ def parse_digest(text):
 def _summary_lists(path, ma):
     """'count', 'skip', or 'break' for one cost-recheck summary day.
 
-    count: load_summary state is ok and the summary lists mã.
+    count: load_summary state is ok and unreachable_mas is a list containing mã.
     skip: state is blocked or bad (signed-out, or present but unreadable
-    or malformed). It neither counts nor breaks.
-    break: the file is missing, or state is ok and the summary does not list mã.
+    or malformed), or state is ok but unreachable_mas is present and not a
+    list (bool, number, string, object). A string is not scanned for a mã.
+    It neither counts nor breaks.
+    break: the file is missing, the field is absent or null, or the list
+    does not contain mã.
     """
     state, doc = cost_recheck_block.load_summary(path)
     if state == "missing":
@@ -146,10 +149,14 @@ def _summary_lists(path, ma):
     if state == "bad" or state == "blocked":
         return "skip"
     if state == "ok":
-        listed = doc.get("unreachable_mas") or []
-        if ma in listed:
-            return "count"
-        return "break"
+        listed = doc.get("unreachable_mas")
+        if isinstance(listed, list):
+            if any(item == ma for item in listed):
+                return "count"
+            return "break"
+        if listed is None:
+            return "break"
+        return "skip"
     raise AssertionError(state)
 
 
@@ -181,9 +188,11 @@ def _calendar_streak_start(root, date, ma):
     """Earliest counted day, walking calendar days backward from <date>.
 
     A day counts when summary.<day>.json is readable, is not a signed-out
-    block, and lists mã. A signed-out day is skipped. A present summary that
-    is unreadable or malformed is skipped the same way. A missing file, or a
-    readable summary that does not list mã, ends the run. At most 10 years.
+    block, and lists mã in a JSON array. A signed-out day is skipped. A
+    present summary that is unreadable or malformed is skipped the same way.
+    A non-list unreachable_mas (bool, number, string, object) is unreadable
+    for that field and is skipped too; it is not mã evidence. A missing file,
+    or a readable summary that does not list mã, ends the run. At most 10 years.
     None when <date> is not a day or no counted day remains.
     """
     try:
@@ -432,7 +441,7 @@ def existing_inputs(path):
     return m.group(1)
 
 
-def render(D, date, inputs=None):
+def render(D, date, inputs=None, notes=None):
     L = [f"# Boss decisions {date} (DRAFT, local only, not sent)", ""]
     if inputs is not None:
         L += [f"Inputs: {inputs} | total={len(D)}", ""]
@@ -444,6 +453,8 @@ def render(D, date, inputs=None):
         n = "?" if d["days"] is None else f"{d['days']}d (since {d['since']})"
         r = raised_text(d) if "raised" in d else None
         L.append(f"- {d['ma']} | {d['q']} | {d['ev']} | {n}" + (f" | {r}" if r else ""))
+    if notes:
+        L += ["", *notes]
     L += ["", f"TOTAL {len(D)}", "Read-only: nothing was sent, posted, priced or deleted.", ""]
     text = "\n".join(L)
     if BANNED.search(text):
@@ -484,18 +495,22 @@ def main(argv=None):
     # walks the same reader, so a bad day neither counts nor aborts the report.
     cost_state, cost_doc = cost_recheck_block.load_summary(cp)
     cost = cost_doc if cost_state in ("ok", "blocked") else None
+    muse = r / "out/muse" / f"meta-qc-{d}.json"
     try:
         ms, msrc = ds.read_meta_status(r, d)
     except (OSError, UnicodeError, ValueError, RecursionError):
-        ms, msrc = (
-            {"ig": ("unchecked", "unreadable"), "fb": ("unchecked", "unreadable")},
-            None,
-        )
+        ms = {"ig": ("unchecked", "unreadable"), "fb": ("unchecked", "unreadable")}
+        msrc = f"out/muse/meta-qc-{d}.json (unreadable)" if muse.is_file() else None
     D = compile_decisions(r, d, dtext, cost, cp,
                           r / "out/reports" / d / "COST-BASIS.md", ms, msrc,
                           r / "out/meta-popular" / f"cycle-{d}" / "SUMMARY.txt", a.order)
     inputs = inputs_desc(a)
-    text = render(D, d, inputs)
+    notes = []
+    if cost_state == "bad":
+        notes.append(f"Cost recheck: unreadable ({rel(r, cp)}).")
+    if ds._json_object(muse)[0] == "bad":
+        notes.append(f"Meta QC json: unreadable ({rel(r, muse)}).")
+    text = render(D, d, inputs, notes)
     out_dir = a.out_dir or r / "out/reports" / d
     out = out_dir / "BOSS-DECISIONS.md"
     prev = existing_inputs(out)

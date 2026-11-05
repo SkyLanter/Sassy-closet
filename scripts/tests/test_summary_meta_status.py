@@ -55,6 +55,16 @@ def test_snapshot_qc_block_and_side_missing(tmp_path):
     assert st["ig"] == ("unchecked", "not in record")
 
 
+def test_brace_muse_file_is_unreadable_not_missing(tmp_path):
+    p = tmp_path / "out/muse"
+    p.mkdir(parents=True)
+    (p / f"meta-qc-{DATE}.json").write_text("{", encoding="utf-8")
+    st, src = d.read_meta_status(tmp_path, DATE)
+    assert st["ig"] == st["fb"] == ("unchecked", "unreadable")
+    assert src == f"out/muse/meta-qc-{DATE}.json (unreadable)"
+    assert "missing" not in src
+
+
 def test_other_day_snapshot_not_used(tmp_path):
     p = tmp_path / "out/meta-snapshot"; p.mkdir(parents=True)
     (p / "meta-snapshot-20260101T010000Z.json").write_text(json.dumps({"qc": {"ig": "fail", "fb": "fail"}}))

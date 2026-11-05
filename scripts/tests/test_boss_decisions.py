@@ -89,6 +89,92 @@ def test_main_writes_report(tmp_path):
     assert "X07 |" in out and "TOTAL" in out
 
 
+@pytest.mark.parametrize("bad", [True, 1, 1.0, False, "X08", "ZX08Y", {"X08": True}])
+def test_non_list_unreachable_skips_the_day(tmp_path, bad):
+    _write_summary(tmp_path, "2000-01-03", {"unreachable_mas": ["X08"]})
+    _write_summary(tmp_path, "2000-01-04", {"unreachable_mas": bad})
+    _write_summary(tmp_path, "2000-01-05", {
+        "unreachable_mas": ["X08"],
+        "persistent_new_unreachable": ["X08"],
+    })
+    day = tmp_path / "verify/cost-recheck/summary.2000-01-04.json"
+    assert bd._summary_lists(day, "X08") == "skip"
+    assert bd.streak_start(tmp_path, "2000-01-05", "X08") == "2000-01-03"
+
+
+@pytest.mark.parametrize("bad", [None, "absent"])
+def test_missing_unreachable_field_breaks_the_run(tmp_path, bad):
+    _write_summary(tmp_path, "2000-01-03", {"unreachable_mas": ["X08"]})
+    if bad == "absent":
+        _write_summary(tmp_path, "2000-01-04", {"counts": {}})
+    else:
+        _write_summary(tmp_path, "2000-01-04", {"unreachable_mas": None})
+    _write_summary(tmp_path, "2000-01-05", {"unreachable_mas": ["X08"]})
+    assert bd.streak_start(tmp_path, "2000-01-05", "X08") == "2000-01-05"
+
+
+def test_string_unreachable_is_not_ma_evidence(tmp_path):
+    _write_summary(tmp_path, "2000-01-05", {"unreachable_mas": "ZX08Y"})
+    path = tmp_path / "verify/cost-recheck/summary.2000-01-05.json"
+    assert bd._summary_lists(path, "X08") == "skip"
+    assert bd.streak_start(tmp_path, "2000-01-05", "X08") is None
+
+
+def test_longer_token_in_a_list_breaks_the_run(tmp_path):
+    _write_summary(tmp_path, "2000-01-03", {"unreachable_mas": ["X08"]})
+    _write_summary(tmp_path, "2000-01-04", {"unreachable_mas": ["ZX08Y"]})
+    _write_summary(tmp_path, "2000-01-05", {"unreachable_mas": ["X08"]})
+    assert bd.streak_start(tmp_path, "2000-01-05", "X08") == "2000-01-05"
+
+
+@pytest.mark.parametrize("bad", [True, 1, 1.0, False])
+def test_main_non_list_unreachable_does_not_raise(tmp_path, bad):
+    r = _root(tmp_path)
+    (r / "verify/cost-recheck/summary.2000-01-05.json").write_text(
+        json.dumps({"persistent_new_unreachable": ["X08"], "unreachable_mas": bad}),
+        encoding="utf-8")
+    dg = tmp_path / "dg.txt"
+    dg.write_text(DIGEST)
+    assert bd.main(["--date", "2000-01-05", "--root", str(r), "--digest", str(dg)]) == 0
+    out = (r / "out/reports/2000-01-05/BOSS-DECISIONS.md").read_text(encoding="utf-8")
+    assert "X01 |" in out
+
+
+def test_present_bad_cost_and_meta_are_unreadable(tmp_path):
+    r = _root(tmp_path)
+    (r / "verify/cost-recheck/summary.2000-01-05.json").write_text("{", encoding="utf-8")
+    meta = r / "out/muse"
+    meta.mkdir(parents=True)
+    (meta / "meta-qc-2000-01-05.json").write_text("{", encoding="utf-8")
+    dg = tmp_path / "dg.txt"
+    dg.write_text(DIGEST)
+    assert bd.main(["--date", "2000-01-05", "--root", str(r), "--digest", str(dg), "--stdout"]) == 0
+    out = (r / "out/reports/2000-01-05/BOSS-DECISIONS.md").read_text(encoding="utf-8")
+    assert "Cost recheck: unreadable (verify/cost-recheck/summary.2000-01-05.json)." in out
+    assert "Meta QC json: unreadable (out/muse/meta-qc-2000-01-05.json)." in out
+    assert "meta-qc-2000-01-05.json (missing)" not in out
+    assert "meta-qc-2000-01-05.json (unreadable)" in out
+
+
+def test_bad_muse_file_does_not_hide_passing_snapshot(tmp_path):
+    r = _root(tmp_path)
+    meta = r / "out/muse"
+    meta.mkdir(parents=True)
+    (meta / "meta-qc-2000-01-05.json").write_text("{", encoding="utf-8")
+    snap = r / "out/meta-snapshot"
+    snap.mkdir(parents=True)
+    side = {"luxubu": {"status": "pass"}, "miniboss": {"status": "pass"}}
+    (snap / "meta-snapshot-20000105T010000.json").write_text(json.dumps(
+        {"qc": {"ig": side, "fb": side}}), encoding="utf-8")
+    dg = tmp_path / "dg.txt"
+    dg.write_text(DIGEST)
+    assert bd.main(["--date", "2000-01-05", "--root", str(r), "--digest", str(dg)]) == 0
+    out = (r / "out/reports/2000-01-05/BOSS-DECISIONS.md").read_text(encoding="utf-8")
+    assert "Meta QC not PASS" not in out
+    assert "meta-qc-2000-01-05.json (missing)" not in out
+    assert "Meta QC json: unreadable (out/muse/meta-qc-2000-01-05.json)." in out
+
+
 def test_main_lone_brace_summary_does_not_raise(tmp_path):
     r = _root(tmp_path)
     cr = r / "verify/cost-recheck"

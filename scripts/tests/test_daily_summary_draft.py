@@ -250,6 +250,103 @@ def test_main_signed_out_cost_stays_blocked(tmp_path):
     assert "Should Z01 go on hold?" not in text
 
 
+def test_legacy_bool_shop_fields_print_unreadable():
+    text = "\n".join(d.midnight_lines({
+        "s06": {"blob": True},
+        "counts": {"live": True, "held": True, "intake": True},
+        "fails": [],
+        "warns": [],
+    }))
+    assert "True" not in text
+    assert "$1" not in text and "$0" not in text
+    assert "unreadable items live" in text
+    assert "unreadable held" in text
+    assert "intake unreadable rows, 0 new" in text
+    assert "S06 unreadable" in text
+    false_s06 = "\n".join(d.midnight_lines({
+        "s06": {"blob": False}, "counts": {}, "fails": [], "warns": [],
+    }))
+    assert "S06 $0" not in false_s06 and "$0" not in false_s06
+    assert "S06 unreadable" in false_s06
+    assert "S06 $25." in "\n".join(d.midnight_lines(QC))
+
+
+def test_legacy_non_numeric_shop_fields_print_unreadable():
+    text = "\n".join(d.midnight_lines({
+        "counts": {"live": "six", "held": None, "intake": {}},
+        "s06": {"blob": "25"},
+        "fails": [],
+        "warns": [],
+    }))
+    assert "six" not in text and "$" not in text
+    assert text.count("unreadable") >= 4
+
+
+def test_bool_and_non_numeric_unreachable_count_is_unreadable():
+    text = d.build(
+        None,
+        {"counts": {"unreachable": True}, "unreachable_mas": ["Z01"]},
+        {}, {}, None, "pass", "pass", "2000-01-01",
+    )
+    assert "True listings" not in text
+    assert "unreadable listings unreachable (Z01)" in text
+    text_s = d.build(
+        None,
+        {"counts": {"unreachable": "many"}, "unreachable_mas": ["Z01"]},
+        {}, {}, None, "pass", "pass", "2000-01-01",
+    )
+    assert "many listings" not in text_s
+    assert "unreadable listings unreachable (Z01)" in text_s
+    kept = d.build(
+        None,
+        {"counts": {"unreachable": 4}, "unreachable_mas": ["Z01"]},
+        {}, {}, None, "pass", "pass", "2000-01-01",
+    )
+    assert "4 listings unreachable (Z01)" in kept
+    assert "unreadable listings unreachable" not in kept
+
+
+def test_present_bad_meta_qc_is_not_freshness_ok(tmp_path):
+    day = "2000-01-05"
+    root = tmp_path / "root"
+    (root / "verify" / "cost-recheck").mkdir(parents=True)
+    (root / "verify" / "cost-recheck" / f"summary.{day}.json").write_text("{", encoding="utf-8")
+    muse = root / "out" / "muse"
+    muse.mkdir(parents=True)
+    (muse / f"meta-qc-{day}.json").write_text("{", encoding="utf-8")
+    digest = tmp_path / "digest.txt"
+    digest.write_text(DIG, encoding="utf-8")
+    gaps = tmp_path / "gaps.json"
+    gaps.write_text("{}", encoding="utf-8")
+    out = tmp_path / "out"
+    code = d.main([
+        "--date", day, "--root", str(root),
+        "--digest", str(digest), "--gaps", str(gaps), "--out-dir", str(out),
+    ])
+    text = (out / f"daily-summary-{day}.md").read_text(encoding="utf-8")
+    assert code == 0
+    assert "Meta QC json: OK" not in text
+    assert "Meta QC json: unreadable (meta-qc-2000-01-05.json)" in text
+    assert "Taobao cost recheck: unreadable, so not used." in text
+    assert "(unreadable)" in text
+    assert "meta-qc-2000-01-05.json (missing)" not in text
+
+
+def test_bad_muse_file_still_reads_passing_snapshot(tmp_path):
+    day = "2000-01-05"
+    muse = tmp_path / "out" / "muse"
+    muse.mkdir(parents=True)
+    (muse / f"meta-qc-{day}.json").write_text("{", encoding="utf-8")
+    snap = tmp_path / "out" / "meta-snapshot"
+    snap.mkdir(parents=True)
+    side = {"luxubu": {"status": "pass"}, "miniboss": {"status": "pass"}}
+    (snap / "meta-snapshot-20000105T010000.json").write_text(
+        json.dumps({"qc": {"ig": side, "fb": side}}), encoding="utf-8")
+    st, src = d.read_meta_status(tmp_path, day)
+    assert st["ig"] == st["fb"] == ("pass", "Luxubu + Mini Boss agree")
+    assert src.startswith("Meta snapshot meta-snapshot-20000105T010000.json")
+
+
 def test_legacy_bool_pass_and_bare_s06_do_not_raise():
     lines = d.midnight_lines({"pass2": True, "fails": True, "s06": 25, "counts": []})
     assert lines[0].startswith("Midnight QC:")
