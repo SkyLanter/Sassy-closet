@@ -21,6 +21,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 _SCRIPTS = Path(__file__).resolve().parent
 if str(_SCRIPTS) not in sys.path:
@@ -1478,9 +1479,13 @@ def _utc_now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def today_pt() -> str:
+    return datetime.now(timezone.utc).astimezone(ZoneInfo(TIMEZONE)).date().isoformat()
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Write a read-only midnight QC summary and data-ok report.")
-    parser.add_argument("--date", default=datetime.now(timezone.utc).date().isoformat())
+    parser.add_argument("--date", default=today_pt())
     parser.add_argument("--out", help="Directory for summary.json and data-ok.md.")
     parser.add_argument("--fixture", help="Night JSON. Skips the network.")
     parser.add_argument(

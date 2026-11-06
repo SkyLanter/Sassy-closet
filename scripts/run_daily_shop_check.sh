@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # Read-only runner for scripts/daily_shop_check.py.
-# Writes <out-dir>/daily-<date>.md and .json. No network, no writes outside out-dir.
+# Writes <out-dir>/daily-<date>.md and .json. The default date is the Pacific shop day.
+# No network, no writes outside out-dir.
 # Exit: 0 = PASS or WARN, 1 = FAIL, 3 = runner/usage error (no report produced).
 # Usage: run_daily_shop_check.sh [--out-dir DIR] [--date YYYY-MM-DD] [--python BIN] -- <daily_shop_check args>
 set -uo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-out_dir="reports/daily"; day="$(date -u +%F)"; py="${PYTHON:-python3}"
+# UTC is already the next day after 5pm PDT / 4pm PST. Match the other shop scripts.
+out_dir="reports/daily"; day="$(TZ=America/Los_Angeles date +%F)"; py="${PYTHON:-python3}"
 while [ $# -gt 0 ]; do
   case "$1" in
     --out-dir) out_dir="$2"; shift 2 ;;
