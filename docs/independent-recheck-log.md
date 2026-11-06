@@ -1372,3 +1372,56 @@ S06 stays $25. `scripts/autolist.py` and `shared/tiered-pricing.ts` match `origi
 No Blob, KV, Meta, or price write. No deploy. The combined branches were not pushed. Comments `6676937095` on #225, `6676940280` on #294, `6676943450` on #295, `6676946518` on #296, and `6676949768` on #297.
 
 #249 is this log and is not graded.
+
+#249 is this log and is not graded.
+
+## 2026-11-06 05:20 UTC — #298 at 86f74ca PASS
+
+Requested recheck of draft #298. This lane did not build it. #225 at `a1cdabe`, #294 at `208bd81`, #295 at `b142e7f`, #296 at `8d8c577`, and #297 at `dc554c2` were compared and not modified. No merge commit. Nothing was pushed to those branches. No code on #298 was changed.
+
+#298 head is still `86f74cad30467c679a4db04a32912ff8d009e053`. Parent is `origin/main` `04bfc350be2fcf47274ecf3e33f8f4eed1c0813e`. Comment `6677616136` says PASS on this SHA. The comment text is the evidence below.
+
+INDEPENDENT RECHECK PASS at `86f74cad30467c679a4db04a32912ff8d009e053`.
+
+This lane did not build this commit. The head is still `86f74cad30467c679a4db04a32912ff8d009e053` (the expected tip; it has not moved). The parent is `origin/main` `04bfc350be2fcf47274ecf3e33f8f4eed1c0813e`. The pull request is still a draft. The diff is 4 files, +36/−6 (`scripts/held_photo_check.py`, `scripts/held_photo_exposure.py`, `scripts/tests/test_held_photo_check.py`, `scripts/tests/test_held_photo_exposure.py`). It leaves `data/held.json`, the price files, CSS, layout, and copy as they are on `origin/main`.
+
+Code. `MA_RE` is `(?:^|/)products/([A-Za-z]\d{2})/|^([A-Za-z]\d{2})/`, and `ma_of` returns that match upper-cased. `held_photo_exposure.collect` calls `held_photo_check.ma_of`. That is one letter and exactly two digits, any case, reported as the upper-case mã. `/products/s14/cover.jpg` is `S14`. `/products/s06/cover.jpg` is `S06`. `g01/cover.jpg` is `G01`. `ma_of` returns None for `/products/S6/cover.jpg`, `S6/cover.jpg`, `/products/s6/cover.jpg`, `/products/S014/cover.jpg`, `S014/cover.jpg`, and `/products/s014/cover.jpg`.
+
+Tests on `origin/main`. The tip's new assertions were run against the `origin/main` implementations. `scripts/held_photo_check.py` and `scripts/held_photo_exposure.py` matched `origin/main`. The two test files were overlaid for the run and then restored. pytest 9.2.0:
+
+- `test_ma_of_paths` failed: `ma_of("/products/s14/cover.jpg")` is None.
+- `test_collect_keeps_lowercase_product_folder_for_held_ma` failed: collect returned `[]`.
+- `test_lowercase_product_folder_collected_under_held_ma` failed: `https://blob.example.invalid/p/products/x01/photo-3.jpg` was absent from `urls["X01"]`.
+
+3 failed.
+
+Tests on this tip. Those three tests pass. `test_held_photo_check.py`, `test_held_photo_exposure.py`, `test_held_photo_exposure_default.py`, and `test_held_photo_public_watch.py`: 42 passed.
+
+Stored URL, probe filenames, and exit codes. Compared `origin/main` and this tip with mocked HEAD and no network.
+
+- The uppercase catalog URL is `https://blob.example/sassy-closet-shop/products/S14/cover.jpg` with mã `S14` on both.
+- The lowercase catalog path is stored as `https://blob.example/sassy-closet-shop/products/s14/cover.jpg` with mã `S14`. The path spelling stays lowercase.
+- Probe URLs match on both: `products/S14/cover.jpg`, `products/S14/photo-2.jpg`, `products/G01/cover.jpg`, `products/G01/photo-2.jpg`.
+- Exit codes for previously recognized inputs match on both. Uppercase cover 200 exits 1. Uppercase cover 404 exits 0. Bad `held.json` exits 2. `S6` and `S014` paths with status 200 check zero URLs and exit 0.
+- A lowercase public cover that main dropped (checked 0, exit 0) is now checked and exits 1, the existing exposed code. A lowercase cover with status 404 exits 0.
+- Uppercase-only `held_photo_exposure` collect, fetched URLs, and exit 1 match main. Lowercase manifest URLs stay written as `.../products/s14/cover.jpg` and `.../products/x01/photo-3.jpg`, grouped under `S14` and `X01`. The uppercase URLs are still fetched.
+
+S06 stays $25. `S06_LOCK_USD = 25` in `scripts/autolist.py`, `sassy-closet/lib/pricing.ts`, and `shared/tiered-pricing.ts`. Those files match `origin/main`. `shared/live-price-snapshot.json` matches `origin/main` (sha256 `2b28b980ac6c25078102a9abd930bc0e7fa66b51cf87280d4d820cb53e7b1726`), and the S06 row `liveUsd` is 25.
+
+`data/held.json` matches `origin/main`. sha256 `484dbec93976e07ce34a2acc693287b6909187834032241fe6dd95d88a83d9da`, blob `cac6f53006196a978551c61e45f507bb72ab6667`. 21 held mãs, including S14. Held stay held.
+
+Hard recheck. `npm ci --no-audit --no-fund` in both apps (intake added 143 packages, shop added 407), then `scripts/hard_recheck.sh --base origin/main` with `HARD_RECHECK_PYTHON=/tmp/py-recheck/python` (that wrapper execs `/usr/bin/python3`, pytest 9.2.0, openpyxl 3.1.5). The worktree was detached at this SHA, so the summary branch field is blank. Log `/tmp/recheck-298-tip/out/recheck/20261106-051509-2915`. pytest 2116 passed, 7 skipped; privacy CLEAN; intake npm 277 / 274 / 0 / 3; shop npm 218 / 215 / 0 / 3; both tsc ok; `held.json` unchanged vs `origin/main`. Required steps are all PASS. No hard-recheck step is SKIP. The tip line is INFO. Working tree clean. The head was still `86f74ca` after the run. HARD RECHECK: PASS. The seven pytest skips are the six empty `never0` gate cases and `scripts.tests.test_run_daily_shop_check::test_workflow_is_read_only_and_scheduled` (`daily-shop-check.yml` is not in this tree).
+
+Merge. `git merge-tree --write-tree` both orders. No merge commit. Nothing pushed.
+
+- #225 `a1cdabe343cffb51640acf7341bdf70fc8127a96` exits 0 both orders. Tree `3fd1811c159446598f269f6d9fc834db6e0d9c87`.
+- #294 `208bd81d9e16bbfc7c8d9cda900a3099d87be174` exits 0 both orders. Tree `3a8301a24a086f8ae7cd7d265370319d7e553dc2`.
+- #295 `b142e7f1e9e14c26cfcbb768442b8d82d10f014e` exits 0 both orders. Tree `5e31b9ee648bb6ea1b26ff73fcf502c27641ae51`.
+- #296 `8d8c577e7422bf0234c8f0c914f550de380edadd` exits 0 both orders. Tree `607e8ca4fa2e8f027a01a15a959d586e40441de0`.
+- #297 `dc554c2f5f462f1ad0284361f1be09752ea9f016` exits 0 both orders. Tree `47740463f9aa2f4fff2c6e17c0fbc22b7ffdafe9`.
+
+No path overlaps `origin/main` on both sides. Each merged tree keeps this commit's blobs (`held_photo_check.py` `70e77f42296c60afd9fbc5bfba9ffc9e1f7ea69b`, `held_photo_exposure.py` `bf2eca6ac979a5a236980e90fb35a947676b3d20`, `test_held_photo_check.py` `ba5cadd52c12365a6e768a42e276310530aefe3a`, `test_held_photo_exposure.py` `b9be0967db7267637e38eab51daa201aab0e34b9`) and the other side's blob (`daily_summary_draft.py` `cfbc107cdfa6646e50ba003194616fccd1564d99`, `cost_recheck_block.py` `d34b3d445df4c626aa78799dfaf8b571f8122259`, `boss_approval_queue.py` `67390d2d1a00c0beeeb1dc82941206f337d457ce`, `run_daily_shop_check.sh` `c7c7ab7a8efc24ac136fd25d8666a51c5a5724cd`, `run_daily_summary.sh` `db1bc0a3423ef868d2e9f60fa1fef57e1ad1f17c`). Those five SHAs are still the draft heads.
+
+No Blob, KV, Meta, or price write. No deploy. No push to the #298 branch.
+
+#249 is this log and is not graded.
