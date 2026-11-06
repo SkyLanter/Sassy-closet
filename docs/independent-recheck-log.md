@@ -1263,3 +1263,32 @@ Note. `scripts/branch_inventory.sh` stamps its inventory file with `datetime.dat
 
 #249 is this log and is not graded.
 
+## 2026-11-06 02:30 UTC — combined #294 + #225 + #295 + #296 PASS
+
+Requested combined recheck. This lane did not build #294, #225, #295, or #296. Local scratch merges only. Nothing from the combined tree was pushed. No merge to main.
+
+Heads are still #294 `208bd81d9e16bbfc7c8d9cda900a3099d87be174`, #225 `a1cdabe343cffb51640acf7341bdf70fc8127a96`, #295 `b142e7f1e9e14c26cfcbb768442b8d82d10f014e`, and #296 `8d8c577e7422bf0234c8f0c914f550de380edadd`. `origin/main` is `04bfc350be2fcf47274ecf3e33f8f4eed1c0813e`. Each of those four commits already contains `origin/main`.
+
+Both orders merged with no conflict and the same tree `a48799fe899ce23281563112703c705a250893df`. Forward, on unpushed `cursor/scratch-combine-forward-53aa` at `75876e9`: `origin/main`, then #294, then #225, then #295, then #296. Reverse, on unpushed `cursor/scratch-combine-reverse-53aa` at `2ac8aad`: `origin/main`, then #296, then #295, then #225, then #294. Conflict markers: 0. `git diff` of the two merge commits is empty. Auto-merged paths were `scripts/boss_decisions.py`, `scripts/daily_summary_draft.py`, `scripts/taobao_unreachable_streak.py`, `data/privacy-allowlist.json`, and `scripts/midnight_qc.py`. The allowlist is 22 rows and keeps every row from #225 (21) and #295 (19), with no extra row. The reverse merge of #294 changed no file content. Combined `scripts/midnight_qc.py` is blob `e771a40b2861252fa0dff4539e247fb33583aff0`, the same blob as #225. Its `--date` default is `today_pt()`, and that function is the same text as #296. Combined `scripts/run_daily_shop_check.sh` is blob `c7c7ab7a8efc24ac136fd25d8666a51c5a5724cd`, the same blob as #296.
+
+`npm ci --no-audit --no-fund` in both apps on that tree (intake added 143 packages, shop added 407), then `scripts/hard_recheck.sh --base origin/main` with `HARD_RECHECK_PYTHON=/tmp/py-recheck` (pytest 9.2.0, openpyxl 3.1.5). Log `out/recheck/20261106-022347-3082`. pytest 2764 passed, 7 skipped; privacy CLEAN; intake npm 365 / 362 / 0 / 3; shop npm 269 / 266 / 0 / 3; both tsc ok; `held.json` unchanged vs `origin/main` (sha256 `484dbec93976e07ce34a2acc693287b6909187834032241fe6dd95d88a83d9da`, blob `cac6f53006196a978551c61e45f507bb72ab6667`). Required skips: none. No hard-recheck step is SKIP. The tip line is INFO. Working tree clean. HARD RECHECK: PASS. The seven pytest skips are the six empty `never0` gate cases and `scripts.tests.test_run_daily_shop_check::test_workflow_is_read_only_and_scheduled` (`daily-shop-check.yml` is not in this tree).
+
+S06 stays $25. `scripts/autolist.py` and `shared/tiered-pricing.ts` match `origin/main`, and `S06_LOCK_USD` is 25. `sassy-closet/lib/pricing.ts` still has `S06_LOCK_USD = 25`. `shared/live-price-snapshot.json` matches `origin/main`, and the S06 row `liveUsd` is 25. `scripts/cost_recheck_block.py` blob `d34b3d445df4c626aa78799dfaf8b571f8122259` matches #294 and #225. sha256 `f305eeceb38bd349a4781545bc7169fcd5b5bb56264e93f59e6842c1a448947b`. `scripts/boss_approval_queue.py` blob `67390d2d1a00c0beeeb1dc82941206f337d457ce` matches #295.
+
+Pacific day. The machine zone is UTC. At 2026-11-06 02:23:33 UTC the Pacific clock was 2026-11-05 18:23:33 PST. The combined `run_daily_shop_check.sh`, with a local stub checker, wrote `daily-2026-11-05.json` with ambient `TZ` of `UTC`, `America/Los_Angeles`, `America/New_York`, `Pacific/Auckland`, and unset. The `origin/main` runner (`date -u`) wrote `daily-2026-11-06.json`. Explicit `--date 2026-01-02` wrote that file. The combined `midnight_qc.py --fixture` wrote `date` `2026-11-05`, `timezone` `America/Los_Angeles`, `s06Usd` 25. `data/held.json` bytes did not change.
+
+A preload on `clock_gettime`, `time`, `gettimeofday`, and `timespec_get` froze 24 instants. GNU `date` and Python both saw it. Both tools matched the Pacific day on every one, and each midnight summary had `timezone` `America/Los_Angeles` and `s06Usd` 25. Where the UTC day and the Pacific day differ:
+
+- 2026-07-16 00:00:00 UTC (17:00:00 PDT), 00:00:01, and 06:59:59 UTC (23:59:59 PDT): `2026-07-15`. 2026-07-16 07:00:00 UTC (00:00:00 PDT): `2026-07-16`. 2026-07-15 23:59:59 UTC (16:59:59 PDT): `2026-07-15`.
+- 2026-01-16 00:00:00 UTC (16:00:00 PST) and 07:59:59 UTC: `2026-01-15`. 2026-01-16 08:00:00 UTC: `2026-01-16`. 2026-01-15 23:59:59 UTC: `2026-01-15`.
+- 2027-01-01 00:00:00 UTC (16:00:00 PST) and 07:59:59 UTC: `2026-12-31`. 2027-01-01 08:00:00 UTC: `2027-01-01`. 2026-12-31 23:59:59 UTC: `2026-12-31`.
+- Spring 2026-03-08 09:59:59 UTC (01:59:59 PST) and 10:00:00 UTC (03:00:00 PDT): `2026-03-08`. 2026-03-09 00:00:00 UTC (17:00:00 PDT): `2026-03-08`. 2026-03-09 07:00:00 UTC: `2026-03-09`.
+- Fall 2026-11-01 08:30:00 UTC (01:30:00 PDT) and 09:30:00 UTC (01:30:00 PST): `2026-11-01`. 2026-11-02 00:00:00 UTC (16:00:00 PST) and 07:59:59.999999 UTC: `2026-11-01`. 2026-11-02 08:00:00 UTC: `2026-11-02`.
+- 2026-11-01 00:00:00 UTC (17:00:00 PDT): `2026-10-31`. 2026-10-31 00:00:00 UTC: `2026-10-30`.
+
+xtrace at 2026-07-16 00:00:00 UTC, with `TZ=UTC` in the environment, is `TZ=America/Los_Angeles`, then `date +%F`, then `day=2026-07-15`. The checker still saw `TZ=UTC`. The `origin/main` runner at that instant wrote `daily-2026-07-16.json`.
+
+No Blob, KV, Meta, or price write. No deploy. The combined branches were not pushed. Comments `6675240097` on #225, `6675242437` on #294, `6675244857` on #295, and `6675247375` on #296.
+
+#249 is this log and is not graded.
+
