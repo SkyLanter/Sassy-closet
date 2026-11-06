@@ -1224,3 +1224,42 @@ S06 lock stays 25 in `scripts/autolist.py`, `sassy-closet/lib/pricing.ts`, and `
 Note. `midnight_qc` still defaults `--date` to the UTC date, so at 17:00 PDT it is `2026-07-16` while this runner is `2026-07-15`. That default is outside this diff. The bundled test uses a `date` shim on `PATH` rather than a clock. The real `date` binary under the faked clock is what this recheck ran.
 
 #249 is this log and is not graded.
+
+## 2026-11-06 01:58 UTC — #296 at 8d8c577 PASS
+
+Requested recheck of draft #296. This lane did not build it. #225 at `a1cdabe`, #294 at `208bd81`, and #295 at `b142e7f` were compared and not modified. No merge commit. Nothing was pushed to those branches. No code on #296 was changed.
+
+#296 head is still `8d8c577e7422bf0234c8f0c914f550de380edadd`. Parent is `12eccd31481123a5a981bd271e4cd7fb85e57a05`. Comment `6674802201` says PASS on this SHA. The comment text is the evidence below.
+
+INDEPENDENT RECHECK PASS at `8d8c577e7422bf0234c8f0c914f550de380edadd`.
+
+This lane did not build this commit. The head is still `8d8c577`. The parent is `12eccd31481123a5a981bd271e4cd7fb85e57a05`. The pull request is still a draft. The tip is 2 files, +110/−1 (`scripts/midnight_qc.py`, `scripts/tests/test_midnight_qc_shop_day.py`). Against `origin/main` `04bfc350be2fcf47274ecf3e33f8f4eed1c0813e` the branch is 4 files, +143/−3. It does not change `data/held.json`, a price file, CSS, layout, or copy.
+
+`npm ci --no-audit --no-fund` in both apps (intake added 143 packages, shop added 407), then `scripts/hard_recheck.sh --base origin/main` with `HARD_RECHECK_PYTHON=/tmp/py-recheck` (that wrapper execs `/usr/bin/python3` with pytest 9.2.0 and openpyxl 3.1.5 on `PYTHONPATH`). The worktree was detached at this SHA, so the summary branch field is blank. Log `out/recheck/20261106-015233-3347`. pytest 2130 passed, 7 skipped; privacy CLEAN; intake npm 277 / 274 / 0 / 3; shop npm 218 / 215 / 0 / 3; both tsc ok; `held.json` unchanged vs `origin/main` (sha256 `484dbec93976e07ce34a2acc693287b6909187834032241fe6dd95d88a83d9da`, blob `cac6f53006196a978551c61e45f507bb72ab6667`). Required skips: none. No hard-recheck step is SKIP. The tip line is INFO. Working tree clean. The head was still `8d8c577` after the run. HARD RECHECK: PASS. The seven pytest skips are the six `never0` gate cases and `scripts.tests.test_run_daily_shop_check::test_workflow_is_read_only_and_scheduled` (`daily-shop-check.yml` is not in this tree). `scripts/tests/test_midnight_qc_shop_day.py` passed, 15 tests.
+
+Clock. The machine zone is `Etc/UTC`. A preload on `clock_gettime`, `time`, `gettimeofday`, and `timespec_get` froze `FAKE_SEC` / `FAKE_NSEC`. GNU `date` and Python `zoneinfo` both saw it. At `FAKE_SEC=1784160000`, `date -u` was `2026-07-16 00:00:00` and `TZ=America/Los_Angeles date` was `2026-07-15 17:00:00 PDT`. The runner was the real `scripts/midnight_qc.py` with a local `--fixture`, so the run did not use the network. The default path is `out/midnight-qc/<date>/`. The parent script at `12eccd3` was run the same way.
+
+26 instants. The new file matched the Pacific day. The parent file matched the UTC day. `run_daily_shop_check.sh` on this commit, with a local stub checker, matched the Pacific day. Where the days differ:
+
+- 2026-07-15 17:00:00 PDT, 17:00:01, and 23:59:59.999999: new `2026-07-15`, parent `2026-07-16`. 2026-07-16 00:00:00 PDT: both `2026-07-16`. 16:59:59 PDT: both `2026-07-15`.
+- 2026-01-15 16:00:00 PST and 23:59:59.999999: new `2026-01-15`, parent `2026-01-16`. 2026-01-16 00:00:00 PST: both `2026-01-16`. 15:59:59 PST: both `2026-01-15`.
+- 2026-12-15 16:00:00 PST and 23:59:59.999999: new `2026-12-15`, parent `2026-12-16`. 2026-12-16 00:00:00 PST: both `2026-12-16`.
+- 2026-12-31 16:00:00 PST and 23:59:59.999999: new `2026-12-31`, parent `2027-01-01`. 2027-01-01 00:00:00 PST: both `2027-01-01`.
+- Spring 2026-03-08 01:59:59 PST and 03:00:00 PDT: both `2026-03-08`. 17:00:00 and 23:59:59.999999 PDT: new `2026-03-08`, parent `2026-03-09`. 2026-03-09 00:00:00 PDT: both `2026-03-09`.
+- Fall 2026-11-01 01:30:00 PDT and 01:30:00 PST: both `2026-11-01`. 16:00:00 and 23:59:59.999999 PST: new `2026-11-01`, parent `2026-11-02`. 2026-11-02 00:00:00 PST: both `2026-11-02`.
+- 2026-10-31 17:00 PDT: new `2026-10-31`, parent `2026-11-01`.
+
+Each new summary has `timezone` `America/Los_Angeles` and `s06Usd` 25. A 12:00 AM PT run filed that same Pacific day. `data/held.json` bytes did not change.
+
+At each instant the Pacific day also matched `freshness_check.today_pt` and its `--date` default, `daily_summary_draft.today_pt`, its `--date` default, and `apply_defaults`, `boss_decisions` `--date`, `archive_daily_inputs` `--date`, `run_shop_drafts` `--date`, `cost_basis_reconcile` `--date` and the `out/reports/<date>/COST-BASIS.md` it wrote under `/tmp`, the held-price proposal stamp with `--date` omitted, and `held_photo_exposure.today_pt`. In that same process `datetime.date.today()` was the UTC day. Parsers other than the two writers were stopped at `parse_args`.
+
+Explicit `--date` at 17:00 PDT still wins: `2026-01-02`, `--date=2026-01-02`, the UTC day `2026-07-16`, the Pacific day `2026-07-15`, and `--date 2024-02-29` before `--fixture` each wrote that directory and exited 0. `20260716` and an empty `--date` exited 2 and wrote no file. The shop runner `--date 2026-01-02` wrote `daily-2026-01-02.json`. The `origin/main` runner (`date -u`) at 17:00 PDT wrote `daily-2026-07-16.json`. Ambient `TZ` of `UTC`, `America/Los_Angeles`, `America/New_York`, `Pacific/Auckland`, and unset still filed `2026-07-15` for both tools.
+
+Merge. `git merge-tree --write-tree` of `8d8c577` with #225 at `a1cdabe343cffb51640acf7341bdf70fc8127a96` exits 0 both orders. Tree `c772851bc802f33fd452daabce4479f7eba33590`. The only overlapping path is `scripts/midnight_qc.py`. The merged file keeps `today_pt` as the `--date` default and keeps #225's home-price changes. No conflict markers. The same command with #294 at `208bd81d9e16bbfc7c8d9cda900a3099d87be174` exits 0 both orders. Tree `53944f54920cba5217e0c579b51abac8e9b03796`. The same command with #295 at `b142e7f1e9e14c26cfcbb768442b8d82d10f014e` exits 0 both orders. Tree `f62a8be00b87ee2eda45a2cedb15dd5dc8e0aabc`. Those three SHAs are still the draft heads. #294 and #295 do not touch this script. Each merged tree keeps this commit's test blob `5360abec0f33e9768b77f537fffe7020b34b9e3a`. The #294 and #295 trees keep this commit's script blob `51770a78ab21048da1dce09343df3d0cd2a86786`. Each tree keeps the other side's blob (`daily_summary_draft.py` `cfbc107cdfa6646e50ba003194616fccd1564d99`, `cost_recheck_block.py` `d34b3d445df4c626aa78799dfaf8b571f8122259`, `boss_approval_queue.py` `67390d2d1a00c0beeeb1dc82941206f337d457ce`). No merge commit was made. Nothing was pushed to those branches.
+
+S06 lock stays 25 in `scripts/autolist.py`, `sassy-closet/lib/pricing.ts`, and `shared/tiered-pricing.ts`. `shared/live-price-snapshot.json` `liveUsd` for S06 is 25 and the file matches `origin/main`. `data/held.json` matches `origin/main`. No Blob, KV, Meta, or price write. No push to the #296 branch.
+
+Note. `scripts/branch_inventory.sh` stamps its inventory file with `datetime.date.today()`, the machine-local date. On this UTC host that is the UTC day. It is a branch inventory, not a shop-day report. `held_photo_exposure.today_pt` uses `date.today()` only when `ZoneInfo` cannot be imported. The normal path was the Pacific day at every instant. `sassy-closet-shop/docs/ai-clothing-shop/qa/qa_origin_save_drill.sh` uses `date -u` for a cache nonce, not a report day.
+
+#249 is this log and is not graded.
+
