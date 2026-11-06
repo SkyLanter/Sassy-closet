@@ -1,5 +1,7 @@
 import json
+import os
 import shutil
+import stat
 import subprocess
 import sys
 from pathlib import Path
@@ -59,6 +61,33 @@ def test_stale_report_removed_before_run(stubdir, tmp_path):
     (out / "daily-2026-10-20.json").write_text('{"overall": "PASS"}')
     got, _, _ = run(stubdir, tmp_path, "--mode", "CRASH")
     assert got == 3 and not (out / "daily-2026-10-20.json").exists()
+
+
+def test_default_day_is_pacific_not_utc(stubdir, tmp_path):
+    """6:30pm PDT is still the previous Pacific day. date -u would file tomorrow."""
+    shim = tmp_path / "bin"
+    shim.mkdir()
+    date_bin = shim / "date"
+    date_bin.write_text(
+        "#!/bin/sh\n"
+        "for arg in \"$@\"; do\n"
+        "  case \"$arg\" in -u|--utc|--universal) echo 2026-10-23; exit 0 ;; esac\n"
+        "done\n"
+        "if [ \"$TZ\" = \"America/Los_Angeles\" ]; then echo 2026-10-22; exit 0; fi\n"
+        "echo 2026-10-23\n"
+    )
+    date_bin.chmod(date_bin.stat().st_mode | stat.S_IEXEC)
+    out = tmp_path / "out"
+    env = os.environ.copy()
+    env["PATH"] = f"{shim}{os.pathsep}{env.get('PATH', '')}"
+    p = subprocess.run(
+        ["bash", str(stubdir / RUNNER.name), "--out-dir", str(out), "--python", sys.executable, "--", "--mode", "PASS"],
+        capture_output=True, text=True, env=env,
+    )
+    assert p.returncode == 0, p.stderr + p.stdout
+    assert (out / "daily-2026-10-22.json").is_file()
+    assert not (out / "daily-2026-10-23.json").exists()
+    assert "2026-10-22: PASS" in p.stdout
 
 
 def test_bad_date_and_unknown_option_and_out_override(stubdir, tmp_path):
