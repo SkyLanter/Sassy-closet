@@ -8,13 +8,7 @@ py="${PYTHON:-python3}"
 # Piece 110: one shop out folder for every worktree (override with SASSY_OUT or --out-dir).
 export SASSY_OUT="${SASSY_OUT:-/workspace/sassy-closet/out}"
 echo "run_daily_summary: SASSY_OUT=$SASSY_OUT" >&2
-# Piece 92: archive the day's decision inputs first (box only, never overwrites;
-# set NO_ARCHIVE=1 to skip).
-if [ -z "${NO_ARCHIVE:-}" ]; then
-  "$py" "$here/archive_daily_inputs.py" >&2
-fi
-# Piece 93: write the day's BOSS-DECISIONS.md with the same defaults first
-# (refuses to overwrite a file made with different inputs; BOSS_FORCE=1 forces).
+# Same --date for the archive and for boss_decisions. Other args stay on the summary.
 bd_args=()
 prev=""
 for x in "$@"; do
@@ -22,5 +16,16 @@ for x in "$@"; do
   [ "$prev" = "--date" ] && bd_args+=(--date "$x")
   prev="$x"
 done
+# Piece 92: snapshot inputs that already exist (box only, never overwrites;
+# set NO_ARCHIVE=1 to skip). BOSS-DECISIONS.md is written below, so a second
+# pass copies that file. The first snapshot of anything else is kept.
+if [ -z "${NO_ARCHIVE:-}" ]; then
+  "$py" "$here/archive_daily_inputs.py" ${bd_args[@]+"${bd_args[@]}"} >&2
+fi
+# Piece 93: write the day's BOSS-DECISIONS.md with the same defaults first
+# (refuses to overwrite a file made with different inputs; BOSS_FORCE=1 forces).
 "$py" "$here/boss_decisions.py" ${bd_args[@]+"${bd_args[@]}"} ${BOSS_FORCE:+--force} >&2
+if [ -z "${NO_ARCHIVE:-}" ]; then
+  "$py" "$here/archive_daily_inputs.py" ${bd_args[@]+"${bd_args[@]}"} >&2
+fi
 "$py" "$here/daily_summary_draft.py" --defaults "$@"

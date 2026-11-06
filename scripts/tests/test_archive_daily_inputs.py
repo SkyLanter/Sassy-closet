@@ -1,5 +1,7 @@
 """Placeholder tests for piece 92: dated input archive (box only) + first-seen from archive."""
 import io
+import os
+import subprocess
 import sys
 import tarfile
 from pathlib import Path
@@ -85,6 +87,73 @@ def test_privacy_scan_blocks_archive_in_tar_and_patch(tmp_path):
 def test_privacy_scan_ignores_archive_mentions_in_text(tmp_path):
     (tmp_path / "notes.md").write_text("archive lives at out/archive/<date>/\n")
     assert ps.scan_path(str(tmp_path), []) == []
+
+
+def test_second_pass_keeps_the_first_snapshot_and_copies_new_boss_decisions(tmp_path):
+    """The daily runner archives, writes BOSS-DECISIONS.md, then archives again."""
+    order = _root(tmp_path)
+    report = tmp_path / "out/reports" / D / "BOSS-DECISIONS.md"
+    report.unlink()
+    first = dict((n, s) for s, n in ar.archive(tmp_path, D, order))
+    assert first["BOSS-DECISIONS.md"] == "missing"
+    assert first["COST-BASIS.md"] == "copied"
+    report.write_text("- Z99 | Q? | x | ?\n")
+    (tmp_path / "out/reports" / D / "COST-BASIS.md").write_text("newer\n")
+    second = dict((n, s) for s, n in ar.archive(tmp_path, D, order))
+    assert second["BOSS-DECISIONS.md"] == "copied"
+    assert second["COST-BASIS.md"] == "kept"
+    archived = tmp_path / "out/archive" / D
+    assert (archived / "BOSS-DECISIONS.md").read_text() == "- Z99 | Q? | x | ?\n"
+    assert (archived / "COST-BASIS.md").read_text() == "placeholder\n"
+    nxt = [{"ma": "Z99", "q": "Q?", "since": None, "days": None}]
+    bd.apply_archive(nxt, tmp_path, "2000-01-03")
+    assert (nxt[0]["since"], nxt[0]["days"]) == (D, 1)
+
+
+def test_runner_archives_again_after_boss_decisions_on_the_same_date(tmp_path):
+    log = tmp_path / "calls.log"
+    stub = tmp_path / "py"
+    stub.write_text("#!/bin/sh\n" f"printf '%s\\n' \"$*\" >> {str(log)!r}\n" "exit 0\n")
+    stub.chmod(0o755)
+    runner = Path(__file__).resolve().parents[1] / "run_daily_summary.sh"
+    env = {k: v for k, v in os.environ.items() if k != "NO_ARCHIVE"}
+    env["PYTHON"] = str(stub)
+    ran = subprocess.run(
+        ["bash", str(runner), "--date", "2026-10-22"],
+        env=env, capture_output=True, text=True, check=False,
+    )
+    assert ran.returncode == 0, ran.stderr
+    lines = [ln for ln in log.read_text().splitlines() if ln.strip()]
+    names = [Path(ln.split()[0]).name for ln in lines]
+    assert names == [
+        "archive_daily_inputs.py",
+        "boss_decisions.py",
+        "archive_daily_inputs.py",
+        "daily_summary_draft.py",
+    ]
+    assert lines[0].endswith("archive_daily_inputs.py --date 2026-10-22")
+    assert "--date 2026-10-22" in lines[1]
+    assert lines[2].endswith("archive_daily_inputs.py --date 2026-10-22")
+    assert lines[3].endswith("daily_summary_draft.py --defaults --date 2026-10-22")
+
+
+def test_runner_skips_both_archives_when_asked(tmp_path):
+    log = tmp_path / "calls.log"
+    stub = tmp_path / "py"
+    stub.write_text("#!/bin/sh\n" f"printf '%s\\n' \"$*\" >> {str(log)!r}\n" "exit 0\n")
+    stub.chmod(0o755)
+    runner = Path(__file__).resolve().parents[1] / "run_daily_summary.sh"
+    env = dict(os.environ)
+    env["PYTHON"] = str(stub)
+    env["NO_ARCHIVE"] = "1"
+    ran = subprocess.run(
+        ["bash", str(runner), "--date=2000-01-02"],
+        env=env, capture_output=True, text=True, check=False,
+    )
+    assert ran.returncode == 0, ran.stderr
+    names = [Path(ln.split()[0]).name for ln in log.read_text().splitlines() if ln.strip()]
+    assert names == ["boss_decisions.py", "daily_summary_draft.py"]
+    assert "archive_daily_inputs.py" not in log.read_text()
 
 
 def test_same_day_archive_adds_no_history(tmp_path):
