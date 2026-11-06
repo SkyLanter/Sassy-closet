@@ -1186,6 +1186,6 @@ Both orders merged with no conflict and the same tree `b25e7f19fca1d5618591a9f30
 
 S06 stays $25. `scripts/autolist.py` and `shared/tiered-pricing.ts` match `origin/main`, and `S06_LOCK_USD` is 25. `sassy-closet/lib/pricing.ts` still has `S06_LOCK_USD = 25`. `shared/live-price-snapshot.json` matches `origin/main`, and the S06 row `liveUsd` is 25. `scripts/cost_recheck_block.py` blob `d34b3d445df4c626aa78799dfaf8b571f8122259` matches #294 and #225.
 
-No Blob, KV, Meta, or price write. No deploy. The combined branches were not pushed.
+No Blob, KV, Meta, or price write. No deploy. The combined branches were not pushed. Comments `6673214724` on #225, `6673215736` on #294, and `6673216816` on #295.
 
 #249 is this log and is not graded.
