@@ -36,7 +36,7 @@ from held_policy import norm_ma
 DEFAULT_BLOB = "https://efsi0jejsfy7j058.public.blob.vercel-storage.com"
 DEFAULT_PREFIX = "sassy-closet-shop/"
 SCHEMA = "held-photos/v1"
-MA_RE = re.compile(r"(?:^|/)products/([A-Z]\d{2})/|^([A-Z]\d{2})/")
+MA_RE = re.compile(r"(?:^|/)products/([A-Za-z]\d{2})/|^([A-Za-z]\d{2})/")
 
 
 def load_held(path: Path) -> list[str]:
@@ -49,7 +49,8 @@ def load_held(path: Path) -> list[str]:
 
 def ma_of(path: str) -> str | None:
     m = MA_RE.search(path)
-    return (m.group(1) or m.group(2)) if m else None
+    code = (m.group(1) or m.group(2)) if m else None
+    return code.upper() if code else None
 
 
 def paths_from_catalog(d: dict) -> list[str]:

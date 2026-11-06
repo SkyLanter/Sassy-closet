@@ -36,6 +36,23 @@ def test_collect_held_only_and_health_join(tmp_path):
     assert any("pass1-raw.json" in s for s in srcs)
 
 
+def test_lowercase_product_folder_collected_under_held_ma(tmp_path):
+    r = _root(tmp_path)
+    url = f"{B}/p/products/x01/photo-3.jpg"
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text(json.dumps([url]))
+    fetched = []
+
+    def fetch(u):
+        fetched.append(u)
+        return 200 if u == url else 404
+
+    urls, _srcs = hpe.collect(r, DATE, hpe.load_held(r), manifests=[manifest])
+    assert url in urls["X01"]
+    assert hpe.main(["--root", str(r), "--date", DATE, "--manifest", str(manifest)], fetch=fetch) == 1
+    assert url in fetched
+
+
 def test_main_writes_report_with_counts(tmp_path):
     r = _root(tmp_path)
     assert hpe.main(["--root", str(r), "--date", DATE], fetch=_fetch) == 1

@@ -28,6 +28,18 @@ def test_ma_of_paths():
     assert h.ma_of("/products/A25/photo-2.jpg") == "A25"
     assert h.ma_of("A01/cover.jpg") == "A01"
     assert h.ma_of("sassy-closet-shop/catalog.json") is None
+    assert h.ma_of("/products/s14/cover.jpg") == "S14"
+    assert h.ma_of("sassy-closet-shop/products/a25/photo-2.jpg") == "A25"
+    assert h.ma_of("g01/cover.jpg") == "G01"
+    assert h.ma_of("/products/S014/cover.jpg") is None
+    assert h.ma_of("/products/S6/cover.jpg") is None
+
+
+def test_collect_keeps_lowercase_product_folder_for_held_ma():
+    urls = h.collect(["S14"], {"catalog": ["/products/s14/cover.jpg"]}, BASE, "sassy-closet-shop/", False)
+    url = BASE + "/sassy-closet-shop/products/s14/cover.jpg"
+    assert list(urls) == [url]
+    assert urls[url]["ma"] == "S14"
 
 
 def test_to_url_normalises_all_path_styles():

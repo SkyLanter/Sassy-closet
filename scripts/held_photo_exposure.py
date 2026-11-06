@@ -32,10 +32,10 @@ import urllib.request
 from collections import Counter
 from pathlib import Path
 
+import held_photo_check
 from held_policy import norm_ma
 
 ROOT = Path("/workspace/sassy-closet")
-MA_IN = re.compile(r"/products/([A-Z]\d{2})/")
 ROW = re.compile(r"^\| ([A-Z]\d{2}) \| (\d+) \| (\d+) \| ([^|]*) \|$", re.M)
 REPORT = "HELD-PHOTOS.md"
 
@@ -76,9 +76,9 @@ def collect(root, date, held, manifests=()):
     d = qc_dir(root, date)
 
     def put(u):
-        m = MA_IN.search(u)
-        if m and m.group(1) in held:
-            urls.setdefault(m.group(1), set()).add(u)
+        code = held_photo_check.ma_of(u)
+        if code in held:
+            urls.setdefault(code, set()).add(u)
 
     if d is not None:
         raw = json.loads((d / "pass1-raw.json").read_text(encoding="utf-8"))
