@@ -60,3 +60,44 @@ def test_output_never_prints_cost_link_or_title(tmp_path, capsys):
 def test_ok_line(tmp_path, capsys):
     m.main([str(_json(tmp_path, [{"ma": "Z01", "created_at": "2000-01-01"}]))])
     assert capsys.readouterr().out.startswith("OK no reused codes")
+
+
+def test_a100_different_rows_loaded_and_flagged(tmp_path):
+    p = _json(tmp_path, [
+        {"ma": "A100", "created_at": "2000-01-01T00:00:00Z", "title": "coat", "link": LINK1},
+        {"ma": "A100", "created_at": "2000-05-01T00:00:00Z", "title": "bag", "link": LINK2},
+    ])
+    rows = m.load_rows(p)
+    assert rows == [
+        m.Row("A100", "2000-01-01", "coat", "111"),
+        m.Row("A100", "2000-05-01", "bag", "222"),
+    ]
+    assert m.find_reuse(rows) == [{"ma": "A100", "rows": 2, "dates": ["2000-01-01", "2000-05-01"]}]
+
+
+def test_a100_spellings_collapse_to_one_flag(tmp_path):
+    p = _json(tmp_path, [
+        {"ma": "a100", "created_at": "2000-01-02", "title": "coat"},
+        {"ma": "A0100", "created_at": "2000-06-03", "title": "scarf"},
+    ])
+    rows = m.load_rows(p)
+    assert [r.ma for r in rows] == ["A100", "A100"]
+    assert m.find_reuse(rows) == [{"ma": "A100", "rows": 2, "dates": ["2000-01-02", "2000-06-03"]}]
+
+
+def test_identical_a100_rows_not_flagged(tmp_path):
+    r = {"ma": "A100", "created_at": "2000-01-01", "title": "coat", "link": LINK1}
+    rows = m.load_rows(_json(tmp_path, [r, dict(r)]))
+    assert rows == [
+        m.Row("A100", "2000-01-01", "coat", "111"),
+        m.Row("A100", "2000-01-01", "coat", "111"),
+    ]
+    assert m.find_reuse(rows) == []
+
+
+def test_a1000_rows_not_loaded(tmp_path):
+    p = _json(tmp_path, [
+        {"ma": "A1000", "created_at": "2000-01-01", "title": "wide-coat", "link": LINK1},
+        {"ma": "A1000", "created_at": "2000-02-02", "title": "wide-bag", "link": LINK2},
+    ])
+    assert m.load_rows(p) == []

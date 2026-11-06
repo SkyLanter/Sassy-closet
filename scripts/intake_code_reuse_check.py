@@ -19,7 +19,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from held_policy import norm_ma
 
-MA_RE = re.compile(r"^[A-Z]\d{2}$")
+# A100–A999 stay, because norm_ma already folded A0100/a100 to A100, and a two-digit-only pattern dropped them.
+MA_RE = re.compile(r"^[A-Z]\d{2,3}$")
 ITEM_ID_RE = re.compile(r"[?&]id=(\d+)")
 DATE_RE = re.compile(r"(\d{4}-\d{2}-\d{2})")
 TITLE_KEYS = ("title", "name")
@@ -55,7 +56,7 @@ def _first(d: dict, keys) -> str:
 def row_from_dict(d: dict, default_date: str = "") -> Row | None:
     norm = {str(k).strip().lower().replace("ã", "a"): v for k, v in d.items()}
     ma = norm_ma(str(norm.get("ma") or norm.get("code") or ""))
-    if not MA_RE.match(ma):
+    if not MA_RE.fullmatch(ma):
         return None
     return Row(ma, _date(_first(norm, DATE_KEYS)) or default_date,
                _first(norm, TITLE_KEYS).lower(), (str(norm.get("item_id") or "").strip() or _item_id(_first(norm, LINK_KEYS))))
