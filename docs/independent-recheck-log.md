@@ -1173,3 +1173,19 @@ Merge. `git merge-tree --write-tree` of `a1cdabe` with #294 at `208bd81d9e16bbfc
 Notes, not a fail. A whole cost value of `true` passed straight to `build` still raises `AttributeError`. `main` does not call `build` for that file. String slots `"0"`, `"false"`, `"{}"`, `"[]"`, and a NUL still count as a photo. Other format characters, including U+00AD, U+180E, U+200C, U+200D, and U+2060, still count. U+200B and U+FEFF do not. No Blob, KV, Meta, or price write. No push to the #225 branch.
 
 #249 is this log and is not graded.
+
+## 2026-11-06 00:26 UTC — combined #294 + #225 + #295 PASS
+
+Requested combined recheck. This lane did not build #294, #225, or #295. Local scratch merges only. Nothing from the combined tree was pushed. No merge to main.
+
+Heads are still #294 `208bd81d9e16bbfc7c8d9cda900a3099d87be174`, #225 `a1cdabe343cffb51640acf7341bdf70fc8127a96`, and #295 `b142e7f1e9e14c26cfcbb768442b8d82d10f014e`. `origin/main` is `04bfc350be2fcf47274ecf3e33f8f4eed1c0813e`. Each of those three commits already contains `origin/main`.
+
+Both orders merged with no conflict and the same tree `b25e7f19fca1d5618591a9f300ad564f6e464a72`. Forward, on unpushed `cursor/scratch-combine-forward-8160` at `a0a12ef`: `origin/main`, then #294, then #225, then #295. Reverse, on unpushed `cursor/scratch-combine-reverse-8160` at `a066512`: `origin/main`, then #295, then #225, then #294. Conflict markers: 0. Auto-merged paths were `scripts/boss_decisions.py`, `scripts/daily_summary_draft.py`, `scripts/taobao_unreachable_streak.py`, and `data/privacy-allowlist.json`. The allowlist is 22 rows and keeps every row from #225 (21) and #295 (19). #294's `scripts/cost_recheck_block.py` was already in the #225 tree, so the reverse merge of #294 did not change the tree.
+
+`npm ci --no-audit --no-fund` in both apps on that tree (intake added 143 packages, shop added 407), then `scripts/hard_recheck.sh --base origin/main` with `HARD_RECHECK_PYTHON=/tmp/py-recheck` (pytest 9.2.0, openpyxl 3.1.5). Log `out/recheck/20261106-002052-3015`. pytest 2748 passed, 7 skipped; privacy CLEAN; intake npm 365 / 362 / 0 / 3; shop npm 269 / 266 / 0 / 3; both tsc ok; `held.json` unchanged vs `origin/main` (sha256 `484dbec93976e07ce34a2acc693287b6909187834032241fe6dd95d88a83d9da`, blob `cac6f53006196a978551c61e45f507bb72ab6667`). Required skips: none. No hard-recheck step is SKIP. The tip line is INFO. Working tree clean. HARD RECHECK: PASS. The seven pytest skips are the six empty `never0` gate cases and `scripts.tests.test_run_daily_shop_check::test_workflow_is_read_only_and_scheduled`.
+
+S06 stays $25. `scripts/autolist.py` and `shared/tiered-pricing.ts` match `origin/main`, and `S06_LOCK_USD` is 25. `sassy-closet/lib/pricing.ts` still has `S06_LOCK_USD = 25`. `shared/live-price-snapshot.json` matches `origin/main`, and the S06 row `liveUsd` is 25. `scripts/cost_recheck_block.py` blob `d34b3d445df4c626aa78799dfaf8b571f8122259` matches #294 and #225.
+
+No Blob, KV, Meta, or price write. No deploy. The combined branches were not pushed.
+
+#249 is this log and is not graded.
