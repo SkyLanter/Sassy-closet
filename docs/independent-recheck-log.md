@@ -1584,3 +1584,78 @@ The seven pytest skips are `scripts.tests.test_gate_verdict_parity::test_skip_ga
 Comments `6679653416` on #225, `6679659480` on #294, `6679665802` on #295, `6679672738` on #296, `6679680758` on #297, `6679688830` on #298, and `6679695639` on #299.
 
 #249 is this log and is not graded.
+
+## 2026-11-06 10:03 UTC — #300 at b234e97 PASS
+
+Requested recheck of draft #300. This lane did not build it. No code on #300 was changed. Nothing was pushed to `cursor/card-color-photo-1ad6`. No merge commit. No deploy. No Blob, KV, Meta, or price write.
+
+#300 head is still `b234e977fcf30e5611d1e3a9bef7f56495fa5b69`. Parent is `9a4d0242fd05289455bbec6157a932f4b1a2ea90`. Merge-base with `origin/main` is `04bfc350be2fcf47274ecf3e33f8f4eed1c0813e`. The pull request is still a draft. Comment `6682280384` says PASS on this SHA. The comment text is the evidence below.
+
+INDEPENDENT RECHECK PASS at `b234e977fcf30e5611d1e3a9bef7f56495fa5b69`.
+
+This lane did not build this commit. The head is still `b234e977fcf30e5611d1e3a9bef7f56495fa5b69`. The parent is `9a4d0242fd05289455bbec6157a932f4b1a2ea90`. Merge-base with `origin/main` is `04bfc350be2fcf47274ecf3e33f8f4eed1c0813e`. The pull request is still a draft. The tip is 2 commits, 3 files, +147/−14 (`sassy-closet-shop/components/product-card.tsx`, `sassy-closet-shop/lib/gallery-reel.ts`, `sassy-closet-shop/tests/reel-slide-for-color.test.ts`). No code on this branch was changed. Nothing was pushed to `cursor/card-color-photo-1ad6`. No merge commit. No deploy. No Blob, KV, Meta, or price write.
+
+Claim. On `origin/main`, a look-card chip with no tagged photo and no shared photo uses `clampedReelIndexForColor`, which rolls a missing index to slide 0 and paints that slide. On the shop seed the only such chips are P02 Stitch (`cp0202`), P03 Nick (`cp0301`), P03 Lotso (`cp0302`), P05 Hello Kitty (`cp0501`), and P05 Cinnamoroll (`cp0503`). The product page already veils that case. This tip returns null from `reelSlideForColor` and leaves the card well empty. The unselected card still opens on slide 0.
+
+Reproduction. Detached worktrees at `origin/main` `04bfc350be2fcf47274ecf3e33f8f4eed1c0813e` and this tip. Same `sassy-closet-shop/data/products.json` (sha256 `cd147690417594b3e0c13f31146778cf90064a54b840ce4ee9cb7abc427c7b90`). The script called `productGalleryReel`, `firstReelIndexForColor`, and `clampedReelIndexForColor` from each tree, and `reelSlideForColor` on the tip. It followed the card source in that tree. Both runs exited 0.
+
+`origin/main` paints another finish (slide 0, `data-color-photo` shown):
+
+- P02 Stitch shows Judy `/products/P02/photo-2.jpg` (`cp0200`). Judy and Nick still show their own photos.
+- P03 Nick and Lotso show Judy `/products/P03/photo-3.jpg` (`cp0300`). Judy, Stitch, and Shin-chan still show their own photos.
+- P05 Hello Kitty and Cinnamoroll show Peanuts `/products/P05/photo-2.jpg` (`cp0500`). Peanuts, My Melody, and Kuromi still show their own photos.
+
+This tip leaves the well empty for those five (`reason` no-color-photo, `data-slide-index` none, `data-color-photo` missing, `src` null). The screen-reader line is `emptyGalleryAnnouncement`: `Stitch. Không có ảnh màu này trên mã này · No photos for this color on this mã.` Nick, Lotso, Hello Kitty, and Cinnamoroll use the same sentence with their own names. `ProductImage` with the card's empty props (`src` undefined, `coverFallback` false) renders the existing placeholder (`data-fallback-letter`) and no `<img>` and no `/products/` URL. The same component with Judy's `/products/P02/photo-2.jpg` renders that photo.
+
+Unselected cards stay on the same slide 0 on both trees: P02 Judy `/products/P02/photo-2.jpg`, P03 Judy `/products/P03/photo-3.jpg`, P05 Peanuts `/products/P05/photo-2.jpg`.
+
+A chip with no tagged photo and a shared photo still shows the shared slide on both trees. 36 seed colors, 0 mismatches. P01 Pink (`cp0100`) shows `/products/P01/cover.jpg` (`colorId` null). `tests/reel-slide-for-color.test.ts` on this tip: 4 passed, 0 failed.
+
+The product page is unchanged. `sassy-closet-shop/components/product-gallery.tsx` sha256 `5989850f422df3be276e8dbd6cb69af45f14eb3e6ff871f3117a1492d1eb3a26` matches `origin/main`. It still uses `clampedReelIndexForColor` and `gallery-color-empty`. `imagesForColor` returns no shots for these five, so `colorHasShots` is false and the veil stays. Intake files are outside this diff.
+
+S06 stays $25. The diff against `origin/main` is those 3 shop files. `S06_LOCK_USD = 25` in `scripts/autolist.py`, `sassy-closet/lib/pricing.ts`, and `shared/tiered-pricing.ts`. `S06_LOCKED_PRICE_USD = 25` in `sassy-closet/lib/intake-sell-backfill.ts`. `S06_AVAILABLE_USD = 25` in `sassy-closet/lib/shop-catalog.ts`. `shared/live-price-snapshot.json` matches `origin/main` (sha256 `2b28b980ac6c25078102a9abd930bc0e7fa66b51cf87280d4d820cb53e7b1726`, blob `d685b1da04b3d0f4614db3e4be17355ca7dbe187`). The S06 row `liveUsd` is 25 and `wouldBeUsd` is 25.
+
+`data/held.json` matches `origin/main`. sha256 `484dbec93976e07ce34a2acc693287b6909187834032241fe6dd95d88a83d9da`, blob `cac6f53006196a978551c61e45f507bb72ab6667`. 21 held mãs (S14, A24, A25, S15, A26, K02, K03, K04, K05, V04, K06, V05, S16, S17, S18, S19, A27, A28, A29, H02, G01). `neverList` is empty. Held stay held.
+
+Hard recheck. `npm ci --no-audit --no-fund` in both apps (intake added 143 packages, shop added 407), then `scripts/hard_recheck.sh --base origin/main` with `HARD_RECHECK_PYTHON=/usr/bin/python3` (pytest 9.2.0, openpyxl 3.1.5). The worktree was detached at this SHA, so the summary branch field is blank. Log `/tmp/recheck-300-tip/out/recheck/20261106-095640-2835`. pytest 2114 passed, 7 skipped; privacy CLEAN; intake npm 277 / 274 / 0 / 3; shop npm 222 / 219 / 0 / 3; both tsc ok; `held.json` unchanged vs `origin/main`. Required skips: none. No hard-recheck step is SKIP. The tip line is INFO. Working tree clean. The head was still `b234e977` after the run. HARD RECHECK: PASS. Exit 0.
+
+```
++------------------------------------------------------------------------------
+| hard recheck   @ b234e97  base origin/main
+| git                                            PASS  rc=0      0s  branch  @ b234e97; conflict markers 0
+| pytest                                         PASS  rc=0    177s  2114 passed, 7 skipped in 176.44s (0:02:56)
+| guard:test_safety_gate_coverage.py             PASS  rc=0      0s  in pytest run
+| guard:test_no_digit_literal_stdout_asserts.py  PASS  rc=0      0s  in pytest run
+| guard:test_held_never_list_parity.py           PASS  rc=0      0s  in pytest run
+| guard:test_ma_normalization_parity.py          PASS  rc=0      0s  in pytest run
+| privacy                                        PASS  rc=0      0s  privacy_scan: CLEAN
+| intake-npm-test                                PASS  rc=0     12s  tests 277 pass 274 fail 0 skipped 3
+| intake-tsc                                     PASS  rc=0      2s  ok
+| shop-npm-test                                  PASS  rc=0      9s  tests 222 pass 219 fail 0 skipped 3
+| shop-tsc                                       PASS  rc=0      3s  ok
+| diff-stat                                      PASS  rc=0      0s  3 files changed, 147 insertions(+), 14 deletions(-)
+| working-tree                                   PASS  rc=0      0s  clean: yes
+| held-json                                      PASS  rc=0      0s  held.json unchanged: yes
+| tip-status                                     INFO  rc=0      0s  Recommended tip: none found with PASS proof  [read-only]
+| total 203s   logs: out/recheck/20261106-095640-2835
++------------------------------------------------------------------------------
+HARD RECHECK: PASS
+```
+
+The seven pytest skips are `scripts.tests.test_gate_verdict_parity::test_skip_gate` and `test_s06_gate` for never0-canonical, never0-padded, and never0-short-lower (`held.json` list has no entry at this index) and `scripts.tests.test_run_daily_shop_check::test_workflow_is_read_only_and_scheduled` (`daily-shop-check.yml left out of the safe-frame merge`). The three intake skips are `publishBlock` never0-canonical, never0-padded, and never0-short-lower. The three shop skips are `shop gates` never0-canonical, never0-padded, and never0-short-lower. Same reason: `held.json` list has no entry at this index.
+
+Merge. `git merge-tree --write-tree` both orders. No merge commit. Nothing pushed. Each merged tree keeps this tip's blobs (`gallery-reel.ts` `6a7236d2fefd3e3906547f21f7a6837361229bf2`, `product-card.tsx` `8a271ab00f5633e1bf836a5240e94f5ea3179ec2`, `reel-slide-for-color.test.ts` `d827b91545f349af2951ec21b0bb83a41c6c2762`).
+
+- #225 `a1cdabe343cffb51640acf7341bdf70fc8127a96` exits 0 both orders. Tree `410593cae0e606ebbb17f6f69e4db67292ccf919`.
+- #294 `208bd81d9e16bbfc7c8d9cda900a3099d87be174` exits 0 both orders. Tree `1e8b48cef859079e22cd1a94d8d99c0bd3beb0b8`.
+- #295 `b142e7f1e9e14c26cfcbb768442b8d82d10f014e` exits 0 both orders. Tree `1208a20f96c62a472552275bbf5c6e13c1a9f2cb`.
+- #296 `8d8c577e7422bf0234c8f0c914f550de380edadd` exits 0 both orders. Tree `a94bacbd0be63f6573d956e9348019bf490da9fc`.
+- #297 `dc554c2f5f462f1ad0284361f1be09752ea9f016` exits 0 both orders. Tree `f7c1113ee1a5a649c15557677a94c855633878b1`.
+- #298 `86f74cad30467c679a4db04a32912ff8d009e053` exits 0 both orders. Tree `4ede97a756416af7fd5b2dd413405fe5f71e385e`.
+- #299 `343aadf803dff57942a5f18bd4ec56090fc6e3fe` exits 0 both orders. Tree `0efd7551e017942d768ef6a904c1598ca37cb9e8`.
+
+Those seven SHAs are still the draft heads that were fetched. No Blob, KV, Meta, or price write. No deploy. No push to the #300 branch.
+
+Comment `6682280384` on #300.
+
+#249 is this log and is not graded.
