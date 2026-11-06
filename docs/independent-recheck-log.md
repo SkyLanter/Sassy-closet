@@ -1459,3 +1459,55 @@ The seven pytest skips are the six empty `never0` gate cases and `scripts.tests.
 Comments `6677803080` on #225, `6677806209` on #294, `6677809504` on #295, `6677812778` on #296, `6677816175` on #297, and `6677819408` on #298.
 
 #249 is this log and is not graded.
+
+## 2026-11-06 06:56 UTC — #299 at 343aadf PASS
+
+Requested recheck of draft #299. This lane did not build it. No code on #299 was changed. Nothing was pushed to `cursor/intake-reuse-a100-ff63`. No merge commit. No deploy. No Blob, KV, Meta, or price write.
+
+#299 head is still `343aadf803dff57942a5f18bd4ec56090fc6e3fe`. Parent is `origin/main` `04bfc350be2fcf47274ecf3e33f8f4eed1c0813e`. The pull request is still a draft. Comment `6679135044` says PASS on this SHA. The comment text is the evidence below.
+
+INDEPENDENT RECHECK PASS at `343aadf803dff57942a5f18bd4ec56090fc6e3fe`.
+
+This lane did not build this commit. The head is still `343aadf`. The parent is `origin/main` `04bfc350be2fcf47274ecf3e33f8f4eed1c0813e`. The pull request is still a draft. The tip is 2 files, +44/−2 (`scripts/intake_code_reuse_check.py`, `scripts/tests/test_intake_code_reuse_check.py`). It does not change `data/held.json`, a price file, CSS, layout, or copy. No code on this branch was changed. Nothing was pushed to `cursor/intake-reuse-a100-ff63`. No merge commit. No deploy. No Blob, KV, Meta, or price write.
+
+Claim. On `origin/main`, `MA_RE` is `^[A-Z]\d{2}$`. `norm_ma` already folds `A100`, `a100`, and `A0100` to `A100`, and `next_code("A", ["A99"], [])` is `A100`. Those rows never loaded, so two different items on A100 printed `OK no reused codes (0 rows)`. This tip uses `^[A-Z]\d{2,3}$` with `fullmatch` after `norm_ma`.
+
+Tests. The tip test file was overlaid on a detached `origin/main` worktree and then restored. That overlay was not committed. pytest 9.2.0:
+
+- On `origin/main`: 3 failed, 7 passed. `test_a100_different_rows_loaded_and_flagged`, `test_a100_spellings_collapse_to_one_flag`, and `test_identical_a100_rows_not_flagged` failed because `load_rows` returned `[]`. `test_a1000_rows_not_loaded` passed.
+- On this tip: 10 passed.
+
+CLI, same fixtures, no network.
+
+- Main, two different A100 rows: `OK no reused codes (0 rows)`. JSON `{"rows_read": 0, "reused": []}`.
+- Tip, two different A100 rows: `REUSED A100 rows=2 dates=2000-01-01,2000-05-01`. JSON `{"rows_read": 2, "reused": [{"ma": "A100", "rows": 2, "dates": ["2000-01-01", "2000-05-01"]}]}`.
+- Tip, `a100` and `A0100`: `REUSED A100 rows=2 dates=2000-01-02,2000-06-03`.
+- Tip, identical A100 rows: `OK no reused codes (2 rows)`. JSON `reused` is `[]`.
+- Tip, two different A1000 rows: `OK no reused codes (0 rows)`.
+- Loaded on the tip: `A01`, `A99`, `A100`, `A999`, `a100` to `A100`, `A0100` to `A100`, and `A0001` to `A01`. Not loaded: `A1000`. On main, `A100`, `A999`, `a100`, and `A0100` were not loaded. `A1000` was not loaded on either.
+- Printed text and JSON did not contain the title, the link, the item id, or the cost.
+
+`norm_ma("A100")`, `norm_ma("a100")`, and `norm_ma("A0100")` are `A100`. `norm_ma("A1000")` is `A1000`. `next_code("A", ["A99"], [])` is `A100`.
+
+S06 stays $25. `S06_LOCK_USD = 25` in `scripts/autolist.py`, `sassy-closet/lib/pricing.ts`, and `shared/tiered-pricing.ts`. `S06_LOCKED_PRICE_USD = 25` in `sassy-closet/lib/intake-sell-backfill.ts`. Those files match `origin/main`. `shared/live-price-snapshot.json` matches `origin/main` (sha256 `2b28b980ac6c25078102a9abd930bc0e7fa66b51cf87280d4d820cb53e7b1726`), and the S06 row `liveUsd` is 25.
+
+`data/held.json` matches `origin/main`. sha256 `484dbec93976e07ce34a2acc693287b6909187834032241fe6dd95d88a83d9da`, blob `cac6f53006196a978551c61e45f507bb72ab6667`. 21 held mãs (S14, A24, A25, S15, A26, K02, K03, K04, K05, V04, K06, V05, S16, S17, S18, S19, A27, A28, A29, H02, G01). `neverList` is empty. Held stay held.
+
+Hard recheck. `npm ci --no-audit --no-fund` in both apps (intake added 143 packages, shop added 407), then `scripts/hard_recheck.sh --base origin/main` with `HARD_RECHECK_PYTHON=/tmp/py-recheck/bin/python` (venv, pytest 9.2.0, openpyxl 3.1.5). The worktree was detached at this SHA, so the summary branch field is blank. Log `/tmp/recheck-299/out/recheck/20261106-064756-3647`. pytest 2118 passed, 7 skipped; privacy CLEAN; intake npm 277 / 274 / 0 / 3; shop npm 218 / 215 / 0 / 3; both tsc ok; `held.json` unchanged vs `origin/main`. Required skips: none. No hard-recheck step is SKIP. The tip line is INFO. Working tree clean. The head was still `343aadf` after the run. HARD RECHECK: PASS.
+
+The seven pytest skips are the six empty `never0` gate cases (`test_skip_gate` and `test_s06_gate` for never0-canonical, never0-padded, and never0-short-lower: `held.json` list has no entry at this index) and `scripts.tests.test_run_daily_shop_check::test_workflow_is_read_only_and_scheduled` (`daily-shop-check.yml` left out of the safe-frame merge). The three intake skips are `publishBlock` never0-canonical, never0-padded, and never0-short-lower. The three shop skips are `shop gates` never0-canonical, never0-padded, and never0-short-lower. Same reason: `held.json` list has no entry at this index.
+
+Merge. `git merge-tree --write-tree` both orders. No merge commit. Nothing pushed. No path overlaps `origin/main` on both sides. Each merged tree keeps this commit's blobs (`intake_code_reuse_check.py` `129be1053ba48b8b6fa943f29480ec0cace9cd1d`, `test_intake_code_reuse_check.py` `c414e9eab7cb4c168360447f9facaf2e977731d6`).
+
+- #225 `a1cdabe343cffb51640acf7341bdf70fc8127a96` exits 0 both orders. Tree `e1ed65a8e0cb71afea6cc4a23e01cc3816dde8b7`.
+- #294 `208bd81d9e16bbfc7c8d9cda900a3099d87be174` exits 0 both orders. Tree `a33512c386e133b8f34d56b14ba5e96045c309a8`.
+- #295 `b142e7f1e9e14c26cfcbb768442b8d82d10f014e` exits 0 both orders. Tree `5a497ae4d405ff4cf4f5ec4ec2ebd28c49f00d2c`.
+- #296 `8d8c577e7422bf0234c8f0c914f550de380edadd` exits 0 both orders. Tree `79c2d243fe21645a0b2719438d59ec91a6f5b4fa`.
+- #297 `dc554c2f5f462f1ad0284361f1be09752ea9f016` exits 0 both orders. Tree `efb6b6571eaf67ffe2b6814cf1c83097db4b801f`.
+- #298 `86f74cad30467c679a4db04a32912ff8d009e053` exits 0 both orders. Tree `f9007ff00063947fdc3989659eb9f8786950ca00`.
+
+Those six SHAs are still the draft heads that were fetched. No Blob, KV, Meta, or price write. No deploy. No push to the #299 branch.
+
+Comment `6679135044` on #299.
+
+#249 is this log and is not graded.
