@@ -1292,3 +1292,64 @@ No Blob, KV, Meta, or price write. No deploy. The combined branches were not pus
 
 #249 is this log and is not graded.
 
+## 2026-11-06 03:59 UTC — #297 at dc554c2 PASS
+
+Requested recheck of draft #297. This lane did not build it. #225 at `a1cdabe`, #294 at `208bd81`, #295 at `b142e7f`, and #296 at `8d8c577` were compared and not modified. No merge commit. Nothing was pushed to those branches. No code on #297 was changed.
+
+#297 head is still `dc554c2f5f462f1ad0284361f1be09752ea9f016`. Parent is `origin/main` `04bfc350be2fcf47274ecf3e33f8f4eed1c0813e`. Comment `6676488296` says PASS on this SHA. The comment text is the evidence below.
+
+INDEPENDENT RECHECK PASS at `dc554c2f5f462f1ad0284361f1be09752ea9f016`.
+
+This lane did not build this commit. The head is still `dc554c2`. The parent is `origin/main` `04bfc350be2fcf47274ecf3e33f8f4eed1c0813e`. The pull request is still a draft. The tip is 2 files, +81/−7 (`scripts/run_daily_summary.sh`, `scripts/tests/test_archive_daily_inputs.py`). It does not change `data/held.json`, a price file, CSS, layout, or copy.
+
+`npm ci --no-audit --no-fund` in both apps (intake added 143 packages, shop added 407), then `scripts/hard_recheck.sh --base origin/main` with `HARD_RECHECK_PYTHON=/tmp/py-recheck` (that wrapper execs `/usr/bin/python3` with pytest 9.2.0 and openpyxl 3.1.5 on `PYTHONPATH`). The worktree was detached at this SHA, so the summary branch field is blank. Log `out/recheck/20261106-035148-3212`. pytest 2117 passed, 7 skipped; privacy CLEAN; intake npm 277 / 274 / 0 / 3; shop npm 218 / 215 / 0 / 3; both tsc ok; `held.json` unchanged vs `origin/main` (sha256 `484dbec93976e07ce34a2acc693287b6909187834032241fe6dd95d88a83d9da`, blob `cac6f53006196a978551c61e45f507bb72ab6667`). Required skips: none. No hard-recheck step is SKIP. The tip line is INFO. Working tree clean. The head was still `dc554c2` after the run. HARD RECHECK: PASS. The seven pytest skips are the six empty `never0` gate cases and `scripts.tests.test_run_daily_shop_check::test_workflow_is_read_only_and_scheduled` (`daily-shop-check.yml` is not in this tree).
+
+Claim. The parent runner at `04bfc35` archives once, before `boss_decisions.py`, and that archive call receives no `--date`. The new runner archives, writes the decisions, then archives again, and both archive calls get the same `--date` as boss. The second pass copies `BOSS-DECISIONS.md` when the archive does not already have it, and leaves the first snapshot of every other file in place.
+
+Runs used the real `bash` runners and the real Python scripts. A wrapper logged the shell argv, then added `--root` under `/tmp/verify-297/cases` so nothing was written to `/workspace/sassy-closet`. `SASSY_OUT` was that case directory. At 2026-11-06 03:50:42 UTC the Pacific clock was 2026-11-05 19:50:42 PST, and `today_pt()` was `2026-11-05`. Each sandbox had `out/reports/<date>/COST-BASIS.md`, `out/midnight-qc/<date>/summary.md`, and `out/meta-popular/cycle-<date>/SUMMARY.txt` containing `PR #297 still open`. The boss file also listed the repo's held-in-order rows and the missing Meta line. Those repo files were read only. `find /workspace/sassy-closet -newer` the stamp was empty. Every runner exit code was 0.
+
+Parent, `--date 2000-01-02`, once. Shell order: `archive_daily_inputs.py` with no date, `boss_decisions.py --date 2000-01-02`, `daily_summary_draft.py --defaults --date 2000-01-02`. The archive lines are `out/archive/2026-11-05/...`, and `BOSS-DECISIONS.md` there is `missing`. `out/archive/2000-01-02/BOSS-DECISIONS.md` was not created. A preseeded `out/archive/2000-01-02/COST-BASIS.md` stayed `OLD-ARCHIVED`. The report for `2000-01-02` was written and contains the PR #297 line with `?`. Next day `2000-01-03`:
+
+```
+- PR #297 | Boss-gated PR still open. Merge or close? | out/meta-popular/cycle-2000-01-03/SUMMARY.txt | ? | first raised 2000-01-02 (1d open)
+```
+
+The `since` field is empty. `first raised` comes from the report file.
+
+Parent, `--date 2000-01-02`, twice. The second run still calls `archive_daily_inputs.py` with no date. Its archive lines are `out/archive/2026-11-05/...`, and that day's `BOSS-DECISIONS.md` is `missing`. Between runs the summary was changed to `PR #111 still open` and the cost source to `SOURCE-V2`. `out/archive/2000-01-02/BOSS-DECISIONS.md` is still absent. The report now has PR #111. Next day both lines have an empty `since`: PR #297 is `? | new today`, and PR #111 is `? | first raised 2000-01-02 (1d open)`.
+
+Parent, no `--date`, once, on `2026-11-05`. One archive call, before the write. The pass-1 snapshot has `COST-BASIS.md` = `OLD-ARCHIVED` and no `BOSS-DECISIONS.md`. The final archive still has no boss file. Next day `2026-11-06` the PR #297 line is `? | first raised 2026-11-05 (1d open)`.
+
+Parent, no `--date`, twice, on `2026-11-05`. The second run's only archive copies the boss file the first run wrote (`copied out/archive/2026-11-05/BOSS-DECISIONS.md`) and keeps `OLD-ARCHIVED` (`kept`). The report is then rewritten to PR #111, which is not in the archive. Next day PR #297 is `1d (since 2026-11-05)`. PR #111 is `? | first raised 2026-11-05 (1d open)`.
+
+New runner, `--date 2000-01-02`, once. Shell order:
+
+```
+archive_daily_inputs.py --date 2000-01-02
+boss_decisions.py --date 2000-01-02
+archive_daily_inputs.py --date 2000-01-02
+daily_summary_draft.py --defaults --date 2000-01-02
+```
+
+Pass 1: `kept` `COST-BASIS.md` (`OLD-ARCHIVED`), `missing` `BOSS-DECISIONS.md`. The cost source was then changed to `SOURCE-V2` before the second pass. Pass 2: `kept` `COST-BASIS.md` (`OLD-ARCHIVED`), `copied` `BOSS-DECISIONS.md` containing PR #297. Next day:
+
+```
+- PR #297 | Boss-gated PR still open. Merge or close? | out/meta-popular/cycle-2000-01-03/SUMMARY.txt | 1d (since 2000-01-02) | first raised 2000-01-02 (1d open)
+```
+
+`--date=2000-01-02` reaches both archive calls and boss as that single argument. The archive directory list is only `2000-01-02`, and the boss file is stored. `--stdout --date 2000-01-02` forwards `--date 2000-01-02` to both archives and to boss. `--stdout` is only on `daily_summary_draft.py`. The boss file is stored.
+
+New runner, no `--date`, once, on `2026-11-05`. Both archive calls have no date argument. Pass 1 keeps `OLD-ARCHIVED` and has no boss file. Pass 2 copies the boss file and the cost file is still `OLD-ARCHIVED`. Next day the PR #297 line is `1d (since 2026-11-05)`.
+
+New runner, `--date 2000-01-02`, twice. Run 1 stores `COST-BASIS.md` = `SOURCE-V1` and the PR #297 boss file. Run 2 changes the summary to PR #111 and the cost source to `SOURCE-V2`. Run 2 pass 1 keeps `SOURCE-V1` and PR #297. The final archive still has PR #297 and does not have PR #111. The report has PR #111. Next day PR #297 is `1d (since 2000-01-02)`. PR #111 is `? | first raised 2000-01-02 (1d open)`.
+
+Existing archive file. `out/archive/2000-01-02/BOSS-DECISIONS.md` was preseeded with `PRESEEDED BOSS\n` and the cost file with `OLD-ARCHIVED`. Pass 1 still has those bytes. The boss status on that pass is `missing` because the report does not exist yet, and the copy is skipped. Pass 2 is `kept` for both files. The boss bytes are unchanged. sha256 `f7f69042ddcebf4f554daacf63ada35e4e757719353ecc7088ef6a3efb6a8e18`. On the fresh-day run above, the preseeded cost file is `kept` on the first pass while the source was `SOURCE-V1`.
+
+`NO_ARCHIVE=1` calls only `boss_decisions.py --date 2000-01-02` and `daily_summary_draft.py`. No archive directory is created. `BOSS_FORCE=1` adds `--force` only on the boss line. Both archive calls stay `--date 2000-01-02` with no `--force`. The preseeded cost file stays `OLD-ARCHIVED`, and the new boss file is copied.
+
+Merge. `git merge-tree --write-tree` of `dc554c2` with #225 at `a1cdabe343cffb51640acf7341bdf70fc8127a96` exits 0 both orders. Tree `e4ed5d181d418801fa6188a0490478366661dffe`. The same command with #294 at `208bd81d9e16bbfc7c8d9cda900a3099d87be174` exits 0 both orders. Tree `5359e23931a872a5a728b7655ad94a9a6ae889da`. The same command with #295 at `b142e7f1e9e14c26cfcbb768442b8d82d10f014e` exits 0 both orders. Tree `348f4bdb24b3d0ef8019af25539d720bc055b9b7`. The same command with #296 at `8d8c577e7422bf0234c8f0c914f550de380edadd` exits 0 both orders. Tree `0b323182fb256eba2acbc778d5d521af5941a3c9`. Those four SHAs are still the draft heads. No path overlaps `origin/main` on both sides. Each merged tree keeps this commit's script blob `db1bc0a3423ef868d2e9f60fa1fef57e1ad1f17c` and test blob `14f367ba088203a63c5526b594b66e1b80dbf53e`. Each tree keeps the other side's blob (`daily_summary_draft.py` `cfbc107cdfa6646e50ba003194616fccd1564d99`, `cost_recheck_block.py` `d34b3d445df4c626aa78799dfaf8b571f8122259`, `boss_approval_queue.py` `67390d2d1a00c0beeeb1dc82941206f337d457ce`, `midnight_qc.py` `51770a78ab21048da1dce09343df3d0cd2a86786`, `run_daily_shop_check.sh` `c7c7ab7a8efc24ac136fd25d8666a51c5a5724cd`). No merge commit was made. Nothing was pushed to those branches.
+
+S06 lock stays 25 in `scripts/autolist.py`, `sassy-closet/lib/pricing.ts`, and `shared/tiered-pricing.ts`. `shared/live-price-snapshot.json` matches `origin/main` (sha256 `2b28b980ac6c25078102a9abd930bc0e7fa66b51cf87280d4d820cb53e7b1726`), and the S06 row `liveUsd` is 25. `data/held.json` matches `origin/main`. No Blob, KV, Meta, or price write. No push to the #297 branch.
+
+#249 is this log and is not graded.
+
