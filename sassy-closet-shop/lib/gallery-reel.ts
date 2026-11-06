@@ -136,7 +136,7 @@ export function clampedReelIndexForColor(
  * paint another finish. PDP still uses `clampedReelIndexForColor` under its empty veil.
  */
 export function reelSlideForColor(
-  slides: readonly GalleryReelSlide[],
+  slides: GalleryReelSlide[],
   colorId: string | null,
 ): number | null {
   if (slides.length === 0) {
