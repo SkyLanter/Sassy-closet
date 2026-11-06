@@ -1511,3 +1511,76 @@ Those six SHAs are still the draft heads that were fetched. No Blob, KV, Meta, o
 Comment `6679135044` on #299.
 
 #249 is this log and is not graded.
+
+## 2026-11-06 07:32 UTC — combined #294 + #225 + #295 + #296 + #297 + #298 + #299 PASS
+
+Requested combined recheck of the seven drafts against current `origin/main`. This lane did not build #225, #294, #295, #296, #297, #298, or #299. Local scratch merges only. Nothing from the combined tree was pushed. No merge to main. No code on those seven drafts was changed. No deploy. No Blob, KV, Meta, or price write.
+
+Heads are still #225 `a1cdabe343cffb51640acf7341bdf70fc8127a96`, #294 `208bd81d9e16bbfc7c8d9cda900a3099d87be174`, #295 `b142e7f1e9e14c26cfcbb768442b8d82d10f014e`, #296 `8d8c577e7422bf0234c8f0c914f550de380edadd`, #297 `dc554c2f5f462f1ad0284361f1be09752ea9f016`, #298 `86f74cad30467c679a4db04a32912ff8d009e053`, and #299 `343aadf803dff57942a5f18bd4ec56090fc6e3fe`. `origin/main` is `04bfc350be2fcf47274ecf3e33f8f4eed1c0813e`. Each tip matches the expected SHA. No tip moved. All seven pull requests are still open drafts.
+
+Both orders merged with no conflict and the same tree `0da11400ea08fde6e3c8590924907f2770999d77`. HARD RECHECK: PASS. pytest 2773 passed, 7 skipped. S06 `liveUsd` is 25. `data/held.json` sha256 `484dbec93976e07ce34a2acc693287b6909187834032241fe6dd95d88a83d9da`, blob `cac6f53006196a978551c61e45f507bb72ab6667`. Log `/tmp/combine-seven/out/recheck/20261106-072017-5505`.
+
+The comment text below is the evidence posted on all seven pull requests.
+
+INDEPENDENT COMBINED RECHECK PASS.
+
+This lane did not build #225, #294, #295, #296, #297, #298, or #299. The combined tree stayed on this machine. No merge to main. No deploy. No Blob, KV, Meta, or price write. S06 stays $25. Held stay held.
+
+`origin/main` is `04bfc350be2fcf47274ecf3e33f8f4eed1c0813e`. Each fetched tip matches the expected SHA. No tip moved.
+
+- #225 `a1cdabe343cffb51640acf7341bdf70fc8127a96`
+- #294 `208bd81d9e16bbfc7c8d9cda900a3099d87be174`
+- #295 `b142e7f1e9e14c26cfcbb768442b8d82d10f014e`
+- #296 `8d8c577e7422bf0234c8f0c914f550de380edadd`
+- #297 `dc554c2f5f462f1ad0284361f1be09752ea9f016`
+- #298 `86f74cad30467c679a4db04a32912ff8d009e053`
+- #299 `343aadf803dff57942a5f18bd4ec56090fc6e3fe`
+
+Each head contains `origin/main`. Every pairwise merge-base is `origin/main`.
+
+`git merge-tree --write-tree` exits 0 for every single draft against `origin/main`, both directions. Each result tree equals that draft's own tree: #294 `2a62d0782b238ae7af4aee1ee05d47a2fdf3d4e2`, #225 `b738e50841f2655fd66337b048ffc5bc46d7a593`, #295 `723e95fb454a6a5ffab8731d83ee4ae0cdd6dd8b`, #296 `a2a7e36ddf8d79ff476c162c91538c43bda9424e`, #297 `58cc0e8c5cd291df0e6d1f550fadb477eed7f7ca`, #298 `56c6555bfc1a21efa92e6d3553115ef2a2566909`, #299 `e9e75c0af638672ece8d95da175b1fdd78191c88`.
+
+All 21 pairs exit 0 in both orders and produce the same tree: #294+#225 `b738e50841f2655fd66337b048ffc5bc46d7a593`, #294+#295 `d57dd089b92f38a2709ebb1a99f8f0e26b0f8a6d`, #294+#296 `53944f54920cba5217e0c579b51abac8e9b03796`, #294+#297 `5359e23931a872a5a728b7655ad94a9a6ae889da`, #294+#298 `3a8301a24a086f8ae7cd7d265370319d7e553dc2`, #294+#299 `a33512c386e133b8f34d56b14ba5e96045c309a8`, #225+#295 `b25e7f19fca1d5618591a9f300ad564f6e464a72`, #225+#296 `c772851bc802f33fd452daabce4479f7eba33590`, #225+#297 `e4ed5d181d418801fa6188a0490478366661dffe`, #225+#298 `3fd1811c159446598f269f6d9fc834db6e0d9c87`, #225+#299 `e1ed65a8e0cb71afea6cc4a23e01cc3816dde8b7`, #295+#296 `f62a8be00b87ee2eda45a2cedb15dd5dc8e0aabc`, #295+#297 `348f4bdb24b3d0ef8019af25539d720bc055b9b7`, #295+#298 `5e31b9ee648bb6ea1b26ff73fcf502c27641ae51`, #295+#299 `5a497ae4d405ff4cf4f5ec4ec2ebd28c49f00d2c`, #296+#297 `0b323182fb256eba2acbc778d5d521af5941a3c9`, #296+#298 `607e8ca4fa2e8f027a01a15a959d586e40441de0`, #296+#299 `79c2d243fe21645a0b2719438d59ec91a6f5b4fa`, #297+#298 `47740463f9aa2f4fff2c6e17c0fbc22b7ffdafe9`, #297+#299 `efb6b6571eaf67ffe2b6814cf1c83097db4b801f`, #298+#299 `f9007ff00063947fdc3989659eb9f8786950ca00`.
+
+Both full stacks exit 0 at every step. Every step's merge-base is `origin/main`. The two orders produce the same tree `0da11400ea08fde6e3c8590924907f2770999d77`. `git diff-tree` of the two local scratch commits is empty. Conflict markers: 0.
+
+Order A: `origin/main` + #294 + #225 + #295 + #296 + #297 + #298 + #299. Step trees: #294 `2a62d0782b238ae7af4aee1ee05d47a2fdf3d4e2`, #225 `b738e50841f2655fd66337b048ffc5bc46d7a593`, #295 `b25e7f19fca1d5618591a9f300ad564f6e464a72`, #296 `a48799fe899ce23281563112703c705a250893df`, #297 `8a687ae952b640fae8e907b6c5c087782396da63`, #298 `c728697858ef268442ce5f07f95e722e5bac6e63`, #299 `0da11400ea08fde6e3c8590924907f2770999d77`. Local scratch `47b1192e822c1ef45ab813bff6f6dd5807f45f99` (not pushed).
+
+Order B: `origin/main` + #299 + #298 + #297 + #296 + #295 + #225 + #294. Step trees: #299 `e9e75c0af638672ece8d95da175b1fdd78191c88`, #298 `f9007ff00063947fdc3989659eb9f8786950ca00`, #297 `b0e6a47c2611ff0ebeb0e5290c11bcc5955879d3`, #296 `171a34fc4050dbe470ca7cfc36a3120b93824862`, #295 `2dbfe6f10f99894c60181a95d5afc3a2e11b5ccd`, #225 `0da11400ea08fde6e3c8590924907f2770999d77`, #294 `0da11400ea08fde6e3c8590924907f2770999d77`. Local scratch `bb59d234c91af547a23efab3c09fd9a22b038415` (not pushed). Adding #294 after #225 changed no file.
+
+Blobs in that tree: 195 files touched by only one draft match that draft. `scripts/cost_recheck_block.py` `d34b3d445df4c626aa78799dfaf8b571f8122259` matches #294 and #225. #294's added lines in `scripts/boss_decisions.py`, `scripts/daily_summary_draft.py`, and `scripts/taobao_unreachable_streak.py` are present in the #225 blobs the merge kept (`29188aa2bc73b8b4feea7699f1c51ac2061d9470`, `cfbc107cdfa6646e50ba003194616fccd1564d99`, `c97bed4d811b283ec0c3fedc81dfdb8b0d650861`). `scripts/boss_approval_queue.py` `67390d2d1a00c0beeeb1dc82941206f337d457ce` matches #295. `scripts/run_daily_shop_check.sh` `c7c7ab7a8efc24ac136fd25d8666a51c5a5724cd` matches #296. `scripts/midnight_qc.py` `e771a40b2861252fa0dff4539e247fb33583aff0` matches #225, and `--date` defaults to `today_pt()`. `scripts/run_daily_summary.sh` `db1bc0a3423ef868d2e9f60fa1fef57e1ad1f17c` matches #297 and archives, writes Boss decisions, then archives again with the same `--date`. `scripts/held_photo_check.py` `70e77f42296c60afd9fbc5bfba9ffc9e1f7ea69b` and `scripts/held_photo_exposure.py` `bf2eca6ac979a5a236980e90fb35a947676b3d20` match #298. `scripts/intake_code_reuse_check.py` `129be1053ba48b8b6fa943f29480ec0cace9cd1d` matches #299 (`^[A-Z]\d{2,3}$` with `fullmatch`). `data/privacy-allowlist.json` is 22 rows. It keeps every row from `origin/main` (18), #225 (21), and #295 (19). No extra row.
+
+S06 stays $25. `shared/live-price-snapshot.json` matches `origin/main` (sha256 `2b28b980ac6c25078102a9abd930bc0e7fa66b51cf87280d4d820cb53e7b1726`, blob `d685b1da04b3d0f4614db3e4be17355ca7dbe187`). The S06 row `liveUsd` is 25 and `wouldBeUsd` is 25. `S06_LOCK_USD = 25` in `scripts/autolist.py` and `shared/tiered-pricing.ts` (both match `origin/main`) and in `sassy-closet/lib/pricing.ts`. `S06_LOCKED_PRICE_USD = 25` in `sassy-closet/lib/intake-sell-backfill.ts` (matches `origin/main`). `S06_AVAILABLE_USD = 25` in `sassy-closet/lib/shop-catalog.ts`. `S06_LOCK = Decimal("25")` in `scripts/boss_approval_queue.py`.
+
+`data/held.json` matches `origin/main`. sha256 `484dbec93976e07ce34a2acc693287b6909187834032241fe6dd95d88a83d9da`, blob `cac6f53006196a978551c61e45f507bb72ab6667`. 21 held mãs (S14, A24, A25, S15, A26, K02, K03, K04, K05, V04, K06, V05, S16, S17, S18, S19, A27, A28, A29, H02, G01). `neverList` is empty. Held stay held.
+
+Hard recheck on that combined tree, detached at `47b1192`. `npm ci --no-audit --no-fund` in both apps (intake added 143 packages, shop added 407), then `scripts/hard_recheck.sh --base origin/main` with `HARD_RECHECK_PYTHON=/usr/bin/python3` (pytest 9.2.0, openpyxl 3.1.5). The worktree was detached, so the summary branch field is blank. Log `/tmp/combine-seven/out/recheck/20261106-072017-5505`. pytest 2773 passed, 7 skipped; privacy CLEAN; intake npm 365 / 362 / 0 / 3; shop npm 269 / 266 / 0 / 3; both tsc ok; `held.json` unchanged vs `origin/main`. Required skips: none. No hard-recheck step is SKIP. The tip line is INFO. Working tree clean. HARD RECHECK: PASS. Exit 0.
+
+```
++------------------------------------------------------------------------------
+| hard recheck   @ 47b1192  base origin/main
+| git                                            PASS  rc=0      0s  branch  @ 47b1192; conflict markers 0
+| pytest                                         PASS  rc=0    206s  2773 passed, 7 skipped in 205.04s (0:03:25)
+| guard:test_safety_gate_coverage.py             PASS  rc=0      0s  in pytest run
+| guard:test_no_digit_literal_stdout_asserts.py  PASS  rc=0      0s  in pytest run
+| guard:test_held_never_list_parity.py           PASS  rc=0      0s  in pytest run
+| guard:test_ma_normalization_parity.py          PASS  rc=0      0s  in pytest run
+| privacy                                        PASS  rc=0      0s  privacy_scan: CLEAN
+| intake-npm-test                                PASS  rc=0     16s  tests 365 pass 362 fail 0 skipped 3
+| intake-tsc                                     PASS  rc=0      2s  ok
+| shop-npm-test                                  PASS  rc=0     13s  tests 269 pass 266 fail 0 skipped 3
+| shop-tsc                                       PASS  rc=0      4s  ok
+| diff-stat                                      PASS  rc=0      0s  203 files changed, 22071 insertions(+), 656 deletions(-)
+| working-tree                                   PASS  rc=0      0s  clean: yes
+| held-json                                      PASS  rc=0      0s  held.json unchanged: yes
+| tip-status                                     INFO  rc=0      0s  Recommended tip: none found with PASS proof  [read-only]
+| total 241s   logs: out/recheck/20261106-072017-5505
++------------------------------------------------------------------------------
+HARD RECHECK: PASS
+```
+
+The seven pytest skips are `scripts.tests.test_gate_verdict_parity::test_skip_gate` and `test_s06_gate` for never0-canonical, never0-padded, and never0-short-lower (`held.json` list has no entry at this index) and `scripts.tests.test_run_daily_shop_check::test_workflow_is_read_only_and_scheduled` (`daily-shop-check.yml` left out of the safe-frame merge). The three intake skips are `publishBlock` never0-canonical, never0-padded, and never0-short-lower. The three shop skips are `shop gates` never0-canonical, never0-padded, and never0-short-lower. Same reason: `held.json` list has no entry at this index.
+
+Comments `6679653416` on #225, `6679659480` on #294, `6679665802` on #295, `6679672738` on #296, `6679680758` on #297, `6679688830` on #298, and `6679695639` on #299.
+
+#249 is this log and is not graded.
