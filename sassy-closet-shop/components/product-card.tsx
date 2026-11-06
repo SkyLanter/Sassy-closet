@@ -11,9 +11,10 @@ import { ProductPrice } from "@/components/product-price";
 import { colorShopLabel } from "@/lib/colors";
 import { displayDescription, displayName } from "@/lib/copy";
 import { lookPhotoAlt } from "@/lib/photo-alt";
-import { clampedReelIndexForColor, productGalleryReel } from "@/lib/gallery-reel";
+import { clampedReelIndexForColor, productGalleryReel, reelSlideForColor } from "@/lib/gallery-reel";
 import { GALLERY_ROLL_MS } from "@/lib/gallery-snap";
 import { fadeUp, springSoft } from "@/lib/motion";
+import { emptyGalleryAnnouncement } from "@/lib/pdp-copy";
 import { shopLookAsksPrice, type ShopLook } from "@/lib/shop-look";
 
 export function ProductCard({
@@ -34,7 +35,8 @@ export function ProductCard({
   const [colorId, setColorId] = useState<string | null>(null);
   const [openSlides, setOpenSlides] = useState<ReadonlySet<number>>(() => new Set([0]));
   const reel = useMemo(() => productGalleryReel(product), [product]);
-  const slideIndex = clampedReelIndexForColor(reel, colorId);
+  const slideForColor = reelSlideForColor(reel, colorId);
+  const slideIndex = slideForColor ?? clampedReelIndexForColor(reel, colorId);
 
   function openSlide(index: number) {
     setOpenSlides((current) => {
@@ -53,7 +55,11 @@ export function ProductCard({
 
   function preloadColor(id: string) {
     const next = colorId === id ? null : id;
-    openSlide(clampedReelIndexForColor(reel, next));
+    const slide = reelSlideForColor(reel, next);
+    if (slide === null) {
+      return;
+    }
+    openSlide(slide);
   }
 
   const selectedIndex = product.colors.findIndex((color) => color.id === colorId);
@@ -100,19 +106,27 @@ export function ProductCard({
           <div
             className="sc-card-well ky-gallery-shell relative aspect-[3/4] w-full shrink-0 overflow-hidden bg-[#f3f1ee] shadow-[0_0_0_0_rgba(17,17,17,0)] motion-safe:transition-[transform,box-shadow] motion-safe:duration-150 motion-safe:ease-[cubic-bezier(0.23,1,0.32,1)] motion-safe:hover-hover:group-hover:-translate-y-1.5 motion-safe:active:scale-[0.98]"
             data-testid="card-cover-reel"
-            data-slide-index={String(slideIndex)}
+            data-slide-index={slideForColor === null && colorId !== null ? "none" : String(slideIndex)}
+            data-color-photo={colorId !== null && slideForColor === null ? "missing" : "shown"}
             style={namedCover ? { viewTransitionName: `product-${product.ma}`, contain: "layout" } : undefined}
           >
-            {reel.length === 0 ? (
-              <ProductImage
-                product={product}
-                src={undefined}
-                alt={lookPhotoAlt({ title: name, ma: product.ma })}
-                priority={priority}
-                named={false}
-                coverFallback={false}
-                className="h-full w-full"
-              />
+            {slideForColor === null ? (
+              <>
+                <ProductImage
+                  product={product}
+                  src={undefined}
+                  alt={lookPhotoAlt({ title: name, ma: product.ma, color: colorLabel })}
+                  priority={priority}
+                  named={false}
+                  coverFallback={false}
+                  className="h-full w-full"
+                />
+                {colorId !== null && colorLabel ? (
+                  <p className="sr-only" aria-live="polite" translate="no">
+                    {emptyGalleryAnnouncement(colorLabel)}
+                  </p>
+                ) : null}
+              </>
             ) : (
               <div
                 className="ky-card-reel h-full"

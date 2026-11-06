@@ -129,3 +129,25 @@ export function clampedReelIndexForColor(
   }
   return target;
 }
+
+/**
+ * Slide for a look-card chip.
+ * Null means this color has no tagged or shared photo, so the card must not
+ * paint another finish. PDP still uses `clampedReelIndexForColor` under its empty veil.
+ */
+export function reelSlideForColor(
+  slides: readonly GalleryReelSlide[],
+  colorId: string | null,
+): number | null {
+  if (slides.length === 0) {
+    return null;
+  }
+  if (colorId === null) {
+    return 0;
+  }
+  const target = firstReelIndexForColor(slides, colorId);
+  if (target < 0) {
+    return null;
+  }
+  return target;
+}
