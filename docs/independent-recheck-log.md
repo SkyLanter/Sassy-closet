@@ -1425,3 +1425,37 @@ No path overlaps `origin/main` on both sides. Each merged tree keeps this commit
 No Blob, KV, Meta, or price write. No deploy. No push to the #298 branch.
 
 #249 is this log and is not graded.
+
+## 2026-11-06 05:35 UTC — combined #294 + #225 + #295 + #296 + #297 + #298 PASS
+
+Requested combined recheck of the six drafts. This lane did not build #225, #294, #295, #296, #297, or #298. No code on those six branches was changed. Nothing was merged on GitHub. The combined tree was not pushed. No deploy. No Blob, KV, Meta, or price write. Prices were not rewritten.
+
+Heads are still the requested SHAs. Each pull request is still a draft. `origin/main` is `04bfc350be2fcf47274ecf3e33f8f4eed1c0813e`. Each head already contains that commit.
+
+- #294 `cursor/signed-out-cost-recheck-5d1f` @ `208bd81d9e16bbfc7c8d9cda900a3099d87be174`
+- #225 `cursor/combined-safe-drafts-08f7` @ `a1cdabe343cffb51640acf7341bdf70fc8127a96`
+- #295 `cursor/boss-approval-queue-fb4d` @ `b142e7f1e9e14c26cfcbb768442b8d82d10f014e`
+- #296 `cursor/pacific-shop-check-date-7132` @ `8d8c577e7422bf0234c8f0c914f550de380edadd`
+- #297 `cursor/archive-boss-decisions-after-write-a57d` @ `dc554c2f5f462f1ad0284361f1be09752ea9f016`
+- #298 `cursor/held-photo-lowercase-ma-7719` @ `86f74cad30467c679a4db04a32912ff8d009e053`
+
+Merge. Local `git merge-tree --write-tree` onto `origin/main`, both orders. Every step exited 0. Both result trees are `c728697858ef268442ce5f07f95e722e5bac6e63`.
+
+- Forward: #294, then #225, then #295, then #296, then #297, then #298. Local commit `d69f97b403ae7da60125d98b9721b025d3c1c80d` (not pushed).
+- Reverse: #298, then #297, then #296, then #295, then #225, then #294. Local commit `e1c11aeaa59bbbafd563dfac8db14ad2b774be15` (not pushed).
+
+Conflict markers: 0. `git diff-tree` of the two trees is empty. Each step's merge base was `origin/main`. A separate local `git merge --no-ff` in both orders produced the same tree `c728697858ef268442ce5f07f95e722e5bac6e63` and was not pushed. Forward through #297 reproduced the earlier five-draft tree `8a687ae952b640fae8e907b6c5c087782396da63`; adding #298 produced `c7286978`. The reverse merge of #294 after #225 changed no file.
+
+Overlapping paths auto-merged. `scripts/cost_recheck_block.py` `d34b3d445df4c626aa78799dfaf8b571f8122259` matches #294 and #225. `scripts/daily_summary_draft.py` `cfbc107cdfa6646e50ba003194616fccd1564d99`, `scripts/boss_decisions.py` `29188aa2bc73b8b4feea7699f1c51ac2061d9470`, `scripts/taobao_unreachable_streak.py` `c97bed4d811b283ec0c3fedc81dfdb8b0d650861`, and `scripts/midnight_qc.py` `e771a40b2861252fa0dff4539e247fb33583aff0` match #225. `today_pt()` in the merged `midnight_qc.py` matches #296, and `--date` defaults to `today_pt()`. `scripts/boss_approval_queue.py` `67390d2d1a00c0beeeb1dc82941206f337d457ce` matches #295. `scripts/run_daily_shop_check.sh` `c7c7ab7a8efc24ac136fd25d8666a51c5a5724cd` matches #296. `scripts/run_daily_summary.sh` `db1bc0a3423ef868d2e9f60fa1fef57e1ad1f17c` matches #297 and still archives, writes Boss decisions, then archives again with the same `--date`. `scripts/held_photo_check.py` `70e77f42296c60afd9fbc5bfba9ffc9e1f7ea69b` and `scripts/held_photo_exposure.py` `bf2eca6ac979a5a236980e90fb35a947676b3d20` match #298. `data/privacy-allowlist.json` is 22 rows. It keeps every row from `origin/main` (18), #225 (21), and #295 (19). No extra row.
+
+`data/held.json` matches `origin/main` on every draft and on the combined tree. Blob `cac6f53006196a978551c61e45f507bb72ab6667`, sha256 `484dbec93976e07ce34a2acc693287b6909187834032241fe6dd95d88a83d9da`. 21 held mãs (S14, A24, A25, S15, A26, K02, K03, K04, K05, V04, K06, V05, S16, S17, S18, S19, A27, A28, A29, H02, G01). `neverList` is empty. Held items stay held.
+
+S06 stays $25. `S06_LOCK_USD = 25` in `scripts/autolist.py`, `sassy-closet/lib/pricing.ts` (blob `aa504041fdba701ed3b06bd25d55e44a8ae81ca7`, #225), and `shared/tiered-pricing.ts`. No `S06_LOCK*` assignment is a different number. `scripts/autolist.py` and `shared/tiered-pricing.ts` match `origin/main`. `shared/live-price-snapshot.json` matches `origin/main` (sha256 `2b28b980ac6c25078102a9abd930bc0e7fa66b51cf87280d4d820cb53e7b1726`), and the S06 row `liveUsd` is 25.
+
+Hard recheck on that combined tree, detached at `d69f97b`. `npm ci --no-audit --no-fund` in both apps (intake added 143 packages, shop added 407), then `scripts/hard_recheck.sh --base origin/main` with `HARD_RECHECK_PYTHON=/tmp/py-recheck/python` (that wrapper execs `/usr/bin/python3`, pytest 9.2.0, openpyxl 3.1.5). The worktree was detached, so the summary branch field is blank. Log `/tmp/combine-six/out/recheck/20261106-052655-3163`. pytest 2769 passed, 7 skipped; privacy CLEAN; intake npm 365 / 362 / 0 / 3; shop npm 269 / 266 / 0 / 3; both tsc ok; `held.json` unchanged vs `origin/main`. Required skips: none. No hard-recheck step is SKIP. The tip line is INFO. Working tree clean. HARD RECHECK: PASS.
+
+The seven pytest skips are the six empty `never0` gate cases and `scripts.tests.test_run_daily_shop_check::test_workflow_is_read_only_and_scheduled` (`daily-shop-check.yml` left out of the safe-frame merge). The three intake skips and three shop skips are the same empty `never0` publish/shop gates.
+
+Comments `6677803080` on #225, `6677806209` on #294, `6677809504` on #295, `6677812778` on #296, `6677816175` on #297, and `6677819408` on #298.
+
+#249 is this log and is not graded.
