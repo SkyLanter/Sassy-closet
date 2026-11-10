@@ -673,8 +673,8 @@ CANDIDATES_WIDTHS = {
 
 # ---------------------------------------------------------------------------
 # Mã / photo helpers
-# Live site still uses legacy AO001-style (MA_RE). Do not migrate parse_ma
-# to A01 here — that is a separate handoff (bc-43bc86e1).
+# Live and intake use A01-style codes (A01, S06, Q02). parse_ma remains
+# legacy until the A01 handoff. Do not migrate parse_ma here (bc-43bc86e1).
 # ---------------------------------------------------------------------------
 
 
@@ -689,7 +689,8 @@ def _require_openpyxl() -> None:
 def parse_ma(value: object) -> tuple[str, int] | None:
     """Return (prefix, number) for a valid mã; else None. Never invent one.
 
-    Legacy AO001-style until the A01 handoff. Never invent a mã.
+    Live and intake use A01-style codes. parse_ma remains legacy until the
+    A01 handoff. Never invent a mã.
     """
     if value is None:
         return None
