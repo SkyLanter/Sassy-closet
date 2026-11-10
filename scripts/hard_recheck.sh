@@ -80,6 +80,9 @@ if [ "$RC" = 0 ] && grep -q CLEAN "$LOG/privacy.log"; then st=PASS; else st=FAIL
 record privacy 1 "$st" "$RC" "$SECS" "$PL" ""
 
 # d/e. apps
+# A lockfile with no node_modules means those Node steps never ran. SKIP still
+# counts as success; the summary names them so PASS is not the only signal.
+NODE_SKIP_STEPS=""
 for pair in "intake:sassy-closet" "shop:sassy-closet-shop"; do
   tag="${pair%%:*}"; app="${pair#*:}"
   if [ ! -f "$app/package.json" ]; then
@@ -87,6 +90,9 @@ for pair in "intake:sassy-closet" "shop:sassy-closet-shop"; do
   fi
   if [ ! -d "$app/node_modules" ] || ! command -v npm >/dev/null; then
     why="node_modules missing"; command -v npm >/dev/null || why="npm not installed"
+    if [ ! -d "$app/node_modules" ] && [ -f "$app/package-lock.json" ]; then
+      NODE_SKIP_STEPS="${NODE_SKIP_STEPS:+$NODE_SKIP_STEPS, }$tag-npm-test, $tag-tsc"
+    fi
     record "$tag-npm-test" 1 SKIP 0 0 "" "$why"; record "$tag-tsc" 1 SKIP 0 0 "" "$why"; continue
   fi
   timed "$LOG/$tag-npm-test.log" bash -c "cd '$app' && npm test"
@@ -124,9 +130,11 @@ fi
 record tip-status 0 INFO 0 0 "$TIPLINE" "$TIPNOTE"
 
 TOTAL=$(( $(date +%s) - T0 ))
-"$PY" - "$STEPS" "$LOG" "$JSON" "$TOTAL" "$BR" "$HEADSHA" "$BASE" <<'PY'
+NODE_SKIP_LINE=""
+[ -n "$NODE_SKIP_STEPS" ] && NODE_SKIP_LINE="NODE STEPS SKIPPED (node_modules missing): $NODE_SKIP_STEPS"
+"$PY" - "$STEPS" "$LOG" "$JSON" "$TOTAL" "$BR" "$HEADSHA" "$BASE" "$NODE_SKIP_LINE" <<'PY'
 import json, sys
-steps_path, log, want_json, total, br, head, base = sys.argv[1:]
+steps_path, log, want_json, total, br, head, base, node_skip = sys.argv[1:]
 steps = []
 for line in open(steps_path, encoding="utf-8"):
     name, req, st, rc, secs, detail, note = (line.rstrip("\n").split("\t") + [""] * 7)[:7]
@@ -138,13 +146,18 @@ rows = [f"+{'-' * 78}", f"| hard recheck  {br} @ {head}  base {base}"]
 for s in steps:
     extra = f"  [{s['note']}]" if s["note"] else ""
     rows.append(f"| {s['step']:<{w}}  {s['status']:<4}  rc={s['exit']:<3} {s['seconds']:>4}s  {s['detail']}{extra}")
-rows += [f"| total {total}s   logs: {log}", f"+{'-' * 78}", f"HARD RECHECK: {result}"]
+rows += [f"| total {total}s   logs: {log}", f"+{'-' * 78}"]
+if node_skip:
+    rows.append(node_skip)
+rows.append(f"HARD RECHECK: {result}")
 text = "\n".join(rows) + "\n"
 print(text, end="")
 open(f"{log}/summary.txt", "w", encoding="utf-8").write(text)
 if want_json == "1":
-    json.dump(dict(branch=br, head=head, base=base, total_seconds=int(total), result=result, steps=steps),
-              open(f"{log}/summary.json", "w", encoding="utf-8"), indent=1)
+    summary = dict(branch=br, head=head, base=base, total_seconds=int(total), result=result, steps=steps)
+    if node_skip:
+        summary["node_steps_skipped"] = node_skip
+    json.dump(summary, open(f"{log}/summary.json", "w", encoding="utf-8"), indent=1)
 sys.exit(1 if fail else 0)
 PY
 exit $?

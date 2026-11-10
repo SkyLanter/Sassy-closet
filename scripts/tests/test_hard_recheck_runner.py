@@ -97,9 +97,54 @@ def test_missing_node_modules_skips(fake):
     shutil.rmtree(repo / "sassy-closet" / "node_modules")
     r = run(repo, base, env, "--json")
     assert r.returncode == 0, r.stdout
-    by = {s["step"]: s for s in json.loads((latest(repo) / "summary.json").read_text())["steps"]}
+    doc = json.loads((latest(repo) / "summary.json").read_text())
+    by = {s["step"]: s for s in doc["steps"]}
     assert by["intake-npm-test"]["status"] == "SKIP" and by["intake-tsc"]["status"] == "SKIP"
     assert "node_modules missing" in by["intake-npm-test"]["note"]
+    assert "NODE STEPS SKIPPED" not in r.stdout
+    assert "node_steps_skipped" not in doc
+    assert doc["result"] == "PASS"
+
+
+def test_lockfile_without_node_modules_names_skipped_steps(fake):
+    repo, base, env = fake
+    (repo / "sassy-closet" / "package-lock.json").write_text("{}\n")
+    (repo / "sassy-closet-shop" / "package-lock.json").write_text("{}\n")
+    shutil.rmtree(repo / "sassy-closet" / "node_modules")
+    line = "NODE STEPS SKIPPED (node_modules missing): intake-npm-test, intake-tsc"
+    r = run(repo, base, env, "--json")
+    assert r.returncode == 0, r.stdout
+    assert "HARD RECHECK: PASS" in r.stdout
+    assert line in r.stdout
+    summary = (latest(repo) / "summary.txt").read_text()
+    assert line in summary
+    doc = json.loads((latest(repo) / "summary.json").read_text())
+    assert doc["result"] == "PASS"
+    assert doc["node_steps_skipped"] == line
+    by = {s["step"]: s for s in doc["steps"]}
+    assert by["intake-npm-test"]["status"] == "SKIP" and by["intake-tsc"]["status"] == "SKIP"
+    assert by["shop-npm-test"]["status"] == "PASS" and by["shop-tsc"]["status"] == "PASS"
+
+
+def test_both_apps_lockfile_without_node_modules_lists_every_node_step(fake):
+    repo, base, env = fake
+    for app in ("sassy-closet", "sassy-closet-shop"):
+        (repo / app / "package-lock.json").write_text("{}\n")
+        shutil.rmtree(repo / app / "node_modules")
+    line = (
+        "NODE STEPS SKIPPED (node_modules missing): "
+        "intake-npm-test, intake-tsc, shop-npm-test, shop-tsc"
+    )
+    r = run(repo, base, env, "--json")
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert "HARD RECHECK: PASS" in r.stdout
+    assert line in r.stdout
+    doc = json.loads((latest(repo) / "summary.json").read_text())
+    assert doc["result"] == "PASS"
+    assert doc["node_steps_skipped"] == line
+    by = {s["step"]: s for s in doc["steps"]}
+    for step in ("intake-npm-test", "intake-tsc", "shop-npm-test", "shop-tsc"):
+        assert by[step]["status"] == "SKIP"
 
 
 def test_conflict_marker_flagged(fake):
