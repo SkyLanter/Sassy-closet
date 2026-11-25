@@ -228,10 +228,15 @@ export function categoryJsonLd(
   return jsonLd;
 }
 
+/**
+ * Held mãs, unknown mãs, and unknown categories render this metadata.
+ * `robots: null` would wipe the root noindex when Next merges the 404 over
+ * the layout, including after the shop is allowed to be indexed.
+ */
 export function notFoundSeo(): Metadata {
   return {
     title: "Not found",
-    robots: null,
+    robots: { index: false, follow: false, nosnippet: true },
     alternates: { canonical: null },
   };
 }
@@ -241,14 +246,6 @@ export function productJsonLd(product: ShopLook): Record<string, unknown> {
   const photos = product.images
     .map((image) => absoluteMedia(image.src.trim()))
     .filter((src) => src.length > 0);
-  const offer: Record<string, unknown> = {
-    "@type": "Offer",
-    url: canonical,
-  };
-  if (product.priceUsd !== null) {
-    offer.priceCurrency = "USD";
-    offer.price = product.priceUsd.toFixed(2);
-  }
   const jsonLd: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -260,9 +257,21 @@ export function productJsonLd(product: ShopLook): Record<string, unknown> {
       "@type": "Brand",
       name: SITE.name,
     },
-    image: photos.length > 0 ? photos : undefined,
-    offers: offer,
   };
+  if (photos.length > 0) {
+    jsonLd.image = photos;
+  }
+  if (product.priceUsd !== null && Number.isFinite(product.priceUsd)) {
+    const offer: Record<string, unknown> = {
+      "@type": "Offer",
+      priceCurrency: "USD",
+      price: product.priceUsd.toFixed(2),
+    };
+    if (canonical) {
+      offer.url = canonical;
+    }
+    jsonLd.offers = offer;
+  }
   if (canonical) {
     jsonLd.url = canonical;
   }

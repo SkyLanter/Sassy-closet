@@ -276,8 +276,12 @@ const inboxLd = productJsonLd({ ...p02, priceUsd: null });
 if (JSON.stringify(inboxLd).includes("shippingRate") || JSON.stringify(inboxLd).includes("shippingDetails")) {
   fail("Product JSON-LD must not invent shippingRate");
 }
-if ((inboxLd.offers as { price?: string }).price) {
+const inboxOffer = inboxLd.offers as { price?: string } | undefined;
+if (inboxOffer?.price) {
   fail("Hold JSON-LD must not invent USD");
+}
+if (inboxOffer) {
+  fail("A look with no USD must not emit an Offer");
 }
 
 const steps = howToBuySteps("A01");

@@ -19,6 +19,7 @@ import { applyHubColorNames } from "@/lib/hub-import";
 import { applyRecordedHubSourceLink } from "@/lib/hub-source-links";
 import { catalogShaOf, isInPlaceCoverPath } from "@/lib/catalog-sha";
 import { srcBelongsToMa } from "@/lib/product-media";
+import { resolvedPublicFile } from "@/lib/public-path";
 import { catalogBlobPath, catalogBlobPrefix, catalogImagePrefix, catalogKvKey, isKnownSeedMa } from "@/lib/catalog-contract";
 import { TYPE_LABELS } from "@/lib/catalog";
 import { customerOpsVoiceHit } from "@/lib/public-safety";
@@ -289,6 +290,9 @@ function omitMissingLocalPhotos(document: CatalogDocument): CatalogDocument {
 
 function localProductFileExists(src: string): boolean {
   const pathOnly = (src.split("?")[0] ?? "").trim();
+  if (pathOnly.startsWith("/") && !pathOnly.startsWith("//") && resolvedPublicFile(pathOnly) === null) {
+    return false;
+  }
   const match = pathOnly.match(/^\/products\/([^/]+)\/([^/]+)$/);
   if (!match) {
     return true;
@@ -296,7 +300,7 @@ function localProductFileExists(src: string): boolean {
   const folder = match[1] ?? "";
   const file = match[2] ?? "";
   if (folder.includes("..") || file.includes("..") || file !== path.basename(file)) {
-    return true;
+    return false;
   }
   return LOCAL_PRODUCT_FILES.has(`${folder}/${file}`);
 }
@@ -539,7 +543,10 @@ async function readLiveCatalogRecordFresh(): Promise<CatalogReadRecord> {
     console.error("Live local catalog read failed; using seed.", error);
   }
 
-  return { document: presentLockedBossPrices(getSeedDocument()), source: "seed" };
+  return {
+    document: presentLockedBossPrices(omitMissingLocalPhotos(getSeedDocument())),
+    source: "seed",
+  };
 }
 
 const liveCatalogMemo = createTtlMemo<CatalogReadRecord>(CATALOG_MEMO_TTL_MS);

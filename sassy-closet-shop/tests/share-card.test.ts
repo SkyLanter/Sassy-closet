@@ -224,7 +224,12 @@ test("product og image is a versioned jpeg and json-ld lists every photo", () =>
   ]);
   assert.equal(JSON.stringify(jsonLd).includes("availability"), false);
   const missing = notFoundSeo();
-  assert.equal(missing.robots, null);
+  assert.equal(
+    missing.robots && typeof missing.robots === "object" && "index" in missing.robots
+      ? missing.robots.index
+      : undefined,
+    false,
+  );
   assert.deepEqual(missing.alternates, { canonical: null });
 });
 

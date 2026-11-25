@@ -4,6 +4,7 @@ import { customerAdminProxyDecision } from "@/lib/customer-admin-closed";
 import { encodeShopSearchHeader, SHOP_SEARCH_HEADER } from "@/lib/look-search";
 import { canonicalCategoryPath, canonicalMaPath } from "@/lib/ma-url";
 import { isShopPrivateSurface, PRIVATE_ROBOTS_TAG } from "@/lib/private-robots";
+import { isShopHtmlNotFoundPath } from "@/lib/shop-html-not-found";
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -45,7 +46,7 @@ export function proxy(request: NextRequest) {
   response.headers.set("Cache-Control", "private, no-store, no-cache, max-age=0, must-revalidate");
   response.headers.set("CDN-Cache-Control", "private, no-store");
   response.headers.set("Vercel-CDN-Cache-Control", "private, no-store");
-  if (isShopPrivateSurface(pathname)) {
+  if (isShopPrivateSurface(pathname) || isShopHtmlNotFoundPath(pathname)) {
     response.headers.set("X-Robots-Tag", PRIVATE_ROBOTS_TAG);
   }
   return response;

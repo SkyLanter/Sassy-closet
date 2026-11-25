@@ -38,6 +38,7 @@ test("public product image route does not serve photos of a held mã", async () 
     assert.equal(ok.status, 200, "normal mã photo should serve");
     const blocked = await call(held);
     assert.equal(blocked.status, 404, `held ${held} photo must not be served publicly`);
+    assert.match(blocked.headers.get("x-robots-tag") ?? "", /noindex,\s*nofollow,\s*nosnippet/i);
   } finally {
     process.chdir(cwd);
     process.env = savedEnv;
