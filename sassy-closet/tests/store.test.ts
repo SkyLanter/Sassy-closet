@@ -14,7 +14,7 @@ import {
   storageMode,
   storageStatus,
 } from "../lib/store-backend";
-import { exportCsv, findByPhotoHash, getSubmission, hashBytes, listSubmissions, readPhoto, saveSubmission } from "../lib/store";
+import { exportCsv, findByPhotoHash, getOnHandRows, getSubmission, hashBytes, listSubmissions, readPhoto, saveSubmission } from "../lib/store";
 
 describe("durable / local store", { concurrency: 1 }, () => {
   let tmp = "";
@@ -321,6 +321,194 @@ describe("durable / local store", { concurrency: 1 }, () => {
     const backend = createLocalBackend(tmp);
     const escaped = await backend.readPhoto("../submissions.json");
     assert.equal(escaped, null);
+  });
+
+  test("on-hand rows stored under a padded mã are found for A01 and a001", async () => {
+    await saveSubmission({
+      kind: "A",
+      size: "M",
+      link: "",
+      color: "Kem",
+      color_note: "",
+      pieces: [],
+      cost_usd: "",
+      cost_cny: "",
+      cost_currency: "USD",
+      sell_usd: "",
+      sell_cny: "",
+      sell_currency: "USD",
+      keep_photos: [],
+      photos: [],
+    });
+    const file = path.join(tmp, "submissions.json");
+    const disk = JSON.parse(fs.readFileSync(file, "utf8")) as {
+      submissions: { ma: string }[];
+      on_hand?: unknown;
+    };
+    assert.equal(disk.submissions[0].ma, "A01");
+    disk.on_hand = {
+      A001: [{ size: "M", color: "Kem", qty_on_hand: 1, status: "on_hand" }],
+    };
+    fs.writeFileSync(file, JSON.stringify(disk));
+    const brief = async (ma: string) =>
+      (await getOnHandRows(ma)).map((row) => ({
+        qty_on_hand: row.qty_on_hand,
+        status: row.status,
+      }));
+    assert.deepEqual(
+      { A01: await brief("A01"), a001: await brief("a001") },
+      {
+        A01: [{ qty_on_hand: 1, status: "on_hand" }],
+        a001: [{ qty_on_hand: 1, status: "on_hand" }],
+      },
+    );
+  });
+
+  test("an exact canonical on-hand key wins over a padded alias", async () => {
+    await saveSubmission({
+      kind: "A",
+      size: "M",
+      link: "",
+      color: "Kem",
+      color_note: "",
+      pieces: [],
+      cost_usd: "",
+      cost_cny: "",
+      cost_currency: "USD",
+      sell_usd: "",
+      sell_cny: "",
+      sell_currency: "USD",
+      keep_photos: [],
+      photos: [],
+    });
+    const file = path.join(tmp, "submissions.json");
+    const disk = JSON.parse(fs.readFileSync(file, "utf8")) as { on_hand?: unknown };
+    disk.on_hand = {
+      A01: [{ qty_on_hand: 2, status: "on_hand" }],
+      A001: [{ qty_on_hand: 9, status: "sold" }],
+    };
+    fs.writeFileSync(file, JSON.stringify(disk));
+    const rows = await getOnHandRows("A01");
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].qty_on_hand, 2);
+    assert.equal(rows[0].status, "on_hand");
+  });
+
+  test("a new photo does not reuse a kept higher index, and the removed hash is dropped", async () => {
+    const one = Buffer.from("photo-one");
+    const two = Buffer.from("photo-two");
+    const three = Buffer.from("photo-three");
+    const four = Buffer.from("photo-four");
+    const saved = await saveSubmission({
+      kind: "A",
+      size: "",
+      link: "",
+      color: "Đen",
+      color_note: "",
+      pieces: [],
+      cost_usd: "",
+      cost_cny: "",
+      cost_currency: "USD",
+      sell_usd: "",
+      sell_cny: "",
+      sell_currency: "USD",
+      keep_photos: [],
+      photos: [
+        { bytes: one, hash: hashBytes(one), ext: ".jpg" },
+        { bytes: two, hash: hashBytes(two), ext: ".jpg" },
+        { bytes: three, hash: hashBytes(three), ext: ".jpg" },
+      ],
+    });
+    assert.deepEqual(saved.photo_paths, ["A01/001.jpg", "A01/002.jpg", "A01/003.jpg"]);
+    const updated = await saveSubmission({
+      kind: "A",
+      size: "",
+      link: "",
+      color: "Đen",
+      color_note: "",
+      pieces: [],
+      cost_usd: "",
+      cost_cny: "",
+      cost_currency: "USD",
+      sell_usd: "",
+      sell_cny: "",
+      sell_currency: "USD",
+      existingMa: "A01",
+      keep_photos: ["A01/001.jpg", "A01/003.jpg"],
+      photos: [{ bytes: four, hash: hashBytes(four), ext: ".jpg" }],
+    });
+    const kept = await readPhoto("A01/003.jpg");
+    const added = await readPhoto("A01/004.jpg");
+    assert.deepEqual(
+      {
+        photo_paths: updated.photo_paths,
+        kept003: kept?.bytes.toString() ?? null,
+        added004: added?.bytes.toString() ?? null,
+        removedPhotoTwo: (await findByPhotoHash(hashBytes(two))).length,
+        keptPhotoThree: (await findByPhotoHash(hashBytes(three))).length,
+      },
+      {
+        photo_paths: ["A01/001.jpg", "A01/003.jpg", "A01/004.jpg"],
+        kept003: "photo-three",
+        added004: "photo-four",
+        removedPhotoTwo: 0,
+        keptPhotoThree: 1,
+      },
+    );
+  });
+
+  test("keeping every photo and adding one more still writes the next index", async () => {
+    const one = Buffer.from("photo-one");
+    const two = Buffer.from("photo-two");
+    const three = Buffer.from("photo-three");
+    const five = Buffer.from("photo-five");
+    await saveSubmission({
+      kind: "A",
+      size: "",
+      link: "",
+      color: "Đen",
+      color_note: "",
+      pieces: [],
+      cost_usd: "",
+      cost_cny: "",
+      cost_currency: "USD",
+      sell_usd: "",
+      sell_cny: "",
+      sell_currency: "USD",
+      keep_photos: [],
+      photos: [
+        { bytes: one, hash: hashBytes(one), ext: ".jpg" },
+        { bytes: two, hash: hashBytes(two), ext: ".jpg" },
+        { bytes: three, hash: hashBytes(three), ext: ".jpg" },
+      ],
+    });
+    const updated = await saveSubmission({
+      kind: "A",
+      size: "",
+      link: "",
+      color: "Đen",
+      color_note: "",
+      pieces: [],
+      cost_usd: "",
+      cost_cny: "",
+      cost_currency: "USD",
+      sell_usd: "",
+      sell_cny: "",
+      sell_currency: "USD",
+      existingMa: "A01",
+      keep_photos: ["A01/001.jpg", "A01/002.jpg", "A01/003.jpg"],
+      photos: [{ bytes: five, hash: hashBytes(five), ext: ".jpg" }],
+    });
+    assert.deepEqual(updated.photo_paths, [
+      "A01/001.jpg",
+      "A01/002.jpg",
+      "A01/003.jpg",
+      "A01/004.jpg",
+    ]);
+    assert.equal((await readPhoto("A01/001.jpg"))?.bytes.toString(), "photo-one");
+    assert.equal((await readPhoto("A01/002.jpg"))?.bytes.toString(), "photo-two");
+    assert.equal((await readPhoto("A01/003.jpg"))?.bytes.toString(), "photo-three");
+    assert.equal((await readPhoto("A01/004.jpg"))?.bytes.toString(), "photo-five");
   });
 
   test("missing Blob store/photo is empty, not a crash", () => {

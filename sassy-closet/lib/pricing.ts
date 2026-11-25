@@ -152,8 +152,9 @@ export type SellPriceInput = {
 };
 
 /**
- * Blank sell is calculated later. A typed sell is flagged only when cost is
- * known and the margin is under the caption floor. Unknown cost does not block.
+ * Blank or non-positive sell is calculated later. A positive typed sell is
+ * flagged only when cost is known and the margin is under the caption floor.
+ * Unknown cost does not block a positive sell. A leading "$" is part of the amount.
  */
 export type SellPriceFlag = "later" | "under-margin" | "ok";
 
@@ -167,6 +168,11 @@ function positiveAmount(raw: string): number | null {
   const value = Number(String(raw).trim());
   if (!Number.isFinite(value) || value <= 0) return null;
   return value;
+}
+
+/** "$12" and "12" are the same USD amount. The mark is not part of a second dollar sign. */
+function usdAmountText(raw: string): string {
+  return raw.trim().replace(/^\$\s*/, "");
 }
 
 /** Goods cost in USD plus the letter debox. CNY is converted with the weekly FX. */
@@ -239,10 +245,25 @@ export function intakePriceView(input: SellPriceInput & { ma: string }): IntakeP
   return { label: "Tính giá sau", dollars: null, flag: "later" };
 }
 
+/**
+ * True only when both sell fields are blank and this mã is not the locked S06.
+ * A blank S06 still displays $25; that display dollar must not be written back.
+ */
+export function shouldPersistCalculatedSell(ma: string, sellUsd: string, sellCny: string): boolean {
+  if (sellUsd.trim() || sellCny.trim()) return false;
+  return normalizeMa(ma) !== "S06";
+}
+
 export function sellPriceFlag(input: SellPriceInput): SellPriceFlag {
   const currency = input.sellCurrency.toUpperCase();
   const sellBlank = currency === "CNY" ? !input.sellCny.trim() : !input.sellUsd.trim();
   if (sellBlank) return "later";
+
+  const amountText = currency === "CNY" ? input.sellCny.trim() : usdAmountText(input.sellUsd);
+  if (!/^\d+(?:\.\d+)?$/.test(amountText)) return "later";
+  const amount = Number(amountText);
+  if (!(amount > 0)) return "later";
+  const sellNum = currency === "CNY" ? amount / input.fxRate : amount;
 
   const costCnyNum = Number(String(input.costCny).trim());
   const costUsdNum = Number(String(input.costUsd).trim());
@@ -260,9 +281,7 @@ export function sellPriceFlag(input: SellPriceInput): SellPriceFlag {
     kind: input.kind,
     deboxOverrides: input.deboxOverrides,
   });
-  if (!breakdown) return "ok";
-  const sellNum = currency === "CNY" ? Number(input.sellCny) / input.fxRate : Number(input.sellUsd);
-  if (!Number.isFinite(sellNum) || sellNum <= 0) return "ok";
+  if (!breakdown || !Number.isFinite(sellNum)) return "ok";
   const marginPct = (sellNum - breakdown.landedUsd) / sellNum;
   if (marginPct < MARGIN_FLOOR) return "under-margin";
   return "ok";
@@ -270,7 +289,7 @@ export function sellPriceFlag(input: SellPriceInput): SellPriceFlag {
 
 /**
  * Caption price line for a submission.
- * - sell blank            -> "Inbox giá"
+ * - sell blank or <= 0     -> "Inbox giá"
  * - margin < 35% (known)  -> "Inbox giá"
  * - otherwise             -> the sell price as before ("$X" / "¥Y")
  */
@@ -278,7 +297,7 @@ export function captionPriceLine(input: SellPriceInput): string {
   if (sellPriceFlag(input) !== "ok") return "Inbox giá";
   const currency = input.sellCurrency.toUpperCase();
   if (currency === "CNY" && input.sellCny) return `¥${input.sellCny}`;
-  if (input.sellUsd) return `$${input.sellUsd}`;
+  if (input.sellUsd) return `$${usdAmountText(input.sellUsd)}`;
   if (input.sellCny) return `¥${input.sellCny}`;
   return "Inbox giá";
 }

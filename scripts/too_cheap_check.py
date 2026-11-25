@@ -27,6 +27,7 @@ import csv
 import math
 import json
 import re
+import sys
 from dataclasses import asdict, dataclass
 from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
@@ -227,10 +228,17 @@ def markdown(summary: dict, title: str = "Too-cheap check") -> str:
 def load_live(path: Path) -> dict[str, float]:
     data = json.loads(path.read_text(encoding="utf-8"))
     if isinstance(data, dict) and "products" in data:
-        return {norm_ma(p["ma"]): float(p["priceUsd"]) for p in data["products"]}
-    if isinstance(data, dict) and "prices" in data:
-        return {norm_ma(k): float(v) for k, v in data["prices"].items()}
-    raise ValueError(f"{path}: expected a catalog with products[] or a prices map")
+        pairs = [(norm_ma(p["ma"]), float(p["priceUsd"])) for p in data["products"]]
+    elif isinstance(data, dict) and "prices" in data:
+        pairs = [(norm_ma(k), float(v)) for k, v in data["prices"].items()]
+    else:
+        raise ValueError(f"{path}: expected a catalog with products[] or a prices map")
+    live: dict[str, float] = {}
+    for ma, usd in pairs:
+        if ma in live and live[ma] != usd:
+            raise ValueError(f"{ma} live prices disagree: {live[ma]} vs {usd}")
+        live[ma] = usd
+    return live
 
 
 def load_costs(path: Path) -> dict[str, dict[str, str]]:
@@ -273,15 +281,19 @@ def main(argv: list[str] | None = None) -> int:
     a = p.parse_args(argv)
     if a.headroom_pct < 0:
         p.error("--headroom-pct must be >= 0")
-    summary = summarize(evaluate(load_live(a.live), load_costs(a.costs), load_held_from_ts(a.held_ts),
-                                 load_weights(a.weights)), a.headroom_pct)
-    md = markdown(summary, a.title)
-    if a.out_md:
-        a.out_md.write_text(md, encoding="utf-8")
-    if a.out_json:
-        a.out_json.write_text(json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    if not a.out_md:
-        print(md, end="")
+    try:
+        summary = summarize(evaluate(load_live(a.live), load_costs(a.costs), load_held_from_ts(a.held_ts),
+                                     load_weights(a.weights)), a.headroom_pct)
+        md = markdown(summary, a.title)
+        if a.out_md:
+            a.out_md.write_text(md, encoding="utf-8")
+        if a.out_json:
+            a.out_json.write_text(json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        if not a.out_md:
+            print(md, end="")
+    except (OSError, json.JSONDecodeError, ValueError) as error:
+        print(error, file=sys.stderr)
+        return 2
     return 0
 
 

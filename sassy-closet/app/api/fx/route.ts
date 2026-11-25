@@ -24,5 +24,9 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
-  return NextResponse.json(await setFx(usdCny));
+  try {
+    return NextResponse.json(await setFx(usdCny));
+  } catch (error) {
+    return storeUnavailableResponse(error);
+  }
 }
