@@ -43,6 +43,24 @@ def test_dedup_keeps_newest(tmp_path):
     assert len(posts) == 1 and posts[0]["has_gia"] is True
 
 
+def test_dedup_keeps_later_instant_across_pacific_offset():
+    """20:00 Pacific (UTC-7) is 03:00Z, later than 01:00Z the same shop night.
+
+    Comparing the raw ISO text keeps the earlier UTC row because "2026-10-22"
+    sorts after "2026-10-21", and the saved snapshot then says Giá was not checked.
+    """
+    earlier = {"platform": "fb", "post_id": "1", "ma": "X01", "has_gia": "no",
+               "checked_at": "2026-10-22T01:00:00+00:00"}
+    later = {"platform": "fb", "post_id": "1", "ma": "X01", "has_gia": "yes",
+             "checked_at": "2026-10-21T20:00:00-07:00"}
+    for rows in ((earlier, later), (later, earlier)):
+        posts, bad = ms.normalize(list(rows))
+        assert bad == []
+        assert len(posts) == 1
+        assert posts[0]["has_gia"] is True
+        assert posts[0]["checked_at"] == "2026-10-21T20:00:00-07:00"
+
+
 def test_gap_report_uses_saved_snapshot(tmp_path):
     f = tmp_path / "in.csv"; f.write_text(CSV)
     out = tmp_path / "out" / "meta-snapshot"
