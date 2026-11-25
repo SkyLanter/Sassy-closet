@@ -135,11 +135,12 @@ def test_too_cheap_decisions() -> None:
         assert row.kg == case["kg"]
 
 
-def test_load_live_rejects_null_price(tmp_path: Path) -> None:
+def test_load_live_skips_null_price(tmp_path: Path) -> None:
+    # Was pinned as a TypeError crash. A null price is now dropped, not raised:
+    # the null mã has no live price, so it is never checked and never priced.
     catalog = tmp_path / "catalog.json"
     catalog.write_text(json.dumps(golden()["loadLiveNullPrice"]), encoding="utf-8")
-    with pytest.raises(TypeError):
-        too_cheap_check.load_live(catalog)
+    assert too_cheap_check.load_live(catalog) == {"A01": 20.0}
 
 
 def test_held_proposals() -> None:
