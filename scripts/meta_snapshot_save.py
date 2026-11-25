@@ -53,6 +53,14 @@ def _ts(v: str):
     return dt.isoformat()
 
 
+def _moment(text: str) -> datetime:
+    """Instant for de-dup. A value with no offset is UTC, same as a trailing Z."""
+    parsed = datetime.fromisoformat(text)
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
 def normalize(rows):
     good, bad = [], []
     for n, r in enumerate(rows, 1):
@@ -80,7 +88,7 @@ def normalize(rows):
     best = {}
     for p in good:
         k = (p["platform"], p["id"])
-        if k not in best or p["checked_at"] > best[k]["checked_at"]:
+        if k not in best or _moment(p["checked_at"]) > _moment(best[k]["checked_at"]):
             best[k] = p
     return sorted(best.values(), key=lambda p: (p["platform"], p["id"])), bad
 
