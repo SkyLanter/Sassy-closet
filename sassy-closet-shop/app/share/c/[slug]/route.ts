@@ -1,4 +1,5 @@
 import { categoryFromSlug } from "@/lib/categories";
+import { PRIVATE_NOT_FOUND_HEADERS } from "@/lib/private-robots";
 import { renderShareCard } from "@/lib/og-card";
 import { coverSrc } from "@/lib/product-media";
 import { getProductsByType } from "@/lib/products";
@@ -18,7 +19,7 @@ export async function GET(
     if (!type) {
       return new Response("Not found", {
         status: 404,
-        headers: { "content-type": "text/plain; charset=utf-8" },
+        headers: PRIVATE_NOT_FOUND_HEADERS,
       });
     }
     const products = await getProductsByType(type);

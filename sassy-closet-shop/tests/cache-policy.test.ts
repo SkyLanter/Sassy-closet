@@ -139,12 +139,13 @@ test("wiring: writes + refreshShop clear the memo; admin reads stay fresh", () =
 
 test("wiring: photo 404s stay no-store; admin keeps next.config no-store", () => {
   const route = readFileSync(new URL("../app/products/[ma]/[file]/route.ts", import.meta.url), "utf8");
-  assert.match(route, /status: 404, headers: NO_STORE_HEADERS/);
+  assert.match(route, /status: 404, headers: PRIVATE_NOT_FOUND_HEADERS/);
   assert.match(route, /!isSellableMa\(ma\)/);
   const cfg = readFileSync(new URL("../next.config.ts", import.meta.url), "utf8");
   assert.match(cfg, /source: "\/admin\/:path\*", headers: privateSurface/);
   assert.match(cfg, /source: "\/api\/:path\*", headers: privateSurface/);
   assert.match(cfg, /X-Robots-Tag", value: PRIVATE_ROBOTS_TAG/);
   const robots = readFileSync(new URL("../lib/private-robots.ts", import.meta.url), "utf8");
+  assert.match(robots, /NO_STORE_HEADERS/);
   assert.match(robots, /noindex, nofollow, nosnippet/);
 });

@@ -2,8 +2,10 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
 import { NO_STORE_HEADERS } from "@/lib/http-no-store";
+import { PRIVATE_NOT_FOUND_HEADERS } from "@/lib/private-robots";
 import { isValidMa, normalizeMa } from "@/lib/ma";
 import { coverSrc } from "@/lib/product-media";
+import { resolvedPublicFile } from "@/lib/public-path";
 import { readLiveCatalogDocumentForShop } from "@/lib/catalog-store";
 import { isSellableMa } from "@/lib/sell-contract";
 import { isOffLiveSell } from "@/lib/held-incomplete";
@@ -32,7 +34,7 @@ function publicProductPath(ma: string, file: string): string | null {
   if (path.basename(file) !== file || file.includes("..") || file.includes("/") || file.includes("\\")) {
     return null;
   }
-  return path.join(process.cwd(), "public", "products", ma, file);
+  return resolvedPublicFile(`/products/${ma}/${file}`);
 }
 
 async function readPublicNamedFile(ma: string, file: string): Promise<{ body: Buffer; type: string } | null> {
@@ -79,9 +81,13 @@ async function bytesFromCatalogSrc(
     return readPublicCover(ma);
   }
   if (src.startsWith("/uploads/") || src.startsWith("/")) {
+    const relative = src.split("?")[0] ?? src;
+    const dest = resolvedPublicFile(relative);
+    if (!dest) {
+      return null;
+    }
     try {
-      const relative = src.split("?")[0] ?? src;
-      const body = await readFile(path.join(process.cwd(), "public", relative.replace(/^\//, "")));
+      const body = await readFile(dest);
       return { body, type: mimeFor(relative) };
     } catch {
       return readPublicCover(ma);
@@ -123,7 +129,7 @@ export async function GET(
   const { ma: rawMa, file } = await context.params;
   const ma = normalizeMa(rawMa);
   if (!isValidMa(ma) || !isSellableMa(ma) || isOffLiveSell(ma) || !FILE_RE.test(file)) {
-    return new NextResponse("Not found", { status: 404, headers: NO_STORE_HEADERS });
+    return new NextResponse("Not found", { status: 404, headers: PRIVATE_NOT_FOUND_HEADERS });
   }
 
   const named = await readPublicNamedFile(ma, file);
@@ -134,7 +140,7 @@ export async function GET(
   const document = await readLiveCatalogDocumentForShop();
   const product = document.products.find((item) => item.ma === ma);
   if (!product) {
-    return new NextResponse("Not found", { status: 404, headers: NO_STORE_HEADERS });
+    return new NextResponse("Not found", { status: 404, headers: PRIVATE_NOT_FOUND_HEADERS });
   }
 
   const wanted = product.images.find((image) => {
@@ -155,7 +161,7 @@ export async function GET(
     }
   }
   if (!payload) {
-    return new NextResponse("Not found", { status: 404, headers: NO_STORE_HEADERS });
+    return new NextResponse("Not found", { status: 404, headers: PRIVATE_NOT_FOUND_HEADERS });
   }
 
   return imageResponse(payload);

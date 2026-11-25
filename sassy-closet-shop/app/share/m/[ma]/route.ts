@@ -1,4 +1,5 @@
 import { coverSrc } from "@/lib/product-media";
+import { PRIVATE_NOT_FOUND_HEADERS } from "@/lib/private-robots";
 import { getProduct } from "@/lib/products";
 import { renderShareCard } from "@/lib/og-card";
 import { homeShareCardFields, productShareCardCopy } from "@/lib/share-card";
@@ -17,7 +18,7 @@ export async function GET(
     if (!product) {
       return new Response("Not found", {
         status: 404,
-        headers: { "content-type": "text/plain; charset=utf-8" },
+        headers: PRIVATE_NOT_FOUND_HEADERS,
       });
     }
     const photo = await loadSharePhoto(coverSrc(product), { requestUrl: request.url });

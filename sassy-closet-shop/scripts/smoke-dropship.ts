@@ -306,11 +306,11 @@ if (customerOpsVoiceHit(note ?? "ok") && note) {
   fail("Inbox-price PDP copy must not say Hold / Available / on hand");
 }
 const ld = productJsonLd(hold);
-const offer = ld.offers as { price?: string; availability?: string };
-if (offer.price) {
+const offer = ld.offers as { price?: string; availability?: string } | undefined;
+if (offer?.price) {
   fail("Hold JSON-LD must not invent USD");
 }
-if (offer.availability) {
+if (offer?.availability) {
   fail("Hold JSON-LD must not print availability / PreOrder / InStock");
 }
 
