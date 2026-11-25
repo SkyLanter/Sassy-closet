@@ -80,6 +80,20 @@ test("success paths unchanged on an empty healthy store", async () => {
   });
 });
 
+test("POST /api/fx store failure is 503", async () => {
+  await withStore("{not json", async () => {
+    const fx = await import("../app/api/fx/route");
+    const response = await fx.POST(
+      new Request("http://localhost/api/fx", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ usd_cny: 6.8 }),
+      }),
+    );
+    await is503(response);
+  });
+});
+
 test("photo read failure (not a bad path) -> 503", async () => {
   await withStore(null, async () => {
     // a directory where the photo file should be -> read throws (EISDIR)

@@ -21,7 +21,7 @@ import {
   type ListingStatusClient,
 } from "@/lib/listing-status";
 import { normalizeFindCode } from "@/lib/on-hand";
-import { intakePriceView, type SellPriceFlag } from "@/lib/pricing";
+import { intakePriceView, shouldPersistCalculatedSell, type SellPriceFlag } from "@/lib/pricing";
 import type { PriceBreakdown } from "@/lib/pricing";
 import type { TaobaoItem } from "@/lib/taobao";
 import type { KindCode } from "@/lib/kinds";
@@ -341,8 +341,9 @@ export function IntakeApp({
       form.set("cost_usd", costUsd);
       form.set("cost_cny", costCny);
       form.set("cost_currency", costUsd ? "USD" : costCny ? "CNY" : "USD");
+      const priceMa = (editingMa || (tab === "edit" ? loadedMa : "") || "").trim();
       const priced = intakePriceView({
-        ma: (editingMa || (tab === "edit" ? loadedMa : "") || "").trim(),
+        ma: priceMa,
         kind,
         costCny,
         costUsd,
@@ -352,7 +353,8 @@ export function IntakeApp({
         sellCurrency: sellUsd.trim() ? "USD" : sellCny.trim() ? "CNY" : "USD",
         fxRate,
       });
-      const fillCalculated = !sellUsd.trim() && !sellCny.trim() && priced.dollars != null;
+      const fillCalculated =
+        shouldPersistCalculatedSell(priceMa, sellUsd, sellCny) && priced.dollars != null;
       const nextSellUsd = fillCalculated ? String(priced.dollars) : sellUsd;
       const nextSellCny = fillCalculated ? (convertUsdToCny(nextSellUsd, fxRate) ?? "") : sellCny;
       form.set("sell_usd", nextSellUsd);

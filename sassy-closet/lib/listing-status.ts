@@ -57,6 +57,8 @@ export function parseListingItems(value: unknown): Record<string, ListingItem> |
     if (!key || key.length > LISTING_MA_CAP) continue;
     const item = parseListingItem(rawItem);
     if (!item) continue;
+    // Held wins over a later non-held alias of the same mã. A later held state still replaces.
+    if (items[key]?.state === "held" && item.state !== "held") continue;
     items[key] = item;
   }
   return items;

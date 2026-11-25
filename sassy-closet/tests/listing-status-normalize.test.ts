@@ -29,3 +29,38 @@ test("numbers above 99 stay distinct", () => {
   assert.equal(listingItemForMa(items, "A10")?.state, "pending");
   assert.equal(listingItemForMa(items, "A010")?.state, "pending");
 });
+
+function badge(items: Parameters<typeof listingItemForMa>[0], ma: string) {
+  const item = listingItemForMa(items, ma);
+  return { state: item?.state, label: listingChip(item).label };
+}
+
+test("a held badge is not overwritten when a padded alias is live", () => {
+  const { items } = listingStatusFromApi({
+    enabled: true,
+    items: {
+      A07: { state: "held", reasons: [{ code: "photo_text", vi: "giữ" }] },
+      A007: { state: "live", priceUsd: 30 },
+    },
+  });
+  const held = { state: "held", label: "Held" };
+  assert.deepEqual(
+    { A07: badge(items, "A07"), A007: badge(items, "A007") },
+    { A07: held, A007: held },
+  );
+});
+
+test("a padded live alias listed first still leaves the held badge", () => {
+  const { items } = listingStatusFromApi({
+    enabled: true,
+    items: {
+      A007: { state: "live", priceUsd: 30 },
+      A07: { state: "held", reasons: [{ code: "photo_text", vi: "giữ" }] },
+    },
+  });
+  const held = { state: "held", label: "Held" };
+  assert.deepEqual(
+    { A07: badge(items, "A07"), A007: badge(items, "A007") },
+    { A07: held, A007: held },
+  );
+});

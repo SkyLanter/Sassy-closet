@@ -67,8 +67,7 @@ export async function getOnHandRows(ma: string): Promise<OnHandRow[]> {
   const target = normalizeMa(ma);
   const bag = (await loadStore()).on_hand;
   if (!bag || typeof bag !== "object") return [];
-  const raw = bag[target] ?? bag[ma];
-  return sanitizeOnHandRows(raw, target);
+  return sanitizeOnHandRows(onHandEntry(bag, ma, target), target);
 }
 
 export async function listMas(): Promise<string[]> {
@@ -127,13 +126,10 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
 
   const now = new Date().toISOString();
   const photoPaths = [...input.keep_photos];
-  const photoHashes = existing ? [...existing.photo_hashes] : [];
-  if (input.keep_photos.length === 0 && existing) {
-    photoHashes.length = 0;
-  }
+  const photoHashes = hashesForKeptPhotos(existing, input.keep_photos);
 
   const backend = activeBackend();
-  let index = photoPaths.length;
+  let index = highestKeptPhotoIndex(photoPaths);
   for (const photo of input.photos) {
     index += 1;
     const name = `${String(index).padStart(3, "0")}${photo.ext}`;
@@ -188,6 +184,7 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
 }
 
 export async function findByPhotoHash(hash: string): Promise<Submission[]> {
+  if (!hash) return [];
   return (await loadStore()).submissions.filter((row) => row.photo_hashes.includes(hash));
 }
 
@@ -265,6 +262,40 @@ export function storeHealth(): ReturnType<typeof storageStatus> {
 function csvCell(value: string): string {
   if (/[",\n]/.test(value)) return `"${value.replaceAll('"', '""')}"`;
   return value;
+}
+
+function onHandEntry(bag: Record<string, unknown>, ma: string, target: string): unknown {
+  if (Object.prototype.hasOwnProperty.call(bag, target)) return bag[target];
+  if (ma !== target && Object.prototype.hasOwnProperty.call(bag, ma)) return bag[ma];
+  for (const [key, value] of Object.entries(bag)) {
+    if (normalizeMa(key) === target) return value;
+  }
+  return undefined;
+}
+
+function highestKeptPhotoIndex(paths: readonly string[]): number {
+  let highest = 0;
+  for (const rel of paths) {
+    const file = rel.slice(rel.lastIndexOf("/") + 1);
+    const match = /^(\d+)/.exec(file);
+    if (!match) continue;
+    const index = Number(match[1]);
+    if (index > highest) highest = index;
+  }
+  return highest;
+}
+
+function hashesForKeptPhotos(
+  existing: Pick<Submission, "photo_paths" | "photo_hashes"> | null,
+  keepPhotos: readonly string[],
+): string[] {
+  if (!existing) return keepPhotos.map(() => "");
+  return keepPhotos.map((rel) => {
+    const index = existing.photo_paths.indexOf(rel);
+    if (index < 0) return "";
+    const hash = existing.photo_hashes[index];
+    return typeof hash === "string" ? hash : "";
+  });
 }
 
 function postedSell(currency: string, usd: string, cny: string): string {

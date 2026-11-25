@@ -4,6 +4,7 @@ import {
   captionPriceLine,
   intakePriceView,
   sellPriceFlag,
+  shouldPersistCalculatedSell,
   tieredSellUsd,
   computeAutoPrice,
   deboxFor,
@@ -244,6 +245,60 @@ test("caption price: margin at/above 35% shows the price", () => {
     fxRate: FX,
   });
   assert.equal(line, "$12");
+});
+
+function knownCnyCost(sellUsd: string) {
+  return {
+    sellUsd,
+    sellCny: "",
+    sellCurrency: "USD",
+    costCny: "50",
+    costUsd: "",
+    costCurrency: "CNY",
+    kind: "A",
+    fxRate: FX,
+  };
+}
+
+test("sell 0 is later and the caption stays Inbox giá", () => {
+  const input = knownCnyCost("0");
+  assert.deepEqual(
+    { flag: sellPriceFlag(input), caption: captionPriceLine(input) },
+    { flag: "later", caption: "Inbox giá" },
+  );
+});
+
+test("sell -5 is later and the caption stays Inbox giá", () => {
+  const input = knownCnyCost("-5");
+  assert.deepEqual(
+    { flag: sellPriceFlag(input), caption: captionPriceLine(input) },
+    { flag: "later", caption: "Inbox giá" },
+  );
+});
+
+test("a $10 sell under the floor captions Inbox giá", () => {
+  assert.equal(captionPriceLine(knownCnyCost("$10")), "Inbox giá");
+});
+
+test("a sell that is not a positive amount stays Inbox giá", () => {
+  assert.equal(captionPriceLine(knownCnyCost("abc")), "Inbox giá");
+  assert.equal(captionPriceLine(knownCnyCost("$$12")), "Inbox giá");
+  assert.equal(sellPriceFlag(knownCnyCost("abc")), "later");
+});
+
+test("a $12 sell captions $12 without a second dollar sign", () => {
+  const line = captionPriceLine(knownCnyCost("$12"));
+  assert.equal(line, "$12");
+  assert.notEqual(line, "$$12");
+});
+
+test("blank S06 is not a calculated sell to persist", () => {
+  assert.equal(shouldPersistCalculatedSell("S06", "", ""), false);
+  assert.equal(shouldPersistCalculatedSell("s6", "", ""), false);
+  assert.equal(shouldPersistCalculatedSell(" S006 ", "", ""), false);
+  assert.equal(shouldPersistCalculatedSell("A01", "", ""), true);
+  assert.equal(shouldPersistCalculatedSell("S06", "25", ""), false);
+  assert.equal(shouldPersistCalculatedSell("A01", "20", ""), false);
 });
 
 test("caption price: unknown cost does not block a set sell price", () => {

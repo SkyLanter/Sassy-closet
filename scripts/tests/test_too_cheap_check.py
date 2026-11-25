@@ -114,3 +114,36 @@ def test_no_network_imports():
     src = Path(tc.__file__).read_text(encoding="utf-8")
     for bad in ("urllib", "requests", "http.client", "socket", "subprocess"):
         assert f"import {bad}" not in src and f"from {bad}" not in src
+
+
+def test_load_live_rejects_padded_alias_with_a_different_price(tmp_path: Path):
+    live = tmp_path / "live.json"
+    live.write_text(json.dumps({
+        "products": [
+            {"ma": "A01", "priceUsd": 30},
+            {"ma": "A001", "priceUsd": 10},
+            {"ma": "S06", "priceUsd": 25},
+        ],
+    }), encoding="utf-8")
+    with pytest.raises(ValueError, match="A01"):
+        tc.load_live(live)
+
+
+def test_load_live_same_price_spellings_collapse(tmp_path: Path):
+    live = tmp_path / "live.json"
+    live.write_text(
+        json.dumps({"prices": {"a01": 27, "A01": 27, "S06": 25}}),
+        encoding="utf-8",
+    )
+    assert tc.load_live(live) == {"A01": 27, "S06": 25}
+
+
+def test_cli_non_numeric_live_price_returns_2(tmp_path: Path):
+    live = tmp_path / "live.json"
+    live.write_text(
+        json.dumps({"products": [{"ma": "A01", "priceUsd": "no"}]}),
+        encoding="utf-8",
+    )
+    costs = tmp_path / "costs.csv"
+    costs.write_text("ma,intake_cny,kg\nA01,10,0.1\n", encoding="utf-8")
+    assert tc.main(["--live", str(live), "--costs", str(costs)]) == 2
