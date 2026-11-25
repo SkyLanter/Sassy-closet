@@ -220,16 +220,16 @@ test("save keeps S06 at the locked dollar", () => {
     ...fields,
     priceUsd: golden.saveS06.rejectPrice,
   });
-  assert.equal(rejected.ok, false);
   if (rejected.ok) {
     assert.fail("S06 price change was saved");
   }
+  assert.equal(rejected.ok, false);
   assert.equal(rejected.error, golden.saveS06.rejectError);
   const saved = saveProductInCatalog([row], "S06", fields);
-  assert.equal(saved.ok, true);
   if (!saved.ok) {
     assert.fail(saved.error);
   }
+  assert.equal(saved.ok, true);
   assert.equal(saved.products[0]?.priceUsd, golden.saveS06.keepPrice);
   assert.equal(saved.products[0]?.ma, "S06");
 });
