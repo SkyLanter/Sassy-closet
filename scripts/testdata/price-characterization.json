@@ -1,0 +1,2018 @@
+{
+  "about": "Locked sell-price outputs. Tests compare live function results to this file.",
+  "fxCnyPerUsd": "6.723",
+  "shipUsdPerKg": "10.52",
+  "underTenLimit": 10,
+  "underTenBump": 2,
+  "s06LockUsd": 25,
+  "policy": {
+    "held": [
+      "K03"
+    ],
+    "neverList": [
+      "Z99"
+    ]
+  },
+  "tieredBands": [
+    [
+      1,
+      3
+    ],
+    [
+      66,
+      4
+    ],
+    [
+      131,
+      5
+    ],
+    [
+      196,
+      6
+    ],
+    [
+      261,
+      7
+    ],
+    [
+      326,
+      8
+    ],
+    [
+      391,
+      9
+    ],
+    [
+      456,
+      10
+    ],
+    [
+      521,
+      11
+    ],
+    [
+      586,
+      10
+    ],
+    [
+      651,
+      11
+    ],
+    [
+      716,
+      12
+    ],
+    [
+      781,
+      13
+    ],
+    [
+      846,
+      14
+    ],
+    [
+      911,
+      15
+    ],
+    [
+      976,
+      16
+    ],
+    [
+      1041,
+      17
+    ],
+    [
+      1106,
+      18
+    ],
+    [
+      1171,
+      19
+    ],
+    [
+      1236,
+      20
+    ],
+    [
+      1301,
+      21
+    ],
+    [
+      1366,
+      22
+    ],
+    [
+      1431,
+      23
+    ],
+    [
+      1496,
+      24
+    ],
+    [
+      1561,
+      25
+    ],
+    [
+      1626,
+      26
+    ],
+    [
+      1704,
+      27
+    ],
+    [
+      1783,
+      28
+    ],
+    [
+      1863,
+      29
+    ],
+    [
+      1944,
+      30
+    ],
+    [
+      2026,
+      31
+    ],
+    [
+      2109,
+      32
+    ],
+    [
+      2193,
+      33
+    ],
+    [
+      2278,
+      34
+    ],
+    [
+      2364,
+      35
+    ],
+    [
+      2451,
+      36
+    ],
+    [
+      2539,
+      37
+    ],
+    [
+      2628,
+      38
+    ],
+    [
+      2718,
+      39
+    ],
+    [
+      2809,
+      40
+    ],
+    [
+      2901,
+      41
+    ],
+    [
+      2994,
+      42
+    ],
+    [
+      3088,
+      43
+    ],
+    [
+      3183,
+      44
+    ],
+    [
+      3279,
+      45
+    ],
+    [
+      3376,
+      46
+    ],
+    [
+      3451,
+      47
+    ],
+    [
+      3526,
+      48
+    ],
+    [
+      3601,
+      49
+    ],
+    [
+      3676,
+      50
+    ],
+    [
+      3751,
+      51
+    ],
+    [
+      3826,
+      52
+    ],
+    [
+      3901,
+      53
+    ],
+    [
+      3976,
+      54
+    ],
+    [
+      4051,
+      55
+    ],
+    [
+      4126,
+      56
+    ],
+    [
+      4201,
+      57
+    ],
+    [
+      4276,
+      58
+    ],
+    [
+      4351,
+      59
+    ],
+    [
+      4426,
+      60
+    ],
+    [
+      4501,
+      61
+    ],
+    [
+      4576,
+      62
+    ],
+    [
+      4651,
+      63
+    ],
+    [
+      4726,
+      64
+    ],
+    [
+      4801,
+      65
+    ],
+    [
+      4876,
+      66
+    ],
+    [
+      4951,
+      67
+    ],
+    [
+      5026,
+      68
+    ],
+    [
+      5101,
+      69
+    ],
+    [
+      5176,
+      70
+    ],
+    [
+      5251,
+      71
+    ],
+    [
+      5326,
+      72
+    ],
+    [
+      5401,
+      73
+    ],
+    [
+      5476,
+      74
+    ],
+    [
+      5551,
+      75
+    ],
+    [
+      5626,
+      76
+    ],
+    [
+      5701,
+      77
+    ],
+    [
+      5776,
+      78
+    ],
+    [
+      5851,
+      79
+    ],
+    [
+      5926,
+      80
+    ],
+    [
+      6001,
+      81
+    ],
+    [
+      6076,
+      82
+    ],
+    [
+      6151,
+      83
+    ],
+    [
+      6226,
+      84
+    ],
+    [
+      6301,
+      85
+    ],
+    [
+      6376,
+      86
+    ],
+    [
+      6451,
+      87
+    ],
+    [
+      6526,
+      88
+    ],
+    [
+      6601,
+      89
+    ],
+    [
+      6676,
+      90
+    ],
+    [
+      6751,
+      91
+    ],
+    [
+      6826,
+      92
+    ],
+    [
+      6901,
+      93
+    ],
+    [
+      6976,
+      94
+    ],
+    [
+      7051,
+      95
+    ],
+    [
+      7126,
+      96
+    ],
+    [
+      7201,
+      97
+    ],
+    [
+      7276,
+      98
+    ],
+    [
+      7351,
+      99
+    ],
+    [
+      7426,
+      100
+    ],
+    [
+      7501,
+      101
+    ],
+    [
+      7576,
+      102
+    ],
+    [
+      7651,
+      103
+    ],
+    [
+      7726,
+      104
+    ],
+    [
+      7801,
+      105
+    ],
+    [
+      7876,
+      106
+    ],
+    [
+      7951,
+      107
+    ]
+  ],
+  "flatBands": [
+    [
+      1,
+      3
+    ],
+    [
+      76,
+      4
+    ],
+    [
+      151,
+      5
+    ],
+    [
+      226,
+      6
+    ],
+    [
+      301,
+      7
+    ],
+    [
+      376,
+      8
+    ],
+    [
+      451,
+      9
+    ],
+    [
+      526,
+      10
+    ],
+    [
+      601,
+      11
+    ],
+    [
+      676,
+      10
+    ],
+    [
+      751,
+      11
+    ],
+    [
+      826,
+      12
+    ],
+    [
+      901,
+      13
+    ],
+    [
+      976,
+      14
+    ],
+    [
+      1051,
+      15
+    ],
+    [
+      1126,
+      16
+    ],
+    [
+      1201,
+      17
+    ],
+    [
+      1276,
+      18
+    ],
+    [
+      1351,
+      19
+    ],
+    [
+      1426,
+      20
+    ],
+    [
+      1501,
+      21
+    ],
+    [
+      1576,
+      22
+    ],
+    [
+      1651,
+      23
+    ],
+    [
+      1726,
+      24
+    ],
+    [
+      1801,
+      25
+    ],
+    [
+      1876,
+      26
+    ],
+    [
+      1951,
+      27
+    ],
+    [
+      2026,
+      28
+    ],
+    [
+      2101,
+      29
+    ],
+    [
+      2176,
+      30
+    ],
+    [
+      2251,
+      31
+    ],
+    [
+      2326,
+      32
+    ],
+    [
+      2401,
+      33
+    ],
+    [
+      2476,
+      34
+    ],
+    [
+      2551,
+      35
+    ],
+    [
+      2626,
+      36
+    ],
+    [
+      2701,
+      37
+    ],
+    [
+      2776,
+      38
+    ],
+    [
+      2851,
+      39
+    ],
+    [
+      2926,
+      40
+    ],
+    [
+      3001,
+      41
+    ],
+    [
+      3076,
+      42
+    ],
+    [
+      3151,
+      43
+    ],
+    [
+      3226,
+      44
+    ],
+    [
+      3301,
+      45
+    ],
+    [
+      3376,
+      46
+    ],
+    [
+      3451,
+      47
+    ],
+    [
+      3526,
+      48
+    ],
+    [
+      3601,
+      49
+    ],
+    [
+      3676,
+      50
+    ],
+    [
+      3751,
+      51
+    ],
+    [
+      3826,
+      52
+    ],
+    [
+      3901,
+      53
+    ],
+    [
+      3976,
+      54
+    ],
+    [
+      4051,
+      55
+    ],
+    [
+      4126,
+      56
+    ],
+    [
+      4201,
+      57
+    ],
+    [
+      4276,
+      58
+    ],
+    [
+      4351,
+      59
+    ],
+    [
+      4426,
+      60
+    ],
+    [
+      4501,
+      61
+    ],
+    [
+      4576,
+      62
+    ],
+    [
+      4651,
+      63
+    ],
+    [
+      4726,
+      64
+    ],
+    [
+      4801,
+      65
+    ],
+    [
+      4876,
+      66
+    ],
+    [
+      4951,
+      67
+    ],
+    [
+      5026,
+      68
+    ],
+    [
+      5101,
+      69
+    ],
+    [
+      5176,
+      70
+    ],
+    [
+      5251,
+      71
+    ],
+    [
+      5326,
+      72
+    ],
+    [
+      5401,
+      73
+    ],
+    [
+      5476,
+      74
+    ],
+    [
+      5551,
+      75
+    ],
+    [
+      5626,
+      76
+    ],
+    [
+      5701,
+      77
+    ],
+    [
+      5776,
+      78
+    ],
+    [
+      5851,
+      79
+    ],
+    [
+      5926,
+      80
+    ],
+    [
+      6001,
+      81
+    ],
+    [
+      6076,
+      82
+    ],
+    [
+      6151,
+      83
+    ],
+    [
+      6226,
+      84
+    ],
+    [
+      6301,
+      85
+    ],
+    [
+      6376,
+      86
+    ],
+    [
+      6451,
+      87
+    ],
+    [
+      6526,
+      88
+    ],
+    [
+      6601,
+      89
+    ],
+    [
+      6676,
+      90
+    ],
+    [
+      6751,
+      91
+    ],
+    [
+      6826,
+      92
+    ],
+    [
+      6901,
+      93
+    ],
+    [
+      6976,
+      94
+    ],
+    [
+      7051,
+      95
+    ],
+    [
+      7126,
+      96
+    ],
+    [
+      7201,
+      97
+    ],
+    [
+      7276,
+      98
+    ],
+    [
+      7351,
+      99
+    ],
+    [
+      7426,
+      100
+    ],
+    [
+      7501,
+      101
+    ],
+    [
+      7576,
+      102
+    ],
+    [
+      7651,
+      103
+    ],
+    [
+      7726,
+      104
+    ],
+    [
+      7801,
+      105
+    ],
+    [
+      7876,
+      106
+    ],
+    [
+      7951,
+      107
+    ]
+  ],
+  "tieredEdges": [
+    {
+      "landed": "16.2499",
+      "sell": 25
+    },
+    {
+      "landed": "16.25",
+      "sell": 25
+    },
+    {
+      "landed": "16.2500001",
+      "sell": 26
+    },
+    {
+      "landed": "16.26",
+      "sell": 26
+    },
+    {
+      "landed": "19.5",
+      "sell": 30
+    },
+    {
+      "landed": "19.50",
+      "sell": 30
+    },
+    {
+      "landed": "19.51",
+      "sell": 30
+    },
+    {
+      "landed": "19.58",
+      "sell": 30
+    },
+    {
+      "landed": "24.5",
+      "sell": 35
+    },
+    {
+      "landed": "30",
+      "sell": 42
+    },
+    {
+      "landed": "33",
+      "sell": 45
+    },
+    {
+      "landed": "33.74",
+      "sell": 45
+    },
+    {
+      "landed": "33.75",
+      "sell": 45
+    },
+    {
+      "landed": "33.7500001",
+      "sell": 46
+    },
+    {
+      "landed": "33.76",
+      "sell": 46
+    },
+    {
+      "landed": "37.5",
+      "sell": 50
+    },
+    {
+      "landed": "3.9",
+      "sell": 8
+    },
+    {
+      "landed": "5",
+      "sell": 10
+    },
+    {
+      "landed": "5.20",
+      "sell": 10
+    },
+    {
+      "landed": "5.85",
+      "sell": 11
+    },
+    {
+      "landed": "5.86",
+      "sell": 10
+    },
+    {
+      "landed": "6.5",
+      "sell": 10
+    },
+    {
+      "landed": "100",
+      "sell": 134
+    },
+    {
+      "landed": "100.01",
+      "sell": 134
+    }
+  ],
+  "flatEdges": [
+    {
+      "landed": "0.01",
+      "sell": 3
+    },
+    {
+      "landed": "3.9",
+      "sell": 8
+    },
+    {
+      "landed": "5",
+      "sell": 9
+    },
+    {
+      "landed": "5.20",
+      "sell": 9
+    },
+    {
+      "landed": "5.85",
+      "sell": 10
+    },
+    {
+      "landed": "5.86",
+      "sell": 10
+    },
+    {
+      "landed": "6.5",
+      "sell": 11
+    },
+    {
+      "landed": "6.75",
+      "sell": 11
+    },
+    {
+      "landed": "7.49",
+      "sell": 10
+    },
+    {
+      "landed": "7.50",
+      "sell": 10
+    },
+    {
+      "landed": "16.25",
+      "sell": 22
+    },
+    {
+      "landed": "16.26",
+      "sell": 22
+    },
+    {
+      "landed": "16.2500001",
+      "sell": 22
+    },
+    {
+      "landed": "19.5",
+      "sell": 26
+    },
+    {
+      "landed": "24.5",
+      "sell": 33
+    },
+    {
+      "landed": "30",
+      "sell": 40
+    },
+    {
+      "landed": "33",
+      "sell": 44
+    },
+    {
+      "landed": "33.75",
+      "sell": 45
+    },
+    {
+      "landed": "33.7500001",
+      "sell": 46
+    },
+    {
+      "landed": "37.5",
+      "sell": 50
+    },
+    {
+      "landed": "100",
+      "sell": 134
+    }
+  ],
+  "tieredRefusal": {
+    "inputs": [
+      "0",
+      "0.00",
+      "-1"
+    ],
+    "message": "landed cost must be positive; refusing to invent a sell price",
+    "nonFiniteInput": "nan",
+    "nonFiniteMessage": "landed cost 'nan' is not finite; refusing to invent a sell price"
+  },
+  "sharedTieredThrows": [
+    "0",
+    "0.00",
+    "-1",
+    ""
+  ],
+  "intakeTieredNulls": [
+    0,
+    -1,
+    "NaN",
+    "Infinity"
+  ],
+  "flatInvent": [
+    {
+      "landed": "0",
+      "quotedUsd": 0,
+      "sellUsd": 2
+    },
+    {
+      "landed": "-1",
+      "quotedUsd": -1,
+      "sellUsd": 1
+    }
+  ],
+  "margins": [
+    {
+      "sell": 1,
+      "text": "0.35"
+    },
+    {
+      "sell": 25,
+      "text": "0.35"
+    },
+    {
+      "sell": 26,
+      "text": "0.345"
+    },
+    {
+      "sell": 35,
+      "text": "0.3"
+    },
+    {
+      "sell": 44,
+      "text": "0.255"
+    },
+    {
+      "sell": 45,
+      "text": "0.25"
+    },
+    {
+      "sell": 46,
+      "text": "0.25"
+    }
+  ],
+  "cnyLanded": [
+    {
+      "yen": "67.23",
+      "kg": "0",
+      "exact": "10.00",
+      "shown": "10.0000",
+      "tiered": 16,
+      "flat": 14
+    },
+    {
+      "yen": "67.23",
+      "kg": "1",
+      "exact": "20.52",
+      "shown": "20.5200",
+      "tiered": 31,
+      "flat": 28
+    },
+    {
+      "yen": "67.23",
+      "kg": "0.3",
+      "exact": "13.156",
+      "shown": "13.1560",
+      "tiered": 21,
+      "flat": 18
+    },
+    {
+      "yen": "100",
+      "kg": "0.3",
+      "exact": "18.03031206306708314740443254",
+      "shown": "18.0303",
+      "tiered": 28,
+      "flat": 25
+    },
+    {
+      "yen": "1",
+      "kg": "0.001",
+      "exact": "0.1592631206306708314740443254",
+      "shown": "0.1593",
+      "tiered": 3,
+      "flat": 3
+    },
+    {
+      "yen": "0.01",
+      "kg": "0.01",
+      "exact": "0.1066874312063067083147404433",
+      "shown": "0.1067",
+      "tiered": 3,
+      "flat": 3
+    },
+    {
+      "yen": "53.78",
+      "kg": "0",
+      "exact": "7.999405027517477316674103823",
+      "shown": "7.9994",
+      "tiered": 13,
+      "flat": 11
+    },
+    {
+      "yen": "50",
+      "kg": "0.5",
+      "exact": "12.69715603153354157370221627",
+      "shown": "12.6972",
+      "tiered": 20,
+      "flat": 17
+    },
+    {
+      "yen": "80",
+      "kg": "0.3",
+      "exact": "15.05544965045366651792354604",
+      "shown": "15.0554",
+      "tiered": 24,
+      "flat": 21
+    },
+    {
+      "yen": "10.52",
+      "kg": "1",
+      "exact": "12.08477762903465714710694630",
+      "shown": "12.0848",
+      "tiered": 19,
+      "flat": 17
+    },
+    {
+      "yen": "6.723",
+      "kg": "0",
+      "exact": "1.00",
+      "shown": "1.0000",
+      "tiered": 4,
+      "flat": 4
+    },
+    {
+      "yen": "6.723",
+      "kg": "1",
+      "exact": "11.52",
+      "shown": "11.5200",
+      "tiered": 18,
+      "flat": 16
+    },
+    {
+      "yen": "13.446",
+      "kg": "0.25",
+      "exact": "4.6300",
+      "shown": "4.6300",
+      "tiered": 10,
+      "flat": 9
+    },
+    {
+      "yen": "99.99",
+      "kg": "0.333",
+      "exact": "18.37598463186077643908969210",
+      "shown": "18.3760",
+      "tiered": 28,
+      "flat": 25
+    },
+    {
+      "yen": "1.5",
+      "kg": "0",
+      "exact": "0.2231146809460062472110664882",
+      "shown": "0.2231",
+      "tiered": 3,
+      "flat": 3
+    },
+    {
+      "yen": "0.001",
+      "kg": "1",
+      "exact": "10.52014874312063067083147404",
+      "shown": "10.5201",
+      "tiered": 17,
+      "flat": 15
+    }
+  ],
+  "pickupLanded": [
+    {
+      "ma": "A01",
+      "cny": "67.23",
+      "landed": "10"
+    },
+    {
+      "ma": "V03",
+      "cny": "53.78",
+      "landed": "15.49940502751747731667410382"
+    },
+    {
+      "ma": "Q01",
+      "cny": "10",
+      "landed": "8.987431206306708314740443254"
+    },
+    {
+      "ma": "D02",
+      "cny": "0.01",
+      "landed": "7.501487431206306708314740443"
+    },
+    {
+      "ma": "P01",
+      "cny": "100",
+      "landed": "14.87431206306708314740443254"
+    },
+    {
+      "ma": "A01",
+      "cny": "0",
+      "landed": "0"
+    },
+    {
+      "ma": "A01",
+      "cny": "",
+      "landed": null
+    },
+    {
+      "ma": "A01",
+      "cny": "1.5",
+      "landed": "0.2231146809460062472110664882"
+    }
+  ],
+  "intakeLanded": [
+    {
+      "kind": "A",
+      "costCny": "67.23",
+      "costUsd": "",
+      "costCurrency": "CNY",
+      "fxRate": 6.723,
+      "landed": 10
+    },
+    {
+      "kind": "V",
+      "costCny": "53.78",
+      "costUsd": "",
+      "costCurrency": "CNY",
+      "fxRate": 6.723,
+      "landed": 15.499405027517478
+    }
+  ],
+  "wouldBe": [
+    {
+      "ma": "A01",
+      "kind": "A",
+      "liveUsd": 20,
+      "costCny": "67.23",
+      "costUsd": null,
+      "expected": {
+        "ma": "A01",
+        "liveUsd": 20,
+        "wouldBeUsd": 16,
+        "applied": true,
+        "reason": "tiered"
+      }
+    },
+    {
+      "ma": "V03",
+      "kind": "V",
+      "liveUsd": 20,
+      "costCny": "53.78",
+      "costUsd": null,
+      "expected": {
+        "ma": "V03",
+        "liveUsd": 20,
+        "wouldBeUsd": 24,
+        "applied": true,
+        "reason": "tiered"
+      }
+    },
+    {
+      "ma": "S6",
+      "kind": "S",
+      "liveUsd": 40,
+      "costCny": "500",
+      "costUsd": null,
+      "expected": {
+        "ma": "S06",
+        "liveUsd": 40,
+        "wouldBeUsd": 25,
+        "applied": false,
+        "reason": "locked"
+      }
+    },
+    {
+      "ma": "S006",
+      "kind": "S",
+      "liveUsd": 40,
+      "costCny": "500",
+      "costUsd": null,
+      "expected": {
+        "ma": "S06",
+        "liveUsd": 40,
+        "wouldBeUsd": 25,
+        "applied": false,
+        "reason": "locked"
+      }
+    },
+    {
+      "ma": "s006",
+      "kind": "S",
+      "liveUsd": 40,
+      "costCny": "500",
+      "costUsd": null,
+      "expected": {
+        "ma": "S06",
+        "liveUsd": 40,
+        "wouldBeUsd": 25,
+        "applied": false,
+        "reason": "locked"
+      }
+    },
+    {
+      "ma": "S06",
+      "kind": "S",
+      "liveUsd": 40,
+      "costCny": "500",
+      "costUsd": null,
+      "expected": {
+        "ma": "S06",
+        "liveUsd": 40,
+        "wouldBeUsd": 25,
+        "applied": false,
+        "reason": "locked"
+      }
+    }
+  ],
+  "shopCalc": [
+    {
+      "input": {
+        "costCny": 67.23,
+        "costUsd": null,
+        "fx": 6.723,
+        "deboxUsd": null
+      },
+      "costUsd": 10,
+      "landedUsd": null,
+      "sellUsd": null
+    },
+    {
+      "input": {
+        "costCny": 67.23,
+        "costUsd": null,
+        "fx": 6.723,
+        "deboxUsd": 0
+      },
+      "costUsd": 10,
+      "landedUsd": null,
+      "sellUsd": null
+    },
+    {
+      "input": {
+        "costCny": 67.23,
+        "costUsd": null,
+        "fx": 6.723,
+        "deboxUsd": 7.5
+      },
+      "costUsd": 10,
+      "landedUsd": 17.5,
+      "sellUsd": 24
+    }
+  ],
+  "computeAutoPrice": {
+    "quoted": {
+      "input": {
+        "costCny": 67.23,
+        "fxRate": 6.723,
+        "kind": "A"
+      },
+      "sellUsd": 14,
+      "deboxUsd": 0,
+      "landedUsd": 10
+    },
+    "nulls": [
+      {
+        "costCny": 0,
+        "fxRate": 6.723,
+        "kind": "A"
+      },
+      {
+        "costCny": 50,
+        "fxRate": 0,
+        "kind": "A"
+      }
+    ]
+  },
+  "tooCheap": [
+    {
+      "ma": "O01",
+      "live": 22,
+      "cost": {
+        "intake_cny": "73.8"
+      },
+      "decision": "skip-missing",
+      "reason": "missing kg",
+      "landedUsd": null,
+      "target": null,
+      "kg": null
+    },
+    {
+      "ma": "A95",
+      "live": 22,
+      "cost": {
+        "list_cny": "80",
+        "kg": "0.3"
+      },
+      "decision": "skip-missing",
+      "reason": "missing intake ¥",
+      "landedUsd": null,
+      "target": null,
+      "kg": 0.3
+    },
+    {
+      "ma": "S06",
+      "live": 25,
+      "cost": {
+        "intake_cny": "500",
+        "kg": "2"
+      },
+      "decision": "locked",
+      "reason": "S06 stays $25",
+      "landedUsd": null,
+      "target": 25,
+      "kg": 2
+    },
+    {
+      "ma": "S06",
+      "live": 27,
+      "cost": {
+        "intake_cny": "60",
+        "kg": "0.5"
+      },
+      "decision": "lock-drift",
+      "reason": "S06 stays $25; live is $27",
+      "landedUsd": null,
+      "target": 25,
+      "kg": 0.5
+    },
+    {
+      "ma": "S06",
+      "live": 0,
+      "cost": {},
+      "decision": "lock-drift",
+      "reason": "S06 stays $25; live is $0",
+      "landedUsd": null,
+      "target": 25,
+      "kg": null
+    },
+    {
+      "ma": "A01",
+      "live": 0,
+      "cost": {
+        "intake_cny": "60",
+        "kg": "0.5"
+      },
+      "decision": "skip-missing",
+      "reason": "bad live price 0.0",
+      "landedUsd": null,
+      "target": null,
+      "kg": 0.5
+    },
+    {
+      "ma": "K03",
+      "live": 1,
+      "cost": {
+        "intake_cny": "999",
+        "kg": "1"
+      },
+      "decision": "skip-held",
+      "reason": "held",
+      "landedUsd": null,
+      "target": null,
+      "kg": 1
+    },
+    {
+      "ma": "A99",
+      "live": 20,
+      "cost": {
+        "intake_cny": "100",
+        "kg": "0.3"
+      },
+      "decision": "under",
+      "reason": "live $20 < target $28 at intake ¥",
+      "landedUsd": 18.0303,
+      "target": 28,
+      "kg": 0.3
+    }
+  ],
+  "loadLiveNullPrice": {
+    "products": [
+      {
+        "ma": "A01",
+        "priceUsd": 20
+      },
+      {
+        "ma": "K03",
+        "priceUsd": null
+      }
+    ]
+  },
+  "heldProposals": [
+    {
+      "row": {
+        "ma": "A01",
+        "kind": "A",
+        "cost_cny": "100"
+      },
+      "count": 1,
+      "proposals": [
+        {
+          "ma": "A01",
+          "kind": "A",
+          "status": "quote",
+          "intake_cny": "100",
+          "kg": 0.3,
+          "kg_source": "A category proxy",
+          "landed_usd": 18.0303,
+          "tiered_usd": 28,
+          "flat25_usd": 25,
+          "flags": [],
+          "live_usd": null,
+          "verdict": "$28"
+        }
+      ]
+    },
+    {
+      "row": {
+        "ma": "H01",
+        "kind": "H",
+        "cost_cny": "40"
+      },
+      "count": 1,
+      "proposals": [
+        {
+          "ma": "H01",
+          "kind": "H",
+          "status": "quote",
+          "intake_cny": "40",
+          "kg": 0.08,
+          "kg_source": "H category proxy",
+          "landed_usd": 6.7913,
+          "tiered_usd": 11,
+          "flat25_usd": 10,
+          "flags": [],
+          "live_usd": null,
+          "verdict": "$11"
+        }
+      ]
+    },
+    {
+      "row": {
+        "ma": "G01",
+        "kind": "G",
+        "cost_cny": "200"
+      },
+      "count": 1,
+      "proposals": [
+        {
+          "ma": "G01",
+          "kind": "G",
+          "status": "needs-boss",
+          "intake_cny": "200",
+          "kg": null,
+          "kg_source": null,
+          "landed_usd": null,
+          "tiered_usd": null,
+          "flat25_usd": null,
+          "flags": [
+            "no approved G weight; Boss must set kg"
+          ],
+          "live_usd": null,
+          "verdict": "NEEDS_INPUT"
+        }
+      ]
+    },
+    {
+      "row": {
+        "ma": "S02",
+        "kind": "S",
+        "cost_cny": "80"
+      },
+      "count": 1,
+      "proposals": [
+        {
+          "ma": "S02",
+          "kind": "S",
+          "status": "needs-boss",
+          "intake_cny": "80",
+          "kg": null,
+          "kg_source": null,
+          "landed_usd": null,
+          "tiered_usd": null,
+          "flat25_usd": null,
+          "flags": [
+            "missing kg (no category proxy)"
+          ],
+          "live_usd": null,
+          "verdict": "NEEDS_INPUT"
+        }
+      ]
+    },
+    {
+      "row": {
+        "ma": "A02",
+        "kind": "A",
+        "cost_cny": "100",
+        "kg": "0.5"
+      },
+      "count": 1,
+      "proposals": [
+        {
+          "ma": "A02",
+          "kind": "A",
+          "status": "quote",
+          "intake_cny": "100",
+          "kg": 0.5,
+          "kg_source": "intake",
+          "landed_usd": 20.1343,
+          "tiered_usd": 30,
+          "flat25_usd": 27,
+          "flags": [],
+          "live_usd": null,
+          "verdict": "$30"
+        }
+      ]
+    },
+    {
+      "row": {
+        "ma": "S06",
+        "kind": "S",
+        "cost_cny": "80",
+        "kg": "0.5"
+      },
+      "count": 0,
+      "proposals": []
+    },
+    {
+      "row": {
+        "ma": "A03",
+        "kind": "A",
+        "cost_cny": "",
+        "kg": "0.3"
+      },
+      "count": 1,
+      "proposals": [
+        {
+          "ma": "A03",
+          "kind": "A",
+          "status": "needs-boss",
+          "intake_cny": "",
+          "kg": 0.3,
+          "kg_source": "intake",
+          "landed_usd": null,
+          "tiered_usd": null,
+          "flat25_usd": null,
+          "flags": [
+            "missing intake ¥"
+          ],
+          "live_usd": null,
+          "verdict": "NEEDS_INPUT"
+        }
+      ]
+    },
+    {
+      "row": {
+        "ma": "V01",
+        "kind": "V",
+        "cost_cny": "53.78",
+        "kg": "0.4"
+      },
+      "count": 1,
+      "proposals": [
+        {
+          "ma": "V01",
+          "kind": "V",
+          "status": "quote",
+          "intake_cny": "53.78",
+          "kg": 0.4,
+          "kg_source": "intake",
+          "landed_usd": 12.2074,
+          "tiered_usd": 19,
+          "flat25_usd": 17,
+          "flags": [],
+          "live_usd": null,
+          "verdict": "$19"
+        }
+      ]
+    }
+  ],
+  "listingQuotes": [
+    {
+      "ma": "s6",
+      "landed": "100",
+      "maOut": "S06",
+      "action": "locked",
+      "sellUsd": 25,
+      "reason": "S06 stays $25"
+    },
+    {
+      "ma": "S006",
+      "landed": null,
+      "maOut": "S06",
+      "action": "locked",
+      "sellUsd": 25,
+      "reason": "S06 stays $25"
+    },
+    {
+      "ma": "A01",
+      "landed": null,
+      "maOut": "A01",
+      "action": "no-price",
+      "sellUsd": null,
+      "reason": "no landed cost; no invented price"
+    }
+  ],
+  "intakeFlagSplit": {
+    "input": {
+      "ma": "A01",
+      "kind": "A",
+      "sellUsd": "9",
+      "sellCny": "",
+      "sellCurrency": "USD",
+      "costCny": "",
+      "costUsd": "5",
+      "costCurrency": "USD",
+      "fxRate": 6.723
+    },
+    "sellPriceFlag": "ok",
+    "label": "$9",
+    "dollars": 9,
+    "flag": "under-margin"
+  },
+  "intakeBlank": {
+    "input": {
+      "ma": "A01",
+      "kind": "A",
+      "sellUsd": "",
+      "sellCny": "",
+      "sellCurrency": "USD",
+      "costCny": "",
+      "costUsd": "",
+      "costCurrency": "USD",
+      "fxRate": 6.723
+    },
+    "label": "Tính giá sau",
+    "dollars": null,
+    "flag": "later"
+  },
+  "intakeS06": {
+    "input": {
+      "ma": "s6",
+      "kind": "S",
+      "sellUsd": "",
+      "sellCny": "",
+      "sellCurrency": "USD",
+      "costCny": "500",
+      "costUsd": "",
+      "costCurrency": "USD",
+      "fxRate": 6.723
+    },
+    "label": "$25",
+    "dollars": 25,
+    "flag": "ok"
+  },
+  "formatUsd": [
+    {
+      "amount": 0,
+      "text": "$0"
+    },
+    {
+      "amount": 25,
+      "text": "$25"
+    },
+    {
+      "amount": 10,
+      "text": "$10"
+    },
+    {
+      "amount": 10.1,
+      "text": "$10.10"
+    },
+    {
+      "amount": 10.12,
+      "text": "$10.12"
+    },
+    {
+      "amount": 10.125,
+      "text": "$10.13"
+    },
+    {
+      "amount": 10.005,
+      "text": "$10.01"
+    },
+    {
+      "amount": 1.005,
+      "text": "$1.00"
+    },
+    {
+      "amount": 1.015,
+      "text": "$1.01"
+    },
+    {
+      "amount": 2.675,
+      "text": "$2.67"
+    },
+    {
+      "amount": 24.5,
+      "text": "$24.50"
+    },
+    {
+      "amount": 25.5,
+      "text": "$25.50"
+    },
+    {
+      "amount": 99.999,
+      "text": "$100.00"
+    },
+    {
+      "amount": -1,
+      "text": "$-1"
+    }
+  ],
+  "formatUsdThrows": [
+    "NaN",
+    "Infinity"
+  ],
+  "formatUsdError": "Invalid USD amount",
+  "formatUsd2": [
+    {
+      "amount": null,
+      "text": "—"
+    },
+    {
+      "amount": 25,
+      "text": "$25.00"
+    },
+    {
+      "amount": 2.675,
+      "text": "$2.67"
+    }
+  ],
+  "jsonLdPrices": [
+    {
+      "priceUsd": 25,
+      "price": "25.00",
+      "priceCurrency": "USD"
+    },
+    {
+      "priceUsd": null,
+      "price": null,
+      "priceCurrency": null
+    },
+    {
+      "priceUsd": 2.675,
+      "price": "2.67",
+      "priceCurrency": "USD"
+    },
+    {
+      "priceUsd": 1.005,
+      "price": "1.00",
+      "priceCurrency": "USD"
+    },
+    {
+      "priceUsd": 10.1,
+      "price": "10.10",
+      "priceCurrency": "USD"
+    }
+  ],
+  "productPrice": [
+    {
+      "priceUsd": null,
+      "markup": "<span translate=\"no\">Inbox for price</span>"
+    },
+    {
+      "priceUsd": 25,
+      "markup": "<span class=\"tabular-nums select-all whitespace-nowrap\" translate=\"no\">$25</span>"
+    },
+    {
+      "priceUsd": 10.1,
+      "markup": "<span class=\"tabular-nums select-all whitespace-nowrap\" translate=\"no\">$10.10</span>"
+    },
+    {
+      "priceUsd": 2.675,
+      "markup": "<span class=\"tabular-nums select-all whitespace-nowrap\" translate=\"no\">$2.67</span>"
+    }
+  ],
+  "saveConfirm": [
+    {
+      "ma": "A01",
+      "status": "hold",
+      "priceUsd": 25,
+      "line": "Save A01 · Hold · Inbox for price"
+    },
+    {
+      "ma": "A01",
+      "status": "available",
+      "priceUsd": null,
+      "line": "Save A01 · Available · Inbox for price"
+    },
+    {
+      "ma": "A01",
+      "status": "available",
+      "priceUsd": 25,
+      "line": "Save A01 · Available · $25"
+    },
+    {
+      "ma": "A01",
+      "status": "sold",
+      "priceUsd": null,
+      "line": "Save A01 · Sold / Gone · —"
+    },
+    {
+      "ma": "A01",
+      "status": "sold",
+      "priceUsd": 10.1,
+      "line": "Save A01 · Sold / Gone · $10.10"
+    }
+  ],
+  "s06PriceLock": [
+    {
+      "ma": "S6",
+      "priceUsd": 30,
+      "error": "Import rejected S06 price. S06 stays $25."
+    },
+    {
+      "ma": "S06",
+      "priceUsd": 25,
+      "error": null
+    },
+    {
+      "ma": "S06",
+      "priceUsd": null,
+      "error": null
+    },
+    {
+      "ma": "A01",
+      "priceUsd": 27,
+      "error": null
+    }
+  ],
+  "saveS06": {
+    "rejectPrice": 30,
+    "rejectError": "S06 stays $25.",
+    "keepPrice": 25
+  }
+}
