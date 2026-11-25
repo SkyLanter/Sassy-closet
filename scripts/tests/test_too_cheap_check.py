@@ -114,3 +114,37 @@ def test_no_network_imports():
     src = Path(tc.__file__).read_text(encoding="utf-8")
     for bad in ("urllib", "requests", "http.client", "socket", "subprocess"):
         assert f"import {bad}" not in src and f"from {bad}" not in src
+
+
+def test_null_price_product_skipped_not_crash(tmp_path: Path):
+    live = tmp_path / "live.json"
+    live.write_text(json.dumps({"products": [{"ma": "A01", "priceUsd": 20},
+                                             {"ma": "K03", "priceUsd": None}]}))
+    assert tc.load_live(live) == {"A01": 20.0}
+
+
+def test_null_price_in_prices_map_skipped(tmp_path: Path):
+    live = tmp_path / "live.json"
+    live.write_text(json.dumps({"prices": {"A01": 20, "K03": None}}))
+    assert tc.load_live(live) == {"A01": 20.0}
+
+
+def test_null_price_row_does_not_change_priced_rows(tmp_path: Path):
+    # The null mã has a cost row and an under-target price, so it would be
+    # reported if a price were invented for it. It must simply be absent.
+    costs = tmp_path / "c.csv"
+    costs.write_text("ma,intake_cny,list_cny,kg\nA01,100,140,0.3\nB02,60,80,0.3\nK03,50,70,0.3\n")
+    priced = tmp_path / "priced.json"
+    priced.write_text(json.dumps({"products": [{"ma": "A01", "priceUsd": 20},
+                                               {"ma": "B02", "priceUsd": 30}]}))
+    with_null = tmp_path / "with-null.json"
+    with_null.write_text(json.dumps({"products": [{"ma": "A01", "priceUsd": 20},
+                                                  {"ma": "K03", "priceUsd": None},
+                                                  {"ma": "B02", "priceUsd": 30}]}))
+    policy, cost_rows = tc.load_held_from_ts(), tc.load_costs(costs)
+    before = tc.summarize(tc.evaluate(tc.load_live(priced), cost_rows, policy))
+    after = tc.summarize(tc.evaluate(tc.load_live(with_null), cost_rows, policy))
+    assert after == before
+    assert [r["ma"] for r in after["rows"]] == ["A01", "B02"]
+    assert after["counts"]["under"] == 1 and after["counts"]["ok"] == 1
+    assert after["writes"] == "none"

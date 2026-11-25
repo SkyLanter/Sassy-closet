@@ -225,11 +225,13 @@ def markdown(summary: dict, title: str = "Too-cheap check") -> str:
 
 
 def load_live(path: Path) -> dict[str, float]:
+    """Priced mãs only. A null price is not a live price: drop it, never guess one."""
     data = json.loads(path.read_text(encoding="utf-8"))
     if isinstance(data, dict) and "products" in data:
-        return {norm_ma(p["ma"]): float(p["priceUsd"]) for p in data["products"]}
+        return {norm_ma(p["ma"]): float(p["priceUsd"]) for p in data["products"]
+                if p.get("priceUsd") is not None}
     if isinstance(data, dict) and "prices" in data:
-        return {norm_ma(k): float(v) for k, v in data["prices"].items()}
+        return {norm_ma(k): float(v) for k, v in data["prices"].items() if v is not None}
     raise ValueError(f"{path}: expected a catalog with products[] or a prices map")
 
 
