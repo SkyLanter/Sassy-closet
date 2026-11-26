@@ -63,14 +63,49 @@ NM=$(git grep -nE '^(<<<<<<<|>>>>>>>|=======)( .*)?$' -- . > "$LOG/conflicts.log
 record git 1 "$([ "$NM" = 0 ] && echo PASS || echo FAIL)" 0 0 "branch $BR @ $HEADSHA; conflict markers $NM" ""
 
 # b + f. pytest (guards run inside it)
+XML_BEFORE=$(ls out/test-results/*.xml 2>/dev/null | wc -l | tr -d ' ')
 timed "$LOG/pytest.log" env PYTHON="$PY" bash scripts/run_tests.sh "${PYARGS[@]}"
 LINE="$(grep -E '[0-9]+ (passed|failed)' "$LOG/pytest.log" | tail -1 | sed 's/=//g; s/^ *//; s/ *$//')"
 record pytest 1 "$([ "$RC" = 0 ] && echo PASS || echo FAIL)" "$RC" "$SECS" "${LINE:-no summary}" ""
 GUARDS="test_safety_gate_coverage.py test_no_digit_literal_stdout_asserts.py test_held_never_list_parity.py test_ma_normalization_parity.py"
+# run_tests.sh writes one junit XML per run. It is the only place a guard's own verdict lives
+# when pytest stops at collection: then no short-summary line names the file and pytest.log is
+# just a traceback, so grep for the module name alone saw "no FAILED line" and said PASS.
+XML="$LOG/pytest-junit.xml"
+if [ "$(ls out/test-results/*.xml 2>/dev/null | wc -l | tr -d ' ')" != "$XML_BEFORE" ]; then
+  cp "$(ls -t out/test-results/*.xml 2>/dev/null | head -1)" "$XML" 2>/dev/null
+fi
+GUARD_ST=""; [ -f "$XML" ] && GUARD_ST="$("$PY" - "$XML" <<'PY'
+import sys, xml.etree.ElementTree as ET
+try:
+    root = ET.parse(sys.argv[1]).getroot()
+except Exception:
+    sys.exit(0)
+seen = {}
+for tc in root.iter("testcase"):
+    cls = (tc.get("classname") or "").split(".")[-1]
+    verdicts = {k.tag for k in tc}
+    seen.setdefault(cls, set()).add("bad" if verdicts & {"failure", "error"} else "skipped" if "skipped" in verdicts else "ok")
+for cls in sorted(seen):
+    v = seen[cls]
+    print(f"{cls}\t{'FAIL' if 'bad' in v else 'SKIP' if v == {'skipped'} else 'PASS'}")
+PY
+)"
 for g in $GUARDS; do
   [ -f "scripts/tests/$g" ] || { record "guard:$g" 0 SKIP 0 0 "not present" ""; continue; }
-  if grep -qE "$g::.* (FAILED|ERROR)|FAILED scripts/tests/$g" "$LOG/pytest.log"; then st=FAIL; else st=$([ "$RC" = 124 ] && echo SKIP || echo PASS); fi
-  record "guard:$g" 0 "$st" 0 0 "in pytest run" ""
+  cls="${g%.py}"
+  if grep -qE "FAILED scripts/tests/$g|ERROR (at setup of |collecting )?scripts/tests/$g" "$LOG/pytest.log"; then
+    record "guard:$g" 0 FAIL 0 0 "pytest reports a failure" ""
+  elif [ "$RC" = 124 ]; then record "guard:$g" 0 SKIP 0 0 "pytest timed out" ""
+  elif [ -z "$GUARD_ST" ]; then record "guard:$g" 0 SKIP 0 0 "no junit xml from run_tests.sh" ""
+  else
+    st="$(printf '%s\n' "$GUARD_ST" | awk -F'\t' -v c="$cls" '$1 == c {print $2}')"
+    case "$st" in
+      PASS) record "guard:$g" 0 PASS 0 0 "in pytest run" "" ;;
+      SKIP) record "guard:$g" 0 SKIP 0 0 "guard test skipped in pytest run" "" ;;
+      *) record "guard:$g" 0 FAIL 0 0 "no clean pass in the pytest results" "" ;;
+    esac
+  fi
 done
 
 # c. privacy scan

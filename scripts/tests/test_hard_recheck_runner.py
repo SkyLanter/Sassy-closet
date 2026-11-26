@@ -126,3 +126,49 @@ def test_node_modules_link_is_noted_not_failed(fake):
     r = run(repo, base, env)
     assert r.returncode == 0, r.stdout
     assert "node_modules link (ignored)" in r.stdout
+
+
+def test_guard_collection_error_is_not_reported_as_pass(fake):
+    """A guard test that cannot even be imported must not read as PASS 'in pytest run'."""
+    repo, base, env = fake
+    (repo / "scripts" / "tests").mkdir()
+    (repo / "scripts" / "tests" / "test_safety_gate_coverage.py").write_text(
+        "import a_module_that_is_not_installed\n\ndef test_x():\n    assert True\n")
+    _x(repo / "scripts" / "run_tests.sh",
+       '#!/usr/bin/env bash\n'
+       'cat >&2 <<\'EOT\'\n'
+       '============================= test session starts ==============================\n'
+       'collected 0 items / 1 error\n\n'
+       '==================================== ERRORS ====================================\n'
+       '_________ ERROR collecting scripts/tests/test_safety_gate_coverage.py __________\n'
+       'E   ModuleNotFoundError: No module named \'a_module_that_is_not_installed\'\n'
+       '!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!\n'
+       '=============================== 1 error in 0.05s ===============================\n'
+       'EOT\n'
+       'exit 4\n')
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "collection error")
+    r = run(repo, base, env, "--json")
+    assert r.returncode != 0
+    by = {s["step"]: s for s in json.loads((latest(repo) / "summary.json").read_text())["steps"]}
+    assert by["pytest"]["status"] == "FAIL"
+    assert by["guard:test_safety_gate_coverage.py"]["status"] == "FAIL"
+    assert by["guard:test_safety_gate_coverage.py"]["detail"] != "in pytest run"
+
+
+def test_guard_failure_on_the_last_line_is_seen(fake):
+    """pytest prints the FAILED summary before the count line, so the guard's own line can be last."""
+    repo, base, env = fake
+    (repo / "scripts" / "tests").mkdir()
+    (repo / "scripts" / "tests" / "test_safety_gate_coverage.py").write_text("def test_x():\n    assert 0\n")
+    _x(repo / "scripts" / "run_tests.sh",
+       '#!/usr/bin/env bash\n'
+       'echo "FAILED scripts/tests/test_safety_gate_coverage.py::test_no_gate_uncovered - AssertionError: X"\n'
+       'echo "1 failed, 9 passed in 0.1s"\n'
+       'exit 1\n')
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "guard fails")
+    r = run(repo, base, env, "--json")
+    assert r.returncode != 0
+    by = {s["step"]: s for s in json.loads((latest(repo) / "summary.json").read_text())["steps"]}
+    assert by["guard:test_safety_gate_coverage.py"]["status"] == "FAIL"
