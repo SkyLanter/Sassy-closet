@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { customerAdminProxyDecision } from "@/lib/customer-admin-closed";
+import { isSeedAssetPath } from "@/lib/customer-seed-closed";
 import { encodeShopSearchHeader, SHOP_SEARCH_HEADER } from "@/lib/look-search";
 import { canonicalCategoryPath, canonicalMaPath } from "@/lib/ma-url";
 import { isShopPrivateSurface, PRIVATE_ROBOTS_TAG } from "@/lib/private-robots";
@@ -29,6 +30,19 @@ export function proxy(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = categoryCanon;
     return NextResponse.redirect(url, 308);
+  }
+  if (isSeedAssetPath(pathname)) {
+    return new NextResponse("Not found", {
+      status: 404,
+      headers: {
+        "Cache-Control": "private, no-store, no-cache, max-age=0, must-revalidate",
+        Pragma: "no-cache",
+        "CDN-Cache-Control": "private, no-store",
+        "Vercel-CDN-Cache-Control": "private, no-store",
+        "Content-Type": "text/plain; charset=utf-8",
+        "X-Robots-Tag": PRIVATE_ROBOTS_TAG,
+      },
+    });
   }
 
   const requestHeaders = new Headers(request.headers);
