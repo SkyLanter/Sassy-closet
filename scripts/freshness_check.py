@@ -998,7 +998,9 @@ def _sizes_field(item: dict[str, object]) -> tuple[str, ...] | None:
 def _photo_field(item: dict[str, object]) -> int | None:
     if "photo_count" in item and item.get("photo_count") is not None:
         return int(str(item.get("photo_count")))
-    for key in ("gallery", "photos", "images", "gallery_urls"):
+    # Intake submissions store their own photos in photo_paths (lib/types.ts
+    # and the CSV export); the other keys are catalog/caption shapes.
+    for key in ("photo_paths", "gallery", "photos", "images", "gallery_urls"):
         raw = item.get(key)
         if isinstance(raw, list):
             return sum(1 for part in raw if str(part).strip())
@@ -1153,6 +1155,8 @@ def _fetch_intake() -> tuple[list[IntakeRow], SourceState]:
                 None if item.get("cost_cny") is None else str(item.get("cost_cny")),
                 None if item.get("sell_usd") is None else str(item.get("sell_usd")),
                 None if item.get("link") is None else str(item.get("link")),
+                _sizes_field(item),
+                _photo_field(item),
             )
         )
     return rows, SourceState("ok", f"{len(rows)} forms")
