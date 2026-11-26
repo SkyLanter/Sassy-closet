@@ -10,6 +10,7 @@ import {
   sizeOptionsLine,
   sizeScaleForKind,
   sizesForKind,
+  sizesFromStored,
 } from "../lib/kinds";
 
 test("kind letters stay the full mã set including D, G, H, J", () => {
@@ -36,6 +37,16 @@ test("G H J D labels and size rules match intake catalog", () => {
   assert.equal(sizeOptionsLine("G"), SHOE_SIZES.join(" "));
   assert.deepEqual(keepSizesForKind(["M", "38", "2XS"], "G"), ["38"]);
   assert.deepEqual(keepSizesForKind(["M", "38", "2XS"], "A"), ["M", "2XS"]);
+  assert.deepEqual(keepSizesForKind(["m", "2xl", "m"], "A"), ["M", "2XL"]);
+  assert.deepEqual(keepSizesForKind(["  2xs  "], "D"), ["2XS"]);
+});
+
+test("stored size text selects the same chip and keeps a measurement", () => {
+  assert.deepEqual(sizesFromStored("m, 2xl 88cm", "A"), ["M", "2XL", "88cm"]);
+  assert.deepEqual(sizesFromStored("M M", "A"), ["M"]);
+  assert.deepEqual(sizesFromStored("35, 36", "G"), ["35", "36"]);
+  assert.deepEqual(sizesFromStored("  ", "A"), []);
+  assert.deepEqual(sizesFromStored("38 m", "G"), ["38", "m"]);
 });
 
 test("catalog dataset carries kind label + size options without inventing mã", () => {

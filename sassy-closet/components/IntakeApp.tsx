@@ -9,7 +9,7 @@ import { PhotoLightbox } from "@/components/PhotoLightbox";
 import { PhotoThumbs } from "@/components/PhotoThumbs";
 import { SavedCard } from "@/components/SavedCard";
 import { convertCnyToUsd, convertUsdToCny } from "@/lib/fx";
-import { COLORS, KINDS, assertNever, keepSizesForKind, sizeScaleForKind, sizesForKind } from "@/lib/kinds";
+import { COLORS, KINDS, assertNever, isKindCode, keepSizesForKind, sizeScaleForKind, sizesForKind, sizesFromStored } from "@/lib/kinds";
 import { nextMa, parseHubMa } from "@/lib/mint";
 import {
   listingChip,
@@ -302,7 +302,7 @@ export function IntakeApp({
     setLoadedMa(item.ma);
     setLookupMa(item.ma);
     setKind(item.kind);
-    setSizes(item.size.split(/[\s,]+/).filter(Boolean));
+    setSizes(isKindCode(item.kind) ? sizesFromStored(item.size, item.kind) : item.size.split(/[\s,]+/).filter(Boolean));
     const snapshotColors = item.taobao_snapshot?.colors ?? [];
     const allColors = item.color
       .split(",")
