@@ -178,6 +178,7 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
 
   if (existing) {
     store.submissions = store.submissions.map((row) => (row.id === existing.id ? base : row));
+    rekeyOnHand(store, existing.ma, ma);
   } else {
     store.nextId += 1;
     store.submissions.push(base);
@@ -260,6 +261,38 @@ export async function exportCsv(): Promise<string> {
 
 export function storeHealth(): ReturnType<typeof storageStatus> {
   return storageStatus();
+}
+
+/**
+ * Quantities live beside the submission, keyed by mã. A rename used to leave
+ * them on the old spelling, so the new mã's card showed no qty. Move every
+ * array stored under the old mã (including "a01") onto the new mã. Rows already
+ * on the new mã stay first. A same-mã save does not copy them.
+ */
+function rekeyOnHand(store: StoreFile, fromMa: string, toMa: string): void {
+  const bag = store.on_hand;
+  if (!bag || typeof bag !== "object" || Array.isArray(bag)) return;
+  const from = normalizeMa(fromMa);
+  const to = normalizeMa(toMa);
+  if (!from || !to || from === to) return;
+  const sourceKeys = Object.keys(bag).filter((key) => normalizeMa(key) === from && Array.isArray(bag[key]));
+  if (sourceKeys.length === 0) return;
+  const moved: unknown[] = [];
+  for (const key of sourceKeys) {
+    const value = bag[key];
+    if (Array.isArray(value)) moved.push(...value);
+  }
+  const destKeys = Object.keys(bag).filter((key) => normalizeMa(key) === to && Array.isArray(bag[key]));
+  const kept: unknown[] = [];
+  for (const key of destKeys) {
+    const value = bag[key];
+    if (Array.isArray(value)) kept.push(...value);
+  }
+  bag[to] = [...kept, ...moved];
+  for (const key of sourceKeys) delete bag[key];
+  for (const key of destKeys) {
+    if (key !== to) delete bag[key];
+  }
 }
 
 function csvCell(value: string): string {
