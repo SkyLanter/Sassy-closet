@@ -50,7 +50,11 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 HERE = Path(__file__).resolve().parent
+if str(HERE) not in sys.path:
+    sys.path.insert(0, str(HERE))
 ROOT = Path("/workspace/sassy-closet")
+from held_policy import norm_ma  # noqa: E402
+
 MA = re.compile(r"^[A-Z]\d{2}$")
 SELL = re.compile(r"^\$\d+(\.\d{1,2})?$")
 DIGEST_LINE = re.compile(r"^- \[(\w+)\] ([A-Z]\d{2})\b")
@@ -139,7 +143,19 @@ def meta_lines(status, source):
 
 
 def mas(xs):
-    return sorted({x for x in (xs or []) if isinstance(x, str) and MA.match(x)})
+    """Canonical mã codes from a summary list. A mã written a07, A007, or ' A07 '
+    is the same mã the sibling flags CSV already normalizes, so it stays evidence.
+    Non-mã text and non-string rows are dropped."""
+    if not isinstance(xs, (list, tuple, set)):
+        return []
+    out = set()
+    for x in xs:
+        if not isinstance(x, str):
+            continue
+        code = norm_ma(x)
+        if MA.match(code):
+            out.add(code)
+    return sorted(out)
 
 
 def load_json(p):

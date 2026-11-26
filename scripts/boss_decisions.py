@@ -29,6 +29,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import daily_summary_draft as ds  # noqa: E402
+from held_policy import norm_ma  # noqa: E402
 
 ROOT = Path("/workspace/sassy-closet")
 MA = re.compile(r"^[A-Z]\d{2}$")
@@ -128,15 +129,20 @@ def parse_digest(text):
 
 
 def streak_start(root, date, ma):
-    """Earliest date of the unbroken run of cost summaries (up to <date>) listing mã unreachable."""
+    """Earliest date of the unbroken run of cost summaries (up to <date>) listing mã unreachable.
+
+    Summaries spell the mã the way the recheck wrote it (a07, A007, ' A07 '), so the
+    run is matched on the canonical code, the same key the flags CSV reader uses.
+    """
     files = sorted((Path(root) / "verify/cost-recheck").glob("summary.????-??-??.json"))
+    want = norm_ma(ma)
     start = None
     for f in reversed(files):
         d = DATE_IN.search(f.name).group(1)
         if d > date:
             continue
         doc = ds.load_json(f) or {}
-        if ma in (doc.get("unreachable_mas") or []):
+        if want in [norm_ma(x) for x in (doc.get("unreachable_mas") or []) if isinstance(x, str)]:
             start = d
         else:
             break
