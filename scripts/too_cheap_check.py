@@ -146,8 +146,8 @@ PRICED = ("ok", "list-only")
 
 def headroom(rows: list[Row], pct: float = 0.0) -> tuple[list[dict], list[dict]]:
     """Return (no_headroom, band). band: 0 < live - target <= pct% of target."""
-    if pct < 0:
-        raise ValueError("--headroom-pct must be >= 0")
+    if not math.isfinite(pct) or pct < 0:
+        raise ValueError("--headroom-pct must be a finite number >= 0")
     zero: list[dict] = []
     band: list[dict] = []
     limit = Decimal(str(pct)) / 100
@@ -271,8 +271,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--headroom-pct", type=float, default=0.0,
                    help="Warn on priced mãs at most this %% above target (default 0: exact-target only).")
     a = p.parse_args(argv)
-    if a.headroom_pct < 0:
-        p.error("--headroom-pct must be >= 0")
+    if not math.isfinite(a.headroom_pct) or a.headroom_pct < 0:
+        p.error("--headroom-pct must be a finite number >= 0")
     summary = summarize(evaluate(load_live(a.live), load_costs(a.costs), load_held_from_ts(a.held_ts),
                                  load_weights(a.weights)), a.headroom_pct)
     md = markdown(summary, a.title)
