@@ -55,8 +55,8 @@ ORDER = list(QUESTIONS)
 # Piece 90: name a recorded sign-in blocker (person + platform) instead of the
 # generic Meta line. Only fixed words are emitted (person, platform, path, days).
 SIGNIN_GLOBS = ("out/muse/*.md", "out/muse/*.txt", "out/muse/meta-qc-*.json",
-                "out/luxubu*/**/*", "out/luxubu*", "out/midnight-qc/*/summary.md",
-                "out/midnight-qc/*/summary.json")
+                "out/luxubu*/**/*", "out/luxubu*", "out/midnight-qc/*/data-ok.md",
+                "out/midnight-qc/*/summary.md", "out/midnight-qc/*/summary.json")
 PERSON = re.compile(r"\b(Luxubu|Mini Boss)\b")
 PLATFORM = re.compile(r"\b(Facebook|FB|Instagram|IG)\b")
 PLAT_NAME = {"facebook": "Facebook", "fb": "Facebook", "instagram": "Instagram", "ig": "Instagram"}

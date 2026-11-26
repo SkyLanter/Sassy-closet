@@ -98,12 +98,20 @@ def _meta_root(tmp_path, files):
 
 def test_signin_blocker_named(tmp_path):
     r = _meta_root(tmp_path, {"out/muse/notes-2000-01-03.md": "Luxubu: Facebook sign-in needed before QC.\n",
-                              "out/midnight-qc/2000-01-04/summary.md": "Luxubu FB login wall again.\n"})
+                              "out/midnight-qc/2000-01-04/data-ok.md": "Luxubu FB login wall again.\n"})
     m = _by(_run(tmp_path), "meta")
     assert len(m) == 1
     d = m["-"]
     assert d["q"].startswith("Luxubu Facebook sign-in needed")
     assert d["ev"] == "out/muse/notes-2000-01-03.md" and d["days"] == 2
+
+
+def test_signin_blocker_read_from_the_written_midnight_qc_markdown(tmp_path):
+    """midnight_qc.py writes data-ok.md, so a blocker there must be found."""
+    _meta_root(tmp_path, {"out/midnight-qc/2000-01-04/data-ok.md": "Luxubu Facebook login wall again.\n"})
+    d = _by(_run(tmp_path), "meta")["-"]
+    assert d["q"].startswith("Luxubu Facebook sign-in needed")
+    assert d["ev"] == "out/midnight-qc/2000-01-04/data-ok.md"
 
 
 def test_signed_in_as_instruction_is_not_blocker(tmp_path):
