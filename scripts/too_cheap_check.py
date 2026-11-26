@@ -36,6 +36,11 @@ from held_policy import HeldPolicy, load_held_policy, norm_ma
 
 FX_CNY_PER_USD = Decimal("6.723")
 SHIP_USD_PER_KG = Decimal("10.52")
+# The biggest live sell is $67, so a landed cost above this is a paste error, not a
+# piece. One absurd intake or kg cell crashed the report on a Decimal quantize, and a
+# merely huge one sent the tiered sell search through millions of dollars, so the
+# daily check looked hung.
+MAX_LANDED_USD = Decimal("10000")
 ROOT = Path(__file__).resolve().parents[1]
 HELD_TS = ROOT / "sassy-closet-shop" / "lib" / "held-incomplete.ts"
 IMPORT_RE = re.compile(r"""import\s+\w+\s+from\s+["']([^"']+\.json)["']""")
@@ -85,7 +90,20 @@ class Row:
 
 
 def _f(value: Decimal | None, places: str = "0.0001") -> float | None:
-    return None if value is None else float(value.quantize(Decimal(places), ROUND_HALF_UP))
+    """Report value, or None when the number is too large to round."""
+    if value is None:
+        return None
+    try:
+        return float(value.quantize(Decimal(places), ROUND_HALF_UP))
+    except ArithmeticError:
+        return None
+
+
+def _target_for(landed: Decimal) -> int | None:
+    """Tiered sell for a landed cost this check can price, else None. price() is unchanged."""
+    if not landed.is_finite() or landed >= MAX_LANDED_USD:
+        return None
+    return price(landed)
 
 
 def evaluate(
@@ -128,8 +146,13 @@ def evaluate(
             continue
 
         landed = landed_usd(intake, kg)
-        target = price(landed)
-        list_target = price(landed_usd(listed, kg)) if listed is not None else None
+        target = _target_for(landed)
+        if target is None:
+            rows.append(Row(**base, landed_usd=None, target_usd=None, list_target_usd=None,
+                            decision="skip-missing",
+                            reason="landed cost is not priced; check the intake ¥ and kg"))
+            continue
+        list_target = _target_for(landed_usd(listed, kg)) if listed is not None else None
         if live_usd < target:
             decision, reason = "under", f"live ${live_usd:g} < target ${target} at intake ¥"
         elif list_target is not None and live_usd < list_target:
