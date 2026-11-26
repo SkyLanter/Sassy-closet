@@ -184,13 +184,23 @@ def looks_like_broken_live_browse(url: str) -> bool:
     host = (parsed.hostname or "").lower()
     if host not in LIVE_HOSTS:
         return False
-    query = parse_qs(parsed.query, keep_blank_values=True)
-    item = (query.get("id") or query.get("resid") or [""])[0]
-    if "!" in unquote(item) and "%21" not in item:
+    # Read the still-encoded value. parse_qs already unquotes, so decoding its
+    # result a second time turned the canonical %21 back into a bare !.
+    item = _raw_query_value(parsed.query, "id") or _raw_query_value(parsed.query, "resid")
+    if "!" in item and "%21" not in item.upper():
         return True
     if parsed.path in ("", None) and parsed.query:
         return True
     return False
+
+
+def _raw_query_value(query: str, key: str) -> str | None:
+    """Raw (still percent-encoded) query value, so an encoded ! stays encoded."""
+    for part in (query or "").split("&"):
+        name, _, value = part.partition("=")
+        if unquote(name).strip().lower() == key:
+            return value.strip()
+    return None
 
 
 def _ensure_scheme(url: str) -> str:
