@@ -17,7 +17,7 @@ def _root(tmp_path):
     (tmp_path / "out/reports" / D / "COST-BASIS.md").write_text("placeholder\n")
     (tmp_path / "out/reports" / D / "BOSS-DECISIONS.md").write_text("- Z99 | Q? | x | ?\n")
     (tmp_path / "out/midnight-qc" / D).mkdir(parents=True)
-    (tmp_path / "out/midnight-qc" / D / "summary.md").write_text("placeholder\n")
+    (tmp_path / "out/midnight-qc" / D / "data-ok.md").write_text("placeholder\n")
     (tmp_path / "out/muse").mkdir(parents=True)
     (tmp_path / "out/muse/TODAY.md").write_text("placeholder\n")
     order = tmp_path / "order.json"
@@ -33,6 +33,26 @@ def test_archive_copies_present_and_reports_missing(tmp_path):
     assert res["muse/TODAY.md"] == "copied"
     assert res["midnight-qc-summary.json"] == "missing"
     assert (tmp_path / "out/archive" / D / "BOSS-DECISIONS.md").is_file()
+
+
+def test_archive_copies_the_midnight_qc_markdown_that_is_written(tmp_path):
+    """midnight_qc.py writes data-ok.md. Archiving summary.md saved nothing."""
+    order = _root(tmp_path)
+    (tmp_path / "out/midnight-qc" / D / "data-ok.md").write_text("# DATA OK\nS06 is $25\n")
+    res = dict((n, s) for s, n in ar.archive(tmp_path, D, order))
+    assert res["midnight-qc-summary.md"] == "copied"
+    archived = tmp_path / "out/archive" / D / "midnight-qc-summary.md"
+    assert archived.read_text() == "# DATA OK\nS06 is $25\n"
+
+
+def test_archive_says_missing_when_only_the_old_summary_md_is_there(tmp_path):
+    """A summary.md left by an older tool is not the QC report; say missing."""
+    order = _root(tmp_path)
+    (tmp_path / "out/midnight-qc" / D / "data-ok.md").unlink()
+    (tmp_path / "out/midnight-qc" / D / "summary.md").write_text("stale\n")
+    res = dict((n, s) for s, n in ar.archive(tmp_path, D, order))
+    assert res["midnight-qc-summary.md"] == "missing"
+    assert not (tmp_path / "out/archive" / D / "midnight-qc-summary.md").exists()
 
 
 def test_archive_never_overwrites_without_force(tmp_path):
