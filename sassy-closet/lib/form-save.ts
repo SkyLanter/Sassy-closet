@@ -13,25 +13,8 @@ export async function saveFromForm(form: FormData, existingMa?: string) {
     photos.push({ bytes, hash: hashBytes(bytes), ext });
   }
 
-  let pieces: Piece[] = [];
-  const rawPieces = String(form.get("pieces") ?? "").trim();
-  if (rawPieces) {
-    try {
-      pieces = JSON.parse(rawPieces) as Piece[];
-    } catch {
-      pieces = [];
-    }
-  }
-
-  let keep_photos: string[] = [];
-  const rawKeep = String(form.get("keep_photos") ?? "").trim();
-  if (rawKeep) {
-    try {
-      keep_photos = JSON.parse(rawKeep) as string[];
-    } catch {
-      keep_photos = [];
-    }
-  }
+  const pieces = parsePiecesField(form.get("pieces"));
+  const keep_photos = parseKeepPhotosField(form.get("keep_photos"));
 
   return saveSubmission({
     kind: String(form.get("kind") || form.get("prefix") || "A"),
@@ -54,6 +37,48 @@ export async function saveFromForm(form: FormData, existingMa?: string) {
     taobao_snapshot: parseJson(form.get("taobao_snapshot"), isTaobaoItem),
     auto_price: parseJson(form.get("auto_price"), isPriceBreakdown),
   });
+}
+
+function parsePiecesField(raw: FormDataEntryValue | null): Piece[] {
+  const text = String(raw ?? "").trim();
+  if (!text) return [];
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return [];
+  }
+  if (!Array.isArray(parsed)) {
+    throw Object.assign(new Error("Danh sách màu không đúng định dạng."), { status: 400 });
+  }
+  return parsed.filter(isPiece);
+}
+
+function parseKeepPhotosField(raw: FormDataEntryValue | null): string[] {
+  const text = String(raw ?? "").trim();
+  if (!text) return [];
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return [];
+  }
+  if (!Array.isArray(parsed)) {
+    throw Object.assign(new Error("Dữ liệu ảnh giữ không đúng định dạng."), { status: 400 });
+  }
+  return parsed.filter((item): item is string => typeof item === "string");
+}
+
+function isPiece(value: unknown): value is Piece {
+  if (!value || typeof value !== "object") return false;
+  const piece = value as Piece;
+  return (
+    typeof piece.id === "string" &&
+    Array.isArray(piece.photos) &&
+    Array.isArray(piece.suggested) &&
+    typeof piece.color === "string" &&
+    typeof piece.note === "string"
+  );
 }
 
 function parseJson<T>(raw: FormDataEntryValue | null, guard: (value: unknown) => value is T): T | null {
