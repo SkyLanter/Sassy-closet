@@ -306,3 +306,23 @@ def test_window_max_age_configurable(tmp_path):
 def test_shipped_config_has_window():
     j = next(x for x in json.loads((REPO / "data/run-gaps.json").read_text())["jobs"] if x["name"] == "auto_list_state")
     assert j["active_window"] == WIN
+
+
+def test_shipped_config_midnight_qc_requires_only_what_is_written(tmp_path):
+    """midnight_qc.py writes summary.json and data-ok.md. A required file it never
+    writes makes every real day look half-written."""
+    import midnight_qc
+    from test_midnight_qc import _passing_payload
+    out = tmp_path / "out" / "midnight-qc" / "2026-10-21"
+    fixture = tmp_path / "night.json"
+    fixture.write_text(json.dumps(_passing_payload()), encoding="utf-8")
+    assert midnight_qc.main(["--fixture", str(fixture), "--out", str(out),
+                             "--date", "2026-10-21"]) == 0
+    written = sorted(p.name for p in out.iterdir() if p.is_file())
+    job_cfg = next(x for x in json.loads((REPO / "data/run-gaps.json").read_text())["jobs"]
+                   if x["name"] == "midnight_qc")
+    assert sorted(job_cfg["required"]) == written
+    assert set(job_cfg["json_files"]) <= set(written)
+    r = g.run(tmp_path, REPO / "data/run-gaps.json", datetime(2026, 10, 21, 20, 0, tzinfo=timezone.utc), 3)
+    qc = next(x for x in r["jobs"] if x["job"] == "midnight_qc")
+    assert "2026-10-21" not in qc["half_written"]

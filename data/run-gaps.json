@@ -4,7 +4,7 @@
   "jobs": [
     {"name": "midnight_qc", "kind": "dated", "pattern": "out/midnight-qc/{date}/", "cadence": "daily",
      "timezone": "America/Los_Angeles", "expected_hour": 2,
-     "required": ["started.json", "summary.json", "data-ok.md", "meta-light.md"], "json_files": ["started.json", "summary.json"]},
+     "required": ["summary.json", "data-ok.md"], "json_files": ["summary.json"]},
     {"name": "muse_pack", "kind": "dated", "pattern": "out/muse/pack-{date}.md", "cadence": "daily",
      "timezone": "UTC", "expected_hour": 12, "date_offset_days": -1,
      "note": "pack-D.md is written the morning after D (~11:00 UTC), so today's expected file is yesterday's date"},
