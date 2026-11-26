@@ -126,3 +126,35 @@ def test_node_modules_link_is_noted_not_failed(fake):
     r = run(repo, base, env)
     assert r.returncode == 0, r.stdout
     assert "node_modules link (ignored)" in r.stdout
+
+
+def test_held_json_working_tree_edit_fails(fake):
+    """A held.json edit that is not committed yet still moves held mãs, so it must FAIL."""
+    repo, base, env = fake
+    (repo / "data" / "held.json").write_text('{"heldIncomplete": ["K93", "S06"], "neverList": []}\n')
+    r = run(repo, base, env, "--json")
+    assert r.returncode != 0
+    assert "held.json unchanged: no" in r.stdout
+    by = {s["step"]: s for s in json.loads((latest(repo) / "summary.json").read_text())["steps"]}
+    assert by["held-json"]["status"] == "FAIL"
+
+
+def test_held_json_working_tree_edit_is_caught_on_a_branch_too(fake):
+    """Same edit on a feature branch: BASE..HEAD is clean, so only the working tree reveals it."""
+    repo, base, env = fake
+    _git(repo, "checkout", "-q", "-b", "feature")
+    (repo / "notes.txt").write_text("work\n")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "branch work")
+    (repo / "data" / "held.json").write_text('{"heldIncomplete": [], "neverList": ["K93"]}\n')
+    r = run(repo, base, env)
+    assert r.returncode != 0 and "held.json unchanged: no" in r.stdout
+
+
+def test_held_json_staged_only_edit_fails(fake):
+    """Staging the edit, without any unstaged change, must still FAIL."""
+    repo, base, env = fake
+    (repo / "data" / "held.json").write_text('{"heldIncomplete": [], "neverList": ["K93"]}\n')
+    _git(repo, "add", "data/held.json")
+    r = run(repo, base, env)
+    assert r.returncode != 0 and "held.json unchanged: no" in r.stdout
