@@ -96,7 +96,17 @@ export function createLocalBackend(root: string): StoreBackend {
     },
     async writeStore(store) {
       fs.mkdirSync(photosRoot(), { recursive: true });
-      fs.writeFileSync(storeFile(), JSON.stringify(store, null, 2));
+      // Write aside, then rename. A crash or a full disk used to truncate
+      // submissions.json first, and the next read refused to overwrite it.
+      const file = storeFile();
+      const tmp = path.join(path.dirname(file), `.${path.basename(file)}.${process.pid}.tmp`);
+      try {
+        fs.writeFileSync(tmp, JSON.stringify(store, null, 2));
+        fs.renameSync(tmp, file);
+      } catch (error) {
+        fs.rmSync(tmp, { force: true });
+        throw error;
+      }
     },
     async readPhoto(rel) {
       const file = resolveLocalPhoto(photosRoot(), rel);
