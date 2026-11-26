@@ -8,7 +8,7 @@ import {
 import { ownMaImages } from "@/lib/product-media";
 import { customerStockVoiceHit } from "@/lib/public-safety";
 import { shopSafeProduct } from "@/lib/sell-contract";
-import type { MaLetter } from "@/lib/ma";
+import { canonicalMaSpelling, type MaLetter } from "@/lib/ma";
 import type { Product, ProductColor, ProductImageAsset } from "@/lib/types";
 
 /**
@@ -51,7 +51,7 @@ export function shopMeasurements(fit: FitCm): ShopMeasurements | null {
 export function toShopLook(product: Product): ShopLook {
   const safe = shopSafeProduct(product);
   return {
-    ma: safe.ma,
+    ma: canonicalMaSpelling(safe.ma),
     type: safe.type,
     titleVn: safe.titleVn,
     titleEn: safe.titleEn,

@@ -12,7 +12,7 @@ import {
   productShareDescription,
   productShareTitle,
 } from "@/lib/trust-copy";
-import type { MaLetter } from "@/lib/ma";
+import { canonicalMaSpelling, type MaLetter } from "@/lib/ma";
 import type { ShopLook } from "@/lib/shop-look";
 
 export function shopRobots(): Metadata["robots"] {
@@ -114,10 +114,12 @@ function productShareImages(
 }
 
 export function productSeo(product: ShopLook, version?: string): Metadata {
-  const title = productShareTitle(product);
-  const description = productShareDescription(product);
-  const canonical = shopCanonical(`/m/${product.ma}`);
-  const images = productShareImages(product, version);
+  const ma = canonicalMaSpelling(product.ma);
+  const titled = ma === product.ma ? product : { ...product, ma };
+  const title = productShareTitle(titled);
+  const description = productShareDescription(titled);
+  const canonical = shopCanonical(`/m/${ma}`);
+  const images = productShareImages(titled, version);
   return {
     title,
     description,
@@ -237,7 +239,9 @@ export function notFoundSeo(): Metadata {
 }
 
 export function productJsonLd(product: ShopLook): Record<string, unknown> {
-  const canonical = shopCanonical(`/m/${product.ma}`);
+  const ma = canonicalMaSpelling(product.ma);
+  const titled = ma === product.ma ? product : { ...product, ma };
+  const canonical = shopCanonical(`/m/${ma}`);
   const photos = product.images
     .map((image) => absoluteMedia(image.src.trim()))
     .filter((src) => src.length > 0);
@@ -252,9 +256,9 @@ export function productJsonLd(product: ShopLook): Record<string, unknown> {
   const jsonLd: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Product",
-    name: productShareTitle(product),
-    description: productShareDescription(product),
-    sku: product.ma,
+    name: productShareTitle(titled),
+    description: productShareDescription(titled),
+    sku: ma,
     inLanguage: "en",
     brand: {
       "@type": "Brand",
