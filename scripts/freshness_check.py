@@ -1064,6 +1064,33 @@ def _pdp_from_json(value: object) -> dict[str, dict[str, PdpView]]:
     return parsed
 
 
+def _cny(value: object) -> Decimal | None:
+    """A plain ¥ amount, else None. The stored text is never rewritten.
+
+    An empty string, a note, a comma group, NaN/Infinity, or a negative number is
+    not a public ¥. Treating it as one used to raise decimal.InvalidOperation out of
+    the snapshot reader (or write NaN into the report), so a bad row took the whole
+    report with it. An unreadable ¥ is now the same "no usable public ¥" state an
+    unreadable page already gives.
+    """
+    if value is None or isinstance(value, bool):
+        return None
+    if isinstance(value, Decimal):
+        number = value
+    elif isinstance(value, (int, float)):
+        if isinstance(value, float) and not math.isfinite(value):
+            return None
+        number = Decimal(str(value))
+    else:
+        text = str(value).strip()
+        if re.fullmatch(r"\d+(?:\.\d+)?", text) is None:
+            return None
+        number = Decimal(text)
+    if not number.is_finite() or number <= 0:
+        return None
+    return number
+
+
 def _taobao_from_json(value: object) -> list[TaobaoView]:
     if not isinstance(value, list):
         raise ValueError("fixture taobao must be a list")
@@ -1072,17 +1099,14 @@ def _taobao_from_json(value: object) -> list[TaobaoView]:
         if not isinstance(item, dict) or not isinstance(item.get("ma"), str):
             raise ValueError("fixture taobao row needs a mã")
         state = str(item.get("state", "skip"))
-        raw = item.get("public_cny")
-        promo = item.get("promo_cny")
-        final = item.get("final_cny")
         rows.append(
             TaobaoView(
                 norm_ma(item["ma"]),
                 state,
-                None if raw is None else Decimal(str(raw)),
+                _cny(item.get("public_cny")),
                 "" if item.get("detail") is None else str(item.get("detail")),
-                None if promo is None else Decimal(str(promo)),
-                None if final is None else Decimal(str(final)),
+                _cny(item.get("promo_cny")),
+                _cny(item.get("final_cny")),
                 _sizes_field(item),
                 _photo_field(item),
             )
