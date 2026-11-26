@@ -37,7 +37,7 @@ from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
 from autolist import S06_LOCK_USD, UNDER_TEN, UNDER_TEN_BUMP, price
-from held_policy import HeldPolicy, load_held_policy, norm_ma
+from held_policy import MA_RE, HeldPolicy, load_held_policy, norm_ma
 
 FX_CNY_PER_USD = Decimal("6.723")
 SHIP_USD_PER_KG = Decimal("10.52")
@@ -214,9 +214,18 @@ def load_intake(path: Path) -> list[dict]:
 
 
 def load_live(path: Path) -> dict[str, object]:
+    """Priced mãs from a live price map, or from a catalog.v1 products[] snapshot.
+
+    A catalog snapshot has no top-level mã keys, so reading it as a price map
+    found no live mã and every live row was quoted again. Only mã-shaped keys
+    are kept, so the catalog's own "schema"/"updatedAt" keys never look like mãs.
+    """
     data = json.loads(path.read_text(encoding="utf-8"))
+    if isinstance(data, dict) and isinstance(data.get("products"), list):
+        return dict(load_live_catalog(path))
     prices = data.get("prices", data) if isinstance(data, dict) else {}
-    return {norm_ma(str(k)): v for k, v in prices.items() if v not in (None, "")}
+    return {norm_ma(str(k)): v for k, v in prices.items()
+            if v not in (None, "") and MA_RE.fullmatch(norm_ma(str(k)))}
 
 
 def load_live_catalog(path: Path) -> dict[str, Decimal]:
@@ -270,7 +279,8 @@ def parse_proxy(items: list[str]) -> dict[str, Decimal] | None:
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="Read-only Boss approval sheet for held/unpriced mãs.")
     p.add_argument("--intake", required=True, type=Path, help="Intake export JSON (submissions list).")
-    p.add_argument("--live", required=True, type=Path, help="Live price map JSON ({prices: {mã: $}}).")
+    p.add_argument("--live", required=True, type=Path,
+                   help="Live prices: a {prices: {mã: $}} map or a catalog.v1 {products: [...]} snapshot.")
     p.add_argument("--held", type=Path, default=None, help="held.json (default data/held.json).")
     p.add_argument("--weights", action="append", type=Path, default=[], help="Per-mã kg CSV.")
     p.add_argument("--kg-proxy", action="append", default=[], help="KIND=KG override, repeatable.")

@@ -3,6 +3,7 @@
  {"path": "*privacy-allowlist.json", "reason": "This file: path globs and reasons only, no data."},
  {"path": "*privacy_scan.py", "reason": "Scanner source: regexes and made-up docstring examples (cost 9.39-style), no shop data."},
  {"path": "scripts/tests/test_held_price_proposal.py", "rules": ["cost"], "reason": "Synthetic cost_cny rows (Q/Z mã, round numbers) for the proposal math."},
+ {"path": "scripts/tests/test_held_proposal_live_catalog.py", "rules": ["cost"], "reason": "Synthetic cost_cny rows (A/H placeholders) proving a catalog.v1 --live file is not re-quoted."},
  {"path": "scripts/tests/test_headroom_flag.py", "rules": ["intake_cny", "cost"], "reason": "Synthetic intake_cny rows for headroom tests."},
  {"path": "scripts/tests/test_intake_gaps.py", "rules": ["cost", "taobao", "tb_cn"], "reason": "Synthetic BASE row; link is a placeholder (id=1 / example)."},
  {"path": "scripts/tests/test_export_daily_inputs.py", "rules": ["cost", "1688", "supplier", "taobao", "tb_cn", "phone", "email"], "reason": "Planted fake costs/links/buyer (Z99, a@b.c) proving the export strips them."},
