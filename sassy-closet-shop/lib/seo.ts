@@ -228,6 +228,14 @@ export function categoryJsonLd(
   return jsonLd;
 }
 
+/**
+ * JSON-LD for a script tag. `<` is written as `\u003c` so a title or URL
+ * cannot end the script element. The parsed JSON is unchanged.
+ */
+export function jsonLdScriptHtml(data: Record<string, unknown>): string {
+  return JSON.stringify(data).replace(/</g, "\\u003c");
+}
+
 export function notFoundSeo(): Metadata {
   return {
     title: "Not found",

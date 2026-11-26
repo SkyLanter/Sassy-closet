@@ -10,7 +10,7 @@ import { lookCountLabel } from "@/lib/look-count";
 import { KNOWN_SEED_MAS } from "@/lib/catalog-contract";
 import { catalogShaOf } from "@/lib/catalog-sha";
 import { getCatalogDocument, getProduct, getProductsByType } from "@/lib/products";
-import { productJsonLd, productSeo } from "@/lib/seo";
+import { jsonLdScriptHtml, productJsonLd, productSeo } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 export const dynamicParams = true;
@@ -53,7 +53,7 @@ export default async function ProductPage({
     <div className="bg-paper">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd(product)) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScriptHtml(productJsonLd(product)) }}
       />
       <ContentWaveHost className="shop-content-layer">
         <ProductViewEvent ma={product.ma} />

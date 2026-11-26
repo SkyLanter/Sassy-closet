@@ -5,7 +5,7 @@ import { ContentWaveHost } from "@/components/content-wave";
 import { FeaturedBoard } from "@/components/featured-board";
 import { categoryAriaLabel, categoryCopy, categoryFromSlug, categorySectionId, TYPE_SLUGS } from "@/lib/categories";
 import { getCatalogTypes, getProducts } from "@/lib/products";
-import { categoryJsonLd, categorySeo, notFoundSeo } from "@/lib/seo";
+import { categoryJsonLd, categorySeo, jsonLdScriptHtml, notFoundSeo } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 export const dynamicParams = true;
@@ -50,7 +50,7 @@ export default async function CategoryPage({
     <ContentWaveHost className="shop-content-layer bg-paper scroll-mt-[calc(env(safe-area-inset-top,0px)+8.25rem)] sm:scroll-mt-[calc(env(safe-area-inset-top,0px)+8.75rem)]">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScriptHtml(jsonLd) }}
       />
       <h1
         aria-label={categoryAriaLabel(type)}
