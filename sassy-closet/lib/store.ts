@@ -86,16 +86,28 @@ export async function getFx(): Promise<{ usd_cny: number; updated: string; label
 export async function setFx(
   usdCny: number,
 ): Promise<{ usd_cny: number; updated: string; label: string }> {
-  const store = await loadStore();
-  store.fx = {
-    usd_cny: usdCny,
-    updated: new Date().toISOString().slice(0, 10),
-  };
-  await persistStore(store);
-  return getFx();
+  return withStoreWrite(async () => {
+    const store = await loadStore();
+    store.fx = {
+      usd_cny: usdCny,
+      updated: new Date().toISOString().slice(0, 10),
+    };
+    await persistStore(store);
+    return getFx();
+  });
 }
 
 export async function saveSubmission(input: SaveInput): Promise<Submission> {
+  const saved = await withStoreWrite(() => writeSubmission(input));
+  await notifyIntakeDatasetSyncWebhook(saved.event, saved.submission, saved.previous);
+  return saved.submission;
+}
+
+async function writeSubmission(input: SaveInput): Promise<{
+  event: "create" | "update";
+  submission: Submission;
+  previous: Submission | null;
+}> {
   if (!isKindCode(input.kind)) {
     throw Object.assign(new Error("Loại đồ không đúng."), { status: 400 });
   }
@@ -183,8 +195,23 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
     store.submissions.push(base);
   }
   await persistStore(store);
-  await notifyIntakeDatasetSyncWebhook(existing ? "update" : "create", base, existing);
-  return base;
+  return { event: existing ? "update" : "create", submission: base, previous: existing };
+}
+
+/**
+ * One in-flight read-modify-write. Two saves used to read the same file,
+ * then the later write replaced the whole closet and dropped the other row
+ * (or a rate update that had already landed).
+ */
+let storeWrite: Promise<void> = Promise.resolve();
+
+function withStoreWrite<T>(task: () => Promise<T>): Promise<T> {
+  const run = storeWrite.then(task, task);
+  storeWrite = run.then(
+    () => undefined,
+    () => undefined,
+  );
+  return run;
 }
 
 export async function findByPhotoHash(hash: string): Promise<Submission[]> {
