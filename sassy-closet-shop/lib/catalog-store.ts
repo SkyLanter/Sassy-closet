@@ -20,6 +20,7 @@ import { applyRecordedHubSourceLink } from "@/lib/hub-source-links";
 import { catalogShaOf, isInPlaceCoverPath } from "@/lib/catalog-sha";
 import { srcBelongsToMa } from "@/lib/product-media";
 import { catalogBlobPath, catalogBlobPrefix, catalogImagePrefix, catalogKvKey, isKnownSeedMa } from "@/lib/catalog-contract";
+import { canonicalMaSpelling } from "@/lib/ma";
 import { TYPE_LABELS } from "@/lib/catalog";
 import { customerOpsVoiceHit } from "@/lib/public-safety";
 import {
@@ -90,20 +91,27 @@ export function getSeedProducts(): Product[] {
   return getSeedDocument().products;
 }
 
+/** Seed row for this mã under S06 / S6 / s006. The stored spelling is left as written. */
+function seedByCanonicalMa(): Map<string, Product> {
+  return new Map(getSeedDocument().products.map((product) => [canonicalMaSpelling(product.ma), product]));
+}
+
 /**
  * Hub ten always show the real intake files in `public/products/{MA}/`.
  * Stale Blob URLs (AI covers) and another mã’s folder never win on the shop.
+ * A short or padded spelling of the same hub mã (`A2`, `A002`) is still that hub.
  */
 export function overlaySeedHubGalleries(document: CatalogDocument): CatalogDocument {
-  const seedByMa = new Map(getSeedDocument().products.map((product) => [product.ma, product]));
+  const seedByMa = seedByCanonicalMa();
   return {
     ...document,
     products: document.products.map((product) => {
       const ownImages = product.images.filter((image) => srcBelongsToMa(image.src, product.ma));
       const next =
         ownImages.length === product.images.length ? product : { ...product, images: ownImages };
-      const seed = seedByMa.get(product.ma);
-      if (seed && isKnownSeedMa(product.ma) && seed.images.length > 0) {
+      const key = canonicalMaSpelling(product.ma);
+      const seed = seedByMa.get(key);
+      if (seed && isKnownSeedMa(key) && seed.images.length > 0) {
         return { ...next, images: seed.images };
       }
       return next;
@@ -137,12 +145,13 @@ function storedCopyOrSeed(stored: string, seedCopy: string): string {
 
 /** Known seed mãs keep Blob title and description. Seed fills a blank. Extra mãs drop ops / filler — blank if nothing real. */
 export function overlayCustomerStockVoice(document: CatalogDocument): CatalogDocument {
-  const seedByMa = new Map(getSeedDocument().products.map((product) => [product.ma, product]));
+  const seedByMa = seedByCanonicalMa();
   return {
     ...document,
     products: document.products.map((product) => {
-      const seed = seedByMa.get(product.ma);
-      if (seed && isKnownSeedMa(product.ma)) {
+      const key = canonicalMaSpelling(product.ma);
+      const seed = seedByMa.get(key);
+      if (seed && isKnownSeedMa(key)) {
         const titleEn = storedCopyOrSeed(product.titleEn, seed.titleEn);
         const titleVn = storedCopyOrSeed(product.titleVn, seed.titleVn);
         const descriptionEn = storedCopyOrSeed(product.descriptionEn, seed.descriptionEn);
@@ -227,14 +236,15 @@ export function overlayCleanedExtraCovers(document: CatalogDocument): CatalogDoc
 const SEED_PHOTO_COLOR_TAG_MAS = ["B01"] as const;
 
 export function overlaySeedPhotoColorTags(document: CatalogDocument): CatalogDocument {
-  const seedByMa = new Map(getSeedDocument().products.map((product) => [product.ma, product]));
+  const seedByMa = seedByCanonicalMa();
   return {
     ...document,
     products: document.products.map((product) => {
-      if (!(SEED_PHOTO_COLOR_TAG_MAS as readonly string[]).includes(product.ma)) {
+      const key = canonicalMaSpelling(product.ma);
+      if (!(SEED_PHOTO_COLOR_TAG_MAS as readonly string[]).includes(key)) {
         return product;
       }
-      const seed = seedByMa.get(product.ma);
+      const seed = seedByMa.get(key);
       if (!seed) {
         return product;
       }
