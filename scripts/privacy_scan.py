@@ -108,6 +108,7 @@ def _redact(s: str) -> str:
 
 COST_COL = re.compile(r"[¥￥]|cny|rmb|landed|cost", re.I)
 NUM_CELL = re.compile(r"^\s*[¥￥$]?\s?" + NUM + r"\s*$")
+SEP_CELL = re.compile(r":?-{3,}:?")
 
 
 def _cells(line: str) -> list[str] | None:
@@ -115,6 +116,11 @@ def _cells(line: str) -> list[str] | None:
     if not (t.startswith("|") and t.endswith("|")):
         return None
     return [c.strip() for c in t[1:-1].split("|")]
+
+
+def _is_sep_row(cells: list[str]) -> bool:
+    """A markdown separator row: every cell is ---, optionally colon-aligned (:---, ---:, :--:)."""
+    return bool(cells) and all(SEP_CELL.fullmatch(x or "---") for x in cells)
 
 
 def table_cost_cols(lines: list[str]):
@@ -125,9 +131,9 @@ def table_cost_cols(lines: list[str]):
         if c is None:
             cols = []
             continue
-        if all(re.fullmatch(r":?-{3,}:?", x or "---") for x in c):
+        if _is_sep_row(c):
             continue
-        if not cols and i + 1 < len(lines) and (_cells(lines[i + 1]) or [""])[0].startswith("---"):
+        if not cols and i + 1 < len(lines) and _is_sep_row(_cells(lines[i + 1]) or []):
             cols = [k for k, x in enumerate(c) if COST_COL.search(x)]
             continue
         if cols:
@@ -218,13 +224,31 @@ def scan_git_diff(rng: str, repo: str, allow: list[dict]) -> list[Hit]:
 def scan_diff_text(diff: str, allow: list[dict], outer: str | None = None) -> list[Hit]:
     hits: list[Hit] = []
     cur, ln = None, 0
+    # cost_table is a whole-table rule: the header, the separator, and each body row are
+    # separate added lines in a diff, so keep the added run per file to rebuild the table.
+    window: list[tuple[int, str]] = []
+
+    def flush() -> None:
+        if not window:
+            return
+        if "cost_table" not in ACTIVE or allowed(cur or "", "cost_table", allow):
+            window.clear()
+            return
+        lines = [text for _, text in window]
+        line_numbers = [number for number, _ in window]
+        for i, _cols, _c in table_cost_cols(lines):
+            hits.append(Hit(cur or "", line_numbers[i], "cost_table", _redact(lines[i])))
+        window.clear()
+
     for line in diff.splitlines():
         if line.startswith("+++ "):
+            flush()
             cur = line[4:]
             cur = cur[2:] if cur.startswith("b/") else (None if cur == "/dev/null" else cur)
             if cur:
                 hits += archive_hit(cur)
         elif line.startswith("@@"):
+            flush()
             m = re.search(r"\+(\d+)", line)
             ln = int(m.group(1)) if m else 0
         elif line.startswith("+") and cur:
@@ -232,7 +256,11 @@ def scan_diff_text(diff: str, allow: list[dict], outer: str | None = None) -> li
                 pass
             else:
                 hits += scan_text(cur, line[1:], allow, [ln])
+                window.append((ln, line[1:]))
             ln += 1
+        else:
+            flush()
+    flush()
     return hits
 
 

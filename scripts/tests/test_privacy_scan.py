@@ -63,6 +63,32 @@ def test_cost_table_rule_and_redaction():
     assert rules(out) == []
 
 
+@pytest.mark.parametrize("sep", [
+    "|---|---|---|---|---|",
+    "|:---|---|---|---|---|",
+    "|:---:|---|---|---|---|",
+    "|---|:---|---|---|---|",
+    "|---|---|---|:---:|---|",
+])
+def test_cost_table_sees_aligned_separator_rows(sep):
+    """A colon-aligned separator row still opens the table; only the first cell's '---' was checked."""
+    md = "| mã | ¥ | kg | landed | sell |\n" + sep + "\n| Z99 | 88 | 0.3 | 15.5 | $25 |\n"
+    assert "cost_table" in rules(md)
+    ps.ACTIVE.clear(); ps.ACTIVE.update(ps.RULES)
+    assert rules(ps.redact_text(md)) == []
+
+
+def test_cost_table_fires_through_git_diff():
+    """hard_recheck.sh scans --git-diff; the table header arrives as a separate added line."""
+    diff = ("--- /dev/null\n+++ b/docs/x.md\n@@ -0,0 +1,3 @@\n"
+            "+| mã | ¥ | kg | landed | sell |\n"
+            "+|---|---|---|---|---|\n"
+            "+| Z99 | 88 | 0.3 | 15.5 | $25 |\n")
+    ps.ACTIVE.clear(); ps.ACTIVE.update(ps.RULES)
+    hits = ps.scan_diff_text(diff, [])
+    assert [(h.path, h.rule) for h in hits] == [("docs/x.md", "cost_table")]
+
+
 def test_redact_json_stays_valid_and_clean():
     src = json.dumps({"rows": [{"ma": "Z99", "intake_cny": 88.0, "cost_usd": "12.5", "landed_usd": 15.1,
                                  "sourceLink": "https://item.taobao.com/item.htm?id=999", "live": 25}],
@@ -134,6 +160,18 @@ def test_cli_git_diff_added_lines(tmp_path):
     assert run("--no-allowlist", "--repo", str(tmp_path), "--git-diff", "HEAD~1..HEAD").returncode == 0
     (tmp_path / "f.md").write_text("old line ¥10\nnew ok line\nZ99 cost 12\n"); g("commit", "-qam", "c")
     assert run("--no-allowlist", "--repo", str(tmp_path), "--git-diff", "HEAD~1..HEAD").returncode == 1
+
+
+def test_cli_git_diff_cost_table(tmp_path):
+    """The hard-recheck privacy step is a --git-diff run, so a new cost table must be caught there."""
+    g = lambda *a: subprocess.run(["git", "-C", str(tmp_path), *a], check=True, capture_output=True)
+    g("init", "-q"); g("config", "user.email", "t@t.t"); g("config", "user.name", "t")
+    (tmp_path / "doc.md").write_text("# Notes\n"); g("add", "."); g("commit", "-qm", "a")
+    (tmp_path / "doc.md").write_text(
+        "# Notes\n\n| mã | ¥ | kg | landed | sell |\n|---|---|---|---|---|\n| Z99 | 88 | 0.3 | 15.5 | $25 |\n")
+    g("commit", "-qam", "b")
+    r = run("--no-allowlist", "--repo", str(tmp_path), "--git-diff", "HEAD~1..HEAD")
+    assert r.returncode == 1 and "cost_table" in r.stdout and "88" not in r.stdout
 
 
 def test_redact_cli_roundtrip(tmp_path):
