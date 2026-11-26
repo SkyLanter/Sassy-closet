@@ -1,4 +1,5 @@
 import { isOffLiveSell } from "@/lib/held-incomplete";
+import { ownMaImages } from "@/lib/product-media";
 import { shopSafeProduct } from "@/lib/sell-contract";
 import { toShopLook, type ShopLook } from "@/lib/shop-look";
 import { SITE } from "@/lib/site";
@@ -80,7 +81,11 @@ export function shopVisibleProducts(products: Product[]): Product[] {
 }
 
 export function shopVisibleLooks(products: Product[]): ShopLook[] {
-  return shopVisibleProducts(products).map(toShopLook);
+  // README: "Looks with no own photos stay in admin, not the shop." Admin keeps
+  // the row (`shopVisibleProducts`); the customer grid, PDP, and sitemap drop it.
+  return shopVisibleProducts(products)
+    .filter((product) => ownMaImages(product).length > 0)
+    .map(toShopLook);
 }
 
 export function asksInboxPrice(status: ProductStatus): boolean {

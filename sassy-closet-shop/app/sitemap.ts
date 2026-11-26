@@ -16,7 +16,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return [];
   }
   const document = await readLiveCatalogDocument();
-  const products = shopVisibleProducts(document.products);
+  // A look with no photo of its own is not a shop page (README), so it is not
+  // a sitemap URL either. `coverSrc` is that same own-photo check.
+  const products = shopVisibleProducts(document.products).filter((product) => coverSrc(product));
   const types = catalogTypesFrom(products);
   const lastModified = document.updatedAt ? new Date(document.updatedAt) : new Date();
   return [
@@ -27,10 +29,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
     ...products.map((product) => {
       const ma = canonicalMaSpelling(product.ma);
-      const cover = coverSrc(product);
-      const images = cover
-        ? [cover.startsWith("http") ? cover : `${origin}${cover}`]
-        : undefined;
+      const cover = coverSrc(product) as string;
+      const images = [cover.startsWith("http") ? cover : `${origin}${cover}`];
       return {
         url: `${origin}/m/${ma}`,
         lastModified,
