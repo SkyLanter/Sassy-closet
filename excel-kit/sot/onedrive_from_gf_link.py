@@ -184,13 +184,27 @@ def looks_like_broken_live_browse(url: str) -> bool:
     host = (parsed.hostname or "").lower()
     if host not in LIVE_HOSTS:
         return False
-    query = parse_qs(parsed.query, keep_blank_values=True)
-    item = (query.get("id") or query.get("resid") or [""])[0]
-    if "!" in unquote(item) and "%21" not in item:
+    # Read the still-encoded value: parse_qs unquotes, so decoding its result a
+    # second time turned a canonical %21 back into a bare !. Only a literal !
+    # in the raw value is the broken Graph shape. `id` wins even when blank,
+    # and an absent/blank pair is a falsy "" — never None (that raised TypeError).
+    item = _raw_query_value(parsed.query, "id")
+    if item is None:
+        item = _raw_query_value(parsed.query, "resid")
+    if item and "!" in item:
         return True
     if parsed.path in ("", None) and parsed.query:
         return True
     return False
+
+
+def _raw_query_value(query: str, key: str) -> str | None:
+    """Raw (still percent-encoded) query value; None when the key is absent."""
+    for part in (query or "").split("&"):
+        name, _, value = part.partition("=")
+        if unquote(name) == key:
+            return value.strip()
+    return None
 
 
 def _ensure_scheme(url: str) -> str:
