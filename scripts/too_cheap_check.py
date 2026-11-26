@@ -36,6 +36,10 @@ from held_policy import HeldPolicy, load_held_policy, norm_ma
 
 FX_CNY_PER_USD = Decimal("6.723")
 SHIP_USD_PER_KG = Decimal("10.52")
+# Statuses the shop actually shows a sell price for. "sold" keeps its last price in
+# the catalog but is hidden from the shop; "hold" shows an inbox-price label, not a $.
+# Same live set as the daily snapshot export (scripts/export_daily_inputs.py).
+SHOP_LIVE = frozenset({"available", "live", "active", "in_stock", "instock"})
 ROOT = Path(__file__).resolve().parents[1]
 HELD_TS = ROOT / "sassy-closet-shop" / "lib" / "held-incomplete.ts"
 IMPORT_RE = re.compile(r"""import\s+\w+\s+from\s+["']([^"']+\.json)["']""")
@@ -224,10 +228,28 @@ def markdown(summary: dict, title: str = "Too-cheap check") -> str:
     return "\n".join(out) + "\n"
 
 
+def on_shop(row: object) -> bool:
+    """True when the shop shows this row's price. A blank status still counts as live."""
+    if not isinstance(row, dict):
+        return False
+    status = row.get("status", "available")
+    if status is None:
+        return True
+    if not isinstance(status, str):
+        return False
+    token = status.strip().lower()
+    return token == "" or token in SHOP_LIVE
+
+
 def load_live(path: Path) -> dict[str, float]:
+    """Priced mãs the shop shows. A sold or hold row is not a live sell price.
+
+    S06 is kept whatever its status so the $25 lock is still checked.
+    """
     data = json.loads(path.read_text(encoding="utf-8"))
     if isinstance(data, dict) and "products" in data:
-        return {norm_ma(p["ma"]): float(p["priceUsd"]) for p in data["products"]}
+        return {norm_ma(p["ma"]): float(p["priceUsd"]) for p in data["products"]
+                if on_shop(p) or norm_ma(p.get("ma")) == "S06"}
     if isinstance(data, dict) and "prices" in data:
         return {norm_ma(k): float(v) for k, v in data["prices"].items()}
     raise ValueError(f"{path}: expected a catalog with products[] or a prices map")
