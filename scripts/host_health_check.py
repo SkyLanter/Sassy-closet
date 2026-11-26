@@ -17,6 +17,7 @@ Exit codes: 0 PASS, 1 WARN, 2 FAIL.
 from __future__ import annotations
 
 import argparse
+import http.client
 import json
 import re
 import socket
@@ -59,7 +60,7 @@ def fetch(url: str, timeout: float = TIMEOUT) -> tuple[int | None, str, str]:
             return r.status, r.read(2_000_000).decode("utf-8", "replace"), ""
     except urllib.error.HTTPError as e:
         return e.code, "", ""
-    except (OSError, ssl.SSLError) as e:
+    except (OSError, ssl.SSLError, http.client.HTTPException) as e:
         return None, "", f"{type(e).__name__}: {getattr(e, 'reason', e)}"
 
 
