@@ -191,12 +191,17 @@ def find_existing_ma_row(ws: Worksheet, ma: str) -> int | None:
 
 
 def next_numeric_id(existing: list[str], *, prefix: str, width: int = 3) -> str:
-    """Next WISH-001 / ORD-001 style id. Not a mã — never used as stock SKU."""
+    """Next WISH-001 / ORD-001 style id. Not a mã — never used as stock SKU.
+
+    An empty prefix is the Candidates "#" column. Every string startswith(""),
+    so that branch never stripped the hash and the next id reused 1.
+    """
     highest = 0
+    pref = prefix.upper()
     for raw in existing:
         text = raw.strip().upper()
-        if text.startswith(prefix.upper()):
-            tail = text[len(prefix) :].lstrip("-_")
+        if pref and text.startswith(pref):
+            tail = text[len(pref) :].lstrip("-_")
         else:
             tail = text.lstrip("#")
         if tail.isdigit():
