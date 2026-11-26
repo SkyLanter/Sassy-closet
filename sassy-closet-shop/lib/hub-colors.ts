@@ -63,7 +63,9 @@ export function isHubColorSlug(value: string): value is HubColorSlug {
 }
 
 export function recordedHubSlugs(ma: string): readonly HubColorSlug[] {
-  return HUB_COLORS_BY_MA[normalizeMa(ma)] ?? [];
+  // Canonical spelling so "P001" / "P1" read the same recorded chips as "P01",
+  // the same way hubColorLocked already locks them.
+  return HUB_COLORS_BY_MA[canonicalMaSpelling(ma)] ?? [];
 }
 
 export function hubColorLocked(ma: string): boolean {
