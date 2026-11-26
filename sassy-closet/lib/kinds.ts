@@ -116,9 +116,45 @@ export function sizeOptionsLine(kind: KindCode): string {
   return sizesForKind(kind).join(" ");
 }
 
+function canonicalSize(token: string, kind: KindCode): string | null {
+  const trimmed = token.trim();
+  if (!trimmed) return null;
+  const folded = trimmed.toLowerCase();
+  return sizesForKind(kind).find((size) => size.toLowerCase() === folded) ?? null;
+}
+
+/**
+ * Keep chips that belong to this kind. "m" and "2xl" are the same chips as
+ * "M" and "2XL"; a repeated token is one chip. Other kinds' sizes drop.
+ */
 export function keepSizesForKind(selected: string[], kind: KindCode): string[] {
-  const allowed = new Set<string>(sizesForKind(kind));
-  return selected.filter((size) => allowed.has(size));
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const size of selected) {
+    const canonical = canonicalSize(size, kind);
+    if (!canonical || seen.has(canonical)) continue;
+    seen.add(canonical);
+    out.push(canonical);
+  }
+  return out;
+}
+
+/**
+ * Sizes saved on a row, for the form. A known chip is matched ignoring case
+ * so the board shows it selected. A measurement such as "88cm" stays as stored.
+ */
+export function sizesFromStored(raw: string, kind: KindCode): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const part of raw.split(/[\s,]+/)) {
+    const token = part.trim();
+    if (!token) continue;
+    const canonical = canonicalSize(token, kind) ?? token;
+    if (seen.has(canonical)) continue;
+    seen.add(canonical);
+    out.push(canonical);
+  }
+  return out;
 }
 
 export function intakeCatalog(): IntakeCatalog {
