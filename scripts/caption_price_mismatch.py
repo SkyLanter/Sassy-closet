@@ -24,15 +24,17 @@ _MA_LABEL = re.compile(r"(?iu)(?:^|\n)[ \t]*(?:mã|ma|m)[ \t]+([A-Za-z]\d{2})\b"
 # A line that is only the mã.
 _MA_BARE = re.compile(r"(?iu)(?:^|\n)[ \t]*([A-Za-z]\d{2})[ \t]*(?:$|\n)")
 _MA_CODE = re.compile(r"[A-Z]\d{2}")
-_YEN = re.compile(r"¥[ \t]*\d+(?:\.\d+)?|(?<![A-Za-z\d.$])\d+(?:\.\d+)?[ \t]*¥")
+# One written amount. "$1,025" is one figure, so the comma group stays with it.
+_NUM = r"\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:[.,]\d+)?"
+_YEN = re.compile(r"¥[ \t]*(?:" + _NUM + r")|(?<![A-Za-z\d.$])(?:" + _NUM + r")[ \t]*¥")
 _DOLLAR = re.compile(
-    r"\$(?:[ \t]*\d+(?:\.\d+)?)"
-    r"|(?<![A-Za-z\d.])\d+(?:\.\d+)?[ \t]*\$"
-    r"|(?<![A-Za-z\d.])\d+(?:\.\d+)?[ \t]*USD\b",
+    r"\$(?:[ \t]*(?:" + _NUM + r"))"
+    r"|(?<![A-Za-z\d.])(?:" + _NUM + r")[ \t]*\$"
+    r"|(?<![A-Za-z\d.])(?:" + _NUM + r")[ \t]*USD\b",
     re.IGNORECASE,
 )
-_BARE_AMOUNT = re.compile(r"[ \t]*(\d+(?:\.\d+)?)[ \t]*")
-_AMOUNT = re.compile(r"\d+(?:\.\d+)?")
+_BARE_AMOUNT = re.compile(r"[ \t]*(" + _NUM + r")[ \t]*")
+_AMOUNT = re.compile(_NUM)
 _MONEY_TEXT = re.compile(r"\d+(?:\.\d+)?")
 
 
@@ -210,12 +212,21 @@ def _dollar_amounts(rest: str) -> list[tuple[str, Decimal, str]]:
     return [_amount_from_excerpt(bare.group(1))]
 
 
+_THOUSANDS = re.compile(r"[1-9]\d{0,2}(?:,\d{3})+(?:\.\d+)?")
+
+
+def _decimal(digits: str) -> Decimal:
+    """One written amount. A real thousands group drops its commas; any other
+    comma is a decimal mark, so "25,5" is 25.5 and "1,025" is 1025."""
+    return Decimal(digits.replace(",", "") if _THOUSANDS.fullmatch(digits) else digits.replace(",", "."))
+
+
 def _amount_from_excerpt(excerpt: str) -> tuple[str, Decimal, str]:
     match = _AMOUNT.search(excerpt)
     if match is None:
         raise ValueError(f"price token has no amount: {excerpt}")
     digits = match.group(0)
-    return excerpt, Decimal(digits), digits
+    return excerpt, _decimal(digits), digits
 
 
 def _caption_ma(text: str) -> str | None:

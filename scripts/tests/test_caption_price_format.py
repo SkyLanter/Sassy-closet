@@ -254,6 +254,41 @@ def test_cli_rejects_a_bad_fixture(tmp_path: Path) -> None:
     assert not (tmp_path / "out").exists()
 
 
+def test_a_comma_amount_stays_one_figure() -> None:
+    """`Giá $1,025` is one written price, not `$1` plus a stray `025`."""
+    captions = [
+        Caption("comma-dollar", "Mã A01\nGiá $1,025"),
+        Caption("comma-cents", "Mã A01\nGiá $25,5"),
+        Caption("comma-bare", "Mã A01\nGiá 1,025"),
+        Caption("comma-then-text", "Mã A01\nGiá $25, size M"),
+    ]
+    result = flag_gia_prices(captions)
+    found = [(item.caption_id, item.kind, item.excerpt, item.amount, item.suggestion)
+             for item in result.findings]
+    assert found == [
+        ("comma-bare", MISSING_DOLLAR, "1,025", "1,025", "$1,025"),
+    ]
+
+
+def test_a_comma_amount_keeps_its_messy_shape() -> None:
+    """The tidier spelling still names the whole figure the caption wrote."""
+    result = flag_gia_prices([
+        Caption("trailing", "Giá 1,025$"),
+        Caption("spaced", "Giá $ 1,025"),
+    ])
+    assert [(item.kind, item.excerpt, item.amount, item.suggestion) for item in result.findings] == [
+        (TRAILING_DOLLAR, "1,025$", "1,025", "$1,025"),
+        (SPACED_DOLLAR, "$ 1,025", "1,025", "$1,025"),
+    ]
+
+
+def test_a_second_amount_after_a_comma_is_still_read() -> None:
+    result = flag_gia_prices([Caption("two", "Giá $25, 30")])
+    assert [(item.kind, item.excerpt, item.amount) for item in result.findings] == [
+        (MISSING_DOLLAR, "30", "30"),
+    ]
+
+
 def test_source_stays_fixture_only() -> None:
     source = SCRIPT.read_text(encoding="utf-8").lower()
     for banned in (

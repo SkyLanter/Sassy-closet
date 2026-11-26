@@ -344,6 +344,30 @@ def test_cli_rejects_a_bad_fixture(tmp_path: Path) -> None:
     assert not (tmp_path / "out").exists()
 
 
+def test_a_comma_amount_compares_the_whole_figure() -> None:
+    """`Giá $1,025` against a $1,025 catalog is a match, not a $1 mismatch."""
+    catalog = {"A07": CatalogPrice("A07", Decimal("1025"), "1025")}
+    result = compare_prices([
+        Caption("comma", "Mã A07\nGiá $1,025"),
+        Caption("comma-usd", "Mã A07\nGiá 1,025"),
+    ], catalog)
+    assert result.findings == ()
+
+
+def test_a_comma_amount_that_really_differs_is_named_whole() -> None:
+    catalog = {"A07": CatalogPrice("A07", Decimal("26"), "26")}
+    result = compare_prices([Caption("comma", "Mã A07\nGiá $1,025")], catalog)
+    assert [(item.excerpt, item.caption_usd, item.catalog_usd) for item in result.findings] == [
+        ("$1,025", "1,025", "26"),
+    ]
+
+
+def test_a_comma_that_is_not_an_amount_ends_the_figure() -> None:
+    catalog = {"A07": CatalogPrice("A07", Decimal("26"), "26")}
+    result = compare_prices([Caption("size", "Mã A07\nGiá $26, size M")], catalog)
+    assert result.findings == ()
+
+
 def test_source_stays_fixture_only() -> None:
     source = SCRIPT.read_text(encoding="utf-8").lower()
     for banned in (

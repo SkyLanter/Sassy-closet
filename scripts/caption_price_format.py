@@ -20,19 +20,23 @@ KINDS = (TRAILING_DOLLAR, SPACED_DOLLAR, MISSING_DOLLAR)
 # Giá or Gia at the start of a line, then the rest of that line.
 _GIA_LINE = re.compile(r"(?iu)^[ \t]*(?:giá|gia)\b[ \t]*:?[ \t]*(?P<rest>.*)$")
 _NOT_INSIDE = r"(?<![A-Za-z\d.])"
+# One amount never splits at a comma: "1,025" and "25,5" are a single written
+# figure, so the digits around the comma stay together. A comma that is not
+# followed by a digit ("$25, size M") still ends the amount.
+_NUM = r"\d+(?:(?:,\d{3})+(?:\.\d+)?|[.,]\d+)?"
 # Yen amounts are skipped. Dollar shapes cover $25, $ 25, 25$, and $25$.
 # A remaining number has no dollar sign. Digits inside a mã such as A07 are left alone.
 _TOKEN = re.compile(
-    rf"(?P<yen>¥[ \t]*\d+(?:\.\d+)?|{_NOT_INSIDE}\d+(?:\.\d+)?[ \t]*¥)"
-    rf"|(?P<dollar>\$(?:[ \t]+\d+(?:\.\d+)?\$?|\d+(?:\.\d+)?\$?)"
-    rf"|{_NOT_INSIDE}\d+(?:\.\d+)?[ \t]*\$)"
-    rf"|(?P<bare>{_NOT_INSIDE}\d+(?:\.\d+)?)"
+    rf"(?P<yen>¥[ \t]*{_NUM}|{_NOT_INSIDE}{_NUM}[ \t]*¥)"
+    rf"|(?P<dollar>\$(?:[ \t]+{_NUM}\$?|{_NUM}\$?)"
+    rf"|{_NOT_INSIDE}{_NUM}[ \t]*\$)"
+    rf"|(?P<bare>{_NOT_INSIDE}{_NUM})"
 )
-_AMOUNT = re.compile(r"\d+(?:\.\d+)?")
-_CLEAN_DOLLAR = re.compile(r"\$\d+(?:\.\d+)?")
-_SPACED_DOLLAR = re.compile(r"\$[ \t]+\d+(?:\.\d+)?\$?")
-_ATTACHED_TRAILING = re.compile(r"\$\d+(?:\.\d+)?\$")
-_TRAILING_DOLLAR = re.compile(r"\d+(?:\.\d+)?[ \t]*\$")
+_AMOUNT = re.compile(_NUM)
+_CLEAN_DOLLAR = re.compile(rf"\${_NUM}")
+_SPACED_DOLLAR = re.compile(rf"\$[ \t]+{_NUM}\$?")
+_ATTACHED_TRAILING = re.compile(rf"\${_NUM}\$")
+_TRAILING_DOLLAR = re.compile(rf"{_NUM}[ \t]*\$")
 
 
 @dataclass(frozen=True)
