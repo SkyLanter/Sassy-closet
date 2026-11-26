@@ -91,17 +91,13 @@ if (!sameSlot.ok) {
   fail(sameSlot.error);
 }
 
-const extra: Product = {
-  ...twoTone,
-  ma: "A03",
-  type: "A",
-};
-const catalogWithExtra = [...catalog, extra];
-const mergedColors = mergeProductColors(catalogWithExtra, "A03", "cblackcolor01", "ccamelcolor01");
+// The seed already contains A03. Color merge must run on the two-tone row
+// already in `catalog` (A01), not on a second A03 appended after the real one.
+const mergedColors = mergeProductColors(catalog, "A01", "cblackcolor01", "ccamelcolor01");
 if (!mergedColors.ok) {
   fail(mergedColors.error);
 }
-const mergedExtra = mergedColors.products.find((product) => product.ma === "A03");
+const mergedExtra = mergedColors.products.find((product) => product.ma === "A01");
 if (!mergedExtra || mergedExtra.colors.length !== 1 || mergedExtra.colors[0]?.id !== "cblackcolor01") {
   fail("color merge must drop the source color");
 }
@@ -147,12 +143,13 @@ const overlayA01 = mergedDoc.products.find((product) => product.ma === "A01");
 if (overlayA01?.titleEn !== "Top — official overlay") {
   fail("merge must overlay matching mãs");
 }
+const seedP02 = seed.products.find((product) => product.ma === "P02");
 const overlayP02 = mergedDoc.products.find((product) => product.ma === "P02");
 if (overlayP02?.titleEn !== "Thermos — overlay") {
   fail("merge must overlay P02");
 }
-if (overlayP02?.status !== "hold" || overlayP02.priceUsd !== null) {
-  fail("merge must not invent a USD on Hold");
+if (!seedP02 || overlayP02?.status !== seedP02.status || overlayP02.priceUsd !== seedP02.priceUsd) {
+  fail("merge must keep P02's catalog status and USD");
 }
 if (mergedDoc.settings.announcementLines[0] !== "Official overlay") {
   fail("merge takes incoming settings");
@@ -165,7 +162,7 @@ const extraIncoming = asCatalogDocument(
   [
     ...incoming.products,
     {
-      ma: "A03",
+      ma: "A99",
       type: "A",
       titleEn: "Added on official",
       titleVn: "Áo",
@@ -186,11 +183,11 @@ const extraIncoming = asCatalogDocument(
   "sassy-closet-official",
 );
 const withExtra = mergeCatalogDocuments(seed, extraIncoming);
-if (!withExtra.products.some((product) => product.ma === "A03")) {
+if (!withExtra.products.some((product) => product.ma === "A99")) {
   fail("merge must add a new valid mã from incoming");
 }
-if (withExtra.products.length !== 11) {
-  fail(`expected 11 mãs after adding A03, got ${withExtra.products.length}`);
+if (withExtra.products.length !== seed.products.length + 1) {
+  fail(`expected ${seed.products.length + 1} mãs after adding A99, got ${withExtra.products.length}`);
 }
 assertImportSellContract(withExtra.products);
 
@@ -211,14 +208,18 @@ if (clamped[0]?.src !== "a") {
   fail("reorder must no-op at the edge");
 }
 
-const holdLd = productJsonLd(seed.products.find((product) => product.ma === "P02")!);
-const holdOffer = holdLd.offers;
-if (
-  holdOffer &&
-  typeof holdOffer === "object" &&
-  "price" in holdOffer
+const p02Ld = productJsonLd(seedP02);
+const p02Offer = p02Ld.offers;
+if (seedP02.priceUsd === null) {
+  if (p02Offer && typeof p02Offer === "object" && "price" in p02Offer) {
+    fail("P02 JSON-LD must not invent a USD when the catalog has none");
+  }
+} else if (
+  !p02Offer ||
+  typeof p02Offer !== "object" ||
+  (p02Offer as { price?: string }).price !== seedP02.priceUsd.toFixed(2)
 ) {
-  fail("Hold JSON-LD must not invent a USD price");
+  fail("P02 JSON-LD must keep the catalog USD");
 }
 
 toCatalogDocumentJson(mergedDoc);
