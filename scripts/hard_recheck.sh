@@ -106,8 +106,12 @@ note=""; [ -n "$LINKS" ] && note="node_modules link (ignored): $LINKS"
 if [ "$OTHER" = 0 ]; then record working-tree 0 PASS 0 0 "clean: yes" "$note"
 else record working-tree 0 WARN 0 0 "clean: no ($OTHER changes)" "$note"; fi
 
-# h. held.json
-if git diff --quiet "$BASE..HEAD" -- data/held.json; then record held-json 1 PASS 0 0 "held.json unchanged: yes" ""
+# h. held.json: the committed range AND the working tree/index. An uncommitted edit is not in
+# BASE..HEAD, and working-tree is only a WARN, so a saved held mã moved without failing the run.
+# `git diff HEAD` covers staged and unstaged edits in one comparison.
+if git diff --quiet "$BASE..HEAD" -- data/held.json && \
+   git diff --quiet HEAD -- data/held.json; then
+  record held-json 1 PASS 0 0 "held.json unchanged: yes" ""
 else record held-json 1 FAIL 1 0 "held.json unchanged: no" ""; fi
 
 # i. read-only tip-status footer (informational, never required; never fails the run)
