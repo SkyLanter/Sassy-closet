@@ -16,19 +16,21 @@ export const TYPE_SLUGS: Record<MaLetter, string> = {
   D: "dam",
 };
 
-const SLUG_TO_TYPE = Object.fromEntries(
-  (Object.entries(TYPE_SLUGS) as Array<[MaLetter, string]>).map(([type, slug]) => [
-    slug,
-    type,
-  ]),
-) as Record<string, MaLetter>;
+/**
+ * A Map, not a plain object: the slug is a customer URL segment, and an object
+ * lookup also answers inherited names ("constructor", "__proto__", "toString").
+ * Those are not categories and must stay a 404.
+ */
+const SLUG_TO_TYPE = new Map<string, MaLetter>(
+  (Object.entries(TYPE_SLUGS) as Array<[MaLetter, string]>).map(([type, slug]) => [slug, type]),
+);
 
 export function categorySlug(type: MaLetter): string {
   return TYPE_SLUGS[type];
 }
 
 export function categoryFromSlug(slug: string): MaLetter | null {
-  return SLUG_TO_TYPE[slug] ?? null;
+  return SLUG_TO_TYPE.get(slug) ?? null;
 }
 
 export function categoryHref(type: MaLetter): string {

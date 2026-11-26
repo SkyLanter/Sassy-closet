@@ -5,9 +5,9 @@ import { canonicalMaSpelling, isValidMa } from "@/lib/ma";
  * Old Hair slug from before the category was `toc`.
  * Accessories stay `phu-kien`. Do not add other aliases.
  */
-const STALE_CATEGORY_SLUGS: Readonly<Record<string, string>> = {
-  "phu-kien-toc": "toc",
-};
+const STALE_CATEGORY_SLUGS = new Map<string, string>([
+  ["phu-kien-toc", "toc"],
+]);
 
 function safeDecode(segment: string): string | null {
   try {
@@ -51,7 +51,7 @@ export function canonicalCategoryPath(pathname: string): string | null {
     return null;
   }
   const lower = raw.toLowerCase();
-  const stale = STALE_CATEGORY_SLUGS[lower];
+  const stale = STALE_CATEGORY_SLUGS.get(lower);
   if (stale) {
     return `${prefix}/c/${stale}`;
   }
