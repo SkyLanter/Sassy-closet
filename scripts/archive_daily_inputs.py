@@ -4,7 +4,7 @@
 Copies, when present, into <root>/out/archive/<date>/ (under gitignored /out/):
   out/reports/<date>/COST-BASIS.md        -> COST-BASIS.md
   out/reports/<date>/BOSS-DECISIONS.md    -> BOSS-DECISIONS.md
-  out/midnight-qc/<date>/summary.md|json  -> midnight-qc-summary.md|json
+  out/midnight-qc/<date>/data-ok.md|json  -> midnight-qc-summary.md|json
   out/muse/TODAY.md, extras-<date>.md, pack-message-<date>.txt,
   meta-qc-<date>.json                     -> muse/<name>
   <repo>/sassy-closet-shop/data/popular-order.json -> popular-order.json
@@ -34,7 +34,9 @@ def sources(root, date, order=None):
     return [
         (rep / "COST-BASIS.md", "COST-BASIS.md"),
         (rep / "BOSS-DECISIONS.md", "BOSS-DECISIONS.md"),
-        (qc / "summary.md", "midnight-qc-summary.md"),
+        # midnight_qc.py writes the readable report as data-ok.md; there is no
+        # summary.md. Naming it here keeps the day's QC verdict in the archive.
+        (qc / "data-ok.md", "midnight-qc-summary.md"),
         (qc / "summary.json", "midnight-qc-summary.json"),
         (muse / "TODAY.md", "muse/TODAY.md"),
         (muse / f"extras-{date}.md", f"muse/extras-{date}.md"),
