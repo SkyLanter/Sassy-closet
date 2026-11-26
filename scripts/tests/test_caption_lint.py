@@ -83,6 +83,38 @@ def test_s06_must_be_25():
     assert r.status == "FAIL" and has(r, "s06_not_25")
 
 
+@pytest.mark.parametrize("g,usd", [
+    ("Giá $25,5", 25.5),
+    ("Giá $25,50", 25.5),
+    ("Giá $25,05", 25.05),
+    ("Giá $250,5", 250.5),
+])
+def test_s06_comma_amount_is_not_read_as_25(g, usd):
+    """A comma amount is one figure. Reading only the part before the comma
+    turned "$25,5" into $25 and let the S06 lock pass."""
+    r = lint(f"Mã S06\n{g}")
+    assert r.gia_usd == usd
+    assert r.status == "FAIL" and has(r, "s06_not_25")
+
+
+def test_s06_at_comma_format_25_still_passes():
+    r = lint("Mã S06\nGiá $25.00")
+    assert r.gia_usd == 25.0 and r.status == "PASS"
+
+
+def test_live_comma_amount_compares_the_whole_figure():
+    """$1,027 is one thousand twenty-seven, not one dollar."""
+    r = lint("Mã D06\nGiá $1,027")
+    assert r.gia_usd == 1027.0
+    assert r.status == "FAIL" and has(r, "gia_differs_live")
+
+
+def test_a_comma_that_is_not_an_amount_ends_the_figure():
+    """`Giá $28, size M` is still $28; the comma separates the size."""
+    r = lint("Mã D06\nGiá $28, size M")
+    assert r.gia_usd == 28.0 and r.status == "PASS"
+
+
 def test_s06_locked_even_if_snapshot_says_otherwise():
     r = cl.lint_post("u", "ig", "Mã S06\nGiá $30", {"S06": 30.0}, {"S06"}, set(), {})
     assert has(r, "s06_not_25")

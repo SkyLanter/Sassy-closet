@@ -56,10 +56,20 @@ CANON_MA_LINE = re.compile(r"^Mã ([A-Z][0-9]{2})$")
 # loose mã: Mã/Ma/ma/MÃ/Mả/Má/M, optional : # . -, optional space, code
 LOOSE_MA = re.compile(r"(?<![0-9A-Za-zÀ-ỹ])m(?:ã|a|ả|á|à|ạ)?\s*[:#.\-]?\s*([A-Za-z]\s?[0-9]{2})(?![0-9])",
                       re.IGNORECASE)
-CANON_GIA = re.compile(r"(?<![A-Za-zÀ-ỹ])Giá \$(\d+(?:\.\d{1,2})?)(?![\d.])")
+# One written USD amount. "$1,025" is one thousand twenty-five, so a comma
+# group is read with the digits around it and never cut off at the comma.
+# The tidy spelling is a plain number, so a comma amount is malformed, not clean.
+_AMOUNT = r"(?:\d{1,3}(?:,\d{3})+(?:\.\d{1,2})?|\d+(?:[.,]\d{1,2})?)"
+# The figure ends here: another digit, or a comma/dot that starts more digits, is
+# a truncated read. "Giá $25, size M" still ends at the comma-then-space.
+_AMOUNT_END = r"(?!\d|[.,]\d)"
+# A real thousands group: the first group is 1-999 with no leading zero, so
+# "1,025" is a number and "0,025" / "25,5" stay what the caption wrote.
+_THOUSANDS = re.compile(r"[1-9]\d{0,2}(?:,\d{3})+(?:\.\d{1,2})?")
+CANON_GIA = re.compile(r"(?<![A-Za-zÀ-ỹ])Giá \$(\d+(?:\.\d{1,2})?)" + _AMOUNT_END)
 LOOSE_GIA = re.compile(
-    r"(?<![A-Za-zÀ-ỹ])gi[áa]\s*[:\-–]?\s*(?:\$\s*(\d+(?:[.,]\d{1,2})?)"
-    r"|(\d+(?:[.,]\d{1,2})?)\s*(?:\$|đô\b|do\b|usd\b))",
+    r"(?<![A-Za-zÀ-ỹ])gi[áa]\s*[:\-–]?\s*(?:\$\s*(" + _AMOUNT + r")"
+    r"|(" + _AMOUNT + r")\s*(?:\$|đô\b|do\b|usd\b))" + _AMOUNT_END,
     re.IGNORECASE,
 )
 GIA_WORD = re.compile(r"(?<![A-Za-zÀ-ỹ])gi[áa](?![A-Za-zÀ-ỹ])", re.IGNORECASE)
@@ -107,16 +117,20 @@ def find_ma(text: str) -> tuple[str | None, list[str]]:
     return None, ["missing_ma"]
 
 
+def _usd(raw: str) -> float:
+    """One written amount as a number. A thousands group drops its commas."""
+    return float(raw.replace(",", "") if _THOUSANDS.fullmatch(raw) else raw.replace(",", "."))
+
+
 def find_gia(text: str) -> tuple[float | None, list[str], bool]:
     """Return (usd, reasons, fatal)."""
     m = CANON_GIA.search(text)
     if m:
-        return float(m.group(1)), [], False
+        return _usd(m.group(1)), [], False
     lm = LOOSE_GIA.search(text)
     if lm:
-        raw = (lm.group(1) or lm.group(2)).replace(",", ".")
-        v = float(raw)
-        return v, [f"malformed_gia (saw {lm.group(0).strip()!r}, want 'Giá ${raw}')"], False
+        raw = lm.group(1) or lm.group(2)
+        return _usd(raw), [f"malformed_gia (saw {lm.group(0).strip()!r}, want 'Giá ${_usd(raw):g}')"], False
     if GIA_WORD.search(text):
         return None, ["malformed_gia (Giá with no readable $ amount)"], True
     return None, ["missing_gia"], True
