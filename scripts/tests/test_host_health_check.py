@@ -1,4 +1,6 @@
 """Offline tests for host_health_check (all network mocked)."""
+import http.client
+import json
 import socket
 import ssl
 from types import SimpleNamespace
@@ -101,6 +103,64 @@ def test_fetch_http_error_returns_code(monkeypatch):
         raise hh.urllib.error.HTTPError("u", 404, "nf", {}, None)
     monkeypatch.setattr(hh.urllib.request, "urlopen", uo)
     assert hh.fetch("https://x/m/S19")[0] == 404
+
+
+def test_fetch_http_exception_returns_error(monkeypatch):
+    def bad_status(*a, **k):
+        raise http.client.BadStatusLine("BAD")
+    monkeypatch.setattr(hh.urllib.request, "urlopen", bad_status)
+    st, body, err = hh.fetch("https://x/")
+    assert st is None and body == "" and err.startswith("BadStatusLine:")
+
+    class TruncatedResp:
+        status = 200
+        def __enter__(self):
+            return self
+        def __exit__(self, *a):
+            return False
+        def read(self, n):
+            raise http.client.IncompleteRead(b"partial", 10)
+
+    monkeypatch.setattr(hh.urllib.request, "urlopen", lambda *a, **k: TruncatedResp())
+    st, body, err = hh.fetch("https://x/")
+    assert st is None and body == "" and err.startswith("IncompleteRead:")
+
+
+def test_main_http_exception_reports_fail_and_checks_other_host(monkeypatch, tmp_path, capsys):
+    monkeypatch.setattr(hh, "check_dns", lambda h: (True, "ok"))
+    monkeypatch.setattr(hh, "check_tls", lambda h, timeout=0: (True, "ok (TLSv1.3)"))
+
+    class Resp:
+        def __init__(self, status, body):
+            self.status = status
+            self._body = body
+        def __enter__(self):
+            return self
+        def __exit__(self, *a):
+            return False
+        def read(self, n):
+            return self._body
+
+    def uo(req, timeout=0):
+        url = req.full_url
+        if url == "https://sassycloset.vercel.app/":
+            raise http.client.BadStatusLine("HTTP/0.9")
+        if url.endswith("/m/S19"):
+            raise hh.urllib.error.HTTPError(url, 404, "nf", {}, None)
+        if url.endswith("/m/S06"):
+            return Resp(200, S06_PAGE.encode())
+        return Resp(200, b"home")
+
+    monkeypatch.setattr(hh.urllib.request, "urlopen", uo)
+    out_json = tmp_path / "h.json"
+    out_md = tmp_path / "h.md"
+    rc = hh.main(["--out-json", str(out_json), "--out-md", str(out_md)])
+    assert rc == 2 and "Host health: FAIL" in capsys.readouterr().out
+    assert out_json.exists() and out_md.exists()
+    data = json.loads(out_json.read_text())
+    by_host = {h["host"]: h for h in data["hosts"]}
+    assert by_host["sassycloset.vercel.app"]["status"].startswith("BadStatusLine:")
+    assert by_host["sassy-closet-shop.vercel.app"]["problems"] == []
 
 
 def test_main_exit_and_markdown(monkeypatch, tmp_path, capsys):
