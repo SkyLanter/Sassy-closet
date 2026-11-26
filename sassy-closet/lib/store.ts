@@ -182,6 +182,9 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
     store.nextId += 1;
     store.submissions.push(base);
   }
+  if (existing && normalizeMa(existing.ma) !== normalizeMa(ma)) {
+    moveOnHandBucket(store, existing.ma, ma);
+  }
   await persistStore(store);
   await notifyIntakeDatasetSyncWebhook(existing ? "update" : "create", base, existing);
   return base;
@@ -265,6 +268,26 @@ export function storeHealth(): ReturnType<typeof storageStatus> {
 function csvCell(value: string): string {
   if (/[",\n]/.test(value)) return `"${value.replaceAll('"', '""')}"`;
   return value;
+}
+
+/**
+ * The find card reads on-hand by the current mã. A rename used to leave the
+ * bucket under the old code, so the new card said staged-only. An existing
+ * bucket on the new mã is left as it is.
+ */
+function moveOnHandBucket(store: StoreFile, fromMa: string, toMa: string): void {
+  const from = normalizeMa(fromMa);
+  const to = normalizeMa(toMa);
+  if (!from || !to || from === to) return;
+  const bag = store.on_hand;
+  if (!bag || typeof bag !== "object") return;
+  if (bag[to] != null) return;
+  let sourceKey = "";
+  if (bag[from] != null) sourceKey = from;
+  else if (fromMa !== from && bag[fromMa] != null) sourceKey = fromMa;
+  if (!sourceKey) return;
+  bag[to] = bag[sourceKey];
+  delete bag[sourceKey];
 }
 
 function postedSell(currency: string, usd: string, cny: string): string {
