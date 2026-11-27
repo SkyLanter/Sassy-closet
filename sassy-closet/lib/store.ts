@@ -263,7 +263,9 @@ export function storeHealth(): ReturnType<typeof storageStatus> {
 }
 
 function csvCell(value: string): string {
-  if (/[",\n]/.test(value)) return `"${value.replaceAll('"', '""')}"`;
+  // Quote CR as well as LF. A bare CR is its own CSV record, and U+2028/U+2029
+  // split the same way in line-oriented readers, so one mã became two rows.
+  if (/[",\n\r\u2028\u2029]/.test(value)) return `"${value.replaceAll('"', '""')}"`;
   return value;
 }
 
