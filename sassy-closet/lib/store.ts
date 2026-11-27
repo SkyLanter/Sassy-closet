@@ -159,7 +159,9 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
     sell_cny: input.sell_cny.trim(),
     sell_usd: input.sell_usd.trim(),
     sell_currency: (input.sell_currency || "USD").toUpperCase(),
-    blurb: "",
+    // No intake form field writes these three, so an edit carries the stored copy
+    // forward instead of blanking it. A new row still starts empty.
+    blurb: existing?.blurb ?? "",
     photo_paths: photoPaths,
     photo_hashes: photoHashes,
     status: "staged",
@@ -170,8 +172,8 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
     created_at: existing?.created_at ?? now,
     updated_at: now,
     caption_vi: "",
-    caption_en: "",
-    blurb_suggested: "",
+    caption_en: existing?.caption_en ?? "",
+    blurb_suggested: existing?.blurb_suggested ?? "",
     photo_link: `Documents/Sassy Closet/Photos/${ma}/`,
   };
   base.caption_vi = buildCaptionVi(base, store.fx.usd_cny);
