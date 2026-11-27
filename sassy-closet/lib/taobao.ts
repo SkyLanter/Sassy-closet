@@ -124,10 +124,25 @@ function extractTitle(html: string): string {
   return match ? decodeHtmlEntities(match[1]).trim() : "";
 }
 
+const ITEM_URL_RE =
+  /https?:\/\/(?:(?:item\.taobao\.com|detail\.tmall\.com)\/item\.htm|h5\.m\.taobao\.com\/awp\/core\/detail\.htm)\?([^'"\s<>]+)/gi;
+const QUERY_PRICE_RE = /(?:^|&)price=(\d+(?:\.\d{1,2})?)(?!\d)/;
+
+/** List ¥ from price= on an item URL embedded in an e.tb.cn bridge page. */
+function priceFromItemUrl(html: string): string | null {
+  for (const match of html.matchAll(ITEM_URL_RE)) {
+    const query = match[1].replace(/\\u0026/g, "&").replace(/&amp;/g, "&");
+    const found = QUERY_PRICE_RE.exec(query);
+    if (found) return found[1];
+  }
+  return null;
+}
+
 /**
  * Find list ¥ and promo ¥. Taobao embeds several price fields; we prefer:
  *  - defaultItemPrice / priceText as the list price
  *  - a separate 优惠价/promo price when present
+ *  - price= on an item URL when the page has no JSON list ¥
  */
 function extractPrices(html: string): {
   listCny: string | null;
@@ -141,12 +156,13 @@ function extractPrices(html: string): {
     }
     return null;
   };
-  const listCny = pick([
-    /"defaultItemPrice"\s*:\s*"(\d+(?:\.\d{1,2})?)"/,
-    /"priceText"\s*:\s*"(\d+(?:\.\d{1,2})?)"/,
-    /"reservePrice"\s*:\s*"(\d+(?:\.\d{1,2})?)"/,
-    /"price"\s*:\s*"(\d+(?:\.\d{1,2})?)"/,
-  ]);
+  const listCny =
+    pick([
+      /"defaultItemPrice"\s*:\s*"(\d+(?:\.\d{1,2})?)"/,
+      /"priceText"\s*:\s*"(\d+(?:\.\d{1,2})?)"/,
+      /"reservePrice"\s*:\s*"(\d+(?:\.\d{1,2})?)"/,
+      /"price"\s*:\s*"(\d+(?:\.\d{1,2})?)"/,
+    ]) ?? priceFromItemUrl(html);
   const promoCny = pick([
     /"promoPrice"\s*:\s*"(\d+(?:\.\d{1,2})?)"/,
     /"promotionPrice"\s*:\s*"(\d+(?:\.\d{1,2})?)"/,
