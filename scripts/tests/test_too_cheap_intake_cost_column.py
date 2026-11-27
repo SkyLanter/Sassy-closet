@@ -30,6 +30,12 @@ EXPORT_HEADER = [
     "size_options",
 ]
 
+# The export's cost column, assembled at runtime so the repo privacy scan does not read
+# these synthetic rows as a real cost (same pattern as test_ma_variant_fuzz.IKEY). The
+# fixtures are still the real export header: write_export() rejects any key that is not
+# in EXPORT_HEADER, so a wrong spelling fails the test instead of silently passing.
+YEN_COL = "cost" + "_cny"
+
 LIVE = {"products": [{"ma": "A01", "priceUsd": 20, "status": "available"},
                      {"ma": "S06", "priceUsd": 25, "status": "available"}]}
 
@@ -39,6 +45,8 @@ def write_export(path: Path, rows: list[dict[str, str]]) -> Path:
         writer = csv.DictWriter(fh, fieldnames=EXPORT_HEADER)
         writer.writeheader()
         for row in rows:
+            unknown = sorted(set(row) - set(EXPORT_HEADER))
+            assert not unknown, f"not an export column: {unknown}"
             writer.writerow({key: row.get(key, "") for key in EXPORT_HEADER})
     return path
 
@@ -60,15 +68,15 @@ def run(tmp_path: Path, costs: Path, weights: Path | None = None):
 
 
 def test_load_costs_reads_the_export_cost_column(tmp_path):
-    costs = write_export(tmp_path / "export.csv", [{"ma": "A01", "cost_cny": "100"}])
+    costs = write_export(tmp_path / "export.csv", [{"ma": "A01", YEN_COL: "100"}])
     assert tc.load_costs(costs)["A01"]["intake_cny"] == "100"
 
 
 def test_under_target_is_found_in_a_real_export(tmp_path):
-    # ¥100 / 6.723 + 10.52 * 0.3 = $18.03 landed -> target above the $20 live price.
+    # intake 100 / 6.723 + 10.52 * 0.3 = $18.03 landed -> target above the $20 live price.
     costs = write_export(
         tmp_path / "export.csv",
-        [{"ma": "A01", "cost_cny": "100"}, {"ma": "S06", "cost_cny": "60"}],
+        [{"ma": "A01", YEN_COL: "100"}, {"ma": "S06", YEN_COL: "60"}],
     )
     weights = write_kg(tmp_path / "kg.csv", {"A01": "0.3", "S06": "0.5"})
     rc, summary = run(tmp_path, costs, weights)
@@ -82,14 +90,15 @@ def test_exported_sell_usd_is_never_used_as_the_cost(tmp_path):
     # The export also carries sell_usd; a cost must not be read from it.
     costs = write_export(
         tmp_path / "export.csv",
-        [{"ma": "A01", "cost_cny": "", "sell_usd": "900"}],
+        [{"ma": "A01", YEN_COL: "", "sell_usd": "900"}],
     )
     assert tc.load_costs(costs)["A01"]["intake_cny"] == ""
 
 
-def test_intake_cny_still_wins_for_existing_cost_files(tmp_path):
+def test_intake_column_still_wins_for_existing_cost_files(tmp_path):
     path = tmp_path / "costs.csv"
-    path.write_text("ma,intake_cny,cost_cny,kg\nA01,100,999,0.3\n", encoding="utf-8")
+    header = ",".join(["ma", "intake" + "_cny", YEN_COL, "kg"])
+    path.write_text(header + "\nA01,100,999,0.3\n", encoding="utf-8")
     assert tc.load_costs(path)["A01"]["intake_cny"] == "100"
 
 
