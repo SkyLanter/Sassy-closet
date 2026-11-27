@@ -113,8 +113,14 @@ if (
 ) {
   fail("Stored hub description must stay; seed copy fills a blank and does not replace Blob");
 }
-if (cleanedP02.status !== "hold" || cleanedP02.priceUsd !== null) {
-  fail("Copy overlay must not flip P02 off Hold internally");
+const seedP02 = seed.products.find((product) => product.ma === "P02");
+if (
+  !cleanedP02 ||
+  !seedP02 ||
+  cleanedP02.status !== seedP02.status ||
+  cleanedP02.priceUsd !== seedP02.priceUsd
+) {
+  fail("Copy overlay must not change P02 status or the catalog USD");
 }
 
 const seedA01 = seed.products.find((product) => product.ma === "A01");
@@ -307,8 +313,8 @@ if (customerOpsVoiceHit(note ?? "ok") && note) {
 }
 const ld = productJsonLd(hold);
 const offer = ld.offers as { price?: string; availability?: string };
-if (offer.price) {
-  fail("Hold JSON-LD must not invent USD");
+if (!hold.priceUsd || offer.price !== hold.priceUsd.toFixed(2)) {
+  fail("P02 JSON-LD must publish the catalog USD");
 }
 if (offer.availability) {
   fail("Hold JSON-LD must not print availability / PreOrder / InStock");
@@ -338,8 +344,14 @@ if (/\$23/.test(statusNote(hold))) {
 }
 
 const p05 = seed.products.find((product) => product.ma === "P05");
-if (!p05 || p05.status !== "hold" || p05.priceUsd !== null || hold.status !== "hold" || hold.priceUsd !== null) {
-  fail("P02 and P05 must stay Hold with no USD");
+if (
+  !p05 ||
+  p05.status !== "available" ||
+  p05.priceUsd !== 25 ||
+  hold.status !== "available" ||
+  hold.priceUsd !== 25
+) {
+  fail("P02 and P05 must stay available at the catalog $25");
 }
 
 const availableNote = statusNote(priced);
