@@ -113,7 +113,8 @@ export function tieredSellUsd(landedUsd: number): number | null {
 }
 
 export function sellUsdFromLanded(landedUsd: number): number {
-  const quoted = Math.ceil(landedUsd / MARGIN_DIVISOR);
+  // Same snap as the tiered quote so a value one ulp over an integer does not ceil up.
+  const quoted = ceilQuote(landedUsd / MARGIN_DIVISOR);
   if (quoted < UNDER_TEN_LIMIT_USD) {
     return quoted + UNDER_TEN_BUMP_USD;
   }
