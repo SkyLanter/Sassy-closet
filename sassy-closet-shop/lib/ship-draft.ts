@@ -23,7 +23,12 @@ export function composeShipDraftMessage(
   fields: ShipDraftFields,
 ): string {
   const intent = status === "hold" ? HOLD_ASK_LABEL : MESSAGE_ORDER;
-  const lines = [`Mã ${ma} — ${intent}.`, SHIP_QUOTE + "."];
+  const siteLines = [`Mã ${ma} — ${intent}.`, `${SHIP_QUOTE}.`];
+  const siteText = siteLines.join("\n");
+  if (/\$\d/.test(siteText) || /ship\s*\$/i.test(siteText)) {
+    throw new Error("Ship draft must not invent a ship $");
+  }
+  const lines = [...siteLines];
   const name = fields.name.trim();
   const address = fields.address.trim();
   const city = fields.city.trim();
@@ -40,11 +45,7 @@ export function composeShipDraftMessage(
   if (note) {
     lines.push(`Note: ${note}`);
   }
-  const text = lines.join("\n");
-  if (/\$\d/.test(text) || /ship\s*\$/i.test(text)) {
-    throw new Error("Ship draft must not invent a ship $");
-  }
-  return text;
+  return lines.join("\n");
 }
 
 export function parseStoredShipDraft(raw: string | null): ShipDraftFields {
