@@ -5,6 +5,7 @@ import test from "node:test";
 import { overlayCustomerStockVoice } from "../lib/catalog-store";
 import { parseCatalogDocument } from "../lib/product-parse";
 import { productJsonLd } from "../lib/seo";
+import { toShopLook } from "../lib/shop-look";
 
 test("P02 and P05 stay available at the catalog $25, and the dropship smoke does not call them Hold", () => {
   const root = process.cwd();
@@ -35,7 +36,7 @@ test("P02 and P05 stay available at the catalog $25, and the dropship smoke does
   assert.equal(cleaned.status, "available");
   assert.equal(cleaned.priceUsd, 25);
   assert.equal(cleaned.descriptionEn, "Thermos on Hold (photo-check).");
-  const offer = productJsonLd(p02).offers as { price?: string };
+  const offer = productJsonLd(toShopLook(p02)).offers as { price?: string };
   assert.equal(offer.price, "25.00");
   const smoke = readFileSync(path.join(root, "scripts", "smoke-dropship.ts"), "utf8");
   assert.equal(smoke.includes("must stay Hold with no USD"), false);
