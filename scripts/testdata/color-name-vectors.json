@@ -1,0 +1,20 @@
+{
+ "about": "Cross-app colour-name contract (fixture colours only). The intake shop-tools desk writes a colour name into the same catalog.v1 Blob the sell shop reads. shopStores is true when the shop keeps that name: sassy-closet-shop/lib/colors.ts isStoredColorWord drops a bare hex and a 'Color #' placeholder, and parseProductColor then persists an empty name (the customer page falls back to 'Color 1'). Both app tests read this file: the intake test pins that the desk refuses a name it would only lose, the shop test pins the rule that decides it. No catalog, price, or seed row is changed.",
+ "rows": [
+  { "name": "Yellow", "shopStores": true, "case": "plain word" },
+  { "name": "Kem", "shopStores": true, "case": "hub word" },
+  { "name": "Đen", "shopStores": true, "case": "accented word" },
+  { "name": "Xanh dương", "shopStores": true, "case": "two words" },
+  { "name": "Hồng đậm", "shopStores": true, "case": "two accented words" },
+  { "name": "Chấm bi", "shopStores": true, "case": "hub slug name" },
+  { "name": "Off-white", "shopStores": true, "case": "hyphenated word" },
+  { "name": "Color 1", "shopStores": true, "case": "literal words that are not a # placeholder" },
+  { "name": "  Kem  ", "shopStores": true, "case": "padded word trims" },
+  { "name": "#F4F0E8", "shopStores": false, "case": "hex with hash" },
+  { "name": "#fff", "shopStores": false, "case": "short hex with hash" },
+  { "name": "FFFFFF", "shopStores": false, "case": "hex without hash" },
+  { "name": "#FFFFFF", "shopStores": false, "case": "hex upper" },
+  { "name": "Color #1", "shopStores": false, "case": "colour placeholder" },
+  { "name": "color #12", "shopStores": false, "case": "colour placeholder lower" }
+ ]
+}

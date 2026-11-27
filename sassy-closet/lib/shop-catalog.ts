@@ -132,6 +132,23 @@ function readText(value: unknown, label: string, max: number, allowEmpty: boolea
   return trimmed;
 }
 
+/**
+ * The shop stores a colour name only when it is a real word. `colors.ts`
+ * isStoredColorWord drops a hex or a "Color #" placeholder, and parseProductColor
+ * then persists an empty name, so the desk would report a name that the customer
+ * page never shows. Same rule, small local copy because the two apps are separate.
+ */
+function isShopColorWord(name: string): boolean {
+  const trimmed = name.trim();
+  if (!trimmed) {
+    return false;
+  }
+  if (/^#?(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(trimmed)) {
+    return false;
+  }
+  return !/^color\s*#/i.test(trimmed);
+}
+
 function productMa(product: Record<string, unknown>): string {
   return typeof product.ma === "string" ? normalizeMa(product.ma) : "";
 }
@@ -312,6 +329,9 @@ export function applyShopCatalogPatch(
       const name = readText(incoming.name, "color", 80, false);
       if (name === null) {
         return { ok: false, error: `Mã ${ma} color name is empty.` };
+      }
+      if (!isShopColorWord(name)) {
+        return { ok: false, error: `Mã ${ma} color name must be a word, not a hex or placeholder.` };
       }
       nextColors.push({ ...current, name });
     }
