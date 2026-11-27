@@ -221,10 +221,26 @@ export function parseTaobaoHtml(html: string, itemId: string): TaobaoItem {
   };
 }
 
-/** Server-side fetch of the listing page, following short links. */
+const SHOP_LISTING_HOST = /(^|\.)(tb\.cn|taobao\.com|tmall\.com)$/i;
+const LISTING_REDIRECT_HOPS = 4;
+
+/** True for http(s) Taobao, Tmall, and tb.cn URLs. Userinfo and other hosts are not. */
+export function isShopListingUrl(raw: string): boolean {
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    return false;
+  }
+  if (url.protocol !== "http:" && url.protocol !== "https:") return false;
+  if (url.username !== "" || url.password !== "") return false;
+  return SHOP_LISTING_HOST.test(url.hostname);
+}
+
+/** Server-side fetch of the listing page, following short links that stay on Taobao. */
 export async function fetchTaobaoItem(rawLink: string): Promise<TaobaoResult> {
   const startUrl = normalizeSourceLink(rawLink);
-  if (!startUrl) {
+  if (!startUrl || !isShopListingUrl(startUrl)) {
     return { ok: false, blocked: true, reason: "Không thấy link Taobao hợp lệ." };
   }
   const id = extractItemId(startUrl) ?? "";
@@ -237,19 +253,18 @@ export async function fetchTaobaoItem(rawLink: string): Promise<TaobaoResult> {
     : [startUrl];
   const errors: string[] = [];
   for (const url of candidates) {
+    if (!isShopListingUrl(url)) {
+      errors.push(`${url} -> off-shop`);
+      continue;
+    }
     try {
-      const response = await fetch(url, {
-        redirect: "follow",
-        signal: AbortSignal.timeout(12000),
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
-          Accept:
-            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-          "Accept-Language": "zh-CN,zh;q=0.9",
-        },
-      });
-      const finalId = extractItemId(response.url) ?? id;
+      const fetched = await fetchShopListing(url);
+      if (!fetched) {
+        errors.push(`${url} -> off-shop`);
+        continue;
+      }
+      const { response, finalUrl } = fetched;
+      const finalId = extractItemId(response.url) ?? extractItemId(finalUrl) ?? id;
       if (!response.ok) {
         errors.push(`${url} -> HTTP ${response.status}`);
         continue;
@@ -273,6 +288,41 @@ export async function fetchTaobaoItem(rawLink: string): Promise<TaobaoResult> {
     blocked: true,
     reason: `Taobao chặn fetch tự động (thử ${candidates.length} link, đều bị chặn). Nhập tay nha — submission sẽ gắn "needs manual research".`,
   };
+}
+
+/**
+ * GET one shop URL. Redirects are followed only while the next hop is still
+ * a shop host, so a short link can land on the item page and a redirect
+ * elsewhere is not requested.
+ */
+async function fetchShopListing(
+  start: string,
+): Promise<{ response: Response; finalUrl: string } | null> {
+  let current = start;
+  for (let hop = 0; hop < LISTING_REDIRECT_HOPS; hop += 1) {
+    if (!isShopListingUrl(current)) return null;
+    const response = await fetch(current, {
+      redirect: "manual",
+      signal: AbortSignal.timeout(12000),
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "zh-CN,zh;q=0.9",
+      },
+    });
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get("location");
+      await response.body?.cancel().catch(() => undefined);
+      if (!location) return null;
+      const next = new URL(location, current).href;
+      if (!isShopListingUrl(next)) return null;
+      current = next;
+      continue;
+    }
+    return { response, finalUrl: current };
+  }
+  return null;
 }
 
 /** Type guard for TaobaoItem parsed from a client payload. */
