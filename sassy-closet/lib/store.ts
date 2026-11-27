@@ -296,7 +296,9 @@ function resolveSaveMa(input: {
     if (input.existing) return input.existing.ma;
     return guardedMint(input.kind, input.mas);
   }
-  const parsed = parseHubMa(raw);
+  // "Q2" / "s6" are the same mã as Q02 / S06. parseHubMa only accepts two digits,
+  // so the short spelling never reached the held check or the S06 lock.
+  const parsed = parseHubMa(normalizeMa(raw));
   if (parsed) {
     const formatted = formatMa(parsed.kind, parsed.n);
     const blocked = publishBlock({ action: input.existing ? "update" : "create", ma: formatted });
