@@ -88,6 +88,24 @@ def _half_written(target: Path, job: dict, root: Path) -> list[str]:
     return probs
 
 
+def state_at(value: object) -> datetime | None:
+    """A state file's "at" as an aware instant, or None when it is not an ISO time.
+
+    A stamp with no zone is read as UTC, the same clock this module uses for
+    `now` and for its mtime fallback. The stored text is never rewritten.
+    """
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    if not text:
+        return None
+    try:
+        stamp = datetime.fromisoformat(text)
+    except ValueError:
+        return None
+    return stamp if stamp.tzinfo is not None else stamp.replace(tzinfo=timezone.utc)
+
+
 def _today(job: dict, now: datetime) -> tuple[date, bool]:
     local = now.astimezone(ZoneInfo(job["timezone"]))
     return local.date(), local.hour >= int(job.get("expected_hour", 0))
@@ -152,8 +170,10 @@ def check_state(job: dict, root: Path, now: datetime, days: int) -> dict:
             probs.append(f"zero-byte {job['pattern']}")
         else:
             try:
-                at = datetime.fromisoformat(json.loads(p.read_text(encoding="utf-8"))["at"])
+                at = state_at(json.loads(p.read_text(encoding="utf-8"))["at"])
             except Exception:  # noqa: BLE001
+                at = None
+            if at is None:
                 probs.append(f"bad JSON or no 'at' in {job['pattern']}")
         # unreadable state: date from mtime, but it counts as stale (no trusted run time)
         seen = at or datetime.fromtimestamp(p.stat().st_mtime, tz=timezone.utc)
