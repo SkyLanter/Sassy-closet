@@ -201,7 +201,10 @@ if (!optionsSrc.includes("SizeNameChips") || !optionsSrc.includes('data-testid="
 if (!optionsSrc.includes("product.sizes.length > 0")) {
   fail("Size chips must hide when the catalog row has no letters");
 }
-if (gallerySrc.includes("ASIA_SIZE_LETTERS") || sizeChips.includes("ASIA_SIZE_LETTERS")) {
+// f0c7b6e moved the size chips from the gallery into product-options and renamed
+// the local, but this line kept reading the old `gallerySrc` name and threw
+// ReferenceError. Check both files that render chips now.
+if (optionsSrc.includes("ASIA_SIZE_LETTERS") || sizeChips.includes("ASIA_SIZE_LETTERS")) {
   fail("PDP must not paint the full 2XS–2XL row — only seller/catalog letters");
 }
 if (sizeChips.includes("useContentWave") || sizeChips.includes("Asia size") || sizeChips.includes("inboxForFitLine")) {
