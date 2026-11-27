@@ -15,6 +15,12 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 DRY=0; PRIV=0
 for a in "$@"; do case "$a" in --dry-run) DRY=1;; --with-privacy) PRIV=1;; *) echo "unknown arg $a" >&2; exit 2;; esac; done
 SHOPS="${SHOP_HOSTS:-https://sassy-closet-shop.vercel.app https://sassycloset.vercel.app}"
+# A blank or whitespace-only SHOP_HOSTS is not a host list. It used to leave SHOPS
+# non-empty but word-split to zero words, so every shop check was skipped and the
+# smoke could print PASS having fetched no shop page at all. Treat it as unset.
+if [ -z "${SHOPS//[[:space:]]/}" ]; then
+  SHOPS="https://sassy-closet-shop.vercel.app https://sassycloset.vercel.app"
+fi
 INTAKE="${INTAKE_BASE:-https://sassy-closet.vercel.app}"
 T="${CHECK_TIMEOUT:-20}"; MIN="${MIN_CATALOG:-1}"
 # Intake home is the Nhung form (has a "Taobao link" label), so only cost field names count there.
