@@ -65,8 +65,8 @@ for (const product of seed.products) {
   }
 }
 
-if (parseAsiaSizes(["S", "US M", "XXS", "2XL", "s"]).join(" ") !== "S 2XL") {
-  fail("parseAsiaSizes must keep Asia letters only and drop US / XXS");
+if (parseAsiaSizes(["S", "US M", "XXS", "2XL", "s"]).join(" ") !== "S 2XS 2XL") {
+  fail("parseAsiaSizes must keep Asia letters, alias XXS to 2XS, and drop a US size");
 }
 if (parseFitCm({ bustChestCm: 88, waistCm: "M", lengthCm: -1 }).bustChestCm !== 88) {
   fail("parseFitCm must keep stored cm only");
@@ -79,8 +79,8 @@ try {
   assertAsiaSizesOnly(["US"]);
   fail("US size must be rejected");
 } catch (error) {
-  if (!(error instanceof Error) || !error.message.includes("Never US")) {
-    fail("US size error must say Never US");
+  if (!(error instanceof Error) || !error.message.includes("Never invent US")) {
+    fail("US size error must say Never invent US");
   }
 }
 

@@ -46,6 +46,10 @@ export function parseAsiaSizes(raw: unknown): ShopSize[] {
     }
     const rawText = String(item).trim();
     const upper = rawText.toUpperCase();
+    // "US M" is a US size. Do not pull the M out and sell it as Asia.
+    if (/\bUS\b/.test(upper)) {
+      continue;
+    }
     // Asia main: accept exact letters OR extract from Taobao "S 建议80-90斤" / "M女【…】" / "XXL"
     const asiaMatch = upper.match(/^(2XS|XXS|XS|XXL|2XL|3XL|S|M|L|XL)\b/) ??
       upper.match(/\b(2XS|XXS|XS|XXL|2XL|3XL|S|M|L|XL)\b/);
