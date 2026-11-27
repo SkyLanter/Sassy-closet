@@ -126,14 +126,14 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
   }
 
   const now = new Date().toISOString();
-  const photoPaths = [...input.keep_photos];
-  const photoHashes = existing ? [...existing.photo_hashes] : [];
-  if (input.keep_photos.length === 0 && existing) {
-    photoHashes.length = 0;
-  }
+  // keep_photos is the edit form's "still want these files" list. Hash by path
+  // so a dropped photo is not still findable, and number a new file past the
+  // highest kept name so 001+003 does not get a second 003 that overwrites the kept one.
+  const photoPaths = input.keep_photos.filter((rel): rel is string => typeof rel === "string");
+  const photoHashes = hashesForKeptPaths(existing, photoPaths);
 
   const backend = activeBackend();
-  let index = photoPaths.length;
+  let index = highestPhotoNumber(photoPaths);
   for (const photo of input.photos) {
     index += 1;
     const name = `${String(index).padStart(3, "0")}${photo.ext}`;
@@ -260,6 +260,35 @@ export async function exportCsv(): Promise<string> {
 
 export function storeHealth(): ReturnType<typeof storageStatus> {
   return storageStatus();
+}
+
+function hashesForKeptPaths(existing: Submission | null, keep: readonly string[]): string[] {
+  if (!existing || keep.length === 0) return [];
+  const paths = existing.photo_paths;
+  const hashes = existing.photo_hashes;
+  if (!Array.isArray(paths) || !Array.isArray(hashes) || paths.length !== hashes.length) {
+    return Array.isArray(hashes) ? [...hashes] : [];
+  }
+  const mapped: string[] = [];
+  for (const rel of keep) {
+    const at = paths.indexOf(rel);
+    const hash = at >= 0 ? hashes[at] : undefined;
+    if (typeof hash !== "string") return [...hashes];
+    mapped.push(hash);
+  }
+  return mapped;
+}
+
+function highestPhotoNumber(paths: readonly string[]): number {
+  let max = 0;
+  for (const rel of paths) {
+    const base = rel.slice(rel.lastIndexOf("/") + 1);
+    const match = /^(\d+)/.exec(base);
+    if (!match) continue;
+    const n = Number(match[1]);
+    if (Number.isInteger(n) && n > max) max = n;
+  }
+  return max;
 }
 
 function csvCell(value: string): string {
