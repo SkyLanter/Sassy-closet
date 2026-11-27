@@ -93,6 +93,13 @@ def _today(job: dict, now: datetime) -> tuple[date, bool]:
     return local.date(), local.hour >= int(job.get("expected_hour", 0))
 
 
+def _aware(moment: datetime) -> datetime:
+    """A state file's "at" may carry no offset. Compare it as UTC, never naive."""
+    if moment.tzinfo is None:
+        return moment.replace(tzinfo=timezone.utc)
+    return moment.astimezone(timezone.utc)
+
+
 def check_dated(job: dict, root: Path, now: datetime, days: int) -> dict:
     today, past_hour = _today(job, now)
     off = timedelta(days=int(job.get("date_offset_days", 0)))
@@ -152,7 +159,7 @@ def check_state(job: dict, root: Path, now: datetime, days: int) -> dict:
             probs.append(f"zero-byte {job['pattern']}")
         else:
             try:
-                at = datetime.fromisoformat(json.loads(p.read_text(encoding="utf-8"))["at"])
+                at = _aware(datetime.fromisoformat(json.loads(p.read_text(encoding="utf-8"))["at"]))
             except Exception:  # noqa: BLE001
                 probs.append(f"bad JSON or no 'at' in {job['pattern']}")
         # unreadable state: date from mtime, but it counts as stale (no trusted run time)
