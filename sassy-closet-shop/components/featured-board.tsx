@@ -20,7 +20,7 @@ import { scrollChromeChildIntoView } from "@/lib/gallery-snap";
 import { collectionEmptyCopy, FEATURED_ALL_ARIA, lookCountLabel } from "@/lib/look-count";
 import { filterLooksByQuery, LOOK_SEARCH_TAB_EMPTY, shopSearchNeedle } from "@/lib/look-search";
 import { easeOutFast, slideDirection } from "@/lib/motion";
-import { collectShopSizes } from "@/lib/shop-sizes";
+import { collectShopSizes, countLooksByType } from "@/lib/shop-sizes";
 import type { MaLetter } from "@/lib/ma";
 import type { ShopLook } from "@/lib/shop-look";
 
@@ -81,13 +81,10 @@ export function FeaturedBoard({
     }
     return next;
   }, [activeSize, searched, sort, types]);
-  const counts = useMemo(() => {
-    const next: Record<string, number> = { all: searched.length };
-    for (const type of types) {
-      next[type] = searched.filter((product) => product.type === type).length;
-    }
-    return next;
-  }, [searched, types]);
+  const counts = useMemo(
+    () => countLooksByType(searched, types, activeSize),
+    [activeSize, searched, types],
+  );
   const browseCount = useMemo(() => {
     let total = 0;
     for (const type of types) {
