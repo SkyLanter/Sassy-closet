@@ -7,6 +7,7 @@ import {
 } from "@/lib/asia-size";
 import type { Fulfillment } from "@/lib/fulfillment";
 import { isAllowedImageSrc } from "@/lib/product-parse";
+import { catalogPriceError } from "@/lib/sell-contract";
 import { parseSourceLink } from "@/lib/source-link";
 import type { ProductColor, ProductImageAsset, ProductStatus } from "@/lib/types";
 import { warehouseVoiceError } from "@/lib/warehouse-voice";
@@ -59,6 +60,13 @@ export function validateItemDraft(draft: ItemDraft): string | null {
   }
   if (draft.status === "sold" && priceUsd !== null && Number.isNaN(priceUsd)) {
     return "Sold items need a valid USD price or a blank price.";
+  }
+  if (priceUsd !== null && !Number.isNaN(priceUsd)) {
+    // The intake shop-tools desk reads the same Blob: a price it cannot read blocks every save.
+    const unreadable = catalogPriceError("this row", priceUsd);
+    if (unreadable) {
+      return unreadable;
+    }
   }
   for (const color of draft.colors) {
     if (!color.name.trim()) {

@@ -26,6 +26,25 @@ export function isSellableMa(ma: string): boolean {
   return isValidMa(normalized) && !isOfficialAlphabetMa(normalized);
 }
 
+/** Largest catalog USD the intake shop-tools desk reads back. Above it, the desk rejects the whole file. */
+export const MAX_CATALOG_PRICE_USD = 100000;
+
+/**
+ * The one USD shape both apps accept: 0–100000, a finite number, and whole cents.
+ * `sassy-closet/lib/shop-catalog.ts` readPrice is the desk side of this contract;
+ * a price that fails here is a price the desk cannot list or re-save.
+ */
+export function catalogPriceError(ma: string, priceUsd: number): string | null {
+  if (!Number.isFinite(priceUsd) || priceUsd < 0 || priceUsd > MAX_CATALOG_PRICE_USD) {
+    return `Mã ${ma} has an invalid USD price. The intake desk reads $0–$${MAX_CATALOG_PRICE_USD}.`;
+  }
+  const cents = Math.round(priceUsd * 100);
+  if (Math.abs(priceUsd * 100 - cents) > 1e-6) {
+    return `Mã ${ma} price must be dollars and cents. The intake desk rejects a fraction of a cent.`;
+  }
+  return null;
+}
+
 /**
  * S06 stays $25 under S06 / S6 / s006. A blank price is not a second dollar.
  * Padded spellings are still rejected by the import gate before this runs.
@@ -150,6 +169,13 @@ export function assertImportSellContract(products: Product[]): void {
     const locked = s06PriceLockError(ma, product.priceUsd);
     if (locked) {
       throw new Error(locked);
+    }
+    if (product.priceUsd !== null) {
+      // Shop-tools desk reads this same file; a sub-cent or out-of-range USD wedges every save there.
+      const unreadable = catalogPriceError(ma, product.priceUsd);
+      if (unreadable) {
+        throw new Error(`Import rejected ${unreadable}`);
+      }
     }
   }
 }

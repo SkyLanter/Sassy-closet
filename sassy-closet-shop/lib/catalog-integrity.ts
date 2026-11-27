@@ -1,6 +1,6 @@
 import { KNOWN_SEED_MAS, isKnownSeedMa } from "@/lib/catalog-contract";
 import { canonicalMaSpelling, normalizeMa } from "@/lib/ma";
-import { assertHoldPricePairing } from "@/lib/sell-contract";
+import { assertHoldPricePairing, catalogPriceError } from "@/lib/sell-contract";
 import type { Product } from "@/lib/types";
 
 const OFFICIAL_MA_RE = /^(AO|QU|VA|AK|GI|PK|SET)\d+$/i;
@@ -89,6 +89,7 @@ export function assertNoOfficialAlphabet(products: Product[]): void {
  * Live document: all ten must exist, unique, no Official alphabet.
  * Leftover extras may remain until Remove.
  * Hub Available keeps the stored USD. Hold still means priceUsd null.
+ * Every stored USD is one the intake shop-tools desk can read back.
  */
 export function assertLiveCatalogIntegrity(products: Product[]): void {
   assertUniqueNormalizedMas(products);
@@ -96,6 +97,13 @@ export function assertLiveCatalogIntegrity(products: Product[]): void {
   assertNoOfficialAlphabet(products);
   for (const product of products) {
     const ma = normalizeMa(product.ma);
+    if (product.priceUsd !== null) {
+      // The desk lists and re-saves this same Blob; a price it refuses wedges every mã after it.
+      const unreadable = catalogPriceError(ma, product.priceUsd);
+      if (unreadable) {
+        throw new Error(unreadable);
+      }
+    }
     if (!isKnownSeedMa(ma)) {
       continue;
     }
