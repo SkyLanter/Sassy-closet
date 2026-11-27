@@ -1,0 +1,22 @@
+{
+ "about": "Cross-app catalog USD contract (fake fixture dollars only). One Blob catalog.v1 is written by the sell shop and listed/re-saved by the intake shop-tools desk (sassy-closet/lib/shop-catalog.ts readPrice). deskLists is true when that desk accepts the stored price. Both app tests read this file: the intake test pins the desk side, the shop test pins that no shop write creates a price the desk refuses. No catalog price is changed by any row here.",
+ "maxPriceUsd": 100000,
+ "rows": [
+  { "priceUsd": 0, "deskLists": true, "case": "zero is a stored dollar" },
+  { "priceUsd": 1, "deskLists": true, "case": "whole dollar" },
+  { "priceUsd": 10, "deskLists": true, "case": "whole dollar" },
+  { "priceUsd": 25, "deskLists": true, "case": "whole dollar" },
+  { "priceUsd": 27, "deskLists": true, "case": "whole dollar" },
+  { "priceUsd": 27.5, "deskLists": true, "case": "one decimal place" },
+  { "priceUsd": 27.99, "deskLists": true, "case": "whole cents" },
+  { "priceUsd": 100000, "deskLists": true, "case": "top of the desk range" },
+  { "priceUsd": 0.01, "deskLists": true, "case": "one cent" },
+  { "priceUsd": 20.005, "deskLists": false, "case": "fraction of a cent" },
+  { "priceUsd": 0.001, "deskLists": false, "case": "fraction of a cent" },
+  { "priceUsd": 99.999, "deskLists": false, "case": "fraction of a cent" },
+  { "priceUsd": -0.01, "deskLists": false, "case": "negative dollar" },
+  { "priceUsd": -5, "deskLists": false, "case": "negative dollar" },
+  { "priceUsd": 100000.01, "deskLists": false, "case": "above the desk range" },
+  { "priceUsd": 100001, "deskLists": false, "case": "above the desk range" }
+ ]
+}

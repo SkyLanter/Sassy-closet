@@ -15,7 +15,7 @@ import { applyRecordedHubColors, bindColorId, stampImageOrders } from "@/lib/hub
 import { srcBelongsToMa } from "@/lib/product-media";
 import { assertColorsReadyForSell, isAllowedImageSrc, parseProduct } from "@/lib/product-parse";
 import { assertUniqueNormalizedMas, looksLikeOfficialMa } from "@/lib/catalog-integrity";
-import { assertHoldPricePairing, isSellableMa, nonAllowlistSaveError } from "@/lib/sell-contract";
+import { assertHoldPricePairing, catalogPriceError, isSellableMa, nonAllowlistSaveError } from "@/lib/sell-contract";
 import { isKnownSeedMa } from "@/lib/catalog-contract";
 import { isOffLiveSell } from "@/lib/held-incomplete";
 import { warehouseVoiceError } from "@/lib/warehouse-voice";
@@ -116,6 +116,13 @@ export function productFromFields(ma: string, input: ProductFieldsInput): Produc
   }
   assertHoldPricePairing(ma, status, input.priceUsd);
   assertHoldPricePairing(ma, status, priceUsd);
+  if (priceUsd !== null) {
+    // Same contract as the intake shop-tools desk: it reads and re-saves this Blob.
+    const unreadable = catalogPriceError(ma, priceUsd);
+    if (unreadable) {
+      throw new Error(unreadable);
+    }
+  }
   const voiceError = warehouseVoiceError(
     input.descriptionEn,
     input.descriptionVn,
