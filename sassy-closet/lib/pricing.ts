@@ -113,8 +113,7 @@ export function tieredSellUsd(landedUsd: number): number | null {
 }
 
 export function sellUsdFromLanded(landedUsd: number): number {
-  // Same snap as the tiered quote: a binary value just over an integer
-  // (¥605.07 / 6.723 is $90, but the float is 90.00000000000001) must not ceil up.
+  // Same snap as the tiered quote so a value one ulp over an integer does not ceil up.
   const quoted = ceilQuote(landedUsd / MARGIN_DIVISOR);
   if (quoted < UNDER_TEN_LIMIT_USD) {
     return quoted + UNDER_TEN_BUMP_USD;
