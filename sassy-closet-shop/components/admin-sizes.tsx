@@ -1,6 +1,6 @@
 "use client";
 
-import { ASIA_SIZE_LETTERS, EU_SHOE_SIZES, isShopSize, type FitCm } from "@/lib/asia-size";
+import { ASIA_SIZE_LETTERS, EU_SHOE_SIZES, isShopSize, toggleAsiaLetter, type FitCm } from "@/lib/asia-size";
 import type { AsiaSizeLetter, ShopSize } from "@/lib/types";
 
 export function AdminSizeEditor({
@@ -15,11 +15,7 @@ export function AdminSizeEditor({
   onFitChange: (fit: FitCm) => void;
 }) {
   function toggle(letter: AsiaSizeLetter) {
-    if (sizes.includes(letter)) {
-      onSizesChange(sizes.filter((item) => item !== letter));
-      return;
-    }
-    onSizesChange(ASIA_SIZE_LETTERS.filter((item) => item === letter || sizes.includes(item)));
+    onSizesChange(toggleAsiaLetter(sizes, letter));
   }
 
   function setCm(key: keyof FitCm, raw: string) {

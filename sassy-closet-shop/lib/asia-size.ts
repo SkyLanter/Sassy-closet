@@ -31,6 +31,19 @@ export function isShopSize(value: string): value is ShopSize {
   return isAsiaSizeLetter(value) || isEuShoeSize(value);
 }
 
+/**
+ * Toggle one Asia letter. An EU shoe size already on the row stays.
+ * Letters stay in Asia order. Removing a letter does not clear the shoe.
+ */
+export function toggleAsiaLetter(sizes: readonly ShopSize[], letter: AsiaSizeLetter): ShopSize[] {
+  if (sizes.includes(letter)) {
+    return sizes.filter((item) => item !== letter);
+  }
+  const shoes = sizes.filter(isEuShoeSize);
+  const letters = ASIA_SIZE_LETTERS.filter((item) => item === letter || sizes.includes(item));
+  return [...letters, ...shoes];
+}
+
 export function parseAsiaSizes(raw: unknown): ShopSize[] {
   if (raw === undefined || raw === null) {
     return [];
