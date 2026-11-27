@@ -347,7 +347,35 @@ export function memoryShopCatalogPort(initial: unknown | null): ShopCatalogPort 
   };
 }
 
+/**
+ * One catalog file. Overlapping saves each read the whole document and write
+ * it back, so the later write must read the file after the earlier write or
+ * one mã's edit is dropped. Revalidate stays inside the same turn so a second
+ * save cannot read a document the first save has not written yet.
+ */
+let shopCatalogWrite: Promise<unknown> = Promise.resolve();
+
+function enqueueShopCatalogWrite<T>(job: () => Promise<T>): Promise<T> {
+  const run = shopCatalogWrite.then(job, job);
+  shopCatalogWrite = run.then(
+    () => undefined,
+    () => undefined,
+  );
+  return run;
+}
+
 export async function saveShopCatalogProduct(
+  port: ShopCatalogPort,
+  patch: unknown,
+  options?: {
+    now?: string;
+    revalidate?: () => Promise<{ ok: true } | { ok: false; error: string }>;
+  },
+): Promise<ShopCatalogSaveResult> {
+  return enqueueShopCatalogWrite(() => writeShopCatalogProduct(port, patch, options));
+}
+
+async function writeShopCatalogProduct(
   port: ShopCatalogPort,
   patch: unknown,
   options?: {
