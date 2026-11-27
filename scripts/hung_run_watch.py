@@ -59,12 +59,19 @@ def _mtime(p: Path) -> datetime | None:
         return None
 
 
+def _aware(moment: datetime) -> datetime:
+    """A stored "at" may carry no offset. Compare it as UTC, like run_gap_check."""
+    if moment.tzinfo is None:
+        return moment.replace(tzinfo=timezone.utc)
+    return moment.astimezone(timezone.utc)
+
+
 def heartbeat(state: Path) -> datetime | None:
     seen = []
     lc = state / "last_check.json"
     if lc.exists() and lc.stat().st_size:
         try:
-            seen.append(datetime.fromisoformat(json.loads(lc.read_text(encoding="utf-8"))["at"]))
+            seen.append(_aware(datetime.fromisoformat(json.loads(lc.read_text(encoding="utf-8"))["at"])))
         except Exception:  # noqa: BLE001
             pass
     for n in ("run.sh.lock", "autolist.lock"):
