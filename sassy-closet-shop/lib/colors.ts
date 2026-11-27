@@ -36,6 +36,16 @@ export function createColorId(): string {
 
 const HUB_SLUGS = new Set(["kem", "xanh", "hoa", "do", "den", "hong", "cham-bi"]);
 
+/**
+ * Recorded hub hex for a slug this shop wrote.
+ * A plain-object lookup also answers `Object.prototype` members, so the id
+ * `constructor` returned the `Object` function as the hex and it never
+ * survived serialization. Ask for an own string value only.
+ */
+function recordedHubHex(id: string): string | null {
+  return Object.hasOwn(HUB_SLUG_HEX, id) ? (HUB_SLUG_HEX[id] ?? null) : null;
+}
+
 export function isColorId(value: string): boolean {
   const trimmed = value.trim();
   if (HUB_SLUGS.has(trimmed)) {
@@ -85,7 +95,7 @@ export function parseProductColor(raw: unknown, ma: string, index: number): Prod
   const id =
     typeof idRaw === "string" && isColorId(idRaw) ? idRaw : `${createColorId()}${index}`;
   const hexFromRow = typeof row.hex === "string" ? normalizeHex(row.hex) : null;
-  const hex = hexFromRow ?? HUB_SLUG_HEX[id] ?? null;
+  const hex = hexFromRow ?? recordedHubHex(id) ?? null;
   if (!hex) {
     throw new Error(`Mã ${ma} color ${index} needs a hex value`);
   }
