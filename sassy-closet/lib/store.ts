@@ -65,10 +65,12 @@ export async function getSubmission(ma: string): Promise<Submission | null> {
 
 export async function getOnHandRows(ma: string): Promise<OnHandRow[]> {
   const target = normalizeMa(ma);
+  if (!target) return [];
   const bag = (await loadStore()).on_hand;
-  if (!bag || typeof bag !== "object") return [];
-  const raw = bag[target] ?? bag[ma];
-  return sanitizeOnHandRows(raw, target);
+  if (!bag || typeof bag !== "object" || Array.isArray(bag)) return [];
+  // The find card asks with the canonical mã. A bucket filed as "a01" or "A001"
+  // is the same mã; the exact key was the only one read before.
+  return sanitizeOnHandRows(onHandBucket(bag, ma, target), target);
 }
 
 export async function listMas(): Promise<string[]> {
@@ -260,6 +262,19 @@ export async function exportCsv(): Promise<string> {
 
 export function storeHealth(): ReturnType<typeof storageStatus> {
   return storageStatus();
+}
+
+function onHandBucket(
+  bag: Record<string, unknown>,
+  ma: string,
+  target: string,
+): unknown {
+  if (Object.hasOwn(bag, target)) return bag[target];
+  if (ma !== target && Object.hasOwn(bag, ma)) return bag[ma];
+  for (const key of Object.keys(bag)) {
+    if (normalizeMa(key) === target) return bag[key];
+  }
+  return undefined;
 }
 
 function csvCell(value: string): string {
