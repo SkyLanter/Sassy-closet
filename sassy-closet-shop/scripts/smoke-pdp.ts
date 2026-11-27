@@ -6,6 +6,7 @@ import {
   hidesEmptyAsiaLetterRow,
   inboxForFitLine,
   isAsiaSizeLetter,
+  isShopSize,
   parseAsiaSizes,
   parseFitCm,
 } from "../lib/asia-size";
@@ -53,8 +54,10 @@ const seed = parseCatalogDocument(
 );
 
 for (const product of seed.products) {
-  if (product.sizes.length > 0) {
-    fail(`Seed ${product.ma} invented Asia sizes`);
+  for (const size of product.sizes) {
+    if (!isShopSize(size)) {
+      fail(`Seed ${product.ma} size ${size} is not a stored Asia letter or EU shoe`);
+    }
   }
   if (
     product.fitCm.bustChestCm !== null ||
