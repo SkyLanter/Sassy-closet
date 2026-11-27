@@ -19,23 +19,8 @@ INTAKE="${INTAKE_BASE:-https://sassy-closet.vercel.app}"
 T="${CHECK_TIMEOUT:-20}"; MIN="${MIN_CATALOG:-1}"
 # Intake home is the Nhung form (has a "Taobao link" label), so only cost field names count there.
 LEAK_RE='cost_cny|cost_usd|costCny|costUsd'
-# Held list, canonicalised with held_policy.norm_ma (trim, upper, strip leading zeros).
-HELD="$(HELD_MAS="${HELD_MAS:-}" python3 - "$HERE" <<'PY'
-import json, os, sys
-sys.path.insert(0, sys.argv[1])
-from held_policy import norm_ma
-raw = os.environ.get("HELD_MAS", "").split()
-if not raw:
-    p = os.path.join(sys.argv[1], "..", "data", "held.json")
-    d = json.load(open(p))
-    raw = list(d.get("heldIncomplete", [])) + list(d.get("neverList", [])) + ["Q02"]
-out = []
-for m in raw:
-    n = norm_ma(m)
-    if n and n not in out: out.append(n)
-print(" ".join(out))
-PY
-)" || { echo "FAIL  could not build held list"; exit 1; }
+# Held list from the one source (data/held.json + Q02), canonicalised by scripts/held_mas.py.
+HELD="$(HELD_MAS="${HELD_MAS:-}" python3 "$HERE/held_mas.py")" || { echo "FAIL  could not build held list"; exit 1; }
 
 if [ "$DRY" = 1 ]; then
   echo "DRY RUN (no network). shops=[$SHOPS] intake=$INTAKE"
