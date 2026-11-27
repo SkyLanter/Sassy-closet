@@ -29,3 +29,11 @@ test("CNY↔USD convert both ways on the weekly rate", () => {
   assert.equal(convertCnyToUsd("80", 0), null);
   assert.equal(convertUsdToCny("12", Number.NaN), null);
 });
+
+test("store-rate half cent rounds half up", () => {
+  // 45 * 6.723 = 302.535. Half-up is 302.54.
+  // The float product sits just under the tie and used to format as 302.53.
+  assert.equal(convertUsdToCny("45", 6.723), "302.54");
+  assert.equal(convertUsdToCny("25", 6.723), "168.08");
+  assert.equal(convertUsdToCny("12", 6.723), "80.68");
+});

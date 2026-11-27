@@ -2,7 +2,13 @@
 
 export function formatMoney(n: number): string {
   if (!Number.isFinite(n)) return "";
-  return (Math.round((n + Number.EPSILON) * 100) / 100).toFixed(2);
+  if (!(n > 0)) {
+    return (Math.round((n + Number.EPSILON) * 100) / 100).toFixed(2);
+  }
+  // A product can land one ulp under an exact half-cent. The nudge is far
+  // smaller than the 0.00001 spacing of a 2-decimal amount times a 3-decimal rate.
+  const cents = Math.round(n * 100 + 1e-8);
+  return (cents / 100).toFixed(2);
 }
 
 /**
