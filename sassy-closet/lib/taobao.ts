@@ -191,6 +191,88 @@ function extractGallery(html: string, limit = 12): string[] {
 }
 
 const COLOR_AXIS_RE = /颜色|色号|colour|color/i;
+const SIZE_AXIS_NAME = /^(?:尺码|尺寸|sizes?)$/i;
+const CM_LABEL = /^\d+(?:\.\d+)?$/;
+const MEASUREMENT_LABELS = new Set([
+  "胸围",
+  "衣长",
+  "腰围",
+  "肩宽",
+  "臀围",
+  "袖长",
+  "裤长",
+  "身高",
+  "体重",
+  "裙长",
+]);
+
+function cellPlain(raw: string): string {
+  return decodeHtmlEntities(raw.replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
+}
+
+function isSizeLabel(text: string): boolean {
+  if (text === "" || text.length > 16) return false;
+  if (CM_LABEL.test(text) || SIZE_AXIS_NAME.test(text)) return false;
+  if (MEASUREMENT_LABELS.has(text)) return false;
+  return true;
+}
+
+function uniqueLabels(labels: string[]): string[] {
+  const seen: string[] = [];
+  for (const label of labels) {
+    if (!seen.includes(label)) seen.push(label);
+  }
+  return seen;
+}
+
+function tableRows(tableHtml: string): string[][] {
+  const rows: string[][] = [];
+  for (const rowMatch of tableHtml.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)) {
+    const cells = [...rowMatch[1].matchAll(/<t[hd]\b[^>]*>([\s\S]*?)<\/t[hd]>/gi)].map((cell) =>
+      cellPlain(cell[1]),
+    );
+    if (cells.some((cell) => cell !== "")) rows.push(cells);
+  }
+  return rows;
+}
+
+function sizesFromRows(rows: string[][]): TaobaoSkuAxis | null {
+  for (const row of rows) {
+    if (!row.length || !SIZE_AXIS_NAME.test(row[0] ?? "")) continue;
+    const rest = row.slice(1).filter((cell) => cell !== "");
+    if (rest.length && rest.every(isSizeLabel)) {
+      return { name: row[0] ?? "", values: uniqueLabels(rest) };
+    }
+  }
+  const header = rows[0];
+  if (!header) return null;
+  for (let index = 0; index < header.length; index += 1) {
+    const name = header[index] ?? "";
+    if (!SIZE_AXIS_NAME.test(name)) continue;
+    const labels: string[] = [];
+    let aligned = true;
+    for (const row of rows.slice(1)) {
+      const cell = row[index] ?? "";
+      if (index >= row.length || !isSizeLabel(cell)) {
+        aligned = false;
+        break;
+      }
+      labels.push(cell);
+    }
+    if (aligned && labels.length) return { name, values: uniqueLabels(labels) };
+  }
+  return null;
+}
+
+/** Seller size labels from an HTML size table. Null when the page has none. */
+function sizesFromTable(html: string): TaobaoSkuAxis | null {
+  const body = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ");
+  for (const tableMatch of body.matchAll(/<table\b[^>]*>([\s\S]*?)<\/table>/gi)) {
+    const found = sizesFromRows(tableRows(tableMatch[1] ?? ""));
+    if (found) return found;
+  }
+  return null;
+}
 
 /** Parse already-fetched HTML into a TaobaoItem. Never invents values. */
 export function parseTaobaoHtml(html: string, itemId: string): TaobaoItem {
@@ -207,6 +289,10 @@ export function parseTaobaoHtml(html: string, itemId: string): TaobaoItem {
     } else {
       sizeAxes.push({ name: prop.name, values });
     }
+  }
+  if (!sizeAxes.some((axis) => SIZE_AXIS_NAME.test(axis.name))) {
+    const fromTable = sizesFromTable(html);
+    if (fromTable) sizeAxes.push(fromTable);
   }
   const { listCny, promoCny, promoNote } = extractPrices(html);
   return {
