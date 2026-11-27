@@ -36,7 +36,17 @@ for (const product of seed.products) {
     fail(`Seed ${product.ma} must default to dropship`);
   }
   if (product.sourceLink !== null) {
-    fail(`Seed ${product.ma} invented a sourceLink`);
+    try {
+      const recorded = parseSourceLink(product.sourceLink, product.ma);
+      if (!recorded) {
+        fail(`Seed ${product.ma} sourceLink is not a recorded Taobao URL`);
+      }
+    } catch {
+      fail(`Seed ${product.ma} sourceLink is not a recorded Taobao URL`);
+    }
+  }
+  if (shopSafeProduct(product).sourceLink !== null) {
+    fail(`Shopper payload must hide ${product.ma} sourceLink`);
   }
   const copy = `${product.descriptionEn} ${product.descriptionVn}`;
   if (customerOpsVoiceHit(copy)) {
