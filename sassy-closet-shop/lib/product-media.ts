@@ -1,4 +1,5 @@
 import { isKnownSeedMa } from "@/lib/catalog-contract";
+import { canonicalMaSpelling } from "@/lib/ma";
 import type { Product, ProductColor, ProductImageAsset } from "@/lib/types";
 
 /** Gallery helpers need mã + colors + images only — never status. */
@@ -10,6 +11,7 @@ export type MaMedia = {
 
 /**
  * Hub ten never render another hub mã’s `/products/{MA}/` file.
+ * `A2`, `A002`, and `a02` are the same folder as `A02`.
  * Blob `/uploads/`, https URLs, and extra-mã folders (rename A04 → A03) stay.
  */
 export function srcBelongsToMa(src: string, ma: string): boolean {
@@ -22,11 +24,12 @@ export function srcBelongsToMa(src: string, ma: string): boolean {
   if (!match) {
     return true;
   }
-  const folder = match[1];
-  if (folder === ma) {
+  const folder = match[1] ?? "";
+  const folderKey = canonicalMaSpelling(folder);
+  if (folderKey === canonicalMaSpelling(ma)) {
     return true;
   }
-  return !isKnownSeedMa(folder);
+  return !isKnownSeedMa(folderKey);
 }
 
 export function ownMaImages(product: MaMedia): ProductImageAsset[] {
