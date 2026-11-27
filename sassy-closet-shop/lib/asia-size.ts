@@ -9,6 +9,9 @@ export const EU_SHOE_SIZES = ["34", "35", "36", "37", "38", "39", "40", "41", "4
 export type EuShoeSize = (typeof EU_SHOE_SIZES)[number];
 export type ShopSize = AsiaSizeLetter | EuShoeSize;
 
+const ASIA_LETTER_RE = /^(2XS|XXS|XS|XXL|2XL|3XL|S|M|L|XL)\b/;
+const ASIA_LETTER_WORD_RE = /\b(2XS|XXS|XS|XXL|2XL|3XL|S|M|L|XL)\b/;
+
 export type FitCm = {
   bustChestCm: number | null;
   waistCm: number | null;
@@ -46,13 +49,13 @@ export function parseAsiaSizes(raw: unknown): ShopSize[] {
     }
     const rawText = String(item).trim();
     const upper = rawText.toUpperCase();
-    // "US M" is a US size. Do not pull the M out and sell it as Asia.
-    if (/\bUS\b/.test(upper)) {
+    // Drop only a letter that is the US size ("US M", "M (US)", "美码 M").
+    // A US note on a different value ("S (US 2-4)") still yields the Asia letter.
+    if (asiaLetterIsUsSize(upper)) {
       continue;
     }
     // Asia main: accept exact letters OR extract from Taobao "S 建议80-90斤" / "M女【…】" / "XXL"
-    const asiaMatch = upper.match(/^(2XS|XXS|XS|XXL|2XL|3XL|S|M|L|XL)\b/) ??
-      upper.match(/\b(2XS|XXS|XS|XXL|2XL|3XL|S|M|L|XL)\b/);
+    const asiaMatch = upper.match(ASIA_LETTER_RE) ?? upper.match(ASIA_LETTER_WORD_RE);
     let next: ShopSize | null = null;
     if (asiaMatch) {
       let letter = asiaMatch[1];
@@ -72,6 +75,52 @@ export function parseAsiaSizes(raw: unknown): ShopSize[] {
     sizes.push(next);
   }
   return sizes;
+}
+
+/**
+ * The letter parseAsiaSizes would read is itself a US size.
+ * US markers: "US", "美码", "美国码". A marker that annotates a digit
+ * ("US 2-4", "US 6") is a note on that value, so the Asia letter stays.
+ */
+function asiaLetterIsUsSize(upper: string): boolean {
+  const text = upper.replace(/（/g, "(").replace(/）/g, ")");
+  if (!/\bUS\b/.test(text) && !/美国码|美码/.test(text)) {
+    return false;
+  }
+  const found = ASIA_LETTER_RE.exec(text) ?? ASIA_LETTER_WORD_RE.exec(text);
+  if (!found || found.index === undefined || !found[1]) {
+    return false;
+  }
+  const start = found.index;
+  const end = start + found[1].length;
+  const before = text.slice(0, start);
+  const after = text.slice(end);
+  if (usMarkerImmediatelyBefore(before) || usLabelParenthetical(after)) {
+    return true;
+  }
+  return bareUsMarkerFollowsLetter(after);
+}
+
+function usMarkerImmediatelyBefore(before: string): boolean {
+  return /(?:\bUS|美国码|美码)\s*$/.test(before) || /\(\s*(?:US|美国码|美码)\s*\)\s*$/.test(before);
+}
+
+/** "(US)" / "(美码)" labels the letter. "(US 6)" does not — the number is the US value. */
+function usLabelParenthetical(after: string): boolean {
+  return /^\s*\(\s*(?:US|美国码|美码)\s*\)/.test(after);
+}
+
+/** "M US" / "M美码". "M US 6" keeps M: the marker annotates the digit. */
+function bareUsMarkerFollowsLetter(after: string): boolean {
+  const marker = /^\s*(US\b|美国码|美码)/.exec(after);
+  if (!marker) {
+    return false;
+  }
+  const rest = after.slice(marker[0].length);
+  if (/^\s*\d/.test(rest) || /^\s*\([^)]*\d/.test(rest)) {
+    return false;
+  }
+  return true;
 }
 
 /** Asia letters only, ordered 2XS–2XL. Drops EU shoe sizes. Never fills missing letters. */
