@@ -9,14 +9,40 @@
 # Usage: scripts/post_deploy_privacy_check.sh [--dry-run]
 #   --dry-run   list every check and its expected result; no network.
 # Env: INTAKE_BASE, SHOP_BASE, CHECK_TIMEOUT (default 20),
-#      HELD_MAS (space list, default "K03 K04 K05 V04 Q02 G01 H02 A27 S16")
+#      HELD_MAS (space list, default = every mã in data/held.json heldIncomplete
+#                + neverList, plus Q02)
 # Exit 0 only when every check PASSes.
 set -u
+HERE="$(cd "$(dirname "$0")" && pwd)"
 DRY=0; [ "${1:-}" = "--dry-run" ] && DRY=1
 INTAKE="${INTAKE_BASE:-https://sassy-closet.vercel.app}"
 SHOP="${SHOP_BASE:-https://sassy-closet-shop.vercel.app}"
 T="${CHECK_TIMEOUT:-20}"
-HELD="${HELD_MAS:-K03 K04 K05 V04 Q02 G01 H02 A27 S16}"
+# One held list: data/held.json, canonicalised with held_policy.norm_ma (the same
+# reader live_shop_smoke.sh uses). A typed list would silently skip a held mã that
+# was added later, so it is only the last resort when the file cannot be read.
+HELD="$(HELD_MAS="${HELD_MAS:-}" python3 - "$HERE" <<'PY'
+import json, os, sys
+sys.path.insert(0, sys.argv[1])
+from held_policy import norm_ma
+raw = os.environ.get("HELD_MAS", "").split()
+if not raw:
+    try:
+        with open(os.path.join(sys.argv[1], "..", "data", "held.json"), encoding="utf-8") as fh:
+            data = json.load(fh)
+    except (OSError, ValueError) as error:
+        print(f"post_deploy_privacy_check: cannot read data/held.json ({error}); "
+              "pass HELD_MAS to name the held mãs", file=sys.stderr)
+        raise SystemExit(1)
+    raw = list(data.get("heldIncomplete", [])) + list(data.get("neverList", [])) + ["Q02"]
+out = []
+for ma in raw:
+    code = norm_ma(ma)
+    if code and code not in out:
+        out.append(code)
+print(" ".join(out))
+PY
+)" || { echo "FAIL  could not build the held mã list"; exit 1; }
 OPEN="/api/export /api/submissions /api/ma/S06 /admin/shop"
 
 if [ "$DRY" = 1 ]; then
