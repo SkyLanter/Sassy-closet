@@ -125,6 +125,11 @@ export async function notifyWebhook(record: AskRecord): Promise<boolean> {
   return response.ok;
 }
 
+/** A parsed JSON body that can be read as an object. Arrays, null, and scalars are not. */
+export function isJsonObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 export function readReplySecret(request: Request, body: { secret?: string }): string {
   const header =
     request.headers.get("x-ask-reply-secret") ||
