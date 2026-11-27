@@ -115,6 +115,11 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
     newMa: input.newMa,
     mas,
   });
+  // The mã letter is the kind (A01 is an Áo, G02 is Giày). A rename across
+  // letters must move the kind too, or the caption, size scale, and CSV keep
+  // describing the letter the row used to have. A mã that does not parse
+  // (a legacy row) keeps the kind the form sent.
+  const kind = parseHubMa(normalizeMa(ma))?.kind ?? input.kind;
   const blocked = publishBlock({
     action: existing ? "update" : "create",
     ma,
@@ -146,7 +151,7 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
   const base: Submission = {
     id: existing?.id ?? store.nextId,
     ma,
-    kind: input.kind,
+    kind,
     size: input.size.trim(),
     color: input.color.trim(),
     color_note: input.color_note.trim(),
