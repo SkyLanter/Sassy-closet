@@ -177,7 +177,13 @@ export async function saveSubmission(input: SaveInput): Promise<Submission> {
   base.caption_vi = buildCaptionVi(base, store.fx.usd_cny);
 
   if (existing) {
-    store.submissions = store.submissions.map((row) => (row.id === existing.id ? base : row));
+    // Match the row we loaded, not every row with that id. A shared id used to
+    // rewrite the other mã as a copy of this save.
+    const index = store.submissions.indexOf(existing);
+    if (index < 0) {
+      throw Object.assign(new Error("Không tìm thấy mã này 🥺"), { status: 404 });
+    }
+    store.submissions[index] = base;
   } else {
     store.nextId += 1;
     store.submissions.push(base);
