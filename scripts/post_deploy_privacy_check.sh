@@ -9,14 +9,17 @@
 # Usage: scripts/post_deploy_privacy_check.sh [--dry-run]
 #   --dry-run   list every check and its expected result; no network.
 # Env: INTAKE_BASE, SHOP_BASE, CHECK_TIMEOUT (default 20),
-#      HELD_MAS (space list, default "K03 K04 K05 V04 Q02 G01 H02 A27 S16")
+#      HELD_MAS (space list; default = data/held.json heldIncomplete + neverList + Q02,
+#                the same list scripts/live_shop_smoke.sh checks).
 # Exit 0 only when every check PASSes.
 set -u
 DRY=0; [ "${1:-}" = "--dry-run" ] && DRY=1
 INTAKE="${INTAKE_BASE:-https://sassy-closet.vercel.app}"
 SHOP="${SHOP_BASE:-https://sassy-closet-shop.vercel.app}"
 T="${CHECK_TIMEOUT:-20}"
-HELD="${HELD_MAS:-K03 K04 K05 V04 Q02 G01 H02 A27 S16}"
+HERE="$(cd "$(dirname "$0")" && pwd)"
+# Held list from the one source (data/held.json + Q02), canonicalised by scripts/held_mas.py.
+HELD="$(HELD_MAS="${HELD_MAS:-}" python3 "$HERE/held_mas.py")" || { echo "FAIL  could not build held list"; exit 1; }
 OPEN="/api/export /api/submissions /api/ma/S06 /admin/shop"
 
 if [ "$DRY" = 1 ]; then
