@@ -1,4 +1,4 @@
-import { emptyFitCm, isAsiaSizeLetter } from "@/lib/asia-size";
+import { emptyFitCm, isShopSize } from "@/lib/asia-size";
 import type { ItemDraft } from "@/lib/item-draft";
 import type { ShopSize } from "@/lib/asia-size";
 
@@ -269,7 +269,9 @@ export function intakeToPrefill(submission: IntakeSubmission): IntakePrefill {
     if (!clean) {
       continue;
     }
-    if (isAsiaSizeLetter(clean)) {
+    // Intake chips for giày are the EU range (`sizesForKind("G")`), so "37" is a
+    // stored shop size even though it is not an Asia letter.
+    if (isShopSize(clean)) {
       if (!sizes.includes(clean)) {
         sizes.push(clean);
       }
