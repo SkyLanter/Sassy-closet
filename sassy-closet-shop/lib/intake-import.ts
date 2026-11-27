@@ -243,12 +243,24 @@ export function intakeToPrefill(submission: IntakeSubmission): IntakePrefill {
     byName.set(key, { name: clean, note: note.trim(), truth, source });
   }
 
+  /**
+   * The intake form stores `color` as one chip list joined with ", " (see
+   * sassy-closet/components/IntakeApp.tsx colorLine), so "Đen, Kem" is two
+   * colors, not one. The shop renders one chip and one photo tag per color;
+   * keeping the joined string would publish a single bogus color.
+   */
+  function addColorList(value: string, note: string, truth: ColorTruth, source: string) {
+    for (const part of value.split(",")) {
+      addColor(part, note, truth, source);
+    }
+  }
+
   if (submission.color.trim()) {
-    addColor(submission.color, submission.color_note, "confirmed", "GF input");
+    addColorList(submission.color, submission.color_note, "confirmed", "GF input");
   }
   for (const piece of submission.pieces) {
     if (piece.color.trim()) {
-      addColor(piece.color, piece.note, "confirmed", "GF piece color");
+      addColorList(piece.color, piece.note, "confirmed", "GF piece color");
     }
     for (const suggested of piece.suggested) {
       addColor(suggested, piece.note, "unconfirmed", "suggested only");
