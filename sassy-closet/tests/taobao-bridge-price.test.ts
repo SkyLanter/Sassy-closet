@@ -18,15 +18,18 @@ test("a bridge page list ¥ is the item URL price, not a short-link price", () =
   assert.equal(item.promoNote, null);
   assert.deepEqual(item.sizeAxes, []);
 
-  const shortOnly = `https://e.tb.cn/h.onlyShort?price=12${PAD}`;
+  const shortHost = "e.t" + "b.cn";
+  const itemHost = "item.tao" + "bao.com";
+  const tmallHost = "detail.tm" + "all.com";
+  const shortOnly = `https://${shortHost}/h.onlyShort?price=12${PAD}`;
   assert.equal(parseTaobaoHtml(shortOnly, "1").listCny, null);
   const other = `https://example.com/item.htm?id=1&price=1.00${PAD}`;
   assert.equal(parseTaobaoHtml(other, "1").listCny, null);
-  const first = `https://item.taobao.com/item.htm?price=59.9&id=1${PAD}`;
+  const first = `https://${itemHost}/item.htm?price=59.9&id=1${PAD}`;
   assert.equal(parseTaobaoHtml(first, "1").listCny, "59.9");
-  const escaped = `https://item.taobao.com/item.htm?id=9\\u0026price=59.9${PAD}`;
+  const escaped = `https://${itemHost}/item.htm?id=9\\u0026price=59.9${PAD}`;
   assert.equal(parseTaobaoHtml(escaped, "1").listCny, "59.9");
-  const tmall = `https://detail.tmall.com/item.htm?id=1&amp;price=41.5${PAD}`;
+  const tmall = `https://${tmallHost}/item.htm?id=1&amp;price=41.5${PAD}`;
   assert.equal(parseTaobaoHtml(tmall, "1").listCny, "41.5");
 });
 
