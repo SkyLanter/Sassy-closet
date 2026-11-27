@@ -19,6 +19,12 @@ INTAKE="${INTAKE_BASE:-https://sassy-closet.vercel.app}"
 T="${CHECK_TIMEOUT:-20}"; MIN="${MIN_CATALOG:-1}"
 # Intake home is the Nhung form (has a "Taobao link" label), so only cost field names count there.
 LEAK_RE='cost_cny|cost_usd|costCny|costUsd'
+# The S06 $25 lock must be read as a whole amount. `$25` and `$25.00` are the
+# lock; `$250`, `$2,500` and `$25.99` are not. A bare `$25` substring let a page
+# that lost the lock still PASS.
+s06_lock() {  # $1 = saved body; true only when it shows exactly the $25 lock
+  grep -qE '\$ ?25(\.0+)?([^0-9]|$)' "$1" && ! grep -qE '\$ ?25([0-9]|,|\.[0-9]*[1-9])' "$1"
+}
 # Held list, canonicalised with held_policy.norm_ma (trim, upper, strip leading zeros).
 HELD="$(HELD_MAS="${HELD_MAS:-}" python3 - "$HERE" <<'PY'
 import json, os, sys
@@ -59,7 +65,7 @@ for s in $SHOPS; do
   r=$(python3 -c 'import json,sys;d=json.load(open(sys.argv[1]));print(d.get("reading"),int(d.get("productCount") or 0))' "$TMP/body" 2>/dev/null || echo "? 0")
   rd=${r% *}; n=${r#* }
   { [ "$c" = 200 ] && [ "$rd" = blob ] && [ "$n" -ge "$MIN" ]; } && res ok "$s health reading=blob, catalog=$n" || res no "$s health" "http $c reading=$rd catalog=$n"
-  c=$(get "$s/m/S06"); { [ "$c" = 200 ] && grep -q '\$25' "$TMP/body"; } && res ok "$s /m/S06 shows \$25" || res no "$s /m/S06 \$25" "http $c - S06 MUST BE \$25, tell Boss"
+  c=$(get "$s/m/S06"); { [ "$c" = 200 ] && s06_lock "$TMP/body"; } && res ok "$s /m/S06 shows \$25" || res no "$s /m/S06 \$25" "http $c - S06 MUST BE \$25, tell Boss"
   for m in $HELD; do c=$(get "$s/m/$m"); [ "$c" = 404 ] && res ok "$s /m/$m 404 (held)" || res no "$s /m/$m held" "http $c - HELD MÃ VISIBLE, tell Boss"; done
 done
 c=$(get "$INTAKE/"); f=$(grep -oiE "$LEAK_RE" "$TMP/body" | sort -u | tr '\n' ' ')

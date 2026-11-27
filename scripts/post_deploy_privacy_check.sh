@@ -16,6 +16,11 @@ DRY=0; [ "${1:-}" = "--dry-run" ] && DRY=1
 INTAKE="${INTAKE_BASE:-https://sassy-closet.vercel.app}"
 SHOP="${SHOP_BASE:-https://sassy-closet-shop.vercel.app}"
 T="${CHECK_TIMEOUT:-20}"
+# The S06 $25 lock must be read as a whole amount. `$25` and `$25.00` are the
+# lock; `$250`, `$2,500` and `$25.99` are not.
+s06_lock() {  # $1 = saved body; true only when it shows exactly the $25 lock
+  grep -qE '\$ ?25(\.0+)?([^0-9]|$)' "$1" && ! grep -qE '\$ ?25([0-9]|,|\.[0-9]*[1-9])' "$1"
+}
 HELD="${HELD_MAS:-K03 K04 K05 V04 Q02 G01 H02 A27 S16}"
 OPEN="/api/export /api/submissions /api/ma/S06 /admin/shop"
 
@@ -53,7 +58,7 @@ echo "SKIP  intake POST/PATCH (open by link; not probed)"
 c=$(req GET "$SHOP/api/health")
 r=$(python3 -c 'import json,sys;d=json.load(open(sys.argv[1]));print(d.get("reading"),(d.get("blob") or {}).get("readable"))' "$TMP/body" 2>/dev/null || echo "? ?")
 { [ "$c" = 200 ] && [ "$r" = "blob True" ]; } && res ok "shop health reading=blob, blob readable" || res no "shop health" "http $c, reading/readable=$r"
-c=$(req GET "$SHOP/m/S06"); { [ "$c" = 200 ] && grep -q '\$25' "$TMP/body"; } && res ok "shop /m/S06 200 shows \$25" || res no "shop /m/S06 \$25" "http $c"
+c=$(req GET "$SHOP/m/S06"); { [ "$c" = 200 ] && s06_lock "$TMP/body"; } && res ok "shop /m/S06 200 shows \$25" || res no "shop /m/S06 \$25" "http $c"
 for m in $HELD; do c=$(req GET "$SHOP/m/$m"); [ "$c" = 404 ] && res ok "shop /m/$m 404 (held)" || res no "shop /m/$m held" "http $c - HELD MÃ VISIBLE, tell Boss"; done
 
 echo; if [ "$FAILS" = 0 ]; then echo "POST-DEPLOY PRIVACY CHECK: PASS"; exit 0
