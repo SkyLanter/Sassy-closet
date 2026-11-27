@@ -1,6 +1,7 @@
 import { emptyFitCm, isAsiaSizeLetter } from "@/lib/asia-size";
 import type { ItemDraft } from "@/lib/item-draft";
 import type { ShopSize } from "@/lib/asia-size";
+import { parseSourceLink } from "@/lib/source-link";
 
 /**
  * Intake → draft prefill. The intake app (sassy-closet) stages submissions as
@@ -203,6 +204,23 @@ function parseMoney(raw: string): number | null {
   return Number.isFinite(value) && value >= 0 ? value : null;
 }
 
+/**
+ * A staff shop link the draft can carry. The intake link box keeps any http(s)
+ * URL, but `parseSourceLink` (and so the draft validator and catalog parse)
+ * only accepts the recorded shop hosts. Anything else travels as "" so an
+ * otherwise complete imported look still saves.
+ */
+function staffSourceLink(raw: string): string {
+  if (!raw) {
+    return "";
+  }
+  try {
+    return parseSourceLink(raw) ?? "";
+  } catch {
+    return "";
+  }
+}
+
 function slugifyName(name: string): string {
   return (
     name
@@ -290,8 +308,13 @@ export function intakeToPrefill(submission: IntakeSubmission): IntakePrefill {
   }
 
   const link = submission.link.trim();
+  const sourceLink = staffSourceLink(link);
   if (link && !/^https?:\/\//i.test(link)) {
     warnings.push("Source link is not a URL — left out of the draft. Paste a real link, never invent one.");
+  } else if (link && !sourceLink) {
+    warnings.push(
+      "Source link is not a Taobao link — left out of the draft. Paste the real e.tb.cn link, never invent one.",
+    );
   }
 
   const photoCount = submission.photo_paths.length;
@@ -310,7 +333,7 @@ export function intakeToPrefill(submission: IntakeSubmission): IntakePrefill {
     sellCny,
     sellUsd,
     suggestedSell: null,
-    sourceLink: /^https?:\/\//i.test(link) ? link : "",
+    sourceLink,
     blurb: submission.blurb.trim(),
     captionVi: submission.caption_vi.trim(),
     colorNote: submission.color_note.trim(),
