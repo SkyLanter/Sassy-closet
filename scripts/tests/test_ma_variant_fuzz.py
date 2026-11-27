@@ -60,7 +60,7 @@ LOADERS = {
     "boss_decisions_digest.load_public_held": lambda t, m: bdd.load_public_held(_j(t, "p.json", {"exposedMas": [m]})),
     "too_cheap_check.load_live.products": lambda t, m: set(tcc.load_live(_j(t, "l.json", {"products": [{"ma": m, "priceUsd": 30}]}))),
     "too_cheap_check.load_live.prices": lambda t, m: set(tcc.load_live(_j(t, "l.json", {"prices": {m: 30}}))),
-    "too_cheap_check.load_costs": lambda t, m: set(tcc.load_costs(_csv(t, "c.csv", m, kg="0.5"))),
+    "too_cheap_check.load_costs": lambda t, m: set(tcc.load_costs(_csv(t, "c.csv", m, **{IKEY: "100", "kg": "0.5"}))),
     "too_cheap_check.load_weights": lambda t, m: set(tcc.load_weights([_csv(t, "w.csv", m, kg="0.5")])),
     "held_price_proposal.load_live": lambda t, m: set(hpp.load_live(_j(t, "l.json", {"prices": {m: 30}}))),
     "held_price_proposal.load_live_catalog": lambda t, m: set(hpp.load_live_catalog(_j(t, "l.json", {"products": [{"ma": m, "priceUsd": 30}]}))),
@@ -131,6 +131,6 @@ def test_live_match_variant(variant):
 def test_empty_values_are_dropped(tmp_path, value):
     assert held_policy.norm_ma(value) == ""
     if value is not None:
-        assert tcc.load_costs(_csv(tmp_path, "c.csv", value, kg="0.5")) == {}
+        assert tcc.load_costs(_csv(tmp_path, "c.csv", value, **{IKEY: "100", "kg": "0.5"})) == {}
         assert hpp.load_weights([_csv(tmp_path, "w.csv", value, kg="0.5")]) == {}
         assert intake_gaps.load_weights([_csv(tmp_path, "w.csv", value, kg="0.5")]) == {}
