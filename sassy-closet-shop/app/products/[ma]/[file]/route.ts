@@ -73,7 +73,15 @@ async function bytesFromCatalogSrc(
   if (embedded) {
     const folder = normalizeMa(embedded[1] ?? ma);
     const file = embedded[2] ?? "";
-    return (await readPublicNamedFile(folder, file)) ?? (await readPublicCover(folder)) ?? (await readPublicCover(ma));
+    const named = await readPublicNamedFile(folder, file);
+    if (named) {
+      return named;
+    }
+    // photo-2.jpg must not come back as cover.jpg when that frame is missing.
+    if (/^cover\./i.test(file)) {
+      return (await readPublicCover(folder)) ?? (await readPublicCover(ma));
+    }
+    return null;
   }
   if (isSelfCoverPath(src, ma)) {
     return readPublicCover(ma);
