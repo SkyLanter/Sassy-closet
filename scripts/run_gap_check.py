@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import fnmatch
+import glob
 import json
 import os
 import sys
@@ -93,6 +94,29 @@ def _today(job: dict, now: datetime) -> tuple[date, bool]:
     return local.date(), local.hour >= int(job.get("expected_hour", 0))
 
 
+def _date_in_path(rel: str, pattern: str) -> date | None:
+    """The date a stored path encodes, when it matches the pattern.
+
+    `{date}` may sit in any path component (`out/{date}/summary.md`), so the
+    whole relative path is anchored-matched rather than just the last name.
+    A sibling that merely contains a date is not mistaken for this job's output.
+    """
+    if "{date}" not in pattern:
+        return None
+    pieces = pattern.split("{date}")
+    if len(pieces) != 2:
+        return None  # more than one {date}: ambiguous, do not guess
+    pre, post = pieces
+    if not rel.startswith(pre) or not rel.endswith(post):
+        return None
+    if len(rel) != len(pre) + 10 + len(post):
+        return None
+    try:
+        return date.fromisoformat(rel[len(pre):len(pre) + 10])
+    except ValueError:
+        return None
+
+
 def check_dated(job: dict, root: Path, now: datetime, days: int) -> dict:
     today, past_hour = _today(job, now)
     off = timedelta(days=int(job.get("date_offset_days", 0)))
@@ -106,19 +130,15 @@ def check_dated(job: dict, root: Path, now: datetime, days: int) -> dict:
             pr = _half_written(t, job, root)
             if pr:
                 half[d.isoformat()] = pr
-    # last output over everything on disk (not only the window)
+    # last output over everything on disk (not only the window). {date} may sit in any
+    # path component (`out/{date}/summary.md`), so the whole pattern is globbed instead
+    # of assuming the date is part of the final name.
     pat = job["pattern"].rstrip("/")
-    parent = (root / pat).parent
-    pre, post = Path(pat).name.split("{date}")
     alld = []
-    if parent.is_dir():
-        for e in parent.iterdir():
-            n = e.name
-            if n.startswith(pre) and n.endswith(post) and len(n) == len(pre) + 10 + len(post):
-                try:
-                    alld.append(date.fromisoformat(n[len(pre):len(pre) + 10]))
-                except ValueError:
-                    pass
+    for hit in sorted(glob.glob(str(root / pat.format(date="*")))):
+        found = _date_in_path(Path(hit).relative_to(root).as_posix(), pat)
+        if found is not None:
+            alld.append(found)
     last = max(alld) if alld else None
     missing = [d for d in window if d not in present]
     # today's slot only counts as missing once past the expected hour
