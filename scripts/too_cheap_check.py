@@ -233,17 +233,39 @@ def load_live(path: Path) -> dict[str, float]:
     raise ValueError(f"{path}: expected a catalog with products[] or a prices map")
 
 
+# Every spelling a cost CSV uses for Nhung's intake ¥. `cost_cny` is the intake
+# export's own column (sassy-closet/lib/store.ts exportCsv -> GET /api/export);
+# the other two are the cost-recheck and hand-written files.
+INTAKE_YEN_COLUMNS = ("intake_cny", "baseline_cny", "cost_cny")
+LIST_YEN_COLUMNS = ("list_cny", "recheck_cny")
+
+
 def load_costs(path: Path) -> dict[str, dict[str, str]]:
-    """CSV with ma plus intake ¥ (intake_cny or baseline_cny), list ¥ (list_cny or recheck_cny), kg."""
+    """CSV with ma plus intake ¥ (intake_cny, baseline_cny, or the export's cost_cny)."""
     out: dict[str, dict[str, str]] = {}
     with path.open(encoding="utf-8-sig", newline="") as f:
-        for r in csv.DictReader(f):
+        reader = csv.DictReader(f)
+        columns = set(reader.fieldnames or ())
+        if not columns & set(INTAKE_YEN_COLUMNS):
+            raise ValueError(
+                f"{path}: no intake ¥ column "
+                f"({' or '.join(INTAKE_YEN_COLUMNS)}); refusing to report every mã as skipped"
+            )
+        for r in reader:
             ma = norm_ma((r.get("ma") or ""))
             if ma:
-                out[ma] = {"intake_cny": r.get("intake_cny") or r.get("baseline_cny") or "",
-                           "list_cny": r.get("list_cny") or r.get("recheck_cny") or "",
+                out[ma] = {"intake_cny": _first_value(r, INTAKE_YEN_COLUMNS),
+                           "list_cny": _first_value(r, LIST_YEN_COLUMNS),
                            "kg": r.get("kg") or ""}
     return out
+
+
+def _first_value(row: dict[str, str], names: tuple[str, ...]) -> str:
+    for name in names:
+        value = row.get(name)
+        if value:
+            return value
+    return ""
 
 
 def load_weights(paths: list[Path]) -> dict[str, Decimal]:
@@ -273,7 +295,11 @@ def main(argv: list[str] | None = None) -> int:
     a = p.parse_args(argv)
     if a.headroom_pct < 0:
         p.error("--headroom-pct must be >= 0")
-    summary = summarize(evaluate(load_live(a.live), load_costs(a.costs), load_held_from_ts(a.held_ts),
+    try:
+        costs = load_costs(a.costs)
+    except (OSError, ValueError) as error:
+        p.error(str(error))
+    summary = summarize(evaluate(load_live(a.live), costs, load_held_from_ts(a.held_ts),
                                  load_weights(a.weights)), a.headroom_pct)
     md = markdown(summary, a.title)
     if a.out_md:
