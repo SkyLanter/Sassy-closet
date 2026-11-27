@@ -67,6 +67,19 @@ test("auto price returns null for bad inputs instead of inventing a price", () =
   assert.equal(computeAutoPrice({ costCny: 50, fxRate: 0, kind: "A" }), null);
 });
 
+test("exact landed dollars are not ceiled up by float noise", () => {
+  // ¥605.07 / 6.723 is $90 exactly, so ceil(90 / 0.75) is 120.
+  // The binary quotient is just over 120, and Math.ceil of that is 121.
+  const plain = computeAutoPrice({ costCny: 605.07, fxRate: FX, kind: "A" });
+  assert.ok(plain);
+  assert.equal(plain.sellUsd, 120);
+  // Same yen plus the locked $7.50 debox is $97.50. ceil(97.50 / 0.75) is 130.
+  const withDebox = computeAutoPrice({ costCny: 605.07, fxRate: FX, kind: "V" });
+  assert.ok(withDebox);
+  assert.equal(withDebox.deboxUsd, 7.5);
+  assert.equal(withDebox.sellUsd, 130);
+});
+
 test("tiered sell matches auto-list fixed points", () => {
   assert.equal(tieredSellUsd(16.26), 26);
   assert.equal(tieredSellUsd(19.5), 30);
